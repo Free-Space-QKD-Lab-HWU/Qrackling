@@ -8,9 +8,6 @@ classdef DPS_Detector < Detector
         Dead_Time{mustBeNonnegative}                                       %dead time of detector in s
         Visibility{mustBePositive,mustBeScalarOrEmpty}                     % Visibility of the interferometer
     end
-    properties(SetAccess=protected)
-        Protocol='DPS';
-    end
 
     methods
         function obj = DPS_Detector(Wavelength,Detection_Efficiency,Dark_Count_Rate,Histogram_Data,Histogram_Bin_Width,Time_Gate_Width,Spectral_Filter_Width,V)

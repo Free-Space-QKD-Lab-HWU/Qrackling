@@ -4,6 +4,8 @@ classdef E91_Protocol < Protocol
     properties(Abstract=false,SetAccess=protected)
         Name='E91';
         Efficiency=1;
+        DetectorRequirements={'Dark_Count_Rate','Time_Gate_Width','Dead_Time'};
+        SourceRequirements={'g2','Mean_Photon_Number','State_Prep_Error'};
     end
 
     methods

@@ -3,19 +3,13 @@ classdef  BB84_Detector < Detector
     %BB84 protocol
 
     properties (Abstract=false,SetAccess=protected)
-        Dark_Count_Rate{mustBeNonnegative,mustBeScalarOrEmpty}=10;         %frequency of dark counts of receivers' detectors in cps
-        Time_Gate_Width{mustBePositive,mustBeScalarOrEmpty}=10^-9;         %width of the time gate used in s
-        Spectral_Filter_Width{mustBePositive,mustBeScalarOrEmpty}=1;       %spectral filter width in nm
-        Dead_Time{mustBeScalarOrEmpty,mustBeNonnegative}=0;                %detector dead time in s
-        HistogramDataLocation{mustBeText}='none';                          %location of histogram data used to characterise this detector
-        HistogramBinWidth{mustBeScalarOrEmpty,mustBePositive}=10^-12;      %bin width of the histogram data used to characterise this detector
-    end
-    properties(Abstract=false,SetAccess=protected)
-        Protocol='BB84';
+        Dark_Count_Rate{mustBeNonnegative,mustBeScalarOrEmpty}             %frequency of dark counts of receivers' detectors in cps
+        Time_Gate_Width{mustBePositive,mustBeScalarOrEmpty}                %width of the time gate used in s
+        Dead_Time{mustBeScalarOrEmpty,mustBeNonnegative}                   %detector dead time in s
     end
 
     methods
-        function obj = BB84_Detector(Wavelength,Detection_Efficiency,Dark_Count_Rate,Dead_Time,HistogramData,HistogramBinWidth,Time_Gate_Width,Spectral_Filter_Width,Repetition_Rate)
+        function obj = BB84_Detector(Wavelength,Detection_Efficiency,Dark_Count_Rate,Dead_Time,HistogramData,HistogramBinWidth,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width)
             %BB84_Receiver Construct an instance of this class
 
             if nargin==0
@@ -23,10 +17,10 @@ classdef  BB84_Detector < Detector
             end
             obj.Wavelength=Wavelength;
             obj.Detection_Efficiency=Detection_Efficiency;
-            obj.Time_Gate_Width=Time_Gate_Width;
             obj.Dark_Count_Rate=Dark_Count_Rate;
-            obj.Dead_Time=Dead_Time;
+            obj.Time_Gate_Width=Time_Gate_Width;
             obj.Spectral_Filter_Width=Spectral_Filter_Width;
+            obj.Dead_Time=Dead_Time;
             %autocompute QBER propreties
             obj=SetJitterPerformance(obj,HistogramData,HistogramBinWidth,Time_Gate_Width,Repetition_Rate);
             

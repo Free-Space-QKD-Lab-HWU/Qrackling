@@ -9,14 +9,13 @@ Wavelength=850;
 Time_Gate_Width=10^-9;
 Spectral_Filter_Width=1;
 Repetition_Rate=10^9;
-Detector_Factory=Generic_Detector_Factory();
 
 %% declare common components
 Transmitter_Telescope=Telescope(Transmitter_Diameter,Wavelength);
 Receiver_Telescope=Telescope(Receiver_Diameter,Wavelength);
 
 %% background light sources (uncomment as appropriate
-Sun=load('Sun.mat');
+Sun=load("Light Reflection implementations\Sun.mat");
 Sun=Sun.Sun;
 Cities=load('Cities.mat');
 Cities=Cities.Cities;
@@ -27,7 +26,7 @@ Background_Sources=[Sun,Cities];
 %declare specific components
 BB84_S=BB84_Source(Wavelength);
 BB84_P=BB84_Protocol();
-BB84_D=CreateDetector(Generic_Detector_Factory,Wavelength,'BB84',Time_Gate_Width,Spectral_Filter_Width,Repetition_Rate);
+BB84_D=MPD_Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
 
 %make generic components
 SimSatellite=Satellite(OrbitDataFileLocation,BB84_S,Transmitter_Telescope);

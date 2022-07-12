@@ -1,16 +1,13 @@
-%Author: Cameron Simmons
-%Date: 24/1/22
-
 classdef Ground_Station < Located_Object
-    %Ground_Station an object containing all of the simulation parameters of the ground station
+    %%GROUND_STATION an object containing all of the simulation parameters of the ground station
 
     properties (Abstract=false,SetAccess=protected)
         Protocol{mustBeText}='';                                           %name of protocol to be used
         
-        Detector                                                           %a receiver object, validated individually in subclasses
+        Detector                                                           %a detector object, validated individually in subclasses
         Telescope Telescope
 
-        Background_Count_Rate_File_Location{mustBeText}='';                    %pointer to a file containing the background count rate data for this ground station (stored in counts/steradian)
+        Background_Count_Rate_File_Location{mustBeText}='';                %pointer to a file containing the background count rate data for this ground station (stored in counts/steradian)
         Background_Count_Rates{isstruct,isfield(Background_Count_Rates,'Heading'),isfield(Background_Count_Rates,'Elevation'),isfield(Background_Count_Rates,'Count_Rate')};%background count rate (in counts/s) as a function of heading and elevation, stored as a structure with fields 'Count_Rate','Heading' and 'Elevation'
     end
     
@@ -22,20 +19,24 @@ classdef Ground_Station < Located_Object
 
         Elevation_Limit{mustBePositive}=30;                                %minimum elevation to establish a link in deg
 
-        Light_Pollution_Count_Rates{mustBeVector,mustBeNonnegative}=0;        %count rates at the Ground station due to light pollution
-        Dark_Count_Rates{mustBeVector,mustBeNonnegative}=0;                   %count rates at the Ground station due to dark counts
-        Reflection_Count_Rates{mustBeVector,mustBeNonnegative}=0;             %count rates at the Ground station due to reflected light off satellite
+        Light_Pollution_Count_Rates{mustBeVector,mustBeNonnegative}=0;     %count rates at the Ground station due to light pollution
+        Dark_Count_Rates{mustBeVector,mustBeNonnegative}=0;                %count rates at the Ground station due to dark counts
+        Reflection_Count_Rates{mustBeVector,mustBeNonnegative}=0;          %count rates at the Ground station due to reflected light off satellite
     end
 
     methods
         function Ground_Station = Ground_Station(Background_Count_Rate_File_Location,Detector,Telescope,Location_Name,LLA)
-            %GROUND_STATION instantiate a ground station using either a
-            %named location or a location name and LLA
+            %GROUND_STATION instantiate a ground station using either its
+            %component classes and requiring a name and location (LLA=lat
+            %lon alt)
             
             %set Telescope parameters
             Ground_Station.Detector=Detector;
             Ground_Station.Telescope=Telescope;
 
+            %set Telescope to be wavelength of detector
+            Ground_Station.Telescope=SetWavelength(Ground_Station.Telescope,Ground_Station.Detector.Wavelength);            
+ 
             %set Background count rate data
             Ground_Station=ReadBackgroundCountRateData(Ground_Station,Background_Count_Rate_File_Location);
 
@@ -45,7 +46,7 @@ classdef Ground_Station < Located_Object
 
 
         function [Background_Count_Rates,Background_Count_Rates_Per_Steradian_Per_nm]=GetLightPollutionCountRate(Ground_Station,Headings,Elevations)
-            %%GETBACKGROUNDCOUNTRATE return the background count rate
+            %%GETLIGHTPOLLUTIONCOUNTRATE return the background count rate
             %%values closest to the input headings and elevations in an
             %%array of the same dimensions
 
@@ -66,7 +67,7 @@ classdef Ground_Station < Located_Object
                     Heading=Headings(i,j);
                     Elevation=Elevations(i,j);
 
-                        %% find closest per steradian value to given heading and elevation
+                        %% find closest background count rate value to given heading and elevation
                         %get heading and elevation of measurements
                         Measurement_Headings=Ground_Station.Background_Count_Rates.Heading;
                         Measurement_Elevation=Ground_Station.Background_Count_Rates.Elevation;
@@ -182,7 +183,9 @@ classdef Ground_Station < Located_Object
         end
     
         function PlotLOS(Ground_Station,Satellite_Altitude)
-
+            %%PLOTLOS plot the ground station and its line of sight to a
+            %%given altitude 
+            
             % plot ground station
             geoplot(Ground_Station.Latitude,Ground_Station.Longitude,'k*','MarkerSize',20);
             hold on

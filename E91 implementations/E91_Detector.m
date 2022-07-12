@@ -7,7 +7,6 @@ classdef E91_Detector < Detector
         Time_Gate_Width{mustBePositive,mustBeScalarOrEmpty}                %width of the time gate used in s
         Spectral_Filter_Width{mustBePositive,mustBeScalarOrEmpty}          %spectral filter width in nm
         Dead_Time{mustBeNonnegative}                                       %dead time of detector in s
-        Protocol='E91';
     end
 
     methods

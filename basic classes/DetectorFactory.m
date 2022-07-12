@@ -1,6 +1,6 @@
 classdef (Abstract) DetectorFactory
-    %DetectorFactory a class containing all of the information required to
-    %create a detector with well defined characteristics and a method to
+    %DETECTORFACTORY a class containing all of the information required to
+    %create a detector with particular characteristics and a method to
     %create such a detector
 properties (Abstract,SetAccess=protected)
         Dark_Count_Rate                                                    %count rate (in cps) resulting from internal noise
@@ -14,7 +14,8 @@ end
          Detector=CreateDetector(DetectorFactory,Wavelength,Protocol,Repetition_Rate,varargin)
 
          function PlotHistogram(DetectorFactory)
-             %%plot the timing jitter histogram of this detector
+             %%PLOTHISTOGRAM plot the timing jitter histogram of this
+             %%detector type
              plot((DetectorFactory.Histogram_Bin_Width)*(0:numel(DetectorFactory.Histogram_Data)-1),DetectorFactory.Histogram_Data*(1/(sum(DetectorFactory.Histogram_Data)*DetectorFactory.Histogram_Bin_Width)));
              xlabel('Time (s)')
              ylabel('Probability Density Function (1/s)')

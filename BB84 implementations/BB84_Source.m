@@ -5,7 +5,6 @@ classdef BB84_Source < Source
         g2{mustBeScalarOrEmpty}=0.01;                                         %second order autocorrelation function [g^2(0)] (for a single-photon source this should be zero)
         Mean_Photon_Number{mustBeScalarOrEmpty,mustBePositive}=0.01;          %average number of photons per pulse
         State_Prep_Error{mustBeScalarOrEmpty,mustBeNonnegative}=0.01;         %convolution of errors due to state preparation (as a fraction)
-        Protocol='BB84';
     end
 
     methods

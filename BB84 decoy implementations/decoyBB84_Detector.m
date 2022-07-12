@@ -2,8 +2,8 @@ classdef decoyBB84_Detector < BB84_Detector
     %BB84_Receiver provide the properties of the telescope to be used
     %for the HOGS
     methods
-        function obj = decoyBB84_Detector(Wavelength,Detection_Efficiency,Dark_Count_Rate,Dead_Time,HistogramData,HistogramBinWidth,Time_Gate_Width,Spectral_Filter_Width,Repetition_Rate)
-            %BB84_Receiver Construct an instance of this class
+        function obj = decoyBB84_Detector(Wavelength,Detection_Efficiency,Dark_Count_Rate,Dead_Time,HistogramData,HistogramBinWidth,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width)
+            %decoyBB84_Receiver Construct an instance of this class
 
             if nargin==0
                 return
@@ -11,11 +11,10 @@ classdef decoyBB84_Detector < BB84_Detector
             obj.Wavelength=Wavelength;
             obj.Detection_Efficiency=Detection_Efficiency;
             obj.Dark_Count_Rate=Dark_Count_Rate;
-            obj.Dead_Time=Dead_Time;
             obj.Time_Gate_Width=Time_Gate_Width;
             obj.Spectral_Filter_Width=Spectral_Filter_Width;
-            obj=SetJitterPerformance(obj,HistogramData,HistogramBinWidth,Time_Gate_Width,Repetition_Rate);
-            obj=SetProtocol(obj,'decoyBB84');
+            obj.Dead_Time=Dead_Time;
+            obj=SetJitterPerformance(obj,HistogramData,HistogramBinWidth,obj.Time_Gate_Width,Repetition_Rate);
         end
 
 

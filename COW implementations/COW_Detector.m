@@ -10,9 +10,6 @@ classdef COW_Detector < Detector
         tB{mustBePositive,mustBeScalarOrEmpty}                             % Porcetange of photons going into the key detetcion stage
         Visibility{mustBePositive,mustBeScalarOrEmpty}                     % Visibility of the interferometer
     end
-    properties(SetAccess=protected)
-        Protocol='COW';
-    end
 
     methods
         function obj = COW_Detector(Wavelength,Detection_Efficiency,Dark_Count_Rate,Dead_Time,Histogram_Data,Histogram_Bin_Width,Time_Gate_Width,Repetition_Rate,Spectral_Filter_Width,tB,V)

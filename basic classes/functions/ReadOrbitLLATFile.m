@@ -1,5 +1,5 @@
 function LLATData=ReadOrbitLLATFile(LLATFileName)
-%% a function which reads a text file produced by GMAT which stores the Latitude, longitude, altitude and time data of a satellite pass over the UK
+%%READORBITLLATFILE a function which reads a text file produced by GMAT which stores the Latitude, longitude, altitude and time data of a satellite pass over the UK
 
 %% open the file and assign it an ID
 FileID=fopen(LLATFileName);

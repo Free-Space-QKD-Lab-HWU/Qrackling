@@ -4,6 +4,8 @@ classdef COW_Protocol < Protocol
     properties(Abstract=false,SetAccess=protected)
         Name='COW';
         Efficiency=1;
+        DetectorRequirements={'Dark_Count_Rate','Time_Gate_Width','Dead_Time','tB','Visibility'};
+        SourceRequirements={'Decoy_Probability','Mean_Photon_Number','Extinction_Ratio'};
     end
 
     methods
@@ -12,7 +14,7 @@ classdef COW_Protocol < Protocol
         end
 
         function [Secret_Key_Rate,QBER] = EvaluateQKDLink(Protocol,COW_Source,COW_Detector,Link_Loss_dB,Background_Count_Rate)
-            %serialise to deal with singular output of decoyBB84_Model
+            %serialise to deal with singular output of COW model
             sz=size(Link_Loss_dB);
             Secret_Key_Rate=zeros(sz);
             QBER=nan(sz);

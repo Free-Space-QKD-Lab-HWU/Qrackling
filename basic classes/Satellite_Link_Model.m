@@ -1,11 +1,10 @@
 classdef Satellite_Link_Model < Link_Model
-    %Satellite_Link_Model Summary of this class goes here
-    %   a link model specific to satellite to OGS downlink
+    %SATELLITE_LINK_MODEL a link model specific to satellite to OGS downlink
 
     properties (SetAccess=protected,Abstract=false)
-        Link_Loss;                                                     %link loss in absolute terms
-        Link_Loss_dB;                                                       %link loss measured in dB
-        Shadow_Flag;                                                      %flag describing when the link is shadowed
+        Link_Loss;                                                         %link loss in absolute terms
+        Link_Loss_dB;                                                      %link loss measured in dB
+        Shadow_Flag;                                                       %flag describing when the link is shadowed
     end
     properties (SetAccess=protected)
         Geometric_Loss=nan;                                                %geometric loss in absolute terms
@@ -16,7 +15,6 @@ classdef Satellite_Link_Model < Link_Model
         APT_Loss_dB=nan;                                                   %tracking loss in dB
         Atmospheric_Loss=nan;                                              %atmospheric loss in absolute terms
         Atmospheric_Loss_dB=nan;                                           %atmospheric loss in dB
-
         Length=nan;                                                        %link distance in m
     end
 
@@ -79,7 +77,7 @@ classdef Satellite_Link_Model < Link_Model
         end
 
         function Link_Models=SetOpticalEfficiencyLoss(Link_Models,Optical_Efficiency_Loss)
-            %%SETEFFICIENCY LOSS
+            %%SETOPTICALEFFICIENCYLOSS set the optical efficiency loss in the link
 
             %% input validation
             if ~all(isreal(Optical_Efficiency_Loss)&Optical_Efficiency_Loss>=0)
@@ -107,7 +105,7 @@ classdef Satellite_Link_Model < Link_Model
         end
 
         function Link_Models=SetAPTLoss(Link_Models,APT_Loss)
-            %%SETEFFICIENCY LOSS
+            %%SETAPTLOSS set the acquistion, pointing and tracking loss of the link
 
             %% input validation
             if ~all(isreal(APT_Loss)&APT_Loss>=0)
@@ -163,7 +161,7 @@ classdef Satellite_Link_Model < Link_Model
     methods (Access=public)
 
         function Satellite_Link_Model=Satellite_Link_Model(Data_Length)
-            %%SATELLITE_LINK_MODEL construct an instance of Satellite_Link_Model with the indicated  width
+            %%SATELLITE_LINK_MODEL construct an instance of Satellite_Link_Model with the indicated number of modelled points
             if nargin==0
                 return
             elseif isscalar(Data_Length)&&mod(Data_Length,1)==0&&Data_Length>0
@@ -174,16 +172,16 @@ classdef Satellite_Link_Model < Link_Model
         end
 
         function [Link_Model,Link_Loss_dB] = Compute_Link_Loss(Link_Model,Satellite,Ground_Station)
-            %COMPUTE_LINK_LOSS compute loss between satellite and ground
+            %%COMPUTE_LINK_LOSS compute loss between satellite and ground 
             %station
 
             %% compute link lengths
             Link_Lengths=ComputeDistanceBetween(Satellite,Ground_Station);
             Link_Model=SetLinkLength(Link_Model,Link_Lengths);
 
-            %% see Link loss analysis for a satellite quantum communication down-linkChunmei Zhang*, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller, Ross J. Donaldson Scottish Universities Physics Alliance, Institute of Photonics and Quantum Sciences, School of Engineering and Physical Sciences, Heriot-Watt University, Edinburgh, EH14 4AS
+            %% see Link loss analysis for a satellite quantum communication down-link Chunmei Zhang*, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller, Ross J. Donaldson
             Geo_Loss=(Ground_Station.Telescope.Diameter./(ones(size(Link_Lengths))*Satellite.Telescope.Diameter+Link_Lengths*Satellite.Telescope.FOV)).^2;
-            %deal with earth shadowing
+            %compute when earth shadowing of link is present
             Shadowing=IsEarthShadowed(Satellite,Ground_Station);
             Geo_Loss(Shadowing)=0;
             Eff_Loss=Satellite.Source.Efficiency*Satellite.Telescope.Optical_Efficiency*Ground_Station.Detector.Detection_Efficiency*Ground_Station.Detector.Jitter_Loss*Ground_Station.Telescope.Optical_Efficiency;
@@ -204,8 +202,7 @@ classdef Satellite_Link_Model < Link_Model
         end
 
         function Geometric_Loss_dB=GetGeometricLossdB(Satellite_Link_Model)
-            %%GETGEOMETRICLOSSDB return an array of geometric losses in dB the
-            %%same dimensions as the satellite link model
+            %%GETGEOMETRICLOSSDB return an array of geometric losses in dB the same dimensions as the satellite link model
             sz=size(Satellite_Link_Model);
             Geometric_Loss_dB=zeros(sz);
 
@@ -219,7 +216,7 @@ classdef Satellite_Link_Model < Link_Model
 
         function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Link_Model)
             %%GETATMOSPHERICLOSSDB return an array of atmospheric losses in dB the
-            %%same dimensions as the satellite link model
+            %same dimensions as the satellite link model
             sz=size(Satellite_Link_Model);
             Atmospheric_Loss_dB=zeros(sz);
 
@@ -233,7 +230,7 @@ classdef Satellite_Link_Model < Link_Model
 
         function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Satellite_Link_Model)
             %%GETEFFICIENCYLOSSDB return an array of efficiency losses in dB the
-            %%same dimensions as the satellite link model
+            % same dimensions as the satellite link model
             sz=size(Satellite_Link_Model);
             OpticalEfficiency_Loss_dB=zeros(sz);
 
@@ -246,8 +243,8 @@ classdef Satellite_Link_Model < Link_Model
         end
 
         function APT_Loss_dB=GetAPTLossdB(Satellite_Link_Model)
-            %%GETEFFICIENCYLOSSDB return an array of efficiency losses in dB the
-            %%same dimensions as the satellite link model
+            %%GETAPTLOSSDB return an array of acquistition, pointing and tracking
+            % losses in dB the same dimensions as the satellite link model
             sz=size(Satellite_Link_Model);
             APT_Loss_dB=zeros(sz);
 
@@ -260,7 +257,8 @@ classdef Satellite_Link_Model < Link_Model
         end
 
         function Plot(Satellite_Link_Model,X_Axis)
-            %% plot the link loss over time of the satellite link
+            %%PLOT plot the link loss over time of the satellite link
+            
             %must use column vector of losses for area
             if isrow(Satellite_Link_Model)
                 Satellite_Link_Model=Satellite_Link_Model';
@@ -296,9 +294,9 @@ classdef Satellite_Link_Model < Link_Model
         end
 
         function [Link_Model,Total_Loss_dB]=SetTotalLoss(Link_Model)
-            %%SETTOTALLOSS
+            %%SETTOTALLOSS update total loss to reflect stored loss values
+            
             %stay in dB domain for numerical precision
-
             sz=size(Link_Model);
             for i=1:sz(1)
                 for j=1:sz(2)

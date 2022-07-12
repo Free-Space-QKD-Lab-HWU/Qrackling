@@ -1,6 +1,3 @@
-%Author: Cameron Simmons
-%Date: 24/1/22
-
 classdef PassSimulation
     %PassSimulation Simulation of a QKD satellite pass
     %   an object which contains all of the contents of a simulation of a
@@ -36,15 +33,13 @@ classdef PassSimulation
         function PassSimulation = PassSimulation(Satellite,Protocol,Ground_Station,Background_Sources)
             %PASSSIMULATION Construct an instance of a PassSimulation
 
-
-
             PassSimulation.Satellite = Satellite;
             PassSimulation.Ground_Station = Ground_Station;
             PassSimulation.Protocol=Protocol;
-            if ~TestCompatibility(Protocol,Satellite.Source)
-                error('satellite source is not compartible with %s protocol',Protocol.Name);
+            if ~IsSourceCompatible(Protocol,Satellite.Source)
+                error('satellite source is not compatible with %s protocol',Protocol.Name);
             end
-            if ~TestCompatibility(Protocol,Ground_Station.Detector)
+            if ~IsDetectorCompatible(Protocol,Ground_Station.Detector)
                 error('Ground station detector is not compatible with %s protocol',Protocol.Name);
             end
             if ~isequal(Satellite.Source.Wavelength,Ground_Station.Detector.Wavelength)
@@ -59,27 +54,29 @@ classdef PassSimulation
         end
 
         function PassSimulation = Simulate(PassSimulation)
-            %SIMULATE Peform the simulation with
+            %SIMULATE Peform the simulation with the components of PassSimulation
 
             %% load in data
             %satellite data
             N_Steps=PassSimulation.Satellite.N_Steps;
             PassSimulation.Times=PassSimulation.Satellite.Times;
-            %ground station data
 
             %% set number of steps in simulation
             PassSimulation=Set_N_Steps(PassSimulation,N_Steps);
             PassSimulation.Link_Model=Satellite_Link_Model(N_Steps);
 
 
-            %% Compute background count rate
+            %% Compute background count rate and link heading and elevation
             [Background_Count_Rates,Ground_Station,Headings,Elevations]=ComputeTotalBackgroundCountRate(PassSimulation.Ground_Station,PassSimulation.Background_Sources,PassSimulation.Satellite);
             PassSimulation.Ground_Station=Ground_Station;
 
             %% Check elevation limit
             Elevation_Limit_Flags=Elevations>PassSimulation.Ground_Station.Elevation_Limit;
-
-            %% if elevation limit is met simulate a QKD link
+            %Check that satellite rises above elevation limit at some point
+            if ~any(Elevation_Limit_Flags)
+                error('satellite does not enter elevation window of ground station');
+            end
+            
 
             %% Compute Link loss
             Computed_Link_Models=Compute_Link_Loss(PassSimulation.Link_Model,PassSimulation.Satellite,PassSimulation.Ground_Station);

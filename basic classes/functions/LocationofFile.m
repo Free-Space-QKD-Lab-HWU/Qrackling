@@ -1,5 +1,5 @@
 function Location_String=LocationofFile(File_String)
-%% LOCATIONOFFILE return the relative path of the folder in which the specified file sits
+%%LOCATIONOFFILE return the relative path of the folder in which the specified file sits
 
 %% locate path separators in file string
 Separator_Locations=isequal(File_String,'\');

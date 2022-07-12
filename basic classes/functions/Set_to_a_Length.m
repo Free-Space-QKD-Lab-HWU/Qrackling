@@ -1,7 +1,8 @@
 function ArrayOut=Set_to_a_Length(ArrayIn,Length,PadSpecies)
-%input must be a vector
+%%SET_TO_A_LENGTH
+%input ArrayIn must be a vector
 %if a vector is empty, set it to be an array of PadSpecies
-%if the vector is populated, pad with PadSpecies or crop
+%if the vector is populated, pad with PadSpecies or crop to achieve Length
 
 %PadSpecies can be 'zero', 'one' or 'nan'
 

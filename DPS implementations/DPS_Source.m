@@ -3,11 +3,7 @@ classdef DPS_Source < Source
 
     properties
         Mean_Photon_Number{mustBeScalarOrEmpty,mustBePositive}=0.06;    % average number of photons per pulse for each state
-        Extinction_Ratio{mustBeScalarOrEmpty,mustBePositive}=20;   % probability of each state
-
-    end
-    properties(SetAccess=protected)
-        Protocol='DPS';
+        State_Prep_Error{mustBeScalarOrEmpty,mustBePositive}=0.01; %probability that state is prepared incorrectly
     end
 
     methods

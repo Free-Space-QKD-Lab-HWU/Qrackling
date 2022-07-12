@@ -1,14 +1,14 @@
 classdef Chilbolton_OGS < Ground_Station
-    %Chilbolton_OGS example OGS instance which represents the proposed
+    %CHILBOLTON_OGS example OGS instance which represents the proposed
     %Chilbolton site
 
     properties
-%all properties inherited from BB84Ground_Station
+%all properties inherited from Ground_Station
     end
 
     methods
         function Chilbolton_OGS = Chilbolton_OGS(Detector,Telescope)
-            %Chilbolton_OGS Construct an instance of a OGS at HWU site at the
+            %Chilbolton_OGS Construct an instance of a OGS at chilbolton site at the
             %input wavelength
 
             %wavelength can be 780 or 850 only as these are what we have
@@ -27,7 +27,7 @@ classdef Chilbolton_OGS < Ground_Station
                 Detector,...
                 Telescope,...
                 'Chilbolton',...%location name
-                [51.142680,-1.436580,86]); %no LLA provided
+                [51.142680,-1.436580,86]); %COORDS
         end
 
     end

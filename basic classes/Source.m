@@ -1,19 +1,15 @@
 classdef(Abstract) Source
     %Source object containing transmitter details
 
-
     properties(SetAccess=protected)
         Wavelength{mustBeScalarOrEmpty,mustBePositive};                    %wavelength of the source (in nm), set by the satellite it is mounted to
         Repetition_Rate{mustBeScalarOrEmpty,mustBeNonnegative}=10^9        %number of photon pulses per s (Hz)
         Efficiency{mustBeScalarOrEmpty,mustBePositive}=1;                  %transmitter power efficiencyend
     end
-    properties(SetAccess=protected,Abstract=true)
-    Protocol
-    end
 
     methods
         function obj = Source(Wavelength,Repetition_Rate,Efficiency)
-            %Transmitter Construct an instance of this class
+            %%SOURCE construct a source object
             switch nargin
                 case 1
             obj=SetWavelength(obj,Wavelength);
@@ -30,10 +26,11 @@ classdef(Abstract) Source
         end
 
         function Source=SetWavelength(Source,Wavelength)
-            %%SETWAVELENGTH set the wavelength (nm) of the transmitter
+            %%SETWAVELENGTH set the wavelength (nm) of the source
             Source.Wavelength=Wavelength;
         end
         function Source=SetRepetitionRate(Source,Repetition_Rate)
+            %%SETREPETITIONRATE set the repetition rate (Hz) of the source
             Source.Repetition_Rate=Repetition_Rate;
         end
         

@@ -1,6 +1,7 @@
 function [Secret_Key_Rate,QBER]=EvaluateQKDLink(Satellite,Ground_Station,Link_Loss_dB,Background_Count_Rate)
 %%EVALUATEQKDLINK   compute the sifted key rate and qber for the particular
-%%protocol being used
+%%protocol being used for a pass between a given satellite and ground
+%%station exposed to given loss and BCR
 
 
 %% switch between protocols being used. The same protocol must be present in satellite and ground station

@@ -1,22 +1,21 @@
 classdef (Abstract=true) Link_Model
-    %Link_Model Class for computing link loss
-    %   Detailed explanation goes here
+    %%LINK_MODEL Class for computing and storing link loss
 
     properties (SetAccess=protected,Abstract=true)
-        Link_Loss;                                                     %link loss in absolute terms
-        Link_Loss_dB;                                                       %link loss measured in dB
+        Link_Loss;                                                         %link loss in absolute terms
+        Link_Loss_dB;                                                      %link loss measured in dB
     end
 
     methods (Access=public,Abstract=true)
          [Link_Model,Link_Loss_dB] = Compute_Link_Loss(Link_Model,Located_Obj_1,Located_Obj_2)
-            %COMPUTE_LINK_LOSS compute loss between transmitter and
+          %%COMPUTE_LINK_LOSS compute loss between transmitter and
             %receiver
 
         [Link_Model,Total_Loss_dB]=SetTotalLoss(Link_Model)
-        %update total loss to reflect internal stored computations
+        %%SETTOTALLOSSupdate total loss to reflect internal stored computations
         
         Plot(Link_Model,X_Axis)
-            %% plot link loss
+        %%PLOT plot link loss over a given x axis
     end
 
     methods (Access=public,Abstract=false)

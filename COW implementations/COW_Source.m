@@ -6,9 +6,6 @@ classdef COW_Source < Source
         Extinction_Ratio{mustBeScalarOrEmpty,mustBePositive}=20;   % probability of each state
         Decoy_Probability{mustBeScalarOrEmpty,mustBePositive}=0.155;
     end
-    properties(SetAccess=protected)
-        Protocol='COW';
-    end
 
     methods
         function COW_Source = COW_Source(Wavelength,MPN,extinction_ratio,decoy_prob)

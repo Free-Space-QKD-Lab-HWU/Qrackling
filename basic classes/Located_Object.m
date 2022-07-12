@@ -1,5 +1,5 @@
 classdef (Abstract=true)Located_Object
-    %object containing latitude, longitude and altitude position data,
+    %LOCATED_OBJECT object containing latitude, longitude and altitude position data,
     %possibly for many time stamps
 
     properties(SetAccess=protected)
@@ -83,7 +83,7 @@ classdef (Abstract=true)Located_Object
             %%COMPUTERELATIVECOORDS compute the ENU coords of located
             %%object 1 relative to located object 2
 
-            %% need to vary behaviour dependent on number of position data in each object
+            %% need to vary behaviour dependent on number of position data time stamps in each object
             if Located_Obj_1.N_Position==1&&Located_Obj_2.N_Position==1
                 %1 location from each object
                 ENUs=lla2enu(GetLLA(Located_Obj_1),GetLLA(Located_Obj_2),'ellipsoid');
@@ -133,7 +133,7 @@ classdef (Abstract=true)Located_Object
         end
 
         function [Headings,Elevations,Distances]=RelativeHeadingAndElevation(Located_Obj_1,Located_Obj_2)
-            %%RELATIVEHEADINGANDELEVATION returh the heading and elevation
+            %%RELATIVEHEADINGANDELEVATION return the heading and elevation
             %%of object 1 relative to object 2
             %% get ENU of 1 from 2
             ENUs=ComputeRelativeCoords(Located_Obj_1,Located_Obj_2);
@@ -179,8 +179,7 @@ classdef (Abstract=true)Located_Object
 
             %% determine the minimum radius from earth's centre of the line between these two
             Dot_product=sum(Pos_1.*Pos_2,2);
-            Lambda_min=(Row2Norms(Pos_1).^2-Dot_product)./(Row2Norms(Pos_1).^2+Row2Norms(Pos_2).^2-2.*Dot_product);
-
+            Lambda_min=(Row2Norms(Pos_1).^2-Dot_product)./(Row2Norms(Pos_1).^2+Row2Norms(Pos_2).^2-2.*Dot_product); %nondimensional parameter descrbing position of minimum radius point
             Pos_min=Pos_1.*(1-Lambda_min)+Pos_2.*Lambda_min;
             %check lambda for not being inside bounds
                 %if Lambda_min is <0 this indicates the the first position
@@ -191,7 +190,7 @@ classdef (Abstract=true)Located_Object
                 else
                 Pos_min(Lambda_min<0,:)=Pos_1(Lambda_min<0,:);
                 end
-                %if lambda_min>1 this indicates that the 2nd position 9is
+                %if lambda_min>1 this indicates that the 2nd position is
                 %the lowest radius
                 if isvector(Pos_2)
                 Pos_min(Lambda_min>1,:)=ones(sum(Lambda_min>1),1)*Pos_2;

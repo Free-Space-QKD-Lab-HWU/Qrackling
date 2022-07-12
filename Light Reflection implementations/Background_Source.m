@@ -6,7 +6,7 @@ classdef Background_Source < Located_Object
     properties
         Spectral_Pointance{mustBeNumeric}=nan;                             %power per unit solid angle as a function of wavelength in W/str/nm for this source
         Wavelength_Limits{mustBeVector,mustBeNumeric}=[nan,nan];          %wavelengths (in nm) over which the radiance per unit bandwidth is specified
-        Elevation_Limit{mustBeScalarOrEmpty,mustBeNonnegative,mustBeLessThanOrEqual(Elevation_Limit,90)}=0;%minimum elevation at which laser can be fired in degrees
+        Elevation_Limit{mustBeScalarOrEmpty,mustBeLessThanOrEqual(Elevation_Limit,90)}=0;%minimum elevation at which laser can be fired in degrees
 
     end
 

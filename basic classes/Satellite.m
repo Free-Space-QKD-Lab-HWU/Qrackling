@@ -1,6 +1,3 @@
-%Author: Cameron Simmons
-%Date: 24/1/22
-
 classdef Satellite < Located_Object
     %SATELLITE abstract class containing the satellite properties for simulation
 
@@ -10,14 +7,13 @@ classdef Satellite < Located_Object
     end
     
     properties (SetAccess=protected,Hidden=false)%do not hide small properties
-        Orbit_Data_File_Location{mustBeText}='';                               %Location of the file containing Latitude, Longitude, Altitude and Time data
-        
-        Source Source=BB84_Source(1);                        %object containing transmitter details
-        Telescope Telescope
+        Orbit_Data_File_Location{mustBeText}='';                           %Location of the file containing Latitude, Longitude, Altitude and Time data
+        Source                                                             %object containing transmitter details
+        Telescope Telescope                                                %object containing telescope details
 
         %% information about protocol
-        Protocol{mustBeText}='';                                               %protocol used (BB84,BBN92,...)
-        Protocol_Efficiency{mustBeScalarOrEmpty}=1;                           %efficiency of the protocol used
+        Protocol{mustBeText}='';                                           %protocol used (BB84,BBN92,...)
+        Protocol_Efficiency{mustBeScalarOrEmpty}=1;                        %efficiency of the protocol used
 
         %% information about reflection
         Frontal_Area{mustBeScalarOrEmpty,mustBePositive}=4;                %frontal area of the satellite in m^2
@@ -30,15 +26,18 @@ classdef Satellite < Located_Object
             %SATELLITE Construct an instance of satellite using an orbital
             %LLAT text file
             Satellite.Source=Source;
+
+            % read in orbit data from LLAT file
             Satellite=ReadOrbitLLATFile(Satellite,OrbitDataFileLocation);
 
             Satellite.Telescope=Telescope;
+
             %set Telescope to be wavelength of transmitter
             Satellite.Telescope=SetWavelength(Satellite.Telescope,Satellite.Source.Wavelength);            
         end
 
         function [Satellite,Latitude,Longitude,Altitude,Time] = ReadOrbitLLATFile(Satellite,Orbit_Data_File_Location)
-            %ReadOrbitLLATFile Read in the given (or internally pointed to
+            %%READORBITLLATFILE Read in the given (or internally pointed to
             %if no file is given) orbit data file
 
             %% add orbit files to path
@@ -81,18 +80,16 @@ classdef Satellite < Located_Object
         end
     
         function Satellite=SetWavelength(Satellite,Wavelength)
-            %%SETWAVELENGTH set the wavelength property of the internal
-            %%transmitter
+            %%SETWAVELENGTH set the wavelength property of the internal transmitter and telescope
             Satellite.Source=SetWavelength(Satellite.Source,Wavelength);
             Satellite.Telescope=SetWavelength(Satellite.Telescope,Wavelength);
         end
 
         function Distances=ComputeDistancesTo(Satellite,LLA)
-            %%COMPUTEDISTANCESTO return the distances to a fixed LLA over a
-            %%satellite pass
+            %%COMPUTEDISTANCESTO return the distances to a fixed LLA over a satellite pass
 
-                        %% readout satellite positions
-            Latitudes=Satellite.Latitudes; %#ok<*PROPLC> 
+            %% readout satellite positions
+            Latitudes=Satellite.Latitudes;
             Longitudes=Satellite.Longitudes;
             Altitudes=Satellite.Altitudes;
 

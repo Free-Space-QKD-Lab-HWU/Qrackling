@@ -1,9 +1,9 @@
 classdef HWU_OGS < Ground_Station
-    %York_OGS example OGS instance which represents the proposed
-    %York site
+    %HWU_OGS example OGS instance which represents the heriot watt
+    %university campus buildings
 
     properties
-%all properties inherited from BB84Ground_Station
+%all properties inherited from Ground_Station
     end
 
     methods
@@ -26,7 +26,7 @@ classdef HWU_OGS < Ground_Station
                 Detector,...
                 Telescope,...
                 'HWU',...%location name
-                [55.911420,-3.322424,84]); %no LLA provided
+                [55.911420,-3.322424,84]); %coords
         end
 
     end

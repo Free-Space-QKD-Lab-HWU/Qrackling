@@ -1,9 +1,9 @@
 classdef Errol_OGS < Ground_Station
-    %Errol_850_OGS example OGS instance which represents the proposed errol
+    %ERROL_850_OGS example OGS instance which represents the proposed errol
     %site
 
     properties
-%all properties inherited from BB84Ground_Station
+%all properties inherited from Ground_Station
     end
 
     methods
@@ -26,7 +26,7 @@ classdef Errol_OGS < Ground_Station
                 Detector,...
                 Telescope,...
                 'Errol',...%location name
-                [56.40555555,-3.18833333,10]); %no LLA provided
+                [56.40555555,-3.18833333,10]); %coords
         end
 
     end

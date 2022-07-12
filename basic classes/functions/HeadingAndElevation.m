@@ -1,5 +1,5 @@
 function [Headings,Elevations]=HeadingAndElevation(R)
-%% compute the heading and elevation in degrees of a nx3 vector r with x,y,z components as row elements
+%%HEADINGANDELEVATION compute the heading and elevation in degrees of a nx3 vector r with x,y,z components as row elements
 
 %% input validation
 if ~isnumeric(R)

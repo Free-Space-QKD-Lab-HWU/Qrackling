@@ -1,5 +1,5 @@
 function Row_Norms= Row2Norms(Array)
-%%NOWMROWS return a column vector which contains the 2 norm of each row in
+%%ROW2NORMS return a column vector which contains the 2 norm of each row in
 %%the 2d array Array
 
 %% input validation

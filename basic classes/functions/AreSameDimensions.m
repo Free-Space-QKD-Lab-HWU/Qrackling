@@ -1,5 +1,5 @@
 function SameDims = AreSameDimensions(varargin)
-%AreSameDimensions Returns true if all input arrays are of the same
+%ARESAMEDIMENSIONS Returns true if all input arrays are of the same
 %dimensions, else returns false
 
 %% input validation

@@ -1,5 +1,5 @@
 function [QBER,Loss,Loss_dB]=JitterPerformance(Histogram,Bin_Width,Repetition_Rate,Gate_Width)
-%% return the QBER due to jitter and Loss due to out-of-window arrival from a detector with a given response histogram
+%%JITTERPERFORMANCE return the QBER due to jitter and Loss due to out-of-window arrival from a detector with a given response histogram
 
 %% input validation
 %check that Histogram is a correctly computed histogram

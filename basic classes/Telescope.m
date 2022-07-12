@@ -4,9 +4,9 @@ classdef Telescope
 
     properties
         Diameter{mustBeScalarOrEmpty,mustBePositive}=0.08;                 %diameter of the transmitter in m
-        Far_Field_Divergence_Coefficient=1;                                %ratio between theoretical and acutal far field divergence angle
+        Far_Field_Divergence_Coefficient{mustBeScalarOrEmpty,mustBePositive}=1;%ratio between theoretical and acutal far field divergence angle
         Optical_Efficiency{mustBeScalarOrEmpty,mustBePositive}=0.6;        %optical efficiency- from cassegrain telescope obscuration (Link loss analysis for a satellite quantum communication downlink, Single photon group)
-        Pointing_Jitter=10^-6;                                           %rms error in pointing in radians
+        Pointing_Jitter{mustBeScalarOrEmpty,mustBePositive}=10^-6;         %rms error in pointing in radians
     end
     properties(SetAccess=protected)
         Wavelength{mustBeScalarOrEmpty,mustBePositive};                    %wavelength of the transmitter (in nm), set by the satellite it is mounted to
@@ -15,9 +15,10 @@ classdef Telescope
 
     methods
         function obj = Telescope(Diameter,Wavelength,Optical_Efficiency,Far_Field_Divergence_Coefficient)
-            %TELESCOPE Construct an instance of this class
+            %%TELESCOPE construct a telescope object
+
             %   wavelength can be left blank for implementation inside
-            %   another object
+            %   another object which determines its wavelength
             obj.Diameter = Diameter;
             if nargin>=2
                 obj=SetWavelength(obj,Wavelength);
@@ -35,11 +36,13 @@ classdef Telescope
             Telescope.Wavelength=Wavelength;
             Telescope.FOV=2.44*Telescope.Far_Field_Divergence_Coefficient*(Telescope.Wavelength*10^-9)/Telescope.Diameter;
         end
+
         function Telescope=SetDiameter(Telescope,Diameter)
             %%SETWAVELENGTH set the diameter (in m) of the transmitter
             Telescope.Diameter=Diameter;
             Telescope.FOV=2.44*Telescope.Far_Field_Divergence_Coefficient*(Telescope.Wavelength*10^-9)/Telescope.Diameter;
         end
+        
         function Telescope=SetPointingJitter(Telescope,Pointing_Jitter)
             %%SETPOINTINGJITTER set pointing jitter of the OGS
             Telescope.Pointing_Jitter=Pointing_Jitter;

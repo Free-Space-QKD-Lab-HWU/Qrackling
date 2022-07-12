@@ -6,9 +6,6 @@ classdef decoyBB84_Source < Source
         State_probability{mustBePositive,mustBeVector}=[0.7 0.2 0.1];   % probability of each state
         State_Prep_Error{mustBeScalarOrEmpty,mustBeNonnegative}=0.01;          % convolution of errors due to state preparation (as a fraction)
     end
-    properties(SetAccess=protected)
-        Protocol='decoyBB84';
-    end
 
     methods
         function decoyBB84_Source = decoyBB84_Source(Wavelength,MPN,State_probability,State_Prep_Error)
@@ -18,18 +15,15 @@ classdef decoyBB84_Source < Source
             decoyBB84_Source=decoyBB84_Source@Source(Wavelength);
             %set given properties
             if nargin>1
-                decoyBB84_Source=SetDiameter(decoyBB84_Source,Diameter);
+                decoyBB84_Source.Mean_Photon_Number=MPN;
                 if nargin>2
-                    decoyBB84_Source.Mean_Photon_Number=MPN;
+                    %check probabilities add to 1
+                    if ~sum(State_probability)==1
+                        error('state probability vector must total 1');
+                    end
+                    decoyBB84_Source.State_probability=State_probability;
                     if nargin>3
-                        %check probabilities add to 1
-                        if ~sum(State_probability)==1
-                            error('state probability vector must total 1');
-                        end
-                        decoyBB84_Source.State_probability=State_probability;
-                        if nargin>4
-                            decoyBB84_Source.State_Prep_Error=State_Prep_Error;
-                        end
+                        decoyBB84_Source.State_Prep_Error=State_Prep_Error;
                     end
                 end
             end

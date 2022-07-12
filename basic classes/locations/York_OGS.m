@@ -26,7 +26,7 @@ classdef York_OGS < Ground_Station
                 Detector,...
                 Telescope,...
                 'York',...%location name
-                [53.943333,-1.0580555,11]); %no LLA provided
+                [53.943333,-1.0580555,11]); %coords
         end
 
     end
