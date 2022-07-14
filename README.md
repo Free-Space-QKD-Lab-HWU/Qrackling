@@ -1,9 +1,12 @@
 # QKD_Sat_Link
 
-Initial Commit 16/6/22
+**This branch will break analysis currently being worked on**
 
-Commit 12/7/22
--Provide example scripts for simulating orbits
--Change detector construction behaviour to avoid factory pattern
--Change protocol compatibility so that detector are not specific to a protocol
--Replace DPS model with corrected version
+Tests in ```/test scripts``` need to be updated to reference the changes made to:
+
+1. ```/basic classes/Located_Object.m```
+2. ```/basic classes/Satellite.m```
+
+that were needed to define ```basic classes/Constellation.m```
+
+Full details of these will be documented later, for now see ```/test scripts/test_constellation.m```
