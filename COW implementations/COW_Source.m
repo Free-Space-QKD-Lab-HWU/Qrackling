@@ -3,7 +3,7 @@ classdef COW_Source < Source
 
     properties
         Mean_Photon_Number{mustBeScalarOrEmpty,mustBePositive}=0.06;    % average number of photons per pulse for each state
-        Extinction_Ratio{mustBeScalarOrEmpty,mustBePositive}=20;   % probability of each state
+        State_Prep_Error{mustBeScalarOrEmpty,mustBePositive}=0.01;      % probability of each state being prepared incorrectly
         Decoy_Probability{mustBeScalarOrEmpty,mustBePositive}=0.155;
     end
 

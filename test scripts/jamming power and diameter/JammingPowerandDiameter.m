@@ -19,7 +19,7 @@
     Receiver_Telescope=Telescope(Receiver_Diameter,Wavelength,0.16);
     %source, detector, protocol
     BB84_S=BB84_Source(Wavelength);
-    BB84_D=CreateDetector(Generic_Detector_Factory,Wavelength,'BB84',Time_Gate_Width,Spectral_Filter_Width,Repetition_Rate);
+    BB84_D=Generic_Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
     BB84_P=BB84_Protocol();
     %satellite and OGS
     SimSatellite=Satellite(OrbitDataFileLocation,BB84_S,Transmitter_Telescope);

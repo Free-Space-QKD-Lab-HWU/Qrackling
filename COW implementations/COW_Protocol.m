@@ -4,8 +4,8 @@ classdef COW_Protocol < Protocol
     properties(Abstract=false,SetAccess=protected)
         Name='COW';
         Efficiency=1;
-        DetectorRequirements={'Dark_Count_Rate','Time_Gate_Width','Dead_Time','tB','Visibility'};
-        SourceRequirements={'Decoy_Probability','Mean_Photon_Number','Extinction_Ratio'};
+        DetectorRequirements={'Time_Gate_Width','Dead_Time','Visibility'};
+        SourceRequirements={'Decoy_Probability','Mean_Photon_Number','State_Prep_Error'};
     end
 
     methods
@@ -22,9 +22,8 @@ classdef COW_Protocol < Protocol
             % serialise task
             for i=1:sz(1)
                 for j=1:sz(2)
-            [Current_SKR,~,Current_QBER]=COW_model(COW_Source.Mean_Photon_Number, COW_Source.Extinction_Ratio, COW_Source.Repetition_Rate,...
-    COW_Detector.Detection_Efficiency, 1-exp(-Background_Count_Rate(i,j)*COW_Detector.Time_Gate_Width),Background_Count_Rate(i,j), Link_Loss_dB(i,j),...
-    COW_Detector.QBER_Jitter, COW_Detector.Dead_Time,COW_Source.Decoy_Probability,COW_Detector.tB,COW_Detector.Visibility);
+            [Current_SKR,Current_QBER]=COW_model(COW_Source.Mean_Photon_Number, COW_Source.State_Prep_Error, COW_Source.Repetition_Rate, 1-exp(-Background_Count_Rate(i,j)*COW_Detector.Time_Gate_Width), Link_Loss_dB(i,j),...
+    COW_Detector.QBER_Jitter, COW_Detector.Dead_Time,COW_Source.Decoy_Probability,COW_Detector.Visibility);
                 Secret_Key_Rate(i,j)=Current_SKR;
                 %use the first QBER as this is from the signal states
                 QBER(i,j)=Current_QBER(1);
