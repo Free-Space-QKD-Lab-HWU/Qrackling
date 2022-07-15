@@ -5,6 +5,7 @@ classdef Constellation
     properties
         scenario = nan;
         Satellites = {Satellite.empty(0)};
+        toolbox_satellites = {satellite.empty(0)};
         N = nan;
         startTime;
         stopTime;
@@ -65,7 +66,9 @@ classdef Constellation
                                                        t_sample);
             
             if ~isempty(p.Results.TLE)
-                satellites = satellite(Constellation.scenario, p.Results.TLE);
+                satellites = satellite(Constellation.scenario, ...
+                                       p.Results.TLE, ...
+                                       'OrbitPropagator', 'sgp4');
                 Constellation.N = max(size(Constellation.scenario.Satellites));
                 Constellation = initialise_satellite_objects(Constellation, ...
                                                             source, ...
@@ -135,6 +138,7 @@ classdef Constellation
                                                               telescope)
             for i= 1:Constellation.N
                 tb_sat = Constellation.scenario.Satellites(i);
+                Constellation.toolbox_satellites{i} = tb_sat;
                 sat = Satellite(source, telescope, ...
                                 startTime= Constellation.startTime, ...
                                 stopTime= Constellation.stopTime, ...
@@ -167,35 +171,20 @@ classdef Constellation
 
                     satellites = satellite(Constellation.scenario, ...
                                            sma, ecc, inc, raan, aop, ta, ...
-                                           'Name', names{i});
+                                           'Name', names{i}, ...
+                                           'OrbitPropagator', 'sgp4');
                 end
             end
         end
 
-        function [sma, ecc, inc, raan, aop, ta] = elementsFromScenario(scenario)
+        function [sma, ecc, inc, raan, aop, ta] = elementsFromScenario(self, scenario)
             orbitalElements = scenario.orbitalElements;
-            sma = meanmotion2semimajoraxis(orbitalElements.MeanMotion);
+            sma = utils().meanmotion2semimajoraxis(orbitalElements.MeanMotion);
             ecc = orbitalElements.Eccentricity;
             inc = orbitalElements.Inclination;
             raan = orbitalElements.RightAscensionOfAscendingNode;
             aop = orbitalElements.ArgumentOfPeriapsis;
-            ta = eccentricity2trueAnomaly(ecc);
-        end
-
-        function true_anomaly = eccentricity2trueAnomaly(eccentricity)
-            true_anomaly = 2 .* atan(...
-                                    sqrt(...
-                                            (1 + eccentricity) ...
-                                            / (1 - eccentricity)) ...
-                                    .* tan(eccentricity / 2));
-        end
-
-        function semimajor_axis = meanmotion2semimajoraxis(mean_motion)
-            M = 5.97237e24;
-            G = 6.67430e-11;
-            mu = G * M;
-            
-            semimajor_axis = mu ./ (mean_motion .^ 2);
+            ta = utils().eccentricity2trueAnomaly(ecc, orbitalElements.MeanAnomaly);
         end
     end
 end

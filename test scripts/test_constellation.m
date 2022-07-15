@@ -1,4 +1,6 @@
 %%Test Constellation class
+
+% %% test conversion
 close all;
 clc;
 clear all;
@@ -8,8 +10,10 @@ pass = 0;
 debug = false;
 
 startTime = datetime(2020,6,02,8,23,0);
+startTime = datetime(2020,6,02,18,43,16);
 stopTime = startTime + hours(5);
 sampleTime = 360;
+sampleTime = 6;
 
 Transmitter_Diameter=0.08;
 Receiver_Diameter=0.7;
@@ -31,6 +35,14 @@ constellation = Constellation(source=BB84_S, ...
                               sampleTime = sampleTime, ...
                               TLE="threeSatelliteConstellation.tle");
 
+
+% [sma, ecc, inc, raan, aop, ta] = constellation.elementsFromScenario(constellation.toolbox_satellites{1})
+% 
+% sc = satelliteScenario(startTime, stopTime, sampleTime);
+% sat = satellite(sc, sma, ecc, inc, raan, aop, ta);
+% con_sat = constellation.toolbox_satellites{1};
+
+% %% other
 assert(constellation.N == 3);
 pass = pass + 1;
 
@@ -102,6 +114,9 @@ if debug
         disp(constellation.Satellites{i});
     end
 end
+
+sat = constellation.toolbox_satellites{1};
+show(sat);
 
 assert(constellation.N == 4);
 pass = pass + 1;
