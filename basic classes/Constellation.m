@@ -114,16 +114,11 @@ classdef Constellation
             if ~isempty(p.Results.name)
                 names = p.Results.name;
             else
-                names = createNames(Constellation.N);
+                names = createNames(Constellation);
             end
 
-            if Constellation.N == 1;
+            if Constellation.N >= 1;
                 Constellation = addSatelliteFromKepler(Constellation, ... 
-                                                       kepler_elements, ...
-                                                       names);
-            else
-
-                Constellation = addSatelliteFromKepler(Constellation, ...
                                                        kepler_elements, ...
                                                        names);
             end
@@ -149,10 +144,10 @@ classdef Constellation
             end
         end
 
-        function names = createNames(self, N)
-            names = cell(1, N);
-            for i = 1 : N
-                names{i} = string(matlab.lang.internal.uuid());
+        function names = createNames(Constellation)
+            names = cell(1, Constellation.N);
+            for i = 1 : Constellation.N
+                names{i} = convertStringsToChars(matlab.lang.internal.uuid());
             end
         end
 
