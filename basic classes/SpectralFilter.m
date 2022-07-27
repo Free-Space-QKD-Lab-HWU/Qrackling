@@ -10,32 +10,46 @@ classdef SpectralFilter
     methods
         function SpectralFilter = SpectralFilter(varargin)
             p = inputParser;
-            addParameter(p, 'data', []);
+            addParameter(p, 'input_file', []);
+            addParameter(p, 'wavelengths', []);
+            addParameter(p, 'transmission', []);
             parse(p, varargin{:});
 
-            if isempty(p.Results.data)
-                error(['No paths to data provided.', ...
+            %if isempty(p.Results.input_file)
+            if all(arrayfun(@isempty, [p.Results.input_file, ...
+                                       p.Results.wavelengths, ...
+                                       p.Results.transmission]))
+                error(['No paths to input_file provided.', ...
                        newline, 'Supply either:', ...
-                       newline, char(9), 'a single path to a file or', ...
-                       newline, char(9), 'a cell array of filepaths']);
+                       newline, char(9), 'a single path to a file,', ...
+                       newline, char(9), 'a cell array of filepaths, or' ...
+                       newline, char(9), 'wavelength and transmission data for a single filter']);
             end
 
-            if ~iscell(p.Results.data)
+            if sum(arrayfun(@isempty, [p.Results.wavelengths, ...
+                                      p.Results.transmission])) ~= 0;
+                SpectralFilter.wavelengths = p.Results.wavelengths;
+                SpectralFilter.transmission = p.Results.transmission;
+                disp(1);
+                return
+            end
+
+            if ~iscell(p.Results.input_file)
                 [SpectralFilter, wl, tr] = read_file(SpectralFilter, ...
-                                                     data=p.Results.data);
-                SpectralFilter.files{1} = p.Results.data;
+                                                     input_file=p.Results.input_file);
+                SpectralFilter.files{1} = p.Results.input_file;
                 SpectralFilter.wavelengths = wl;
                 SpectralFilter.transmission = tr;
                 cache_wavelengths = wl;
                 cache_transmission = tr;
             else
-                N = length(p.Results.data);
+                N = length(p.Results.input_file);
                 cache_wavelengths = {};
                 cache_transmission = {};
                 for i = 1 : N
                     [SpectralFilter, wl, tr] = read_file(SpectralFilter, ...
-                                                         data=p.Results.data{i});
-                    SpectralFilter.files{i} = p.Results.data;
+                                                         input_file=p.Results.input_file{i});
+                    SpectralFilter.files{i} = p.Results.input_file;
                     cache_wavelengths{i} = wl;
                     cache_transmission{i} = tr;
                 end
@@ -58,53 +72,40 @@ classdef SpectralFilter
 
         function [SpectralFilter, wavelengths, transmission] = read_file(SpectralFilter, varargin)
             p = inputParser;
-            addParameter(p, 'data', []);
-            addParameter(p, 'wavelength', []);
-            addParameter(p, 'transmission', []);
+            addParameter(p, 'input_file', []);
+            addParameter(p, 'wavelength', 'wavelength');
+            addParameter(p, 'transmission', 'transmission');
             parse(p, varargin{:});
 
-            if isempty(p.Results.data)
-                error('No data given');
+            if isempty(p.Results.input_file)
+                error('No input_file given');
             end
 
-            if ~isfile(p.Results.data)
+            if ~isfile(p.Results.input_file)
                 error('File does not exist or path to file is incorrect');
             end
 
-            table = readtable(p.Results.data, VariableNamingRule='preserve');
+            table = readtable(p.Results.input_file, VariableNamingRule='preserve');
             SpectralFilter.N = SpectralFilter.N + 1;
 
-            if isempty(p.Results.wavelength)
-                wavelengths = get_column_from_name(SpectralFilter, ...
-                                                   table, ...
-                                                   'wavelength');
-            else
-                wavelengths = get_column_from_name(SpectralFilter, ...
-                                                   table, ...
-                                                   p.Results.wavelength);
-            end
+            wavelengths = get_column_from_name(SpectralFilter, ...
+                                               table, ...
+                                               p.Results.wavelength);
 
-            if isempty(p.Results.transmission)
-                transmission = get_column_from_name(SpectralFilter, ...
-                                                    table, ...
-                                                    'transmission') ./ 100;
-            else
-                transmission = get_column_from_name(SpectralFilter, ...
-                                                    table, ...
-                                                    p.Results.transmission) ./ 100;
-            end
+            transmission = get_column_from_name(SpectralFilter, ...
+                                                table, ...
+                                                p.Results.transmission) ./ 100;
         end
 
         function column = get_column_from_name(self, table, column_name)
             fields = fieldnames(table);
+            [Nx, Ny] = size(fields);
+            N = Nx;
             i = 1;
-            found = false;
-            while found == false
+            for i = 1 : N
                 if contains(lower(fields{i}), lower(column_name))
-                    found = true;
                     break;
                 end
-                i = i + 1;
             end
             column = table.(fields{i})';
         end
@@ -142,9 +143,38 @@ classdef SpectralFilter
                                           .* interpolated;
         end
 
-        function SpectralFilter = add_filter(self, data)
-            [SpectralFilter, wl, tr] = self.read_file(data=data);
-            SpectralFilter = interpolate_onto(SpectralFilter, wl, tr);
+        function SpectralFilter = add_from_file(self, input_file)
+            [SpectralFilter, wl, tr] = self.read_file(input_file=input_file);
+            SpectralFilter = interpolate_onto(self, wl, tr);
+        end
+
+        function SpectralFilter = add(self, varargin)
+            p = inputParser;
+            addParameter(p, 'spectral_filter', []);
+            addParameter(p, 'input_file', '');
+            addParameter(p, 'wavelengths', []);
+            addParameter(p, 'transmission', []);
+            parse(p, varargin{:})
+
+            if ~isempty(p.Results.spectral_filter)
+                SpectralFilter = interpolate_onto(self, ...
+                                    p.Results.spectral_filter.wavelengths, ...
+                                    p.Results.spectral_filter.transmission);
+                return
+            end
+
+            if ~isempty(p.Results.input_file)
+                SpectralFilter = add_from_file(self, p.Results.input_file);
+                return
+            end
+
+            if ~any(arrayfun(isempty, [p.Results.wavelengths, p.Results.transmission]))
+                SpectralFilter = interpolate_onto(SpectralFilter, ...
+                                                  p.Results.wavelengths, ...
+                                                  p.Results.transmission);
+                return
+            end
+
         end
 
     end

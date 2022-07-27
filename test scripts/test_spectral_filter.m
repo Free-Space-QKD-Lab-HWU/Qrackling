@@ -16,10 +16,10 @@ t3 = readtable(f3, VariableNamingRule='preserve');
 t4 = readtable(f4, VariableNamingRule='preserve');
 
 % Create a filter composed of 'f1' and 'f2'
-sf = SpectralFilter(data={f1, f2});
+sf = SpectralFilter(input_file={f1, f2});
 
 % For convenience lets get the wavelengths and transmission percentage for each
-% of the data files for separate plotting. 
+% of the input_file files for separate plotting. 
 % Example usage: SpectralFilter.get_column_from_name(table, name) -> will find 
 % and return the column with from the input table with the closest matching 
 % name. Should your table have similar names you will likely have to give this 
@@ -51,8 +51,9 @@ lgd.Location = 'Best';
 hold off
 
 % Create a spectral filter from a single file and then add a second filter
-sf = SpectralFilter(data=f1);
-sf = sf.add_filter(f3);
+sf = SpectralFilter(input_file=f1);
+%sf = sf.add_from_file(f3);
+sf = sf.add(input_file=f3);
 figure
 grid on
 hold on
@@ -70,8 +71,8 @@ hold off
 
 % Create a spectral filter from a pair of files containing filter information 
 % and then add a third filter after creation
-sf = SpectralFilter(data={f1,f3});
-sf = sf.add_filter(f4);
+sf = SpectralFilter(input_file={f1,f3});
+sf = sf.add_from_file(f4);
 figure
 grid on
 hold on
@@ -84,6 +85,31 @@ lgd = legend(...
             'FB400-40', ...
             'FELH0400', ...
             'FES0450', ...
+            ['(FB400-40)', newline, '\times (FELH0400)', newline, '\times (FES0450)'] ...
+            );
+lgd.Location = 'Best';
+hold off
+
+% Create a spectral filter from a pair of files containing filter information 
+% and then add a third filter after creation
+sf = SpectralFilter(input_file=f1);
+sf = sf.add(input_file=f3);
+sf1 = SpectralFilter(input_file=f4);
+sf = sf.add(spectral_filter=sf);
+figure
+grid on
+hold on
+plot(wl1, tr1);
+plot(wl3, tr3);
+plot(wl4, tr4);
+plot(sf.wavelengths, sf.transmission)
+plot(sf1.wavelengths, sf1.transmission)
+xlim([350, 550])
+lgd = legend(...
+            'FB400-40', ...
+            'FELH0400', ...
+            'FES0450', ...
+            ['(FB400-40)', newline, '\times (FELH0400)'], ...
             ['(FB400-40)', newline, '\times (FELH0400)', newline, '\times (FES0450)'] ...
             );
 lgd.Location = 'Best';
