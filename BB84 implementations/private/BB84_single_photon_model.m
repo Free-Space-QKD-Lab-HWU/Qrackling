@@ -69,7 +69,6 @@ qber(qber>0.5)=0.5;
 tau = -log2(0.5 + 2*qber./beta - 2*(qber./beta).^2);
 %% cs modified if qber./beta>1+ a bit, then tau is complex. In this case tau should return 0
 tau(~(imag(tau)==0))=0;
-tau=real(tau);
 
 % function characterising the performance of the error correction algorithm
 % [f(QBER) is always >= 1 where the equality holds for a lossless/perfect algorithm]

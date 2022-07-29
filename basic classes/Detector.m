@@ -7,9 +7,11 @@ classdef (Abstract) Detector
         Jitter_Loss{mustBeNonnegative};                                    %loss due to timing jitter (absolute)
         Spectral_Filter_Width{mustBePositive,mustBeScalarOrEmpty}          %spectral filter width in nm
         Time_Gate_Width{mustBePositive,mustBeScalarOrEmpty}                %width of the time gate used in s
+
     end
     properties(Abstract=true,SetAccess=protected)
         Detection_Efficiency{mustBeScalarOrEmpty,mustBePositive,mustBeLessThanOrEqual(Detection_Efficiency,1)};%detection efficiency
+        Dark_Count_Rate{mustBeNonnegative,mustBeScalarOrEmpty}             %rate at which eroneous counts occur
         Histogram_Data_Location;
         Histogram_Bin_Width;
     end
@@ -109,13 +111,17 @@ classdef (Abstract) Detector
                 QBER=QBER+0.5*(CDF(min(Current_Shifted_Mode+Gate_Width_Index/2,N))-CDF(max(Current_Shifted_Mode-Gate_Width_Index/2,1)));
                 Current_Shifted_Mode=Current_Shifted_Mode+Repetition_Period_Index;
             end
-
             %iterating over forward pulses
             Current_Shifted_Mode=Mode_Time_Index-Repetition_Period_Index;
             while Current_Shifted_Mode>0
                 QBER=QBER+0.5*(CDF(min(Current_Shifted_Mode+Gate_Width_Index/2,N))-CDF(max(Current_Shifted_Mode-Gate_Width_Index/2,1)));
                 Current_Shifted_Mode=Current_Shifted_Mode-Repetition_Period_Index;
             end
+            %QBER cannot exceed 0.5 due to this
+            if QBER>0.5
+                QBER=0.5;
+            end
+
 
             %% store answers
             Detector.QBER_Jitter=QBER;
@@ -129,6 +135,11 @@ classdef (Abstract) Detector
                 %% load in data
                 Histogram_Data=getfield(load(Detector.Histogram_Data_Location),'Counts');
                 Histogram_Bin_Width=Detector.Histogram_Bin_Width;
+        end
+        
+        function Detector=SetDarkCountRate(Detector,DCR)
+            %%SETDARKCOUNTRATE set detector dark count rate
+            Detector.Dark_Count_Rate=DCR;
         end
     end
 end

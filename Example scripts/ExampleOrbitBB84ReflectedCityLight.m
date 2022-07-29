@@ -43,7 +43,7 @@ Cities=Cities_Struct.Cities;                                           %these ar
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,Cities);
+Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'Background_Sources',Cities);
 %3.2 run simulation
 Pass=Simulate(Pass);
 %3.3 plot results

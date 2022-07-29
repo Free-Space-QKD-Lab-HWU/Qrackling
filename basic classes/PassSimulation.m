@@ -22,7 +22,7 @@ classdef PassSimulation
         Times=[];                                                      %time of each point of link simulation in s
         Link_Losses_dB=[];                                               %Link loss in dB
         Background_Count_Rates=[];                                     %background count rate from detector and light pollution in cps
-        Sifted_Key_Rates=[];                                           %sifted key rate in bits/s. SKR is nan outside of the elevation window and 0 when no link is achieved within this window
+        Secret_Key_Rates=[];                                           %secret key rate in bits/s. SKR is nan outside of the elevation window and 0 when no link is achieved within this window
         QBERs=[];                                                      %quantum bit error rate during pass
         Communicating_Flags=false(0,0);                                 %flag describing whether communication is happening
         Elevation_Limit_Flags=false(0,0);                               %flag describing whether the satellite is in the elevation field of the OGS
@@ -30,12 +30,25 @@ classdef PassSimulation
 
 
     methods
-        function PassSimulation = PassSimulation(Satellite,Protocol,Ground_Station,Background_Sources)
+        function PassSimulation = PassSimulation(Satellite,Protocol,Ground_Station,varargin)
             %PASSSIMULATION Construct an instance of a PassSimulation
+            
 
-            PassSimulation.Satellite = Satellite;
-            PassSimulation.Ground_Station = Ground_Station;
-            PassSimulation.Protocol=Protocol;
+            %% create and use an input parser
+            P=inputParser();
+            %required inputs
+            addRequired(P,'Satellite');
+            addRequired(P,'Protocol');
+            addRequired(P,'Ground_Station');
+            %optional inputs
+            addParameter(P,'Background_Sources',[]);
+            %parse inputs
+            parse(P,Satellite,Protocol,Ground_Station,varargin{:});
+
+            PassSimulation.Satellite = P.Results.Satellite;
+            PassSimulation.Ground_Station = P.Results.Ground_Station;
+            PassSimulation.Protocol=P.Results.Protocol;
+            
             if ~IsSourceCompatible(Protocol,Satellite.Source)
                 error('satellite source is not compatible with %s protocol',Protocol.Name);
             end
@@ -46,9 +59,7 @@ classdef PassSimulation
                 error('satellite and ground station must use the same wavelength')
             end
             %if background sources are provided, add them
-            if nargin>3
-                PassSimulation.Background_Sources=Background_Sources;
-            end
+                PassSimulation.Background_Sources=P.Results.Background_Sources;
 
 
         end
@@ -86,9 +97,9 @@ classdef PassSimulation
             [Computed_Sifted_Key_Rates,Computed_QBERs]=EvaluateQKDLink(PassSimulation.Protocol,PassSimulation.Satellite.Source,PassSimulation.Ground_Station.Detector,[Computed_Link_Models(Elevation_Limit_Flags).Link_Loss_dB],[Background_Count_Rates(Elevation_Limit_Flags)]);
 
             %store this step's data
-            PassSimulation.Sifted_Key_Rates(Elevation_Limit_Flags)=Computed_Sifted_Key_Rates;
+            PassSimulation.Secret_Key_Rates(Elevation_Limit_Flags)=Computed_Sifted_Key_Rates;
             PassSimulation.QBERs(Elevation_Limit_Flags)=Computed_QBERs;
-            PassSimulation.Communicating_Flags=~(isnan(PassSimulation.Sifted_Key_Rates)|PassSimulation.Sifted_Key_Rates<=0);
+            PassSimulation.Communicating_Flags=~(isnan(PassSimulation.Secret_Key_Rates)|PassSimulation.Secret_Key_Rates<=0);
             PassSimulation.Elevation_Limit_Flags=Elevation_Limit_Flags;
 
 
@@ -103,7 +114,7 @@ classdef PassSimulation
             Downlink_Time_Windows=PassSimulation.Times(PassSimulation.Communicating_Flags)-PassSimulation.Times([PassSimulation.Communicating_Flags(2:end),false]);
             %the dot with sifted data rate
             if ~isempty(Downlink_Time_Windows)
-            PassSimulation.Total_Sifted_Key=dot(Downlink_Time_Windows,PassSimulation.Sifted_Key_Rates(PassSimulation.Communicating_Flags));
+            PassSimulation.Total_Sifted_Key=dot(Downlink_Time_Windows,PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags));
             else
             PassSimulation.Total_Sifted_Key=0;
             end
@@ -164,10 +175,10 @@ classdef PassSimulation
             subplot(4,4,[1,3])
             % plot performance
             yyaxis left
-            plot(PassSimulation.Times(Plot_Select_Flags),PassSimulation.Sifted_Key_Rates(Plot_Select_Flags));
+            plot(PassSimulation.Times(Plot_Select_Flags),PassSimulation.Secret_Key_Rates(Plot_Select_Flags));
             xlabel('Time (s)')
-            ylabel('Sifted Key Rate (bits/s)')
-            text(mean(PassSimulation.Times(Plot_Select_Flags)),mean(PassSimulation.Sifted_Key_Rates(Plot_Select_Flags)),sprintf('total sifted key\ntransfered=%3.2g',PassSimulation.Total_Sifted_Key),'VerticalAlignment','bottom','HorizontalAlignment','center')
+            ylabel('Secret Key Rate (bits/s)')
+            text(mean(PassSimulation.Times(Plot_Select_Flags)),mean(PassSimulation.Secret_Key_Rates(Plot_Select_Flags)),sprintf('total secret key\ntransfered=%3.2g',PassSimulation.Total_Sifted_Key),'VerticalAlignment','bottom','HorizontalAlignment','center')
             % plot QBER
             yyaxis right
             plot(PassSimulation.Times(Plot_Select_Flags),PassSimulation.QBERs(Plot_Select_Flags));
@@ -188,9 +199,9 @@ classdef PassSimulation
             %% plot key rate as a function of link loss
             subplot(4,4,[11,16])
             title('Link performance')
-            semilogy(GetLinkLossdB(PassSimulation.Link_Model),PassSimulation.Sifted_Key_Rates,'k-')
+            semilogy(GetLinkLossdB(PassSimulation.Link_Model),PassSimulation.Secret_Key_Rates,'k-')
             xlabel('Link loss (dB)')
-            ylabel('Sifted Key Rate (bps)')
+            ylabel('Secret Key Rate (bps)')
             grid on
             ax=gca; %put axis on right
             ax.YAxisLocation='right';
@@ -204,7 +215,7 @@ classdef PassSimulation
             PassSimulation.Elevations=Set_to_a_Length(PassSimulation.Elevations,N_Steps,'zero');
             PassSimulation.Link_Losses_dB=Set_to_a_Length(PassSimulation.Link_Losses_dB,N_Steps,'zero');
             PassSimulation.Background_Count_Rates=Set_to_a_Length(PassSimulation.Background_Count_Rates,N_Steps,'zero');
-            PassSimulation.Sifted_Key_Rates=Set_to_a_Length(PassSimulation.Sifted_Key_Rates,N_Steps,'zero');
+            PassSimulation.Secret_Key_Rates=Set_to_a_Length(PassSimulation.Secret_Key_Rates,N_Steps,'zero');
             PassSimulation.QBERs=Set_to_a_Length(PassSimulation.QBERs,N_Steps,'zero');
             PassSimulation.Communicating_Flags=Set_to_a_Length(PassSimulation.Communicating_Flags,N_Steps,'false');
             PassSimulation.Elevation_Limit_Flags=Set_to_a_Length(PassSimulation.Elevation_Limit_Flags,N_Steps,'false');

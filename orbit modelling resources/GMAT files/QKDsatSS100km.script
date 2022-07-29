@@ -11,12 +11,12 @@ GMAT QKDSat.DateFormat = UTCGregorian;
 GMAT QKDSat.Epoch = '20 Jan 2022 11:59:28.000';
 GMAT QKDSat.CoordinateSystem = EarthMJ2000Eq;
 GMAT QKDSat.DisplayStateType = Keplerian;
-GMAT QKDSat.SMA = 6477.999999999986;
-GMAT QKDSat.ECC = 6.96547648203399e-16;
+GMAT QKDSat.SMA = 6477.999999999979;
+GMAT QKDSat.ECC = 1.167544991097279e-15;
 GMAT QKDSat.INC = 98.6033;
-GMAT QKDSat.RAAN = 120;
+GMAT QKDSat.RAAN = 107;
 GMAT QKDSat.AOP = 0;
-GMAT QKDSat.TA = 133.2416666666666;
+GMAT QKDSat.TA = 90;
 GMAT QKDSat.DryMass = 850;
 GMAT QKDSat.Cd = 2.2;
 GMAT QKDSat.Cr = 1.8;
@@ -149,6 +149,7 @@ GMAT HWU.MinimumElevationAngle = 30;
 
 
 
+
 %----------------------------------------
 %---------- ForceModels
 %----------------------------------------
@@ -209,9 +210,9 @@ GMAT PassLocator.LightTimeDirection = Receive;
 
 Create OrbitView DefaultOrbitView;
 GMAT DefaultOrbitView.SolverIterations = Current;
-GMAT DefaultOrbitView.UpperLeft = [ 0.01090225563909774 0.05952380952380952 ];
-GMAT DefaultOrbitView.Size = [ 0.6729323308270677 0.7544642857142857 ];
-GMAT DefaultOrbitView.RelativeZOrder = 271;
+GMAT DefaultOrbitView.UpperLeft = [ 0.01052631578947368 0.05944319036869827 ];
+GMAT DefaultOrbitView.Size = [ 0.6729323308270677 0.7539503386004515 ];
+GMAT DefaultOrbitView.RelativeZOrder = 101;
 GMAT DefaultOrbitView.Maximized = false;
 GMAT DefaultOrbitView.Add = {QKDSat, Earth};
 GMAT DefaultOrbitView.CoordinateSystem = EarthMJ2000Eq;
@@ -241,9 +242,9 @@ GMAT DefaultOrbitView.EnableConstellations = On;
 
 Create GroundTrackPlot DefaultGroundTrackPlot;
 GMAT DefaultGroundTrackPlot.SolverIterations = Current;
-GMAT DefaultGroundTrackPlot.UpperLeft = [ 0.112406015037594 0.134672619047619 ];
-GMAT DefaultGroundTrackPlot.Size = [ 0.6823308270676691 0.7552083333333334 ];
-GMAT DefaultGroundTrackPlot.RelativeZOrder = 265;
+GMAT DefaultGroundTrackPlot.UpperLeft = [ 0.1120300751879699 0.1339352896914974 ];
+GMAT DefaultGroundTrackPlot.Size = [ 0.6823308270676691 0.7547027840481565 ];
+GMAT DefaultGroundTrackPlot.RelativeZOrder = 93;
 GMAT DefaultGroundTrackPlot.Maximized = false;
 GMAT DefaultGroundTrackPlot.Add = {Chilbolton, Errol, HWU, QKDSat, York};
 GMAT DefaultGroundTrackPlot.DataCollectFrequency = 100;
@@ -256,9 +257,9 @@ GMAT DefaultGroundTrackPlot.TextureMap = 'ModifiedBlueMarble.jpg';
 
 Create ReportFile LLAT;
 GMAT LLAT.SolverIterations = Current;
-GMAT LLAT.UpperLeft = [ 0.09548872180451128 0.05952380952380952 ];
-GMAT LLAT.Size = [ 0.5969924812030075 0.7938988095238095 ];
-GMAT LLAT.RelativeZOrder = 93;
+GMAT LLAT.UpperLeft = [ 0.09511278195488722 0.05944319036869827 ];
+GMAT LLAT.Size = [ 0.5966165413533835 0.7930775018811136 ];
+GMAT LLAT.RelativeZOrder = 91;
 GMAT LLAT.Maximized = false;
 GMAT LLAT.Filename = '100kmOrbitLLAT.txt';
 GMAT LLAT.Precision = 16;
@@ -273,9 +274,9 @@ GMAT LLAT.WriteReport = true;
 
 Create OrbitView ViewFromErrol;
 GMAT ViewFromErrol.SolverIterations = Current;
-GMAT ViewFromErrol.UpperLeft = [ -0.03345864661654135 0.3325892857142857 ];
-GMAT ViewFromErrol.Size = [ 0.7823308270676692 0.7529761904761905 ];
-GMAT ViewFromErrol.RelativeZOrder = 273;
+GMAT ViewFromErrol.UpperLeft = [ -0.03308270676691729 0.3318284424379233 ];
+GMAT ViewFromErrol.Size = [ 0.7823308270676692 0.7524454477050414 ];
+GMAT ViewFromErrol.RelativeZOrder = 103;
 GMAT ViewFromErrol.Maximized = false;
 GMAT ViewFromErrol.Add = {QKDSat, Earth};
 GMAT ViewFromErrol.CoordinateSystem = EarthMJ2000Eq;
@@ -305,9 +306,9 @@ GMAT ViewFromErrol.EnableConstellations = On;
 
 Create XYPlot XYPlot1;
 GMAT XYPlot1.SolverIterations = Current;
-GMAT XYPlot1.UpperLeft = [ 0.1575187969924812 0.2038690476190476 ];
-GMAT XYPlot1.Size = [ 0.7823308270676692 0.7522321428571429 ];
-GMAT XYPlot1.RelativeZOrder = 282;
+GMAT XYPlot1.UpperLeft = [ 0.1567669172932331 0.2024078254326561 ];
+GMAT XYPlot1.Size = [ 0.7823308270676692 0.7516930022573364 ];
+GMAT XYPlot1.RelativeZOrder = 95;
 GMAT XYPlot1.Maximized = false;
 GMAT XYPlot1.XVariable = QKDSat.ElapsedSecs;
 GMAT XYPlot1.YVariables = {QKDSat.Earth.Altitude};
@@ -320,4 +321,4 @@ GMAT XYPlot1.ShowPlot = true;
 %----------------------------------------
 
 BeginMissionSequence;
-Propagate LowEarthProp(QKDSat) {QKDSat.ElapsedDays = 1};
+Propagate LowEarthProp(QKDSat) {QKDSat.Earth.Latitude = 0};

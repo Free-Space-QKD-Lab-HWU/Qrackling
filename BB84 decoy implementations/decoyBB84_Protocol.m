@@ -5,7 +5,7 @@ classdef decoyBB84_Protocol < Protocol
         Name='decoyBB84';
         Efficiency=0.5;
         DetectorRequirements={'Dark_Count_Rate','Time_Gate_Width','Dead_Time'};
-        SourceRequirements={'Mean_Photon_Number','State_Prep_Error','State_probability'};
+        SourceRequirements={'Mean_Photon_Number','State_Prep_Error','State_Probabilities'};
     end
 
     methods
@@ -25,7 +25,7 @@ classdef decoyBB84_Protocol < Protocol
             
             %prepare input variables
             MPN=Source.Mean_Photon_Number;
-            SP=Source.State_probability;
+            SP=Source.State_Probabilities;
             SPE=Source.State_Prep_Error;
             RR=Source.Repetition_Rate;
             DE=Detector.Detection_Efficiency;
