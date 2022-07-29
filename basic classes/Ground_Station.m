@@ -7,7 +7,7 @@ classdef Ground_Station < Located_Object
         Detector                                                           %a detector object, validated individually in subclasses
         Telescope Telescope
 
-        Background_Count_Rate_File_Location{mustBeText}='';                %pointer to a file containing the background count rate data for this ground station (stored in counts/steradian)
+        Background_Count_Rate_File_Location{mustBeText}='none';            %pointer to a file containing the background count rate data for this ground station (stored in counts/steradian)
         Background_Count_Rates{isstruct,isfield(Background_Count_Rates,'Heading'),isfield(Background_Count_Rates,'Elevation'),isfield(Background_Count_Rates,'Count_Rate')};%background count rate (in counts/s) as a function of heading and elevation, stored as a structure with fields 'Count_Rate','Heading' and 'Elevation'
     end
     
@@ -17,7 +17,7 @@ classdef Ground_Station < Located_Object
         Satellite_ENUs{mustBeNumeric}                                      %the coordinates of the satellite relative to the ground station in metres east, north and up
         Satellite_Ranges{mustBeVector}=nan;                                %range to the satellite in m over many time steps
 
-        Elevation_Limit{mustBePositive}=30;                                %minimum elevation to establish a link in deg
+        Elevation_Limit{mustBeScalarOrEmpty}=30;                                %minimum elevation to establish a link in deg
 
         Light_Pollution_Count_Rates{mustBeVector,mustBeNonnegative}=0;     %count rates at the Ground station due to light pollution
         Dark_Count_Rates{mustBeVector,mustBeNonnegative}=0;                %count rates at the Ground station due to dark counts
@@ -25,23 +25,35 @@ classdef Ground_Station < Located_Object
     end
 
     methods
-        function Ground_Station = Ground_Station(Background_Count_Rate_File_Location,Detector,Telescope,Location_Name,LLA)
+        function Ground_Station = Ground_Station(Detector,Telescope,LLA,varargin)
             %GROUND_STATION instantiate a ground station using either its
             %component classes and requiring a name and location (LLA=lat
             %lon alt)
-            
+
+            %% use input parser
+            P=inputParser;
+            %required inputs
+            addRequired(P,'Detector');
+            addRequired(P,'Telescope');
+            addRequired(P,'LLA')
+            %optional inputs
+            addParameter(P,'Location_Name','Bob')
+            addParameter(P,'Background_Count_Rate_File_Location','none');
+            %run input parser
+            parse(P,Detector,Telescope,LLA,varargin{:});
+
             %set Telescope parameters
-            Ground_Station.Detector=Detector;
-            Ground_Station.Telescope=Telescope;
+            Ground_Station.Detector=P.Results.Detector;
+            Ground_Station.Telescope=P.Results.Telescope;
 
             %set Telescope to be wavelength of detector
             Ground_Station.Telescope=SetWavelength(Ground_Station.Telescope,Ground_Station.Detector.Wavelength);            
  
             %set Background count rate data
-            Ground_Station=ReadBackgroundCountRateData(Ground_Station,Background_Count_Rate_File_Location);
+            Ground_Station=ReadBackgroundCountRateData(Ground_Station,P.Results.Background_Count_Rate_File_Location);
 
             %set location using custom method
-            Ground_Station=SetPosition(Ground_Station,LLA,Location_Name);
+            Ground_Station=SetPosition(Ground_Station,P.Results.LLA,P.Results.Location_Name);
         end
 
 

@@ -22,11 +22,12 @@ classdef HWU_OGS < Ground_Station
                     error('no background light data for HWU at that wavelength')
             end
 
-            HWU_OGS=HWU_OGS@Ground_Station(Background_Light_Data_Location,... 
-                Detector,...
+            HWU_OGS=HWU_OGS@Ground_Station(Detector,...
                 Telescope,...
-                'HWU',...%location name
-                [55.911420,-3.322424,84]); %coords
+                [55.911420,-3.322424,84],... %COORDS
+                'Background_Count_Rate_File_Location',Background_Light_Data_Location,... 
+                'Location_Name','HWU');%location name
+                
         end
 
     end

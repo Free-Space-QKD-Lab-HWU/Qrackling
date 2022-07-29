@@ -44,11 +44,11 @@ SimGround_Station=Chilbolton_OGS(MPD_BB84_Detector,Receiver_Telescope);
 BB84_protocol=BB84_Protocol;
 
 %2.4 jamming source
-Jamming_Source=Jamming_Laser(Wavelength,Jamming_Diameter,Jamming_Coordinates,'Janice',Jamming_Power,Jamming_Spectral_Width);
+Jamming_Source=Jamming_Laser(Wavelength,Jamming_Diameter,Jamming_Coordinates,Jamming_Power,Jamming_Spectral_Width);
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,Jamming_Source);
+Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'Background_Sources',Jamming_Source);
 %3.2 run simulation
 Pass=Simulate(Pass);
 %3.3 plot results

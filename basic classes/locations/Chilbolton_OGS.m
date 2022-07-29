@@ -23,11 +23,12 @@ classdef Chilbolton_OGS < Ground_Station
                     error('no background light data for Chilbolton at that wavelength')
             end
 
-            Chilbolton_OGS=Chilbolton_OGS@Ground_Station(Background_Light_Data_Location,... 
-                Detector,...
+            Chilbolton_OGS=Chilbolton_OGS@Ground_Station(Detector,...
                 Telescope,...
-                'Chilbolton',...%location name
-                [51.142680,-1.436580,86]); %COORDS
+                [51.142680,-1.436580,86],... %COORDS
+                'Background_Count_Rate_File_Location',Background_Light_Data_Location,... 
+                'Location_Name','Chilbolton');%location name
+
         end
 
     end

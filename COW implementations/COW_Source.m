@@ -1,28 +1,20 @@
 classdef COW_Source < Source
-    %COW_Source a source with details required for COW
+    %COW_Source a source ready for COW
 
-    properties
-        Mean_Photon_Number{mustBeScalarOrEmpty,mustBePositive}=0.06;    % average number of photons per pulse for each state
-        State_Prep_Error{mustBeScalarOrEmpty,mustBePositive}=0.01;      % probability of each state being prepared incorrectly
-        Decoy_Probability{mustBeScalarOrEmpty,mustBePositive}=0.155;
-    end
 
     methods
-        function COW_Source = COW_Source(Wavelength,MPN,extinction_ratio,decoy_prob)
+        function COW_Source = COW_Source(Wavelength)
             % Construct an instance of this class
+                
 
+            %% decoy probability describes a 2-state probability set
+            decoy_prob=0.155;
+            State_Probabilities=[1-decoy_prob,decoy_prob];
             %construct a transmitter object
-            COW_Source=COW_Source@Source(Wavelength);
-            %set given properties
-            if nargin>1
-                COW_Source.Mean_Photon_Number=MPN;
-                if nargin>2
-                    COW_Source.extinction_ratio=extinction_ratio;
-                    if nargin>3
-                        COW_Source.decoy_prob=decoy_prob;
-                    end
-                end
-            end
+            COW_Source=COW_Source@Source(Wavelength,...
+                'Mean_Photon_Number',0.06,...
+                'State_Prep_Error',0.01,...
+                'State_Probabilities',State_Probabilities);
         end
     end
 end
