@@ -71,9 +71,7 @@ classdef (Abstract=true)Located_Object
                 Located_Object.Longitude = LLA(2);
                 Located_Object.Altitude = LLA(3);
                 initialised = true;
-            end
-            
-            if AreSameSize(lat, lon, alt)
+            elseif AreSameSize(lat, lon, alt)
                 Located_Object.Latitude = lat;
                 Located_Object.Longitude = lon;
                 Located_Object.Altitude = alt;
@@ -160,7 +158,7 @@ classdef (Abstract=true)Located_Object
             Distance = Row2Norms(ENUs);
         end
 
-        function [H, E, D] = RelativeHeadingAndElevation(Located_Obj_1, ...
+        function [Headings, Elevations, Distances] = RelativeHeadingAndElevation(Located_Obj_1, ...
                                                          Located_Obj_2)
             %%RELATIVEHEADINGANDELEVATION returh the heading and elevation
             % [H, E, D] == [Headings, Elevations, Distances]
@@ -169,11 +167,11 @@ classdef (Abstract=true)Located_Object
             ENUs = ComputeRelativeCoords(Located_Obj_1, Located_Obj_2);
 
             %% compute heading and elevation from ground station
-            [H, E] = HeadingAndElevation(ENUs);
+            [Headings, Elevations] = HeadingAndElevation(ENUs);
 
             %% transpose into row vectors
-            H = H';
-            E = E';
+            Headings = Headings';
+            Elevations = Elevations';
 
             %% if needed, compute distances
             Distances = Row2Norms(ENUs);
@@ -197,9 +195,11 @@ classdef (Abstract=true)Located_Object
             %%and therefore the earth shadows their intervisibility
 
             %% get the two XYZ positions of the two objects
-            Pos_1 = GetXYZ(Located_obj_1);
-            Pos_2 = GetXYZ(Located_obj_2);
-
+            [X1,Y1,Z1] = GetXYZ(Located_obj_1);
+            Pos_1=[X1,Y1,Z1];
+            
+            [X2,Y2,Z2] = GetXYZ(Located_obj_2);
+            Pos_2=[X2,Y2,Z2];
             %% determine the minimum radius from earth's centre of the line between these two
             Dot_product = sum(Pos_1 .* Pos_2,2);
             Lambda_min = (Row2Norms(Pos_1).^2 ...

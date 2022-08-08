@@ -44,7 +44,7 @@ classdef Satellite < Located_Object
     end
 
     methods
-        function Satellite = Satellite(varargin)
+        function Satellite = Satellite(Source,Telescope,varargin)
             
             % SATELLITE Construct an instance of satellite using an orbital
             % User must provide either an 'OrbitDataFileLocation' file, TLE
@@ -55,11 +55,11 @@ classdef Satellite < Located_Object
             % If TLE information or KeplerElements are supplied then a startTime,
             %     stopTime and sampleTime must also be supplied.
 
-            p = inputParser;
+            p = inputParser();
 
             addRequired(p, 'Source');
             addRequired(p, 'Telescope')
-            addParameter(p, 'OrbitDataFileLocation', []);
+            addParameter(p, 'OrbitDataFileLocation','');
             addParameter(p, 'ToolBoxSatellite', []);
             addParameter(p, 'TLE', []);
             addParameter(p, 'KeplerElements', []);
@@ -68,7 +68,7 @@ classdef Satellite < Located_Object
             addParameter(p, 'sampleTime', []);
             addParameter(p, 'Name', "");
 
-            parse(p, varargin{:});
+            parse(p, Source, Telescope, varargin{:});
 
             if strcmp(p.Results.Name, "")
                 Satellite.Name = string(matlab.lang.internal.uuid());

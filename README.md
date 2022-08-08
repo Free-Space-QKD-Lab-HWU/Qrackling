@@ -8,7 +8,7 @@ Commit 12/7/22
 -Change protocol compatibility so that detector are not specific to a protocol
 -Replace DPS model with corrected version
 
-Commit
+Commit 29/7/22
 -correct QBER determination in DPS and COW models
 -vectorise COW model
 -plot function correctly labels secret key rate (in place of sifted key rate, previously used)
@@ -17,3 +17,10 @@ Commit
 -inputParsers added for ground station, Telescope, Jamming_Laser, Background_Source and pass simulation classes
 -move Mean_Photon_Number, g2, State_Probabilities and State_Prep_Error properties from source concrete classes to source superclass as they are common. subclasses now act to implement default values necessary for each protocol
 -change COW_Source to use State_Probabilities property instead of Decoy_Probability. Decoy probability is the second of a 2-element State_Probabilities probability vector
+
+Commit 8/8/22
+-change examples and internal behaviour to be consistent with Constellation (12/7/22) merge
+-change 100km and 500km LLAT files to pass over Errol
+-fixed failure to construct a located object from a 3-element LLA vector
+-fixed misrepresentation of GetXYZ output in IsEarthShadowed (method of Located_Object)
+-change inputparser behaviour in Satellite to make function hints clearer to user

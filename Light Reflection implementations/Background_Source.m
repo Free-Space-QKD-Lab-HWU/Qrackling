@@ -28,7 +28,7 @@ classdef Background_Source < Located_Object
             parse(P,LLA,Spectral_Pointance,Wavelength_Limits,varargin{:});
 
             %% set values
-            obj=SetPosition(obj,P.Results.LLA,P.Results.Location_Name);
+            obj=SetPosition(obj,'LLA',P.Results.LLA,'Name',P.Results.Location_Name);
             obj.Spectral_Pointance=P.Results.Spectral_Pointance;
             obj.Wavelength_Limits=P.Results.Wavelength_Limits;
             obj=SetElevationLimit(obj,P.Results.Elevation_Limit);

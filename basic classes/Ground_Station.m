@@ -53,7 +53,7 @@ classdef Ground_Station < Located_Object
             Ground_Station=ReadBackgroundCountRateData(Ground_Station,P.Results.Background_Count_Rate_File_Location);
 
             %set location using custom method
-            Ground_Station=SetPosition(Ground_Station,P.Results.LLA,P.Results.Location_Name);
+            Ground_Station=SetPosition(Ground_Station,'LLA',P.Results.LLA,'Name',P.Results.Location_Name);
         end
 
 
