@@ -3,14 +3,14 @@ classdef Ground_Station < Located_Object
 
     properties (Abstract=false,SetAccess=protected)
         Protocol{mustBeText}='';                                           %name of protocol to be used
-        
+
         Detector                                                           %a detector object, validated individually in subclasses
         Telescope Telescope
 
         Background_Count_Rate_File_Location{mustBeText}='none';            %pointer to a file containing the background count rate data for this ground station (stored in counts/steradian)
         Background_Count_Rates{isstruct,isfield(Background_Count_Rates,'Heading'),isfield(Background_Count_Rates,'Elevation'),isfield(Background_Count_Rates,'Count_Rate')};%background count rate (in counts/s) as a function of heading and elevation, stored as a structure with fields 'Count_Rate','Heading' and 'Elevation'
     end
-    
+
     properties (Abstract=false,SetAccess=protected,Hidden=true)
         Headings{mustBeVector}=nan;                                        %Heading of the satellite in degrees as seen from the OGS
         Elevations{mustBeVector}=nan;                                      %Elevation of the satellite in degrees as seen from the OGS
@@ -47,13 +47,13 @@ classdef Ground_Station < Located_Object
             Ground_Station.Telescope=P.Results.Telescope;
 
             %set Telescope to be wavelength of detector
-            Ground_Station.Telescope=SetWavelength(Ground_Station.Telescope,Ground_Station.Detector.Wavelength);            
- 
+            Ground_Station.Telescope=SetWavelength(Ground_Station.Telescope,Ground_Station.Detector.Wavelength);
+
             %set Background count rate data
             Ground_Station=ReadBackgroundCountRateData(Ground_Station,P.Results.Background_Count_Rate_File_Location);
 
             %set location using custom method
-            Ground_Station=SetPosition(Ground_Station,P.Results.LLA,P.Results.Location_Name);
+            Ground_Station=SetPosition(Ground_Station,'LLA',P.Results.LLA,'Name',P.Results.Location_Name);
         end
 
 
@@ -79,23 +79,23 @@ classdef Ground_Station < Located_Object
                     Heading=Headings(i,j);
                     Elevation=Elevations(i,j);
 
-                        %% find closest background count rate value to given heading and elevation
-                        %get heading and elevation of measurements
-                        Measurement_Headings=Ground_Station.Background_Count_Rates.Heading;
-                        Measurement_Elevation=Ground_Station.Background_Count_Rates.Elevation;
-                        %find minimum distance from value
-                        [~,Heading_Index]=min(abs(mod(Measurement_Headings-Heading,360)));
-                        Heading_Index=Heading_Index(1);%take a single, unique minimum
-                        [~,Elevation_Index]=min(abs(Measurement_Elevation-Elevation));
-                        %get background counts per steradian
-                        Background_Count_Rate_Per_Steradian_Per_nm=Ground_Station.Background_Count_Rates.Count_Rate(Heading_Index,Elevation_Index);
+                    %% find closest background count rate value to given heading and elevation
+                    %get heading and elevation of measurements
+                    Measurement_Headings=Ground_Station.Background_Count_Rates.Heading;
+                    Measurement_Elevation=Ground_Station.Background_Count_Rates.Elevation;
+                    %find minimum distance from value
+                    [~,Heading_Index]=min(abs(mod(Measurement_Headings-Heading,360)));
+                    Heading_Index=Heading_Index(1);%take a single, unique minimum
+                    [~,Elevation_Index]=min(abs(Measurement_Elevation-Elevation));
+                    %get background counts per steradian
+                    Background_Count_Rate_Per_Steradian_Per_nm=Ground_Station.Background_Count_Rates.Count_Rate(Heading_Index,Elevation_Index);
 
-                        %% convert to counts in this specific telescope
-                        Background_Count_Rate=Ground_Station.Detector.Detection_Efficiency*Background_Count_Rate_Per_Steradian_Per_nm*pi*(Ground_Station.Telescope.FOV/2)^2*Ground_Station.Detector.Spectral_Filter_Width;
+                    %% convert to counts in this specific telescope
+                    Background_Count_Rate=Ground_Station.Detector.Detection_Efficiency*Background_Count_Rate_Per_Steradian_Per_nm*pi*(Ground_Station.Telescope.FOV/2)^2*Ground_Station.Detector.Spectral_Filter_Width;
 
-                        %% store this result
-                        Background_Count_Rates(i,j)=Background_Count_Rate;
-                        Background_Count_Rates_Per_Steradian_Per_nm(i,j)=Background_Count_Rate_Per_Steradian_Per_nm;
+                    %% store this result
+                    Background_Count_Rates(i,j)=Background_Count_Rate;
+                    Background_Count_Rates_Per_Steradian_Per_nm(i,j)=Background_Count_Rate_Per_Steradian_Per_nm;
                 end
             end
         end
@@ -105,43 +105,43 @@ classdef Ground_Station < Located_Object
             if ~nargin==2
                 error('ReadBackgroundCountRateData takes only a Ground_Station object and .mat file location as arguments');
             end
-            
-                % if 'none' is provided
-                if isequal(Background_Count_Rate_File_Location,'none')
-                    Ground_Station.Background_Count_Rate_File_Location='none';
-                    Ground_Station.Background_Count_Rates.Count_Rate=0;
-                    Ground_Station.Background_Count_Rates.Heading=0;
-                    Ground_Station.Background_Count_Rates.Elevation=0;
-                    return
-                end
+
+            % if 'none' is provided
+            if isequal(Background_Count_Rate_File_Location,'none')
+                Ground_Station.Background_Count_Rate_File_Location='none';
+                Ground_Station.Background_Count_Rates.Count_Rate=0;
+                Ground_Station.Background_Count_Rates.Heading=0;
+                Ground_Station.Background_Count_Rates.Elevation=0;
+                return
+            end
 
             %% add background light files to path
             addpath(LocationofFile(Background_Count_Rate_File_Location));
-                %if a file is provided, use this file location
-                if ~(exist(Background_Count_Rate_File_Location,'file'))
-                    error('cannot find a mat file of that name and location');
-                end
-                Ground_Station.Background_Count_Rate_File_Location=Background_Count_Rate_File_Location;
- 
+            %if a file is provided, use this file location
+            if ~(exist(Background_Count_Rate_File_Location,'file'))
+                error('cannot find a mat file of that name and location');
+            end
+            Ground_Station.Background_Count_Rate_File_Location=Background_Count_Rate_File_Location;
+
             %% read in
             Ground_Station.Background_Count_Rates=load(Background_Count_Rate_File_Location);
         end
-    
+
         function Ground_Station=SetWavelength(Ground_Station,Wavelength)
             %%SETWAVELENGTH set the wavelength (in nm) of the receiver
             Ground_Station.Detector=SetWavelength(Ground_Station.Detector,Wavelength);
         end
-    
+
         function [Total_Background_Count_Rate,Ground_Station,Headings,Elevations]=ComputeTotalBackgroundCountRate(Ground_Station,Background_Sources,Satellite)
             %%COMPUTETOTALBACKGROUNDCOUNTRATE return the total count rate
             %%at the given headings and elevations
-            
+
             %% Background light pollution
             % compute relative heading and elevation
-            [Headings,Elevations,~]=RelativeHeadingAndElevation(Satellite,Ground_Station); %#ok<*PROP> 
+            [Headings,Elevations,~]=RelativeHeadingAndElevation(Satellite,Ground_Station); %#ok<*PROP>
             % find light pollution count rate for given headings and elevations
             Light_Pollution_Count_Rate=GetLightPollutionCountRate(Ground_Station,Headings,Elevations);
-            
+
 
             %% Reflected light pollution
             Reflection_Count_Rate=zeros(size(Light_Pollution_Count_Rate));
@@ -149,21 +149,21 @@ classdef Ground_Station < Located_Object
                 %limit reflected light pollution to line of sight between
                 %satellite and background source
                 [~,Background_Source_Elevations]=RelativeHeadingAndElevation(Satellite,Background_Sources(i));
-                Elevation_Limit=Background_Sources(i).Elevation_Limit; %#ok<*PROPLC> 
+                Elevation_Limit=Background_Sources(i).Elevation_Limit; %#ok<*PROPLC>
                 Possible_Refleced_Counts=GetReflectedLightPollution(Background_Sources(i),Satellite,Ground_Station);
-                Reflection_Count_Rate(Background_Source_Elevations>Elevation_Limit)=Reflection_Count_Rate(Background_Source_Elevations>Elevation_Limit)+Possible_Refleced_Counts(Background_Source_Elevations>Elevation_Limit); %#ok<*AGROW> 
+                Reflection_Count_Rate(Background_Source_Elevations>Elevation_Limit)=Reflection_Count_Rate(Background_Source_Elevations>Elevation_Limit)+Possible_Refleced_Counts(Background_Source_Elevations>Elevation_Limit); %#ok<*AGROW>
             end
-            
+
             %% Dark_Counts
             Dark_Counts=ones(size(Headings))*Ground_Station.Detector.Dark_Count_Rate;
-            
+
             %% output value
             Ground_Station.Light_Pollution_Count_Rates=Light_Pollution_Count_Rate;
             Ground_Station.Reflection_Count_Rates=Reflection_Count_Rate;
             Ground_Station.Dark_Count_Rates=Dark_Counts;
             Total_Background_Count_Rate=Light_Pollution_Count_Rate+Reflection_Count_Rate+Dark_Counts;
         end
-       
+
         function PlotBackgroundCountRates(Ground_Station,Plotting_Indices,X_Axis)
             %%PLOTBACKGROUNDCOUNTRATES plot the background count rates
             %%affecting the ground station
@@ -173,47 +173,47 @@ classdef Ground_Station < Located_Object
             %% adjust legend to represent what is plotted
             %reflection and light poluution are non zero
             if any(Ground_Station.Reflection_Count_Rates(Plotting_Indices))&&any(Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices))
-            legend('Dark counts','Reflection off satellite','Light pollution count rates');
-            %no reflection
+                legend('Dark counts','Reflection off satellite','Light pollution count rates');
+                %no reflection
             elseif (~any(Ground_Station.Reflection_Count_Rates(Plotting_Indices)))&&any(Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices))
-            legend('Dark counts','','Light pollution count rates');
-            %no Light pollution
+                legend('Dark counts','','Light pollution count rates');
+                %no Light pollution
             elseif (any(Ground_Station.Reflection_Count_Rates(Plotting_Indices)))&&(~any(Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)))
-            legend('Dark counts','Reflection off satellite','');
+                legend('Dark counts','Reflection off satellite','');
             else
-            %neither reflection nor light pollution
-            legend('Dark counts','','');
+                %neither reflection nor light pollution
+                legend('Dark counts','','');
             end
             legend('Location','southeast')
 
         end
-    
+
         function Ground_Station=SetElevationLimit(Ground_Station,Elevation_Limit)
             %%SETELEVATIONLIMIT set the minimum elevation over which
             %%communication can occur
             Ground_Station.Elevation_Limit=Elevation_Limit;
         end
-    
+
         function PlotLOS(Ground_Station,Satellite_Altitude)
             %%PLOTLOS plot the ground station and its line of sight to a
-            %%given altitude 
-            
+            %%given altitude
+
             % plot ground station
             geoplot(Ground_Station.Latitude,Ground_Station.Longitude,'k*','MarkerSize',20);
             hold on
-                %plot the ground station's elevation window
-                Headings=1:359;
-                WindowLat=zeros(1,359);
-                WindowLon=zeros(1,359);
-                ArcDistance=ComputeLOSWindow(Satellite_Altitude,Ground_Station.Elevation_Limit);
-                for Heading=Headings
+            %plot the ground station's elevation window
+            Headings=1:359;
+            WindowLat=zeros(1,359);
+            WindowLon=zeros(1,359);
+            ArcDistance=ComputeLOSWindow(Satellite_Altitude,Ground_Station.Elevation_Limit);
+            for Heading=Headings
                 [CurrentWindowLat,CurrentWindowLon]=MoveAlongSurface(Ground_Station.Latitude,Ground_Station.Longitude,ArcDistance,Heading);
                 WindowLat(Heading)=CurrentWindowLat;
                 WindowLon(Heading)=CurrentWindowLon;
-                end
-                geoplot(WindowLat,WindowLon,'k--')
-                AddToLegend('Ground Station orbit LOS','Ground Station')
+            end
+            geoplot(WindowLat,WindowLon,'k--')
+            AddToLegend('Ground Station orbit LOS','Ground Station')
         end
-        
+
     end
 end

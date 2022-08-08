@@ -7,13 +7,13 @@ classdef (Abstract=true) Link_Model
     end
 
     methods (Access=public,Abstract=true)
-         [Link_Model,Link_Loss_dB] = Compute_Link_Loss(Link_Model,Located_Obj_1,Located_Obj_2)
-          %%COMPUTE_LINK_LOSS compute loss between transmitter and
-            %receiver
+        [Link_Model,Link_Loss_dB] = Compute_Link_Loss(Link_Model,Located_Obj_1,Located_Obj_2)
+        %%COMPUTE_LINK_LOSS compute loss between transmitter and
+        %receiver
 
         [Link_Model,Total_Loss_dB]=SetTotalLoss(Link_Model)
         %%SETTOTALLOSSupdate total loss to reflect internal stored computations
-        
+
         Plot(Link_Model,X_Axis)
         %%PLOT plot link loss over a given x axis
     end
@@ -35,7 +35,7 @@ classdef (Abstract=true) Link_Model
             end
         end
 
-       function Link_Loss=GetLinkLoss(Link_Model)
+        function Link_Loss=GetLinkLoss(Link_Model)
             %%GETLINKLOSS return an array of link losses the same
             %%dimensions as the link model array
 

@@ -10,13 +10,13 @@ Create Spacecraft QKDSat;
 GMAT QKDSat.DateFormat = UTCGregorian;
 GMAT QKDSat.Epoch = '20 Jan 2022 11:59:28.000';
 GMAT QKDSat.CoordinateSystem = EarthMJ2000Eq;
-GMAT QKDSat.DisplayStateType = Cartesian;
-GMAT QKDSat.X = 0;
-GMAT QKDSat.Y = 0;
-GMAT QKDSat.Z = 6471;
-GMAT QKDSat.VX = 4.036155998;
-GMAT QKDSat.VY = -6.459199809;
-GMAT QKDSat.VZ = 0;
+GMAT QKDSat.DisplayStateType = Keplerian;
+GMAT QKDSat.SMA = 6114.993467085945;
+GMAT QKDSat.ECC = 0.05821862849572354;
+GMAT QKDSat.INC = 90;
+GMAT QKDSat.RAAN = 119;
+GMAT QKDSat.AOP = 270;
+GMAT QKDSat.TA = 180;
 GMAT QKDSat.DryMass = 850;
 GMAT QKDSat.Cd = 2.2;
 GMAT QKDSat.Cr = 1.8;
@@ -114,6 +114,8 @@ GMAT York.MinimumElevationAngle = 30;
 
 
 
+
+
 %----------------------------------------
 %---------- ForceModels
 %----------------------------------------
@@ -175,8 +177,8 @@ GMAT PassLocator.LightTimeDirection = Receive;
 Create OrbitView DefaultOrbitView;
 GMAT DefaultOrbitView.SolverIterations = Current;
 GMAT DefaultOrbitView.UpperLeft = [ 0 0 ];
-GMAT DefaultOrbitView.Size = [ 0.5 0.4508928571428572 ];
-GMAT DefaultOrbitView.RelativeZOrder = 47;
+GMAT DefaultOrbitView.Size = [ 0.5 0.4507148231753198 ];
+GMAT DefaultOrbitView.RelativeZOrder = 63;
 GMAT DefaultOrbitView.Maximized = false;
 GMAT DefaultOrbitView.Add = {QKDSat, Earth};
 GMAT DefaultOrbitView.CoordinateSystem = EarthMJ2000Eq;
@@ -206,9 +208,9 @@ GMAT DefaultOrbitView.EnableConstellations = On;
 
 Create GroundTrackPlot DefaultGroundTrackPlot;
 GMAT DefaultGroundTrackPlot.SolverIterations = Current;
-GMAT DefaultGroundTrackPlot.UpperLeft = [ 0 0.4382440476190476 ];
-GMAT DefaultGroundTrackPlot.Size = [ 0.5 0.4508928571428572 ];
-GMAT DefaultGroundTrackPlot.RelativeZOrder = 56;
+GMAT DefaultGroundTrackPlot.UpperLeft = [ 0 0.437170805116629 ];
+GMAT DefaultGroundTrackPlot.Size = [ 0.5 0.4507148231753198 ];
+GMAT DefaultGroundTrackPlot.RelativeZOrder = 68;
 GMAT DefaultGroundTrackPlot.Maximized = false;
 GMAT DefaultGroundTrackPlot.Add = {Chilbolton, Errol, QKDSat, York};
 GMAT DefaultGroundTrackPlot.DataCollectFrequency = 1;

@@ -1,5 +1,6 @@
 function [Latout,Longout]=MoveAlongSurface(Latin,Longin,Arc,heading)
-%%MOVEALONGSURFACE move by an arc angle (arcdistance over sphere radius) at a given heading on the surface of a sphere using geographical coords
+%%MOVEALONGSURFACE move by an arc angle (arcdistance over sphere radius) at a
+% given heading on the surface of a sphere using geographical coords
 
 %% input validation
 if numel(Arc)>1||numel(Latin)>1||numel(Longin)>1

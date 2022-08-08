@@ -19,13 +19,14 @@ Transmitter_Source=COW_Source(Wavelength);                                      
 Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
 
 %2.1.3 Construct satellite
-SimSatellite=Satellite(OrbitDataFileLocation,Transmitter_Source,Transmitter_Telescope);
+SimSatellite=Satellite(Transmitter_Source,Transmitter_Telescope,'OrbitDataFileLocation',OrbitDataFileLocation);
 
 %2.2 Ground station
 %2.2.1 Detector
 Generic_COW_Detector=Generic_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
+%NOTE only detectors with the 'Visibility' property can be used for COW
 
 %2.2.2 Receiver telescope
 Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);

@@ -1,5 +1,5 @@
 function AddToLegend(varargin)
-%%ADDTOLEGEND add the input character vectors to the current figure's legend
+%%ADDTOLEGEND add the input text objects in order to the current figure's legend
 
 leg=legend;
 for i=1:nargin

@@ -20,9 +20,9 @@ classdef utils
             if ~n_in == 1
                 error('Too many input arguments, %d', n_in);
             end
-            
+
             elements = numel(varargin{2});
-            
+
             if elements == 0
                 error('Nothing to splat')
                 return
@@ -97,10 +97,10 @@ classdef utils
 
         function true_anomaly = eccentricity2trueAnomaly(self, eccentricity)
             true_anomaly = 2 .* atan(...
-                                    sqrt(...
-                                            (1 + eccentricity) ...
-                                            / (1 - eccentricity)) ...
-                                    .* tan(eccentricity / 2));
+                sqrt(...
+                (1 + eccentricity) ...
+                / (1 - eccentricity)) ...
+                .* tan(eccentricity / 2));
         end
 
         function semimajor_axis = meanmotion2semimajoraxis(self, mean_motion)
@@ -108,12 +108,12 @@ classdef utils
             M = 5.97237e24;
             G = 6.67430e-11;
             mu = G * M;
-            
+
             semimajor_axis = mu ./ (mean_motion .^ 2);
         end
 
         function [name, kepler_elements] = TLE2Kepler(Utils, ...
-                                                                   varargin)
+                varargin)
             % TODO -> expand this out to accept multi TLE settings, currently
             % only works for a single TLE
 
@@ -138,7 +138,7 @@ classdef utils
             end
 
             if (2 == length(arrayfun(@isempty, [p.Results.Line1, ...
-                                                 p.Results.Line2])))
+                    p.Results.Line2])))
                 Line1 = p.Results.Line1;
                 Line2 = p.Results.Line2;
                 lines = {name, Line1, Line2};

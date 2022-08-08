@@ -21,7 +21,7 @@ classdef (Abstract) Detector
         function Detector = Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width)
             %%Detector Construct a detector object with properties
             %determined by implementation
-            
+
             %% implement detector properties
             Detector.Wavelength=Wavelength;
             Detector.Time_Gate_Width=Time_Gate_Width;
@@ -31,7 +31,7 @@ classdef (Abstract) Detector
             % load in data for this detector
             [Histogram_Data,Histogram_Bin_Width]=LoadHistogramData(Detector);
             Detector=SetJitterPerformance(Detector,Histogram_Data,Histogram_Bin_Width,Time_Gate_Width,Repetition_Rate);
-            end
+        end
 
 
         function Detector=SetWavelength(Detector,Wavelength)
@@ -75,6 +75,7 @@ classdef (Abstract) Detector
             N=numel(Histogram);
             CDF=zeros(1,N);
             PDF=zeros(1,N);
+            
             %iterating over elements in the Histogram
             PDF(1)=Histogram(1)/Total_Counts;
             CDF(1)=0;
@@ -127,16 +128,16 @@ classdef (Abstract) Detector
             Detector.QBER_Jitter=QBER;
             Detector.Jitter_Loss=Loss;
         end
-    
-        function [Histogram_Data,Histogram_Bin_Width]=LoadHistogramData(Detector)
-                %%LOADHISTOGRAMDATA load in from an external file the data
-                %%describing the timing jitter of a detector
 
-                %% load in data
-                Histogram_Data=getfield(load(Detector.Histogram_Data_Location),'Counts');
-                Histogram_Bin_Width=Detector.Histogram_Bin_Width;
+        function [Histogram_Data,Histogram_Bin_Width]=LoadHistogramData(Detector)
+            %%LOADHISTOGRAMDATA load in from an external file the data
+            %%describing the timing jitter of a detector
+
+            %% load in data
+            Histogram_Data=getfield(load(Detector.Histogram_Data_Location),'Counts');
+            Histogram_Bin_Width=Detector.Histogram_Bin_Width;
         end
-        
+
         function Detector=SetDarkCountRate(Detector,DCR)
             %%SETDARKCOUNTRATE set detector dark count rate
             Detector.Dark_Count_Rate=DCR;

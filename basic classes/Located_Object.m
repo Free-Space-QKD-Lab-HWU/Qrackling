@@ -33,8 +33,8 @@ classdef (Abstract=true)Located_Object
         function LLA = GetLLA(Located_Object)
             %GETLLA return latitude, longitude and altitude as an nx3 array
             LLA = [Located_Object.Latitude, ...
-                   Located_Object.Longitude, ...
-                   Located_Object.Altitude];
+                Located_Object.Longitude, ...
+                Located_Object.Altitude];
         end
 
         function Located_Object = SetPosition(Located_Object, varargin)
@@ -71,9 +71,7 @@ classdef (Abstract=true)Located_Object
                 Located_Object.Longitude = LLA(2);
                 Located_Object.Altitude = LLA(3);
                 initialised = true;
-            end
-            
-            if AreSameSize(lat, lon, alt)
+            elseif AreSameSize(lat, lon, alt)
                 Located_Object.Latitude = lat;
                 Located_Object.Longitude = lon;
                 Located_Object.Altitude = alt;
@@ -97,8 +95,8 @@ classdef (Abstract=true)Located_Object
             %1 location from each object
             if Located_Obj_1.N_Position == 1 && Located_Obj_2.N_Position == 1
                 ENUs = lla2enu(GetLLA(Located_Obj_1), ...
-                                      GetLLA(Located_Obj_2), ...
-                                      'ellipsoid');
+                    GetLLA(Located_Obj_2), ...
+                    'ellipsoid');
                 return
             end
 
@@ -109,8 +107,8 @@ classdef (Abstract=true)Located_Object
 
                 for i = 1:Located_Obj_1.N_Position
                     ENUs(i,:)=lla2enu(LLA1(i,:), ...
-                                      GetLLA(Located_Obj_2), ...
-                                      'ellipsoid');
+                        GetLLA(Located_Obj_2), ...
+                        'ellipsoid');
                 end
                 return;
             end
@@ -122,8 +120,8 @@ classdef (Abstract=true)Located_Object
 
                 for i = 1:Located_Obj_2.N_Position
                     ENUs(i,:) = lla2enu(GetLLA(Located_Obj_1), ...
-                                      LLA2(i,:), ...
-                                      'ellipsoid');
+                        LLA2(i,:), ...
+                        'ellipsoid');
                 end
                 return;
             end
@@ -140,8 +138,8 @@ classdef (Abstract=true)Located_Object
 
                 for i = 1:Located_Obj_2.N_Position
                     ENUs(i,:) = lla2enu(LLA1(i,:), ...
-                                        LLA2(i,:), ...
-                                        'ellipsoid');
+                        LLA2(i,:), ...
+                        'ellipsoid');
                 end
                 return;
             end
@@ -160,8 +158,8 @@ classdef (Abstract=true)Located_Object
             Distance = Row2Norms(ENUs);
         end
 
-        function [H, E, D] = RelativeHeadingAndElevation(Located_Obj_1, ...
-                                                         Located_Obj_2)
+        function [Headings, Elevations, Distances] = RelativeHeadingAndElevation(Located_Obj_1, ...
+                Located_Obj_2)
             %%RELATIVEHEADINGANDELEVATION returh the heading and elevation
             % [H, E, D] == [Headings, Elevations, Distances]
             %%of object 1 relative to object 2
@@ -169,11 +167,11 @@ classdef (Abstract=true)Located_Object
             ENUs = ComputeRelativeCoords(Located_Obj_1, Located_Obj_2);
 
             %% compute heading and elevation from ground station
-            [H, E] = HeadingAndElevation(ENUs);
+            [Headings, Elevations] = HeadingAndElevation(ENUs);
 
             %% transpose into row vectors
-            H = H';
-            E = E';
+            Headings = Headings';
+            Elevations = Elevations';
 
             %% if needed, compute distances
             Distances = Row2Norms(ENUs);
@@ -197,16 +195,18 @@ classdef (Abstract=true)Located_Object
             %%and therefore the earth shadows their intervisibility
 
             %% get the two XYZ positions of the two objects
-            Pos_1 = GetXYZ(Located_obj_1);
-            Pos_2 = GetXYZ(Located_obj_2);
+            [X1,Y1,Z1] = GetXYZ(Located_obj_1);
+            Pos_1=[X1,Y1,Z1];
 
+            [X2,Y2,Z2] = GetXYZ(Located_obj_2);
+            Pos_2=[X2,Y2,Z2];
             %% determine the minimum radius from earth's centre of the line between these two
             Dot_product = sum(Pos_1 .* Pos_2,2);
             Lambda_min = (Row2Norms(Pos_1).^2 ...
-                          - Dot_product) ./ ...
-                         (Row2Norms(Pos_1).^2 ...
-                          + Row2Norms(Pos_2).^2 ...
-                          - 2 .* Dot_product);
+                - Dot_product) ./ ...
+                (Row2Norms(Pos_1).^2 ...
+                + Row2Norms(Pos_2).^2 ...
+                - 2 .* Dot_product);
 
             Pos_min = Pos_1 .* (1 - Lambda_min) + Pos_2 .* Lambda_min;
             %check lambda for not being inside bounds

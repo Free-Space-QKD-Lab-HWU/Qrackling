@@ -28,7 +28,7 @@ classdef Background_Source < Located_Object
             parse(P,LLA,Spectral_Pointance,Wavelength_Limits,varargin{:});
 
             %% set values
-            obj=SetPosition(obj,P.Results.LLA,P.Results.Location_Name);
+            obj=SetPosition(obj,'LLA',P.Results.LLA,'Name',P.Results.Location_Name);
             obj.Spectral_Pointance=P.Results.Spectral_Pointance;
             obj.Wavelength_Limits=P.Results.Wavelength_Limits;
             obj=SetElevationLimit(obj,P.Results.Elevation_Limit);
@@ -118,9 +118,9 @@ classdef Background_Source < Located_Object
             Radiant_Power=GetRadiantEmission(Background_Source,Wavelength_Floor,Wavelength_Ceiling);
 
             %% get reflective link loss
-            Satellite_Reflection_Link_Model=Satellite_Reflection_Link_Model_Constructor(Satellite.N_Steps);
-            Satellite_Reflection_Link_Model=Compute_Link_Loss(Satellite_Reflection_Link_Model,Satellite,Ground_Station,Background_Source);
-            [~,~,Total_Loss]=SetTotalLoss(Satellite_Reflection_Link_Model);
+            Sat_Ref_Link_Model=Satellite_Reflection_Link_Model(Satellite.N_Steps);
+            Sat_Ref_Link_Model=Compute_Link_Loss(Sat_Ref_Link_Model,Satellite,Ground_Station,Background_Source);
+            [~,~,Total_Loss]=SetTotalLoss(Sat_Ref_Link_Model);
 
             %% use this to compute reflected power
             Reflected_Power=Radiant_Power.*Total_Loss;

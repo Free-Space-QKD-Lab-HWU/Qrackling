@@ -29,7 +29,7 @@ classdef Telescope
             addParameter(P,'Pointing_Jitter',obj.Pointing_Jitter);
             %parse inputs
             parse(P,Diameter,varargin{:});
-            
+
             %% set values
             obj.Diameter=P.Results.Diameter;
             obj.Far_Field_Divergence_Coefficient=P.Results.Far_Field_Divergence_Coefficient;
@@ -50,7 +50,7 @@ classdef Telescope
             Telescope.Diameter=Diameter;
             Telescope.FOV=2.44*Telescope.Far_Field_Divergence_Coefficient*(Telescope.Wavelength*10^-9)/Telescope.Diameter;
         end
-        
+
         function Telescope=SetPointingJitter(Telescope,Pointing_Jitter)
             %%SETPOINTINGJITTER set pointing jitter of the OGS
             Telescope.Pointing_Jitter=Pointing_Jitter;

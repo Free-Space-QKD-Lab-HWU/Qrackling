@@ -1,4 +1,4 @@
-classdef(Abstract) Source
+classdef Source
     %Source object containing transmitter details
 
     properties(SetAccess=protected)
