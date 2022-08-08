@@ -32,7 +32,7 @@ classdef PassSimulation
     methods
         function PassSimulation = PassSimulation(Satellite,Protocol,Ground_Station,varargin)
             %PASSSIMULATION Construct an instance of a PassSimulation
-            
+
 
             %% create and use an input parser
             P=inputParser();
@@ -48,7 +48,7 @@ classdef PassSimulation
             PassSimulation.Satellite = P.Results.Satellite;
             PassSimulation.Ground_Station = P.Results.Ground_Station;
             PassSimulation.Protocol=P.Results.Protocol;
-            
+
             if ~IsSourceCompatible(Protocol,Satellite.Source)
                 error('satellite source is not compatible with %s protocol',Protocol.Name);
             end
@@ -59,7 +59,7 @@ classdef PassSimulation
                 error('satellite and ground station must use the same wavelength')
             end
             %if background sources are provided, add them
-                PassSimulation.Background_Sources=P.Results.Background_Sources;
+            PassSimulation.Background_Sources=P.Results.Background_Sources;
 
 
         end
@@ -87,7 +87,7 @@ classdef PassSimulation
             if ~any(Elevation_Limit_Flags)
                 error('satellite does not enter elevation window of ground station');
             end
-            
+
 
             %% Compute Link loss
             Computed_Link_Models=Compute_Link_Loss(PassSimulation.Link_Model,PassSimulation.Satellite,PassSimulation.Ground_Station);
@@ -114,9 +114,9 @@ classdef PassSimulation
             Downlink_Time_Windows=PassSimulation.Times(PassSimulation.Communicating_Flags)-PassSimulation.Times([PassSimulation.Communicating_Flags(2:end),false]);
             %the dot with sifted data rate
             if ~isempty(Downlink_Time_Windows)
-            PassSimulation.Total_Sifted_Key=dot(Downlink_Time_Windows,PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags));
+                PassSimulation.Total_Sifted_Key=dot(Downlink_Time_Windows,PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags));
             else
-            PassSimulation.Total_Sifted_Key=0;
+                PassSimulation.Total_Sifted_Key=0;
             end
         end
 
@@ -166,9 +166,9 @@ classdef PassSimulation
 
             %then plot sources of interference
             if ~isempty(PassSimulation.Background_Sources)
-                    for i=1:numel(PassSimulation.Background_Sources)
-                        PlotLOS(PassSimulation.Background_Sources(i),Satellite_Altitude)
-                    end
+                for i=1:numel(PassSimulation.Background_Sources)
+                    PlotLOS(PassSimulation.Background_Sources(i),Satellite_Altitude)
+                end
             end
 
             %% plot the status during comms above one another
@@ -226,7 +226,7 @@ classdef PassSimulation
             %%communication uses
             SetWavelength(PassSimulation.Satellite,Wavelength);
         end
-    
+
         function Total_Sifted_Key=GetTotalSiftedKey(PassSimulation)
             %%GETTOTALSIFTEDKEY return simulated total downlink data
             Total_Sifted_Key=PassSimulation.Total_Sifted_Key;
@@ -250,7 +250,7 @@ classdef PassSimulation
             %%during a pass
             BCR=PassSimulation.Background_Count_Rates;
         end
-        
+
         function Times=GetTimes(PassSimulation)
             %%GETTIMES return the time indices (in s) over a pass
             Times=PassSimulation.Times;

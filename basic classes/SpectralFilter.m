@@ -17,17 +17,17 @@ classdef SpectralFilter
 
             %if isempty(p.Results.input_file)
             if all(arrayfun(@isempty, [p.Results.input_file, ...
-                                       p.Results.wavelengths, ...
-                                       p.Results.transmission]))
+                    p.Results.wavelengths, ...
+                    p.Results.transmission]))
                 error(['No paths to input_file provided.', ...
-                       newline, 'Supply either:', ...
-                       newline, char(9), 'a single path to a file,', ...
-                       newline, char(9), 'a cell array of filepaths, or' ...
-                       newline, char(9), 'wavelength and transmission data for a single filter']);
+                    newline, 'Supply either:', ...
+                    newline, char(9), 'a single path to a file,', ...
+                    newline, char(9), 'a cell array of filepaths, or' ...
+                    newline, char(9), 'wavelength and transmission data for a single filter']);
             end
 
             if sum(arrayfun(@isempty, [p.Results.wavelengths, ...
-                                      p.Results.transmission])) ~= 0;
+                    p.Results.transmission])) ~= 0;
                 SpectralFilter.wavelengths = p.Results.wavelengths;
                 SpectralFilter.transmission = p.Results.transmission;
                 disp(1);
@@ -36,7 +36,7 @@ classdef SpectralFilter
 
             if ~iscell(p.Results.input_file)
                 [SpectralFilter, wl, tr] = read_file(SpectralFilter, ...
-                                                     input_file=p.Results.input_file);
+                    input_file=p.Results.input_file);
                 SpectralFilter.files{1} = p.Results.input_file;
                 SpectralFilter.wavelengths = wl;
                 SpectralFilter.transmission = tr;
@@ -48,7 +48,7 @@ classdef SpectralFilter
                 cache_transmission = {};
                 for i = 1 : N
                     [SpectralFilter, wl, tr] = read_file(SpectralFilter, ...
-                                                         input_file=p.Results.input_file{i});
+                        input_file=p.Results.input_file{i});
                     SpectralFilter.files{i} = p.Results.input_file;
                     cache_wavelengths{i} = wl;
                     cache_transmission{i} = tr;
@@ -64,8 +64,8 @@ classdef SpectralFilter
                 I = (1 : SpectralFilter.N);
                 for i = I(~ismember(I, [j]))
                     SpectralFilter = interpolate_onto(SpectralFilter, ...
-                                                      cache_wavelengths{i}, ...
-                                                      cache_transmission{i});
+                        cache_wavelengths{i}, ...
+                        cache_transmission{i});
                 end
             end
         end
@@ -89,12 +89,12 @@ classdef SpectralFilter
             SpectralFilter.N = SpectralFilter.N + 1;
 
             wavelengths = get_column_from_name(SpectralFilter, ...
-                                               table, ...
-                                               p.Results.wavelength);
+                table, ...
+                p.Results.wavelength);
 
             transmission = get_column_from_name(SpectralFilter, ...
-                                                table, ...
-                                                p.Results.transmission) ./ 100;
+                table, ...
+                p.Results.transmission) ./ 100;
         end
 
         function column = get_column_from_name(self, table, column_name)
@@ -114,7 +114,7 @@ classdef SpectralFilter
             j = 0;
             if 1 == SpectralFilter.N
                 SpectralFilter.stepSize = stepsize(wl);
-                return; 
+                return;
             end
 
             SpectralFilter.stepSize = zeros(1, SpectralFilter.N);
@@ -140,7 +140,7 @@ classdef SpectralFilter
             pw_poly = interp1(wl, tr, 'cubic', 'pp');
             interpolated = ppval(pw_poly, SpectralFilter.wavelengths);
             SpectralFilter.transmission = SpectralFilter.transmission ...
-                                          .* interpolated;
+                .* interpolated;
         end
 
         function SpectralFilter = add_from_file(self, input_file)
@@ -158,8 +158,8 @@ classdef SpectralFilter
 
             if ~isempty(p.Results.spectral_filter)
                 SpectralFilter = interpolate_onto(self, ...
-                                    p.Results.spectral_filter.wavelengths, ...
-                                    p.Results.spectral_filter.transmission);
+                    p.Results.spectral_filter.wavelengths, ...
+                    p.Results.spectral_filter.transmission);
                 return
             end
 
@@ -170,8 +170,8 @@ classdef SpectralFilter
 
             if ~any(arrayfun(isempty, [p.Results.wavelengths, p.Results.transmission]))
                 SpectralFilter = interpolate_onto(SpectralFilter, ...
-                                                  p.Results.wavelengths, ...
-                                                  p.Results.transmission);
+                    p.Results.wavelengths, ...
+                    p.Results.transmission);
                 return
             end
 

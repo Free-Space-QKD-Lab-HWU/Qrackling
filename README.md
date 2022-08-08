@@ -24,3 +24,4 @@ Commit 8/8/22
 -fixed failure to construct a located object from a 3-element LLA vector
 -fixed misrepresentation of GetXYZ output in IsEarthShadowed (method of Located_Object)
 -change inputparser behaviour in Satellite to make function hints clearer to user
+-include an example for using the DPS protocol

@@ -172,7 +172,7 @@ classdef Satellite_Link_Model < Link_Model
         end
 
         function [Link_Model,Link_Loss_dB] = Compute_Link_Loss(Link_Model,Satellite,Ground_Station)
-            %%COMPUTE_LINK_LOSS compute loss between satellite and ground 
+            %%COMPUTE_LINK_LOSS compute loss between satellite and ground
             %station
 
             %% compute link lengths
@@ -258,7 +258,7 @@ classdef Satellite_Link_Model < Link_Model
 
         function Plot(Satellite_Link_Model,X_Axis)
             %%PLOT plot the link loss over time of the satellite link
-            
+
             %must use column vector of losses for area
             if isrow(Satellite_Link_Model)
                 Satellite_Link_Model=Satellite_Link_Model';
@@ -271,31 +271,31 @@ classdef Satellite_Link_Model < Link_Model
             GeoLossdB=GetGeometricLossdB(Satellite_Link_Model);
             Shadowing_Indices=(GeoLossdB==inf);
             if any(Shadowing_Indices)
-            Max_Geo_Loss=max(GeoLossdB(~Shadowing_Indices));
-            hold on
-            scatter(X_Axis(Shadowing_Indices),Max_Geo_Loss*ones(1,sum(Shadowing_Indices)),'k.');
-            if ~isempty(Max_Geo_Loss)
-            text(X_Axis(end),Max_Geo_Loss,'Link shadowed by earth','VerticalAlignment','bottom','HorizontalAlignment','right')
-            else
-            text(X_Axis(end),0,'Link constantly shadowed by earth','VerticalAlignment','bottom','HorizontalAlignment','right')
-            end
-            hold off
+                Max_Geo_Loss=max(GeoLossdB(~Shadowing_Indices));
+                hold on
+                scatter(X_Axis(Shadowing_Indices),Max_Geo_Loss*ones(1,sum(Shadowing_Indices)),'k.');
+                if ~isempty(Max_Geo_Loss)
+                    text(X_Axis(end),Max_Geo_Loss,'Link shadowed by earth','VerticalAlignment','bottom','HorizontalAlignment','right')
+                else
+                    text(X_Axis(end),0,'Link constantly shadowed by earth','VerticalAlignment','bottom','HorizontalAlignment','right')
+                end
+                hold off
             end
 
             %% adjust legend to represent what is plotted
             %atmospheric loss is non zero
             if any(GetAtmosphericLossdB(Satellite_Link_Model))
-            legend('Geometric loss','Atmospheric loss','Efficiency loss','APT loss');
+                legend('Geometric loss','Atmospheric loss','Efficiency loss','APT loss');
             else
-            %atmospheric loss is zero
-            legend('Geometric loss','','Efficiency loss','APT loss');
+                %atmospheric loss is zero
+                legend('Geometric loss','','Efficiency loss','APT loss');
             end
             legend('Location','south')
         end
 
         function [Link_Model,Total_Loss_dB]=SetTotalLoss(Link_Model)
             %%SETTOTALLOSS update total loss to reflect stored loss values
-            
+
             %stay in dB domain for numerical precision
             sz=size(Link_Model);
             for i=1:sz(1)

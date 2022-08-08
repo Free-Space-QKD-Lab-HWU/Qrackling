@@ -26,6 +26,7 @@ SimSatellite=Satellite(Transmitter_Source,Transmitter_Telescope,'OrbitDataFileLo
 Generic_COW_Detector=Generic_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
+%NOTE only detectors with the 'Visibility' property can be used for COW
 
 %2.2.2 Receiver telescope
 Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);

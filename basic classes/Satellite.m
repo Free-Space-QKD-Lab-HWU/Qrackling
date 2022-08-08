@@ -18,7 +18,7 @@ classdef Satellite < Located_Object
         satellite_scenario;
         sc_sat;
     end
-    
+
     %do not hide small properties
     properties (SetAccess=protected, Hidden=false)
         % If not set, initialised to UUID
@@ -40,16 +40,16 @@ classdef Satellite < Located_Object
         %   - reflectivity of satellite coating (dimensionless)
         Frontal_Area{mustBeScalarOrEmpty,mustBePositive} = 4;
         Reflectivity{mustBeScalarOrEmpty, ...
-                     mustBeLessThan(Reflectivity, 1)} = 0.3;
+            mustBeLessThan(Reflectivity, 1)} = 0.3;
     end
 
     methods
         function Satellite = Satellite(Source,Telescope,varargin)
-            
+
             % SATELLITE Construct an instance of satellite using an orbital
             % User must provide either an 'OrbitDataFileLocation' file, TLE
             % information or KeplerElements, if more than once of these is
-            % provided the precedence listed here is applied. I.e. if both 
+            % provided the precedence listed here is applied. I.e. if both
             % 'OrbitDataFileLocation' and KeplerElements are supplied the
             % 'OrbitDataFileLocation' will be used.
             % If TLE information or KeplerElements are supplied then a startTime,
@@ -76,11 +76,11 @@ classdef Satellite < Located_Object
                 Satellite.Name = p.Results.Name;
             end
             if (0 > utils().nan_present(p.Results.OrbitDataFileLocation, ...
-                                       p.Results.ToolBoxSatellite, ...
-                                       p.Results.TLE, ...
-                                       p.Results.KeplerElements))
+                    p.Results.ToolBoxSatellite, ...
+                    p.Results.TLE, ...
+                    p.Results.KeplerElements))
                 error(['Input does not contain one of the following: [', ...
-                       'OrbitDataFileLocation', 'TLE', 'KeplerElements', ']']);
+                    'OrbitDataFileLocation', 'TLE', 'KeplerElements', ']']);
             end
 
 
@@ -92,38 +92,38 @@ classdef Satellite < Located_Object
 
             if ~isempty(p.Results.OrbitDataFileLocation)
                 [Satellite, lat, lon, alt, t] = ReadOrbitLLATFile(Satellite,...
-                                              p.Results.OrbitDataFileLocation);
+                    p.Results.OrbitDataFileLocation);
             elseif ~isempty(p.Results.ToolBoxSatellite)
                 scenario = p.Results.ToolBoxSatellite;
                 [Satellite, lat, lon, alt, t] = llatFromScenario(Satellite,...
-                                                                 scenario);
+                    scenario);
             else
                 Satellite.satellite_scenario = satelliteScenario(startTime, ...
-                                                                 stopTime, ...
-                                                                 sampleTime);
+                    stopTime, ...
+                    sampleTime);
                 if ~isempty(p.Results.TLE)
                     [Satellite, lat, lon, alt, t] = llatFromPropagator(...
-                                                                Satellite, ...
-                                                                TLE);
+                        Satellite, ...
+                        TLE);
                     Satellite.Name = Satellite.sc_sat.satellite(1).Name;
 
                 elseif ~isempty(p.Results.KeplerElements)
                     [rows, cols] = size(p.Results.KeplerElements);
                     if cols ~= 6
                         error(['Require all 6 Kepler Elements, in order:', ...
-                          newline, char(9), 'semiMajorAxis', ...
-                          newline, char(9), 'eccentricity', ...
-                          newline, char(9), 'inclination', ...
-                          newline, char(9), 'rightAscensionOfAscendingNode', ...
-                          newline, char(9), 'argumentOfPeriapsis', ...
-                          newline, char(9), 'trueAnomaly'])
+                            newline, char(9), 'semiMajorAxis', ...
+                            newline, char(9), 'eccentricity', ...
+                            newline, char(9), 'inclination', ...
+                            newline, char(9), 'rightAscensionOfAscendingNode', ...
+                            newline, char(9), 'argumentOfPeriapsis', ...
+                            newline, char(9), 'trueAnomaly'])
                     end
                     [Satellite, lat, lon, alt, t] = llatFromKepler(...
-                                                            Satellite, ...
-                                                            KeplerElements, ...
-                                                            startTime, ...
-                                                            stopTime, ...
-                                                            sampleTime);
+                        Satellite, ...
+                        KeplerElements, ...
+                        startTime, ...
+                        stopTime, ...
+                        sampleTime);
                 end
             end
 
@@ -133,21 +133,21 @@ classdef Satellite < Located_Object
             end
             %set N_Steps
             Satellite = SetPosition(Satellite, ...
-                                    Latitude = lat, ...
-                                    Longitude = lon, ...
-                                    Altitude = alt, ...
-                                    Name = Satellite.Name);
+                Latitude = lat, ...
+                Longitude = lon, ...
+                Altitude = alt, ...
+                Name = Satellite.Name);
             Satellite.N_Steps = Satellite.N_Position;
             Satellite.Times = t;
 
             Satellite.Source = p.Results.Source;
             Satellite.Telescope = p.Results.Telescope;
             Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
-                                                Satellite.Source.Wavelength);            
+                Satellite.Source.Wavelength);
         end
 
         function [Satellite, lat, lon, alt, t] = ReadOrbitLLATFile(Satellite, ...
-                                                    Orbit_Data_File_Location)
+                Orbit_Data_File_Location)
             %ReadOrbitLLATFile Read in the given (or internally pointed to
             %if no file is given) orbit data file
             %% add orbit files to path
@@ -182,7 +182,7 @@ classdef Satellite < Located_Object
         end
 
         function [Satellite, lat, lon, alt, t] = llatFromScenario(Satellite, ...
-                                                                  scenario)
+                scenario)
             [pos, vel, t] = states(scenario, 'CoordinateFrame', 'geographic');
             [lat, lon, alt] = utils().splat(pos');
         end
@@ -190,19 +190,19 @@ classdef Satellite < Located_Object
         function [Satellite, lat, lon, alt, t] = llatFromTLE(Satellite, TLE)
 
             Satellite.sc_sat = satellite(Satellite.satellite_scenario, ...
-                                         TLE, "Name", Satellite.Name, ...
-                                         "OrbitPropagator", ...
-                                         "two-body-keplerian");
+                TLE, "Name", Satellite.Name, ...
+                "OrbitPropagator", ...
+                "two-body-keplerian");
 
             [position, velocity, t] = states(Satellite.sc_sat, ...
-                                            'CoordinateFrame', 'geographic');
+                'CoordinateFrame', 'geographic');
             lat = position(:, :, 1);
             lon = position(:, :, 2);
             alt = position(:, :, 3);
         end
 
         function [Satellite, lat, lon, alt, t] = llatFromKepler(Satellite, ...
-                                                                KeplerElements)
+                KeplerElements)
             % Takes KeplerElements in the form (and order):
             %     semiMajorAxis,
             %     eccentricity,
@@ -214,24 +214,24 @@ classdef Satellite < Located_Object
             [sma, ecc, inc, raan, aop, ta] = utils().splat(KeplerElements);
 
             Satellite.sc_sat = satellite(Satellite.satellite_scenario, ...
-                                         sma, ecc, inc, raan, aop, ta, ...
-                                         "Name", Satellite.Name, ...
-                                         "OrbitPropagator", ...
-                                         "two-body-keplerian");
+                sma, ecc, inc, raan, aop, ta, ...
+                "Name", Satellite.Name, ...
+                "OrbitPropagator", ...
+                "two-body-keplerian");
 
             [position, velocity, t] = states(Satellite.sc_sat, ...
-                                            'CoordinateFrame', 'geographic');
+                'CoordinateFrame', 'geographic');
             lat = position(:, :, 1);
             lon = position(:, :, 2);
             alt = position(:, :, 3);
         end
-    
+
         function Satellite = SetWavelength(Satellite, Wavelength)
             %%SETWAVELENGTH set the wavelength property of the internal
             %%transmitter
             Satellite.Source = SetWavelength(Satellite.Source, Wavelength);
             Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
-                                                Wavelength);
+                Wavelength);
         end
 
         function Distances = ComputeDistancesTo(Satellite, LLA)
@@ -239,21 +239,21 @@ classdef Satellite < Located_Object
             %%satellite pass
             %% convert from LLA of satellite to ENU relative to ground station
             LLA_satellite = [Satellite.Latitudes', ...
-                             Satellite.Longitudes', ...
-                             Satellite.Altitudes'];
+                Satellite.Longitudes', ...
+                Satellite.Altitudes'];
 
             ENU = lla2enu(LLA_satellite, LLA, "ellipsoid");
             Distances = Row2Norms(ENU);
         end
-        
+
         function Satellite = SetFrontalArea(Satellite, Area)
             %%SETFRONTALAREA set the frontal area property
             Satellite.Frontal_Area = Area;
         end
 
         function Satellite = SetReflectivity(Satellite, reflectivity)
-             %%SETFRONTALAREA set the frontal area property
-             Satellite.Reflectivity = reflectivity;
+            %%SETFRONTALAREA set the frontal area property
+            Satellite.Reflectivity = reflectivity;
         end
 
     end

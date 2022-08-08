@@ -20,7 +20,7 @@ Jamming_Spectral_Width=10;
 
 %2.1 Satellite
 %2.1.1 Source
-Transmitter_Source=BB84_Source(Wavelength);                                %we use default values to simplify this example
+Transmitter_Source=Source(Wavelength);                                %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
 Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
