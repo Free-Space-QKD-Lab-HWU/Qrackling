@@ -4,8 +4,8 @@
 classdef Constellation
     properties
         scenario = nan;
-        Satellites = {Satellite.empty(0)};
-        toolbox_satellites = {satellite.empty(0)};
+        Satellites Satellite
+        toolbox_satellites
         N = nan;
         startTime;
         stopTime;
@@ -13,15 +13,12 @@ classdef Constellation
     end
 
     methods
-        function Constellation = Constellation(varargin)
+        function Constellation = Constellation(Source,Telescope,varargin)
 
             p = inputParser;
 
-            addParameter(p, 'source', nan);
-            addParameter(p, 'telescope', nan);
-            addParameter(p, 'startTime', nan);
-            addParameter(p, 'stopTime', nan);
-            addParameter(p, 'sampleTime', nan);
+            addRequired(p, 'source');
+            addRequired(p, 'telescope');
             addParameter(p, 'TLE', '');
             addParameter(p, 'name', '');
             addParameter(p, 'KeplerElements', []);
@@ -31,8 +28,14 @@ classdef Constellation
             addParameter(p, 'rightAscensionOfAscendingNode', []);
             addParameter(p, 'argumentOfPeriapsis', []);
             addParameter(p, 'trueAnomaly', []);
-
-            parse(p, varargin{:});
+            
+            % constellation should default to a trivial simulation just to
+            % implement satellites
+            %addParameter(p, 'startTime', datetime('now'));
+            %addParameter(p, 'stopTime', datetime('now')+seconds(1));
+            %addParameter(p, 'sampleTime',seconds(1));
+            
+            parse(p, Source, Telescope, varargin{:});
 
             %if any(isnan([p.Results.source, p.Results.telescope]))
             %    error('Source and / or telescope not supplies');
@@ -40,14 +43,19 @@ classdef Constellation
 
             source = p.Results.source;
             telescope = p.Results.telescope;
+            
 
-            t_start = p.Results.startTime;
-            t_stop = p.Results.stopTime;
-            t_sample = p.Results.sampleTime;
+            %t_start = p.Results.startTime;
+            %t_stop = p.Results.stopTime;
+            %t_sample = p.Results.sampleTime;
+            %%if sample time is a duration, convert to a double in seconds
+            %if isduration(t_sample)
+            %    t_sample=seconds(t_sample);
+            %end
 
-            Constellation.startTime = p.Results.startTime;
-            Constellation.stopTime = p.Results.stopTime;
-            Constellation.sampleTime = p.Results.sampleTime;
+            %Constellation.startTime = p.Results.startTime;
+            %Constellation.stopTime = p.Results.stopTime;
+            %Constellation.sampleTime = p.Results.sampleTime;
 
 
             sma = p.Results.semiMajorAxis;
@@ -57,51 +65,48 @@ classdef Constellation
             aop = p.Results.argumentOfPeriapsis;
             ta = p.Results.trueAnomaly;
 
-            if ~any([isdatetime(t_start), isdatetime(t_stop)])
-                error('Not supplied: startTime, stopTime and sampleTime');
-            end
-            
-            Constellation.scenario = satelliteScenario(t_start, ...
-                                                       t_stop, ...
-                                                       t_sample);
-            
-            if ~isempty(p.Results.TLE)
-                satellites = satellite(Constellation.scenario, ...
-                                       p.Results.TLE, ...
-                                       'OrbitPropagator', 'sgp4');
-                Constellation.N = max(size(Constellation.scenario.Satellites));
-                Constellation = initialise_satellite_objects(Constellation, ...
-                                                            source, ...
-                                                            telescope);
-                return
-            end
+            %if ~any([isdatetime(t_start), isdatetime(t_stop)])
+            %    error('Not supplied: startTime, stopTime and sampleTime');
+            %end
+
+            %Constellation.scenario = satelliteScenario(t_start, ...
+            %    t_stop, ...
+            %    t_sample);
+
+            %if ~isempty(p.Results.TLE)
+            %    satellites = satellite(Constellation.scenario, ...
+            %        p.Results.TLE, ...
+            %        'OrbitPropagator', 'sgp4');
+            %    Constellation.N = max(size(Constellation.scenario.Satellites));
+            %    Constellation = initialise_satellite_objects(Constellation, ...
+            %        source, ...
+            %        telescope);
+            %    return
+            %end
 
             % If we have got this far we must have some kepler elements as
             % input in some form, we check anyway and exit if we don't
             % small note: 'apply_kepler' is here mostly to make this all a bit
             % easier to read and to avoid some extra levels of indentation
-            apply_kepler = false;
-            if ~isempty(p.Results.KeplerElements)
-                kepler_elements = p.Results.KeplerElements;
-                apply_kepler = true;
-            end
 
-            assert(6 == size(kepler_elements) * [0, 1]');
 
+            %first, check if kepler elements are provided individually
             lengths = utils().lengths(sma, ecc, inc, raan, aop, ta);
-            %this logic is not quite right, this shouldnt be reached if the above test passes
-            %if ~isnan(all(lengths == lengths(1)))
-            %    apply_kepler = true;
-            %    kepler_elements = [sma', ecc', inc', raan', aop', ta'];
-            %end
+            if ~isnan(all(lengths == lengths(1)))
+                kepler_elements = [sma', ecc', inc', raan', aop', ta'];
+                %otherwise, check for a complete set provided in a vector
+            elseif ~isempty(p.Results.KeplerElements)
+                kepler_elements = p.Results.KeplerElements;
 
-            if ~apply_kepler
+                %if neither of these pass then we need more information
+            else
                 error(['No data given, please supply one of the following', ...
-                       newline, char(9), 'a Two-Line element set', ... 
-                       newline, char(9), 'A matrix of kepler elements', ... 
-                       newline, char(9), 'An array for each kepler element']) 
-                return 
+                    newline, char(9), 'a Two-Line element set', ...
+                    newline, char(9), 'A matrix of kepler elements', ...
+                    newline, char(9), 'An array for each kepler element'])
             end
+            %check the set of elements is complete
+            assert(6 == size(kepler_elements) * [0, 1]');
 
             if (1 == sum(1 == size(kepler_elements)))
                 Constellation.N = 1;
@@ -110,45 +115,87 @@ classdef Constellation
             else
                 Constellation.N = size(kepler_elements) * (6 ~= size(kepler_elements))';
             end
+            
 
+
+            %if Constellation.N >= 1
+            %    Constellation = addSatelliteFromKepler(Constellation, ...
+            %        kepler_elements, ...
+            %        names);
+            %end
+
+            %% if no names provided, create unique numbers
             if ~isempty(p.Results.name)
                 names = p.Results.name;
             else
                 names = createNames(Constellation);
             end
 
-            if Constellation.N >= 1;
-                Constellation = addSatelliteFromKepler(Constellation, ... 
-                                                       kepler_elements, ...
-                                                       names);
-            end
-
             Constellation = initialise_satellite_objects(Constellation, ...
-                                                          source, ...
-                                                          telescope);
+                source, ...
+                telescope,...
+                kepler_elements,...
+                names);
         end
 
         function Constellation = initialise_satellite_objects(Constellation, ...
-                                                              source, ...
-                                                              telescope)
-            for i= 1:Constellation.N
-                tb_sat = Constellation.scenario.Satellites(i);
-                Constellation.toolbox_satellites{i} = tb_sat;
-                sat = Satellite(source, telescope, ...
-                                startTime= Constellation.startTime, ...
-                                stopTime= Constellation.stopTime, ...
-                                sampleTime= Constellation.sampleTime, ...
-                                ToolBoxSatellite = tb_sat, ...
-                                name=matlab.lang.internal.uuid());
-                Constellation.Satellites{i} = sat;
+                source, ...
+                telescope,...
+                kepler_elements,...
+                names)
+
+
+            %{
+            %% initialise properties to the correct classes with the first entry
+            tb_sat = Constellation.scenario.Satellites(1);
+            Constellation.toolbox_satellites = tb_sat;
+            sat = Satellite(source, telescope, ...
+                startTime= Constellation.startTime, ...
+                stopTime= Constellation.stopTime, ...
+                sampleTime= Constellation.sampleTime, ...
+                ToolBoxSatellite = tb_sat, ...
+                KeplerElements = kepler_elements,...
+                name=tb_sat.Name);
+            Constellation.Satellites = sat;
+            %now iterate backwards through rest of array to save
+            %resizing array every time
+            if Constellation.N>=2
+                for i= 2:Constellation.N
+                    tb_sat = Constellation.scenario.Satellites(i);
+                    Constellation.toolbox_satellites(i) = tb_sat;
+                    sat = Satellite(source, telescope, ...
+                        startTime= Constellation.startTime, ...
+                        stopTime= Constellation.stopTime, ...
+                        sampleTime= Constellation.sampleTime, ...
+                        ToolBoxSatellite = tb_sat, ...
+                        name=tb_sat.Name);
+                    Constellation.Satellites(i) = sat;
+                end
             end
+            %}
+
+            %% create satellite objects with the provided kepler elements
+            for i=1:Constellation.N
+                %iterating over satellites
+                Satellites(i)=Satellite(source,telescope,...
+                    'SemimajorAxis',kepler_elements(i,1),...
+                    'Eccentricity',kepler_elements(i,2),...
+                    'Inclination',kepler_elements(i,3),...
+                    'RightAscensionofAscendingNode',kepler_elements(i,4),...
+                    'ArgumentofPeriapsis',kepler_elements(i,5),...
+                    'TrueAnomaly',kepler_elements(i,6),...
+                    'Name',names(i)); %#ok<*PROPLC> 
+            end
+            Constellation.Satellites=Satellites;
         end
 
-        function names = createNames(Constellation)
-            names = cell(1, Constellation.N);
-            for i = 1 : Constellation.N
-                names{i} = convertStringsToChars(matlab.lang.internal.uuid());
-            end
+
+        function NameCellArray = createNames(Constellation)
+            %%CREATENAMES create a cell array of character vectors which are
+            %%unique satellite IDs
+            NameChars=strsplit(num2str(1:Constellation.N),' ');
+            NameCellArray=cellstr(NameChars);
+
         end
 
         function Constellation = addSatelliteFromKepler(Constellation, kepler_mat, names)
@@ -157,17 +204,17 @@ classdef Constellation
                 [sma, ecc, inc, raan, aop, ta] = utils().splat(kepler_mat);
 
                 satellites = satellite(Constellation.scenario, ...
-                                       sma, ecc, inc, raan, aop, ta, ...
-                                       'Name', names);
+                    sma, ecc, inc, raan, aop, ta, ...
+                    'Name', names);
 
             else
                 for i = 1 : Constellation.N
                     [sma, ecc, inc, raan, aop, ta] = utils().splat(kepler_mat(i,:));
 
                     satellites = satellite(Constellation.scenario, ...
-                                           sma, ecc, inc, raan, aop, ta, ...
-                                           'Name', names{i}, ...
-                                           'OrbitPropagator', 'sgp4');
+                        sma, ecc, inc, raan, aop, ta, ...
+                        'Name', names{i}, ...
+                        'OrbitPropagator', 'sgp4');
                 end
             end
         end
@@ -181,5 +228,22 @@ classdef Constellation
             aop = orbitalElements.ArgumentOfPeriapsis;
             ta = utils().eccentricity2trueAnomaly(ecc, orbitalElements.MeanAnomaly);
         end
+
+        
+        function SatQKDScenario = AddSatellites(Constellation,SatQKDScenario)
+            %%ADDSATELLITES add satellites to the given SatQKDScenario object
+
+
+            %% iterate through satellites
+            for i=1:Constellation.N
+                %add each to the toolbox scenario inside SatQKDScenario
+                SatQKDScenario.toolbox_scenario=AddSatelliteToToolboxScenario(Constellation.Satellites(i),SatQKDScenario.toolbox_scenario);
+            end
+        end
+
+        %function show(Constellation)
+        %    %%SHOW display constellation in the MATLAB satellite viewer
+        %    show(Constellation.toolbox_satellites)
+        %end
     end
 end

@@ -15,10 +15,9 @@ Time_Gate_Width=10^-9;
 Repetition_Rate=10^9;
 Spectral_Filter_Width=1;
 Wavelength=850;
-Excelitas_Detector_Factory=Excelitas_Detector_Factory();
 
-Transmitter_Telescope=Telescope(Transmitter_Diameter,Wavelength);
-Receiver_Telescope=Telescope(Receiver_Diameter,Wavelength);
+Transmitter_Telescope=Telescope(Transmitter_Diameter);
+Receiver_Telescope=Telescope(Receiver_Diameter);
 
 BB84_S=BB84_Source(Wavelength);
 

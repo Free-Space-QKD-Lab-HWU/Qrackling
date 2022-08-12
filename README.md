@@ -25,3 +25,9 @@ Commit 8/8/22
 -fixed misrepresentation of GetXYZ output in IsEarthShadowed (method of Located_Object)
 -change inputparser behaviour in Satellite to make function hints clearer to user
 -include an example for using the DPS protocol
+
+Commit
+-new class SatQKDScenario which mirrors the satellite toolbox scenario to provide full general simulation of orbitting satellites
+-new class SunSynchronousConstellation which allows the creation of a constellation of sun-synchronous orbitting satellites
+-change of constellation and satellite class structures. Now a single satelliteScenario object is owned by the SatQKDScenario object
+-provide ExampleSatQKDScenario script to explain new class structure

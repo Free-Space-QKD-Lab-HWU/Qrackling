@@ -67,9 +67,9 @@ classdef (Abstract=true)Located_Object
             initialised = false;
 
             if ~isnan(LLA)
-                Located_Object.Latitude = LLA(1);
-                Located_Object.Longitude = LLA(2);
-                Located_Object.Altitude = LLA(3);
+                Located_Object.Latitude = LLA(:,1);
+                Located_Object.Longitude = LLA(:,2);
+                Located_Object.Altitude = LLA(:,3);
                 initialised = true;
             elseif AreSameSize(lat, lon, alt)
                 Located_Object.Latitude = lat;

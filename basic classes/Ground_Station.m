@@ -1,27 +1,27 @@
-classdef Ground_Station < Located_Object
+classdef Ground_Station < Located_Object & matlab.mixin.Heterogeneous
     %%GROUND_STATION an object containing all of the simulation parameters of the ground station
 
     properties (Abstract=false,SetAccess=protected)
-        Protocol{mustBeText}='';                                           %name of protocol to be used
+        Protocol{mustBeText}='';                                                %name of protocol to be used
 
-        Detector                                                           %a detector object, validated individually in subclasses
+        Detector                                                                %a detector object, validated individually in subclasses
         Telescope Telescope
 
-        Background_Count_Rate_File_Location{mustBeText}='none';            %pointer to a file containing the background count rate data for this ground station (stored in counts/steradian)
+        Background_Count_Rate_File_Location{mustBeText}='none';                 %pointer to a file containing the background count rate data for this ground station (stored in counts/steradian)
         Background_Count_Rates{isstruct,isfield(Background_Count_Rates,'Heading'),isfield(Background_Count_Rates,'Elevation'),isfield(Background_Count_Rates,'Count_Rate')};%background count rate (in counts/s) as a function of heading and elevation, stored as a structure with fields 'Count_Rate','Heading' and 'Elevation'
     end
 
     properties (Abstract=false,SetAccess=protected,Hidden=true)
-        Headings{mustBeVector}=nan;                                        %Heading of the satellite in degrees as seen from the OGS
-        Elevations{mustBeVector}=nan;                                      %Elevation of the satellite in degrees as seen from the OGS
-        Satellite_ENUs{mustBeNumeric}                                      %the coordinates of the satellite relative to the ground station in metres east, north and up
-        Satellite_Ranges{mustBeVector}=nan;                                %range to the satellite in m over many time steps
+        Headings{mustBeVector}=nan;                                             %Heading of the satellite in degrees as seen from the OGS
+        Elevations{mustBeVector}=nan;                                           %Elevation of the satellite in degrees as seen from the OGS
+        Satellite_ENUs{mustBeNumeric}                                           %the coordinates of the satellite relative to the ground station in metres east, north and up
+        Satellite_Ranges{mustBeVector}=nan;                                     %range to the satellite in m over many time steps
 
         Elevation_Limit{mustBeScalarOrEmpty}=30;                                %minimum elevation to establish a link in deg
 
-        Light_Pollution_Count_Rates{mustBeVector,mustBeNonnegative}=0;     %count rates at the Ground station due to light pollution
-        Dark_Count_Rates{mustBeVector,mustBeNonnegative}=0;                %count rates at the Ground station due to dark counts
-        Reflection_Count_Rates{mustBeVector,mustBeNonnegative}=0;          %count rates at the Ground station due to reflected light off satellite
+        Light_Pollution_Count_Rates{mustBeVector,mustBeNonnegative}=0;          %count rates at the Ground station due to light pollution
+        Dark_Count_Rates{mustBeVector,mustBeNonnegative}=0;                     %count rates at the Ground station due to dark counts
+        Reflection_Count_Rates{mustBeVector,mustBeNonnegative}=0;               %count rates at the Ground station due to reflected light off satellite
     end
 
     methods

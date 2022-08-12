@@ -5,11 +5,11 @@ classdef PassSimulation
 
     properties (SetAccess=protected, Hidden=false)
         Satellite Satellite;                                               %satellite simulation object
-        Protocol                                                           %protocol to be used for QKD
+        Protocol Protocol = BB84_Protocol.empty;                           %protocol to be used for QKD
         Ground_Station Ground_Station;                                     %receiver simulation object
-        Link_Model;                                                        %object which holds link properties over the pass
+        Link_Model Link_Model = Satellite_Link_Model;                      %object which holds link properties over the pass
 
-        Background_Sources;                              %array of background light pollution sources to be simulated
+        Background_Sources Background_Source;                              %array of background light pollution sources to be simulated
 
         Any_Communication_Flag=false;                                      %flag describing whether or not communication took place
         Elevation_Viability_Flag=false;                                    %flag describing whether the satellite passes through the elevation window of the receiver
@@ -20,7 +20,7 @@ classdef PassSimulation
         Headings=[];                                                   %heading of satellite relative to OGS in deg
         Elevations=[];                                                 %elevation of satellite relative to OGS in deg
         Times=[];                                                      %time of each point of link simulation in s
-        Link_Losses_dB=[];                                               %Link loss in dB
+        Link_Losses_dB=[];                                               %link loss of this pass in dB
         Background_Count_Rates=[];                                     %background count rate from detector and light pollution in cps
         Secret_Key_Rates=[];                                           %secret key rate in bits/s. SKR is nan outside of the elevation window and 0 when no link is achieved within this window
         QBERs=[];                                                      %quantum bit error rate during pass
@@ -41,7 +41,7 @@ classdef PassSimulation
             addRequired(P,'Protocol');
             addRequired(P,'Ground_Station');
             %optional inputs
-            addParameter(P,'Background_Sources',[]);
+            addParameter(P,'Background_Sources',Background_Source.empty);
             %parse inputs
             parse(P,Satellite,Protocol,Ground_Station,varargin{:});
 
@@ -93,6 +93,9 @@ classdef PassSimulation
             Computed_Link_Models=Compute_Link_Loss(PassSimulation.Link_Model,PassSimulation.Satellite,PassSimulation.Ground_Station);
             PassSimulation.Link_Model=Computed_Link_Models;
 
+            %store loss data
+            PassSimulation.Link_Losses_dB=GetLinkLossdB(PassSimulation.Link_Model);
+
             %% compute SKR and QBER for links inside the elevation window
             [Computed_Sifted_Key_Rates,Computed_QBERs]=EvaluateQKDLink(PassSimulation.Protocol,PassSimulation.Satellite.Source,PassSimulation.Ground_Station.Detector,[Computed_Link_Models(Elevation_Limit_Flags).Link_Loss_dB],[Background_Count_Rates(Elevation_Limit_Flags)]);
 
@@ -111,11 +114,17 @@ classdef PassSimulation
             PassSimulation.Elevation_Viability_Flag=any(PassSimulation.Elevation_Limit_Flags);
             %compute total data downlink
             %first produce a vector of time bin widths
-            Downlink_Time_Windows=PassSimulation.Times(PassSimulation.Communicating_Flags)-PassSimulation.Times([PassSimulation.Communicating_Flags(2:end),false]);
+            Downlink_Time_Windows=PassSimulation.Times(PassSimulation.Communicating_Flags(1:end-1))-PassSimulation.Times([PassSimulation.Communicating_Flags(2:end),false]);
             %the dot with sifted data rate
             if ~isempty(Downlink_Time_Windows)
-                PassSimulation.Total_Sifted_Key=dot(Downlink_Time_Windows,PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags));
-            else
+                if isduration(Downlink_Time_Windows)
+                PassSimulation.Total_Sifted_Key=dot(seconds(Downlink_Time_Windows),PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags(1:end-1)));
+                elseif isnumeric(Downlink_Time_Windows)
+                PassSimulation.Total_Sifted_Key=dot(Downlink_Time_Windows,PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags(1:end-1)));
+                else
+                    error('Downlink time windows must be either duration or numeric array')
+                end
+           else
                 PassSimulation.Total_Sifted_Key=0;
             end
         end
