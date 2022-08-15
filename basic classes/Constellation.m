@@ -1,11 +1,13 @@
 %Author: Peter Barrow
-%Data: 11/7/22
+%Date: 11/7/22
 
 classdef Constellation
     properties
         scenario = nan;
         Satellites = {Satellite.empty(0)};
-        toolbox_satellites = {satellite.empty(0)};
+        % just like with the ground station this needs to be something to lookup the toolbox
+        % toolbox_satellites = {satellite.empty(0)};
+        useSatCommsToolbox{mustBeNumericOrLogical} = false;
         N = nan;
         startTime;
         stopTime;
@@ -13,15 +15,17 @@ classdef Constellation
     end
 
     methods
-        function Constellation = Constellation(varargin)
+        function [Constellation, varargout] = Constellation(source, telescope, varargin)
 
             p = inputParser;
 
-            addParameter(p, 'source', nan);
-            addParameter(p, 'telescope', nan);
+            addRequired(p, 'source');
+            addRequired(p, 'telescope');
             addParameter(p, 'startTime', nan);
             addParameter(p, 'stopTime', nan);
             addParameter(p, 'sampleTime', nan);
+            addParameter(p, 'scenario', nan);
+            addParameter(p, 'useSatCommsToolbox', false);
             addParameter(p, 'TLE', '');
             addParameter(p, 'name', '');
             addParameter(p, 'KeplerElements', []);
@@ -32,14 +36,7 @@ classdef Constellation
             addParameter(p, 'argumentOfPeriapsis', []);
             addParameter(p, 'trueAnomaly', []);
 
-            parse(p, varargin{:});
-
-            %if any(isnan([p.Results.source, p.Results.telescope]))
-            %    error('Source and / or telescope not supplies');
-            %end
-
-            source = p.Results.source;
-            telescope = p.Results.telescope;
+            parse(p, source, telescope, varargin{:});
 
             t_start = p.Results.startTime;
             t_stop = p.Results.stopTime;
@@ -48,7 +45,6 @@ classdef Constellation
             Constellation.startTime = p.Results.startTime;
             Constellation.stopTime = p.Results.stopTime;
             Constellation.sampleTime = p.Results.sampleTime;
-
 
             sma = p.Results.semiMajorAxis;
             ecc = p.Results.eccentricity;
@@ -61,18 +57,28 @@ classdef Constellation
                 error('Not supplied: startTime, stopTime and sampleTime');
             end
             
-            Constellation.scenario = satelliteScenario(t_start, ...
-                                                       t_stop, ...
-                                                       t_sample);
+            % if no scenario check if start, stop, sample are not nan and init
+            %if p.Results.scenario == false
+            if (p.Results.useSatCommsToolbox == true) & (~isobject(p.Results.scenario))
+                Constellation.useSatCommsToolbox = true;
+                if ~any(arrayfun(isnan, [t_start, t_stop, t_sample]))
+                    scenario = satelliteScenarioWrapper(t_start, ...
+                                                        t_stop, ...
+                                                        'sampleTime', t_sample);
+                    varargout{1} = scenario;
+                end
+            else
+                scenario = p.Results.scenario;
+            end
             
             if ~isempty(p.Results.TLE)
-                satellites = satellite(Constellation.scenario, ...
-                                       p.Results.TLE, ...
+                satellites = satellite(scenario, p.Results.TLE, ...
                                        'OrbitPropagator', 'sgp4');
-                Constellation.N = max(size(Constellation.scenario.Satellites));
-                Constellation = initialise_satellite_objects(Constellation, ...
-                                                            source, ...
-                                                            telescope);
+                Constellation.N = max(size(scenario.Satellites));
+                Constellation = initialiseSatelliteObjects(Constellation, ...
+                                                           scenario, ...
+                                                           source, ...
+                                                           telescope);
                 return
             end
 
@@ -103,74 +109,96 @@ classdef Constellation
                 return 
             end
 
-            if (1 == sum(1 == size(kepler_elements)))
+            if 1 == sum(1 == size(kepler_elements))
                 Constellation.N = 1;
-            elseif (2 == sum(1 == size(kepler_elements)))
+            elseif 2 == sum(1 == size(kepler_elements))
                 Constellation.N = 6;
             else
                 Constellation.N = size(kepler_elements) * (6 ~= size(kepler_elements))';
             end
 
-            if ~isempty(p.Results.name)
-                names = p.Results.name;
-            else
-                names = createNames(Constellation);
-            end
+            % if names for each satellite are supplied then use them, if not
+            % the toolbox generates names names as 'Satellite {idx}'
+            names = p.Results.name;
 
             if Constellation.N >= 1;
                 Constellation = addSatelliteFromKepler(Constellation, ... 
+                                                       scenario, ...
                                                        kepler_elements, ...
                                                        names);
             end
 
-            Constellation = initialise_satellite_objects(Constellation, ...
-                                                          source, ...
-                                                          telescope);
+            Constellation = initialiseSatelliteObjects(Constellation, ...
+                                                       scenario, ...
+                                                       source, ...
+                                                       telescope);
         end
 
-        function Constellation = initialise_satellite_objects(Constellation, ...
-                                                              source, ...
-                                                              telescope)
+
+        function Constellation = initialiseSatelliteObjects(Constellation, ...
+                                                            scenario, ...
+                                                            source, ...
+                                                            telescope)
             for i= 1:Constellation.N
-                tb_sat = Constellation.scenario.Satellites(i);
-                Constellation.toolbox_satellites{i} = tb_sat;
+                tb_sat = scenario.Satellites(i);
+                % we wont store the scenario.Satellite but we should hold the 
+                % name of it with a matching index to where its 'Satellite'
+                % object can be found
+                %Constellation.toolbox_satellites{i} = tb_sat;
                 sat = Satellite(source, telescope, ...
-                                startTime= Constellation.startTime, ...
-                                stopTime= Constellation.stopTime, ...
-                                sampleTime= Constellation.sampleTime, ...
-                                ToolBoxSatellite = tb_sat, ...
-                                name=matlab.lang.internal.uuid());
+                                'useSatCommsToolbox', true, ...
+                                'startTime', Constellation.startTime, ...
+                                'stopTime', Constellation.stopTime, ...
+                                'sampleTime', Constellation.sampleTime, ...
+                                'ToolBoxSatellite' , tb_sat);
                 Constellation.Satellites{i} = sat;
             end
         end
 
-        function names = createNames(Constellation)
-            names = cell(1, Constellation.N);
-            for i = 1 : Constellation.N
-                names{i} = convertStringsToChars(matlab.lang.internal.uuid());
-            end
-        end
+        % function names = createNames(Constellation)
+        %     names = cell(1, Constellation.N);
+        %     for i = 1 : Constellation.N
+        %         names{i} = convertStringsToChars(matlab.lang.internal.uuid());
+        %     end
+        % end
 
-        function Constellation = addSatelliteFromKepler(Constellation, kepler_mat, names)
+
+        function Constellation = addSatelliteFromKepler(Constellation, scenario, kepler_mat, names)
 
             if 1 == Constellation.N
                 [sma, ecc, inc, raan, aop, ta] = utils().splat(kepler_mat);
 
-                satellites = satellite(Constellation.scenario, ...
+                if isnan(names)
+                    names = '';
+                end
+                satellites = satellite(scenario, ...
                                        sma, ecc, inc, raan, aop, ta, ...
                                        'Name', names);
 
             else
+                if isnan(names)
+                    names = cell(0, Constellation.N);
+                    disp(names);
+                    for i = 1 : Constellation.N
+                        names{i} = '';
+                    end
+                end
+
+                disp(names);
+
                 for i = 1 : Constellation.N
                     [sma, ecc, inc, raan, aop, ta] = utils().splat(kepler_mat(i,:));
+                    %name = names{i};
+                    name = '';
 
-                    satellites = satellite(Constellation.scenario, ...
+                    satellites = satellite(scenario, ...
                                            sma, ecc, inc, raan, aop, ta, ...
-                                           'Name', names{i}, ...
+                                           'Name', name, ...
                                            'OrbitPropagator', 'sgp4');
                 end
             end
         end
+
 
         function [sma, ecc, inc, raan, aop, ta] = elementsFromScenario(self, scenario)
             orbitalElements = scenario.orbitalElements;

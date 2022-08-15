@@ -2,13 +2,27 @@ classdef Source
     %Source object containing transmitter details
 
     properties(SetAccess=protected)
-        Wavelength{mustBeScalarOrEmpty,mustBePositive};                    %wavelength of the source (in nm), set by the satellite it is mounted to
-        Repetition_Rate{mustBeScalarOrEmpty,mustBeNonnegative}=10^9        %number of photon pulses per s (Hz)
-        Efficiency{mustBeScalarOrEmpty,mustBePositive}=1;                  %transmitter power efficiency
-        Mean_Photon_Number{mustBeVector,mustBeNonnegative}=0.01;       %average number of photons per pulse
-        State_Prep_Error{mustBeScalarOrEmpty,mustBeNonnegative}=0.01;      %convolution of errors due to state preparation (as a fraction)
-        g2{mustBeScalarOrEmpty,mustBeNonnegative}=0.01;                    %normalised autocorrelation of emitted photon at zero delay
-        State_Probabilities{mustBeValidProbabilitySet}=1;                 %probability of emitting the different states used (for decoyBB84 and COW)
+        %wavelength of the source (in nm), set by the satellite it is mounted to
+        Wavelength{mustBeScalarOrEmpty,mustBePositive};
+
+        %number of photon pulses per s (Hz)
+        Repetition_Rate{mustBeScalarOrEmpty,mustBeNonnegative}=10^9;
+
+        %transmitter power efficiency
+        Efficiency{mustBeScalarOrEmpty,mustBePositive}=1;
+
+        %average number of photons per pulse
+        Mean_Photon_Number{mustBeVector,mustBeNonnegative}=0.01;
+
+        %convolution of errors due to state preparation (as a fraction)
+        State_Prep_Error{mustBeScalarOrEmpty,mustBeNonnegative}=0.01;
+
+        %normalised autocorrelation of emitted photon at zero delay
+        g2{mustBeScalarOrEmpty,mustBeNonnegative}=0.01;
+
+        %probability of emitting the different states used (for decoyBB84 and COW)
+        State_Probabilities{mustBeNumeric, mustBeNonnegative, mustBeLessThanOrEqual(State_Probabilities, 1)}=1;
+
     end
 
     methods
