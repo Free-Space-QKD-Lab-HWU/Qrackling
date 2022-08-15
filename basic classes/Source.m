@@ -1,38 +1,93 @@
-classdef(Abstract) Source
+classdef Source
     %Source object containing transmitter details
 
     properties(SetAccess=protected)
         Wavelength{mustBeScalarOrEmpty,mustBePositive};                    %wavelength of the source (in nm), set by the satellite it is mounted to
         Repetition_Rate{mustBeScalarOrEmpty,mustBeNonnegative}=10^9        %number of photon pulses per s (Hz)
-        Efficiency{mustBeScalarOrEmpty,mustBePositive}=1;                  %transmitter power efficiencyend
+        Efficiency{mustBeScalarOrEmpty,mustBePositive}=1;                  %transmitter power efficiency
+        Mean_Photon_Number{mustBeVector,mustBeNonnegative}=0.01;       %average number of photons per pulse
+        State_Prep_Error{mustBeScalarOrEmpty,mustBeNonnegative}=0.01;      %convolution of errors due to state preparation (as a fraction)
+        g2{mustBeScalarOrEmpty,mustBeNonnegative}=0.01;                    %normalised autocorrelation of emitted photon at zero delay
+        State_Probabilities{mustBeValidProbabilitySet}=1;                 %probability of emitting the different states used (for decoyBB84 and COW)
     end
 
     methods
-        function obj = Source(Wavelength,Repetition_Rate,Efficiency)
+        function obj = Source(Wavelength,varargin)
             %%SOURCE construct a source object
-            switch nargin
-                case 1
-            obj=SetWavelength(obj,Wavelength);
-                case 2
-            obj.Wavelength=Wavelength;
-            obj.Repetition_Rate=Repetition_Rate;
-                case 3
-            obj.Wavelength=Wavelength;
-            obj.Repetition_Rate=Repetition_Rate;
-            obj.Efficiency=Efficiency;
-                otherwise
-                    error('to construct a source provide at least a wavelength (in nm) and optional repetition rate (Hz) and efficiency');
-            end
+
+            %% create and use inputParser
+            P=inputParser();
+            %required inputs
+            addRequired(P,'Wavelength');
+            %optional inputs- use default from object as default value
+            addParameter(P,'Repetition_Rate',obj.Repetition_Rate);
+            addParameter(P,'Efficiency',obj.Efficiency);
+            addParameter(P,'Mean_Photon_Number',obj.Mean_Photon_Number);
+            addParameter(P,'State_Prep_Error',obj.State_Prep_Error);
+            addParameter(P,'g2',obj.g2);
+            addParameter(P,'State_Probabilities',obj.State_Probabilities);
+            %parse inputs
+            parse(P,Wavelength,varargin{:});
+
+            %% distribute values
+            obj=SetWavelength(obj,P.Results.Wavelength);
+            obj=SetRepetitionRate(obj,P.Results.Repetition_Rate);
+            obj.Efficiency=P.Results.Efficiency;
+            obj.Mean_Photon_Number=P.Results.Mean_Photon_Number;
+            obj.State_Prep_Error=P.Results.State_Prep_Error;
+            obj.g2=P.Results.g2;
+            obj.State_Probabilities=P.Results.State_Probabilities;
         end
 
         function Source=SetWavelength(Source,Wavelength)
             %%SETWAVELENGTH set the wavelength (nm) of the source
             Source.Wavelength=Wavelength;
         end
+
         function Source=SetRepetitionRate(Source,Repetition_Rate)
             %%SETREPETITIONRATE set the repetition rate (Hz) of the source
             Source.Repetition_Rate=Repetition_Rate;
         end
-        
+
+        function Source=SetEfficiency(Source,Efficiency)
+            %%SETEFICIENCY set the source efficiency
+            Source.Efficiency=Efficiency;
+        end
+
+        function Source=SetStates(Source,MPNs,State_Probabilities)
+            %%SETSTATES set the mean photon number and state probabilities
+            %%of the source for decoy BB84
+
+            %% input validation
+            if ~numel(MPNs)==numel(State_Probabilities)
+                error('State mean photon numbers and probabilities must have equal numbers of elements')
+            end
+            Source=SetMeanPhotonNumber(Source,MPNs);
+            Source=SetStateProbabilities(Source,State_Probabilities);
+        end
+
+        function Source=SetMeanPhotonNumber(Source,Mean_Photon_Number)
+            %%SETMEANPHOTONNUMBER set the mean photon number(s) of the
+            %%source
+            Source.Mean_Photon_Number=Mean_Photon_Number;
+        end
+
+        function Source=SetStateProbabilities(Source,State_Probabilities)
+            %%SETSTATEPROBABILITIES set the probabilities of states for the
+            %%source
+            Source.State_Probabilities=State_Probabilities;
+        end
+
+        function Source=Setg2(Source,g2)
+            %%SETG2 set the g2 value of the source
+            Source.g2=g2;
+        end
+
+        function Source=SetStatePrepError(Source,State_Prep_Error)
+            %%SETSTATEPREPERROR set the probability of a quantum state
+            %%being prepared incorrectly
+            Source.State_Prep_Error=State_Prep_Error;
+        end
+
     end
 end

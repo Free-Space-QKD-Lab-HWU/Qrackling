@@ -19,7 +19,7 @@ Transmitter_Source=decoyBB84_Source(Wavelength);                                
 Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
 
 %2.1.3 Construct satellite
-SimSatellite=Satellite(OrbitDataFileLocation,Transmitter_Source,Transmitter_Telescope);
+SimSatellite=Satellite(Transmitter_Source,Transmitter_Telescope,'OrbitDataFileLocation',OrbitDataFileLocation);
 
 %2.2 Ground station
 %2.2.1 Detector

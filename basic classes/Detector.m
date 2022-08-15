@@ -7,9 +7,11 @@ classdef (Abstract) Detector
         Jitter_Loss{mustBeNonnegative};                                    %loss due to timing jitter (absolute)
         Spectral_Filter_Width{mustBePositive,mustBeScalarOrEmpty}          %spectral filter width in nm
         Time_Gate_Width{mustBePositive,mustBeScalarOrEmpty}                %width of the time gate used in s
+
     end
     properties(Abstract=true,SetAccess=protected)
         Detection_Efficiency{mustBeScalarOrEmpty,mustBePositive,mustBeLessThanOrEqual(Detection_Efficiency,1)};%detection efficiency
+        Dark_Count_Rate{mustBeNonnegative,mustBeScalarOrEmpty}             %rate at which eroneous counts occur
         Histogram_Data_Location;
         Histogram_Bin_Width;
     end
@@ -19,7 +21,7 @@ classdef (Abstract) Detector
         function Detector = Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width)
             %%Detector Construct a detector object with properties
             %determined by implementation
-            
+
             %% implement detector properties
             Detector.Wavelength=Wavelength;
             Detector.Time_Gate_Width=Time_Gate_Width;
@@ -29,7 +31,7 @@ classdef (Abstract) Detector
             % load in data for this detector
             [Histogram_Data,Histogram_Bin_Width]=LoadHistogramData(Detector);
             Detector=SetJitterPerformance(Detector,Histogram_Data,Histogram_Bin_Width,Time_Gate_Width,Repetition_Rate);
-            end
+        end
 
 
         function Detector=SetWavelength(Detector,Wavelength)
@@ -73,6 +75,7 @@ classdef (Abstract) Detector
             N=numel(Histogram);
             CDF=zeros(1,N);
             PDF=zeros(1,N);
+            
             %iterating over elements in the Histogram
             PDF(1)=Histogram(1)/Total_Counts;
             CDF(1)=0;
@@ -109,26 +112,35 @@ classdef (Abstract) Detector
                 QBER=QBER+0.5*(CDF(min(Current_Shifted_Mode+Gate_Width_Index/2,N))-CDF(max(Current_Shifted_Mode-Gate_Width_Index/2,1)));
                 Current_Shifted_Mode=Current_Shifted_Mode+Repetition_Period_Index;
             end
-
             %iterating over forward pulses
             Current_Shifted_Mode=Mode_Time_Index-Repetition_Period_Index;
             while Current_Shifted_Mode>0
                 QBER=QBER+0.5*(CDF(min(Current_Shifted_Mode+Gate_Width_Index/2,N))-CDF(max(Current_Shifted_Mode-Gate_Width_Index/2,1)));
                 Current_Shifted_Mode=Current_Shifted_Mode-Repetition_Period_Index;
             end
+            %QBER cannot exceed 0.5 due to this
+            if QBER>0.5
+                QBER=0.5;
+            end
+
 
             %% store answers
             Detector.QBER_Jitter=QBER;
             Detector.Jitter_Loss=Loss;
         end
-    
-        function [Histogram_Data,Histogram_Bin_Width]=LoadHistogramData(Detector)
-                %%LOADHISTOGRAMDATA load in from an external file the data
-                %%describing the timing jitter of a detector
 
-                %% load in data
-                Histogram_Data=getfield(load(Detector.Histogram_Data_Location),'Counts');
-                Histogram_Bin_Width=Detector.Histogram_Bin_Width;
+        function [Histogram_Data,Histogram_Bin_Width]=LoadHistogramData(Detector)
+            %%LOADHISTOGRAMDATA load in from an external file the data
+            %%describing the timing jitter of a detector
+
+            %% load in data
+            Histogram_Data=getfield(load(Detector.Histogram_Data_Location),'Counts');
+            Histogram_Bin_Width=Detector.Histogram_Bin_Width;
+        end
+
+        function Detector=SetDarkCountRate(Detector,DCR)
+            %%SETDARKCOUNTRATE set detector dark count rate
+            Detector.Dark_Count_Rate=DCR;
         end
     end
 end

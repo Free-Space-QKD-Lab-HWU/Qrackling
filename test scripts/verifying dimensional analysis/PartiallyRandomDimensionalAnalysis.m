@@ -20,9 +20,6 @@ MPN=0.01;
 g2=0.01;
 State_Prep_Error=0.01;
 
-%detector
-Excelitas_Detector_Factory=Excelitas_Detector_Factory();
-
 
 %% Iterating over simulations
 for i=1:N
@@ -43,7 +40,7 @@ SimSatellite=SetReflectivity(SimSatellite,Random_0_to_1(9));
 Altitude=ceil(10*Random_0_to_1(4))*100000;
 Time_Gate_Width=2*10^-10*Random_0_to_1(5);
 Spectral_Filter_Width=3*Random_0_to_1(6);
-Detector=CreateDetector(Generic_Detector_Factory,Wavelength,'BB84',Time_Gate_Width,Spectral_Filter_Width,Repetition_Rate);
+Detector=MPD_Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
 %receiver telescope
 R_Diameter=1.5*Random_0_to_1(7);
 R_Tele=Telescope(R_Diameter,Wavelength,1,1);
@@ -89,10 +86,17 @@ X=10*log10(ND_Power.*(ND_Diameter.^2).*min(ND_Spectral_Width,ones(size(ND_Spectr
 Y=Reflected_Loss-Direct_Loss;
 scatter3(X,Y,Jamming_Performance,'CDataMode','manual','CData',Jamming_Performance,'Marker','X');
 ax=gca;
-xlabel('$\frac{P \lambda T}{h c} \times (\frac{D}{\lambda})^2 \times \min(\frac{\Lambda_{bob}}{\Lambda_{jan}},1) \ (dB)$','Interpreter','latex')
-ylabel('$Reflected \ Loss - Downlink \ Loss \ (dB)$','Interpreter','latex');
+xlabel('$\Pi_{jamming}$ (dB)','Interpreter','latex')
+ylabel('$\Pi_{loss}$ (dB)','Interpreter','latex');
 zlabel('$Jamming \ Performance =1-\frac{jammed \ total \ sifted \ key}{unjammed \ total \ sifted \ key}$','Interpreter','latex');
 cb=colorbar();
 cb.Label.Interpreter='latex';
-cb.Label.String='$Jamming \ Performance$';
+cb.Label.String='Jamming Performance';
 view(0,90);
+hold on
+plot3(160:220,190:250,ones(1,61),'r--')
+hold off
+legend('','Gradient=1','Location','northwest')
+xlim([160,220]);
+ylim([190,250])
+axis equal

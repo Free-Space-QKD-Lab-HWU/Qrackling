@@ -1,0 +1,5 @@
+# exclude vim session files
+*Session.vim
+
+# exclude scripts for testing
+/test scripts/

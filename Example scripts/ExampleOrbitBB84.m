@@ -5,7 +5,7 @@
 %% 1. Choose parameters
 Wavelength=850;                                                            %wavelength is measured in nm
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
-OrbitDataFileLocation='100kmOrbitLLAT.txt';                                %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
+OrbitDataFileLocation='100kmSSOrbitLLAT.txt';                                %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
 Receiver_Telescope_Diameter=1;                                           
 Time_Gate_Width=1E-9;                                                      %times are measured in s
 Spectral_Filter_Width=10;                                                  %consistemt with wavelength, spectral width is measured in nm
@@ -13,13 +13,13 @@ Spectral_Filter_Width=10;                                                  %cons
 
 %2.1 Satellite
 %2.1.1 Source
-Transmitter_Source=BB84_Source(Wavelength);                                       %we use default values to simplify this example
+Transmitter_Source=Source(Wavelength);                                       %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
 Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
 
 %2.1.3 Construct satellite
-SimSatellite=Satellite(OrbitDataFileLocation,Transmitter_Source,Transmitter_Telescope);
+SimSatellite=Satellite(Transmitter_Source,Transmitter_Telescope,'OrbitDataFileLocation',OrbitDataFileLocation);
 
 %2.2 Ground station
 %2.2.1 Detector

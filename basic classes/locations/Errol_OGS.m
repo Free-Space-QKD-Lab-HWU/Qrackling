@@ -22,11 +22,12 @@ classdef Errol_OGS < Ground_Station
                     error('no background light data for Errol at receiver wavelength')
             end
 
-            Errol_OGS=Errol_OGS@Ground_Station(Background_Light_Data_Location,... 
-                Detector,...
+            Errol_OGS=Errol_OGS@Ground_Station(Detector,...
                 Telescope,...
-                'Errol',...%location name
-                [56.40555555,-3.18833333,10]); %coords
+                [56.40555555,-3.18833333,10],... %coords
+                'Background_Count_Rate_File_Location',Background_Light_Data_Location,... 
+                'Location_Name','Errol');%location name
+                
         end
 
     end

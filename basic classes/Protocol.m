@@ -32,7 +32,7 @@ classdef (Abstract) Protocol
             PropertyPresent=false(1,N);
             %iterate over requirements
             for i=1:N
-                PropertyPresent(i)=isprop(Detector,Protocol.DetectorRequirements{i});
+                PropertyPresent(i)=isprop(Detector,Protocol.DetectorRequirements{i})&&~isempty(Detector.(Protocol.DetectorRequirements{i}));
             end
 
             %produce logical result
@@ -54,7 +54,7 @@ classdef (Abstract) Protocol
             PropertyPresent=false(1,N);
             %iterate over requirements
             for i=1:N
-                PropertyPresent(i)=isprop(Source,Protocol.SourceRequirements{i});
+                PropertyPresent(i)=isprop(Source,Protocol.SourceRequirements{i})&&~isempty(Source.(Protocol.SourceRequirements{i}));
             end
 
             %produce logical result

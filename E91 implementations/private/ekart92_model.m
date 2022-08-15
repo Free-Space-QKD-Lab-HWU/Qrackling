@@ -105,6 +105,6 @@ sifted_key_rate = min(sifted_key_rate, 1/dead_time);
 % Marking the values where the sifted key rate is negative as Nan
 % (when the QBER is above q_thr the R_2 variable becomes negative
 % hence the sifted key rate becomes negative)
-sifted_key_rate(sifted_key_rate < 0) = nan;
+sifted_key_rate(sifted_key_rate < 0) = 0;
 
 end
