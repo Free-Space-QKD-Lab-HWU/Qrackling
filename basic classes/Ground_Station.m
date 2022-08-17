@@ -15,7 +15,6 @@ classdef Ground_Station < Located_Object
         % is is possible to replace this with a hash or index to get the object
         % from the toolbox scenario? Maybe the name is enough?
         toolbox_groundStation = groundStation.empty(0);
-        useSatCommsToolbox{mustBeNumericOrLogical} = false;
 
         % pointer to a file containing the background count rate data for this 
         % ground station (stored in counts/steradian)

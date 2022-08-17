@@ -4,7 +4,7 @@ clc;
 clear all;
 
 startTime = datetime(2020,6,02,8,23,0);
-startTime = datetime(2020,6,02,18,43,16);
+% startTime = datetime(2020,6,02,18,43,16);
 stopTime = startTime + hours(5);
 sampleTime = 360;
 numSamples = 36;
@@ -45,15 +45,15 @@ raan = linspace(0, 360-step_size, n);
 aop = linspace(0, 360-step_size, n);
 ta = ones(1, n) .* 133.242;
 
-% n = 10;
-% sma = ones(1, n) .* 6878e3;
-% ecc = ones(1, n) .* 1.34229e-15;
-% inc = ones(1, n) .* 70;
-% raan = ones(1, n) .* 20;
-% %aop = ones(1, n) .* 0;
-% step_size = 360 / n;
-% aop = linspace(0, 360-step_size, n);
-% ta = ones(1, n) .* 133.242;
+n = 10;
+sma = ones(1, n) .* 6878e3;
+ecc = ones(1, n) .* 1.34229e-15;
+inc = ones(1, n) .* 70;
+raan = ones(1, n) .* 20;
+%aop = ones(1, n) .* 0;
+step_size = 360 / n;
+aop = linspace(0, 360-step_size, n);
+ta = ones(1, n) .* 133.242;
 
 kepler_elements = [sma', ecc', inc', raan', aop', ta'];
 

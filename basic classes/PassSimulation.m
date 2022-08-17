@@ -65,6 +65,17 @@ classdef PassSimulation
         end
 
         function PassSimulation = Simulate(PassSimulation)
+
+            % this all needs to be simplified...
+            % why is there a function to init a bunch of arrays but we later
+            % assign new arrays to their names?
+            % is there any reason this is really an object, couldn't this all 
+            % be a function?
+            % sure the holding of satellites etc in this object is wasteful in 
+            % terms of memory?
+            % also does this even need its own state?
+            % make this behave more like a module than an object? i.e. no state
+
             %SIMULATE Peform the simulation with the components of PassSimulation
 
             %% load in data

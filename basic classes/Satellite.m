@@ -12,7 +12,6 @@ classdef Satellite < Located_Object
         % If using TLE or KeplerElements to define satellite path we will
         % store the satelliteScenario object as well as the corresponding
         % satellite object
-        using_satcomms_toolbox{mustBeNumericOrLogical} = false;
         satellite_scenario;
         sc_sat;
     end
@@ -82,6 +81,8 @@ classdef Satellite < Located_Object
             raan = p.Results.rightAscensionOfAscendingNode;
             aop = p.Results.argumentOfPeriapsis;
             ta = p.Results.trueAnomaly;
+            
+            hasVelocity = false;
 
             if (~any(isnan(arrayfun(@isnan, [sma, ecc, inc, raan, aop, ta]))) ...
                     & isempty(p.Results.KeplerElements))
@@ -112,22 +113,27 @@ classdef Satellite < Located_Object
                     error('No toolbox satellite supplied');
                     
                 else
-                    [Satellite, lat, lon, alt, t] = llatFromScenario(Satellite,...
-                                                        p.Results.ToolBoxSatellite);
+                    [Satellite, lat, lon, alt, t, vE, vN, vU] = llatAndVelFromScenario(...
+                        Satellite, 'satCommsSatellite', p.Results.ToolBoxSatellite);
+                    hasVelocity = true;
                 end
 
-
             else
-                scenario = satelliteScenarioWrapper(p.Results.startTime, ...
-                                                    p.Results.stopTime, ...
-                                                    'sampleTime', p.Results.sampleTime);
-                disp(1);
+                if isdatetime(p.Results.startTime)
+                    scenario = satelliteScenarioWrapper(p.Results.startTime, ...
+                                                        p.Results.stopTime, ...
+                                                        'sampleTime', p.Results.sampleTime);
+                else
+                    scenario = p.Results.scenario;
+
+                end
+
                 varargout{1} = scenario;
                 if ~isempty(p.Results.TLE)
-                    [Satellite, lat, lon, alt, t] = llatFromPropagator(...
-                        Satellite, scenario, TLE);
+                    [Satellite, lat, lon, alt, t, vE, vN, vU] = llatAndVelFromScenario(...
+                        Satellite, 'scenario', scenario, 'TLE', TLE);
+                    hasVelocity = true;
 
-                disp(2);
                 elseif ~isempty(KeplerElements)
                     [rows, cols] = size(KeplerElements);
                     if cols ~= 6
@@ -139,15 +145,10 @@ classdef Satellite < Located_Object
                           newline, char(9), 'argumentOfPeriapsis', ...
                           newline, char(9), 'trueAnomaly'])
                     end
-                    [Satellite, lat, lon, alt, t] = llatFromKepler(...
-                                                            Satellite, ...
-                                                            KeplerElements, ...
-                                                            startTime, ...
-                                                            stopTime, ...
-                                                            sampleTime);
+                    [Satellite, lat, lon, alt, t, vE, vN, vU] = llatAndVelFromScenario(...
+                        Satellite, 'scenario', scenario, 'KeplerElements', KeplerElements);
+                    hasVelocity = true;
                 end
-                disp('now here');
-                disp(t);
             end
 
             %check data is compatible
@@ -160,6 +161,10 @@ classdef Satellite < Located_Object
                 Longitude = lon, ...
                 Altitude = alt, ...
                 Name = Satellite.Name);
+
+            if true == hasVelocity
+                Satellite = SetVelocities(Satellite, vE, vN, vU);
+            end
 
             Satellite.N_Steps = Satellite.N_Position;
             Satellite.Times = t;
@@ -206,39 +211,82 @@ classdef Satellite < Located_Object
             t = LLATData(4,:);
         end
 
+        function [Satellite, lat, lon, alt, t, vE, vN, vU] = llatAndVelFromScenario(Satellite, ...
+                                                                         varargin)
+            p = inputParser();
+            addRequired(p, 'Satellite');
+            addParameter(p, 'satCommsSatellite', nan);
+            addParameter(p, 'scenario', []);
+            addParameter(p, 'TLE', nan);
+            addParameter(p, 'KeplerElements', []);
 
-        function [Satellite, lat, lon, alt, t] = llatFromScenario(Satellite, ...
-                scenario)
-            [pos, vel, t] = states(scenario, 'CoordinateFrame', 'geographic');
-            [lat, lon, alt] = utils().splat(pos');
-            Satellite.Name = scenario.Name;
-        end
+            parse(p, Satellite, varargin{:});
 
+            % the below coul have been in a switch statement but this would 
+            % have been more indententation than is wanted
 
-        function [Satellite, lat, lon, alt, t] = llatFromTLE(Satellite, scenario, TLE)
+            % Conditionally get the position, velocity and time for a satellite
+            % described by the input arguments. The 'states' function from the 
+            % satellite communications toolbox can be supplied with a relevent
+            % 'CoordinateFrame' argument to set the format of the return values.
+            % Here they have been set to 'geographic' giving a result in terms
+            % of {latitiude, longitude, altitude}, velocities in a 'North-East-
+            % Down' format and time in matlab datetime
 
-            sc_sat = satellite(scenario, TLE, "Name", ... 
-                Satellite.Name, "OrbitPropagator", "two-body-keplerian");
+            if ~isempty(p.Results.scenario) & isnan(p.Results.TLE) ...
+                    & isempty(p.Results.KeplerElements)
 
-            [position, velocity, t] = states(sc_sat, 'CoordinateFrame', 'geographic');
-            lat = position(:, :, 1);
-            lon = position(:, :, 2);
-            alt = position(:, :, 3);
-            Satellite.Name = sc_sat.satellite(1).Name;
-        end
+                % First case: we have been supplied with only a satCommsToolbox
+                % satellite object, get its position, velocity and time 
+                
+                [position, velocity, t] = states(p.Results.satCommsSatellite, ...
+                                            'CoordinateFrame', 'geographic');
+                Satellite.Name = p.Results.satCommsSatellite.Name;
 
+            elseif ~any([isempty(p.Results.scenario), isnan(p.Results.TLE)])
 
-        function [Satellite, lat, lon, alt, t] = llatFromKepler(Satellite, ...
-                scenario, sma, ecc, inc, raan, aop, ta)
+                % Second case: we have been supplied with a satCommsToolbox
+                % scenario along with some TLE data. So, use the scenario and
+                % the TLE data to construct a satellite and get its position, 
+                % velocity and time steps
 
-            sc_sat = satellite(scenario, sma, ecc, inc, raan, aop, ta, ...
-                "Name", Satellite.Name, "OrbitPropagator", "two-body-keplerian");
+                sc_sat = satellite(p.Results.scenario, p.Results.TLE, "Name", ... 
+                    Satellite.Name, "OrbitPropagator", "two-body-keplerian");
 
-            [position, velocity, t] = states(sc_sat, 'CoordinateFrame', 'geographic');
-            lat = position(:, :, 1);
-            lon = position(:, :, 2);
-            alt = position(:, :, 3);
-            Satellite.Name = sc_sat.satellite(1).Name;
+                [position, velocity, t] = states(sc_sat, ...
+                                                 'CoordinateFrame', 'geographic');
+                Satellite.Name = sc_sat.satellite(1).Name;
+
+            % elseif ~any(arrayfun(@isnan, [p.Results.satCommsSatellite, ...
+            %                               p.Results.KeplerElements]))
+            elseif any([isnan(p.Results.satCommsSatellite), isempty(p.Results.KeplerElements)])
+
+                % Third case: same as above except we have received an array of
+                % kepler elements rather than TLE data
+
+                [sma, ecc, inc, raan, aop, ta] = utils().splat(p.Results.KeplerElements);
+
+                sc_sat = satellite(p.Results.scenario, sma, ecc, inc, raan, aop, ta, ...
+                    "Name", Satellite.Name, "OrbitPropagator", "two-body-keplerian");
+
+                [position, velocity, t] = states(sc_sat, ...
+                                                 'CoordinateFrame', 'geographic');
+                Satellite.Name = sc_sat.Name;
+            end
+
+            % Next break out the position matrix into an array each for:
+            %   - {latitiude, longitude, altitude}
+            lat = position(1, :);
+            lon = position(2, :);
+            alt = position(3, :);
+
+            % Since we work in the East-North-Up coordinate frame we need to 
+            % change the format of the velocities from NED to ENU.
+            % See 'basic classes/utils.m for details.
+            velocity_enu = utils().ned2enu(velocity);
+            vE = velocity_enu(1, :);
+            vN = velocity_enu(2, :);
+            vU = velocity_enu(3, :);
         end
 
 

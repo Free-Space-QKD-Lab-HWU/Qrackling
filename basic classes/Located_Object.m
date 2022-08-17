@@ -17,7 +17,11 @@ classdef (Abstract=true)Located_Object
         Latitude(:,1){mustBeNumeric} = nan;
         Longitude(:,1){mustBeNumeric} = nan;
         Altitude(:,1){mustBeNumeric} = nan;
+        Velocity_East(:,1){mustBeNumeric} = nan;
+        Velocity_North(:,1){mustBeNumeric} = nan;
+        Velocity_Up(:,1){mustBeNumeric} = nan;
         Location_Name = "";
+        useSatCommsToolbox{mustBeNumericOrLogical} = false;
     end
     properties(SetAccess=protected, Hidden=true)
         % Length of Latitude, Longitude, Altitude arrays
@@ -88,9 +92,20 @@ classdef (Abstract=true)Located_Object
             end
         end
 
+        function Located_Object = SetVelocities(Located_Object, velEast, velNorth, velUp);
+            Located_Object.Velocity_East = velEast;
+            Located_Object.Velocity_North = velNorth;
+            Located_Object.Velocity_Up = velUp;
+        end
+
         function ENUs = ComputeRelativeCoords(Located_Obj_1, Located_Obj_2)
             %%COMPUTERELATIVECOORDS compute the ENU coords of located
             %%object 1 relative to located object 2
+
+            % optionally we can go directly from satelliteCommunicationsToolbox
+            % objects like ground stations and satellites directly to relative
+            % coordinates. By default it emits azimuth, elevation and range
+            % which can be converted into ENU
 
             %1 location from each object
             if Located_Obj_1.N_Position == 1 && Located_Obj_2.N_Position == 1
