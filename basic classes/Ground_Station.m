@@ -14,7 +14,7 @@ classdef Ground_Station < Located_Object
 
         % is is possible to replace this with a hash or index to get the object
         % from the toolbox scenario? Maybe the name is enough?
-        toolbox_groundStation = groundStation.empty(0);
+        toolbox_groundStation = nan;
 
         % pointer to a file containing the background count rate data for this 
         % ground station (stored in counts/steradian)
@@ -57,6 +57,11 @@ classdef Ground_Station < Located_Object
     end
 
     methods
+        % this pattern of 'object = object(object, ...)' produces a separate 
+        % copy of the item that we are working on. Is it maybe useful to change
+        % things so that we can make use of pass by reference instead of pass
+        % by copy? Might provide us some degree of speedup as analysis increases
+        % in complexity
         function [Ground_Station, varargout] = Ground_Station(Detector, Telescope, varargin)
             % GROUND_STATION instantiate a ground station using either its
             % component classes and requiring a name and location (LLA = lat
@@ -100,7 +105,7 @@ classdef Ground_Station < Located_Object
                 LLA = p.Results.LLA;
             end
 
-            if any(arrayfun(isnan, LLA))
+            if any(arrayfun(@isnan, LLA))
                 error(['No location supplied for ground station, require:', ...
                        newline, char(9), 'latitude and longitude' ...
                        newline, char(9), 'optionally altitude']);
@@ -112,10 +117,10 @@ classdef Ground_Station < Located_Object
 
             % set location using custom method
             Ground_Station = SetPosition(Ground_Station, ...
-                                         'LLA', p.Results.LLA, ...
+                                         'LLA', LLA, ...
                                          'Name', p.Results.name);
 
-            if (p.Results.use_satCommsToolbox == true) & (~isobject(p.Results.scenario))
+            if (p.Results.useSatCommsToolbox == true) & (~isobject(p.Results.scenario))
                 Ground_Station.useSatCommsToolbox = true;
                 scenario = satelliteScenarioWrapper(p.Results.startTime, ...
                                                     p.Results.stopTime, ...
@@ -130,12 +135,11 @@ classdef Ground_Station < Located_Object
             end
             
             if Ground_Station.useSatCommsToolbox == true
-                Ground_Station.toolbox_groundStation = groundStation(scenario, ...
-                                                                     lat, ...
-                                                                     lon, ...
-                                                                     alt, ...
-                                                                     'Name', ...
-                                                                     p.Results.name);
+                Ground_Station.toolbox_groundStation = groundStation(...
+                                    scenario, 'Latitude', lat, ...
+                                    'Longitude', lon, 'Altitude', alt, ...
+                                    'Name', p.Results.name);
+                varargout{1} = scenario;
             end
         end
 

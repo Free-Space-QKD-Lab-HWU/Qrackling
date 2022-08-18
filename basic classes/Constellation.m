@@ -61,7 +61,7 @@ classdef Constellation
             %if p.Results.scenario == false
             if (p.Results.useSatCommsToolbox == true) & (~isobject(p.Results.scenario))
                 Constellation.useSatCommsToolbox = true;
-                if ~any(arrayfun(isnan, [t_start, t_stop, t_sample]))
+                if ~any(arrayfun(@isnan, [t_start, t_stop, t_sample]))
                     scenario = satelliteScenarioWrapper(t_start, ...
                                                         t_stop, ...
                                                         'sampleTime', t_sample);

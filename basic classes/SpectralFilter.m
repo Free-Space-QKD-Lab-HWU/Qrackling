@@ -168,7 +168,7 @@ classdef SpectralFilter
                 return
             end
 
-            if ~any(arrayfun(isempty, [p.Results.wavelengths, p.Results.transmission]))
+            if ~any(arrayfun(@isempty, [p.Results.wavelengths, p.Results.transmission]))
                 SpectralFilter = interpolate_onto(SpectralFilter, ...
                     p.Results.wavelengths, ...
                     p.Results.transmission);

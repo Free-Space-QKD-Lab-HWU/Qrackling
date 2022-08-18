@@ -149,6 +149,7 @@ classdef Satellite < Located_Object
                         Satellite, 'scenario', scenario, 'KeplerElements', KeplerElements);
                     hasVelocity = true;
                 end
+                varargout{1} = scenario;
             end
 
             %check data is compatible
