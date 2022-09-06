@@ -115,19 +115,20 @@ classdef PassSimulation
 
 
             %% post-processing
-            PassSimulation.Headings=Headings;
-            PassSimulation.Elevations=Elevations;
-            PassSimulation.Background_Count_Rates=Background_Count_Rates; %#ok<*PROP>
-            PassSimulation.Any_Communication_Flag=any(PassSimulation.Communicating_Flags);
-            PassSimulation.Elevation_Viability_Flag=any(PassSimulation.Elevation_Limit_Flags);
+            PassSimulation.Headings = Headings;
+            PassSimulation.Elevations = Elevations;
+            PassSimulation.Link_Losses_dB = [PassSimulation.Link_Model.Link_Loss_dB];
+            PassSimulation.Background_Count_Rates = Background_Count_Rates; %#ok<*PROP>
+            PassSimulation.Any_Communication_Flag = any(PassSimulation.Communicating_Flags);
+            PassSimulation.Elevation_Viability_Flag = any(PassSimulation.Elevation_Limit_Flags);
             %compute total data downlink
             %first produce a vector of time bin widths
-            Downlink_Time_Windows=PassSimulation.Times(PassSimulation.Communicating_Flags)-PassSimulation.Times([PassSimulation.Communicating_Flags(2:end),false]);
+            Downlink_Time_Windows = PassSimulation.Times(PassSimulation.Communicating_Flags)-PassSimulation.Times([PassSimulation.Communicating_Flags(2:end),false]);
             %the dot with sifted data rate
             if ~isempty(Downlink_Time_Windows)
-                PassSimulation.Total_Sifted_Key=dot(Downlink_Time_Windows,PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags));
+                PassSimulation.Total_Sifted_Key = dot(Downlink_Time_Windows,PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags));
             else
-                PassSimulation.Total_Sifted_Key=0;
+                PassSimulation.Total_Sifted_Key = 0;
             end
         end
 

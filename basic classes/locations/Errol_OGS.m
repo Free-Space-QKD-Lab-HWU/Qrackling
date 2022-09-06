@@ -19,7 +19,8 @@ classdef Errol_OGS < Ground_Station
                 case 850
                     Background_Light_Data_Location='orbit modelling resources\background count rate files\ErrolWithMoon850nm.mat';
                 otherwise
-                    error('no background light data for Errol at receiver wavelength')
+                    warning('no background light data for Errol at receiver wavelength. no background light simulated')
+                    Background_Light_Data_Location='none';
             end
 
             Errol_OGS=Errol_OGS@Ground_Station(Detector,...
