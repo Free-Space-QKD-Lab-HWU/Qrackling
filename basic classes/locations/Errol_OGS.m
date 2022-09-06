@@ -24,9 +24,9 @@ classdef Errol_OGS < Ground_Station
 
             Errol_OGS=Errol_OGS@Ground_Station(Detector,...
                 Telescope,...
-                [56.40555555,-3.18833333,10],... %coords
+                'LLA',[56.40555555,-3.18833333,10],... %coords
                 'Background_Count_Rate_File_Location',Background_Light_Data_Location,... 
-                'Location_Name','Errol');%location name
+                'Name','Errol');%location name
                 
         end
 

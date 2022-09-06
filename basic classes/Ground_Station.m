@@ -1,4 +1,4 @@
-%Author: Cameron Simmons
+%Author: Cameron Simmons, Peter Barrow
 %Date: 24/1/22
 
 classdef Ground_Station < Located_Object
@@ -14,7 +14,7 @@ classdef Ground_Station < Located_Object
 
         % is is possible to replace this with a hash or index to get the object
         % from the toolbox scenario? Maybe the name is enough?
-        toolbox_groundStation = groundStation.empty(0);
+        toolbox_groundStation
 
         % pointer to a file containing the background count rate data for this 
         % ground station (stored in counts/steradian)
@@ -100,7 +100,7 @@ classdef Ground_Station < Located_Object
                 LLA = p.Results.LLA;
             end
 
-            if any(arrayfun(isnan, LLA))
+            if any(arrayfun(@isnan, LLA))
                 error(['No location supplied for ground station, require:', ...
                        newline, char(9), 'latitude and longitude' ...
                        newline, char(9), 'optionally altitude']);
@@ -115,7 +115,7 @@ classdef Ground_Station < Located_Object
                                          'LLA', p.Results.LLA, ...
                                          'Name', p.Results.name);
 
-            if (p.Results.use_satCommsToolbox == true) & (~isobject(p.Results.scenario))
+            if (p.Results.useSatCommsToolbox == true) & (~isobject(p.Results.scenario))
                 Ground_Station.useSatCommsToolbox = true;
                 scenario = satelliteScenarioWrapper(p.Results.startTime, ...
                                                     p.Results.stopTime, ...
@@ -183,7 +183,7 @@ classdef Ground_Station < Located_Object
 
                     % convert to counts in this specific telescope
                     Background_Rates(i, j) = prod([detector_eff, ...
-                                                   Background_Rate__sr_nm, ...
+                                                   Background_Rates_sr_nm(i, j), ...
                                                    pi * (fov/2)^2, ...
                                                    filter_width]);
                 end

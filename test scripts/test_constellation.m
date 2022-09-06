@@ -9,10 +9,10 @@ tests = 3;
 pass = 0;
 debug = false;
 
-startTime = datetime(2020,6,02,8,23,0);
+%startTime = datetime(2020,6,02,8,23,0);
 startTime = datetime(2020,6,02,18,43,16);
 stopTime = startTime + hours(5);
-sampleTime = 360;
+%sampleTime = 360;
 sampleTime = 6;
 
 Transmitter_Diameter=0.08;
@@ -21,7 +21,6 @@ Time_Gate_Width=10^-9;
 Repetition_Rate=10^9;
 Spectral_Filter_Width=1;
 Wavelength=850;
-Excelitas_Detector_Factory=Excelitas_Detector_Factory();
 
 Transmitter_Telescope=Telescope(Transmitter_Diameter,Wavelength);
 Receiver_Telescope=Telescope(Receiver_Diameter,Wavelength);

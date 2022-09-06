@@ -24,9 +24,9 @@ classdef HWU_OGS < Ground_Station
 
             HWU_OGS=HWU_OGS@Ground_Station(Detector,...
                 Telescope,...
-                [55.911420,-3.322424,84],... %COORDS
+                'LLA',[55.911420,-3.322424,84],... %COORDS
                 'Background_Count_Rate_File_Location',Background_Light_Data_Location,... 
-                'Location_Name','HWU');%location name
+                'Name','HWU');%location name
                 
         end
 

@@ -24,9 +24,9 @@ classdef York_OGS < Ground_Station
 
             York_OGS=York_OGS@Ground_Station(Detector,...
                 Telescope,...
-                [53.943333,-1.0580555,11],... %COORDS
+                'LLA',[53.943333,-1.0580555,11],... %COORDS
                 'Background_Count_Rate_File_Location',Background_Light_Data_Location,... 
-                'Location_Name','York');%location name
+                'Name','York');%location name
         end
 
     end

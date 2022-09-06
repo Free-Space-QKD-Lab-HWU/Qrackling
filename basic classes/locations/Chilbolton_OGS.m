@@ -25,9 +25,9 @@ classdef Chilbolton_OGS < Ground_Station
 
             Chilbolton_OGS=Chilbolton_OGS@Ground_Station(Detector,...
                 Telescope,...
-                [51.142680,-1.436580,86],... %COORDS
+                'LLA',[51.142680,-1.436580,86],... %COORDS
                 'Background_Count_Rate_File_Location',Background_Light_Data_Location,... 
-                'Location_Name','Chilbolton');%location name
+                'name','Chilbolton');%location name
 
         end
 
