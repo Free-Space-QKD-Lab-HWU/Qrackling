@@ -6,7 +6,7 @@
 %% 1. Choose parameters
 Wavelength=780;                                                            %wavelength is measured in nm
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
-OrbitDataFileLocation='500kmOrbitLLAT.txt';                                %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
+OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                                %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
 Receiver_Telescope_Diameter=1;                                           
 Time_Gate_Width=1E-9;                                                      %times are measured in s
 Spectral_Filter_Width=10;                                                  %consistemt with wavelength, spectral width is measured in nm
@@ -20,13 +20,13 @@ Jamming_Spectral_Width=10;
 
 %2.1 Satellite
 %2.1.1 Source
-Transmitter_Source=BB84_Source(Wavelength);                                %we use default values to simplify this example
+Transmitter_Source=Source(Wavelength);                                %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
 Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
 
 %2.1.3 Construct satellite
-SimSatellite=Satellite(OrbitDataFileLocation,Transmitter_Source,Transmitter_Telescope);
+SimSatellite=Satellite(Transmitter_Source,Transmitter_Telescope,'OrbitDataFileLocation',OrbitDataFileLocation);
 
 %2.2 Ground station
 %2.2.1 Detector
@@ -44,11 +44,11 @@ SimGround_Station=Chilbolton_OGS(MPD_BB84_Detector,Receiver_Telescope);
 BB84_protocol=BB84_Protocol;
 
 %2.4 jamming source
-Jamming_Source=Jamming_Laser(Wavelength,Jamming_Diameter,Jamming_Coordinates,'Janice',Jamming_Power,Jamming_Spectral_Width);
+Jamming_Source=Jamming_Laser(Wavelength,Jamming_Diameter,Jamming_Coordinates,Jamming_Power,Jamming_Spectral_Width);
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,Jamming_Source);
+Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'Background_Sources',Jamming_Source);
 %3.2 run simulation
 Pass=Simulate(Pass);
 %3.3 plot results

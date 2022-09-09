@@ -32,23 +32,23 @@
 % although these equations are fairly known
 
 function [SKR_decoyBB84, QBER] = decoyBB84_model(MPN, State_p, state_prep_error, rep_rate,...
-    det_eff, prob_dark_counts, loss, prot_eff, qber_jitter, dead_time)
+    det_eff, prob_dark_counts, loss, prot_eff, qber_jitter, dead_time, polarisation_error)
         % Probability of having a detection
         pD        = (MPN.*State_p)'*10.^(-loss/10).*det_eff + prob_dark_counts;
 
         QBER_cod        = state_prep_error;
         QBER_noise      = 0.5*prob_dark_counts./pD;
         QBER_jitter     = qber_jitter;
+        QBER_polarisation_error=sind(polarisation_error);                    %QBER due to polarisation misalignment (in degrees)
         
         % To avoid that due to QBER_cod and QBER_jitter (fixed) the QBER
         % can go higher than 50%, which doesn't make sense
-        QBER = min(QBER_cod + QBER_noise + QBER_jitter, 0.5);
+        QBER = min(QBER_cod + QBER_noise + QBER_jitter + QBER_polarisation_error, 0.5);
 
         % Estimation of the Secret Key Rate
         pM_weak = photonDetc(MPN(2)*State_p(2), 2, 10.^(-loss/10).*det_eff, prob_dark_counts)';
         pS_weak = pD(2,:) - pM_weak - prob_dark_counts*exp(-MPN(2)*State_p(2));
         QBERs = (QBER(2,:).*pD(2,:) - 0.5*prob_dark_counts*exp(-MPN(2)*State_p(2)))./pS_weak;
-        QBERs(1) = 0.01069;
 
         pS_signal = photonDetc(MPN(1)*State_p(1), 1, 10.^(-loss/10).*det_eff, prob_dark_counts);
 
@@ -62,6 +62,8 @@ function [SKR_decoyBB84, QBER] = decoyBB84_model(MPN, State_p, state_prep_error,
         %SKR cannot be negative. negative results should be replaced by
         %zero
         SKR_decoyBB84(SKR_decoyBB84<0)=0;
+        %output only signal state QBER
+        QBER=QBER(1,:);
 end
 
 function [prob] = photonDetc(mu, n, t, p_dark)
@@ -72,7 +74,7 @@ function [prob] = photonDetc(mu, n, t, p_dark)
     else
         n = 2:5;
         prob = (1 - (1-t').^n).*(mu.^n)./factorial(n)*exp(-mu);
-        prob = sum(prob,2) + p_dark*(1 - (1 + mu)*exp(-mu));
+        prob = (sum(prob,2)' + p_dark*(1 - (1 + mu)*exp(-mu)))';
     end
 end
 

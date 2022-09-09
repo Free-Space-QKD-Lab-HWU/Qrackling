@@ -1,27 +1,14 @@
 classdef DPS_Source < Source
-    %DPS_Source a sourc with details required for DPS
-
-    properties
-        Mean_Photon_Number{mustBeScalarOrEmpty,mustBePositive}=0.06;    % average number of photons per pulse for each state
-        State_Prep_Error{mustBeScalarOrEmpty,mustBePositive}=0.01; %probability that state is prepared incorrectly
-    end
+    %DPS_Source a source ready for DPS
 
     methods
-        function DPS_Source = DPS_Source(Wavelength,MPN,extinction_ratio,decoy_prob)
+        function DPS_Source = DPS_Source(Wavelength)
             % Construct an instance of this class
 
             %construct a source object
-            DPS_Source=DPS_Source@Source(Wavelength);
-            %set given properties
-            if nargin>1
-                DPS_Source.Mean_Photon_Number=MPN;
-                if nargin>2
-                    DPS_Source.extinction_ratio=extinction_ratio;
-                    if nargin>3
-                        DPS_Source.decoy_prob=decoy_prob;
-                    end
-                end
-            end
+            DPS_Source=DPS_Source@Source(Wavelength,...
+                'Mean_Photon_Number',0.06,...
+                'State_Prep_Error',0.01);
         end
     end
 end
