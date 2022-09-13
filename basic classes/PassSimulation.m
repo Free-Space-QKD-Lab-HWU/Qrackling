@@ -15,8 +15,7 @@ classdef PassSimulation
         Elevation_Viability_Flag=false;                                    %flag describing whether the satellite passes through the elevation window of the receiver
 
         Total_Sifted_Key=0;                                                %how much sifted data is downlinked over the whole pass
-    end
-    properties(SetAccess=protected, Hidden=true)
+
         Headings=[];                                                   %heading of satellite relative to OGS in deg
         Elevations=[];                                                 %elevation of satellite relative to OGS in deg
         Times=[];                                                      %time of each point of link simulation in s

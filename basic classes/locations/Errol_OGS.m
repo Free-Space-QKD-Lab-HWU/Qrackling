@@ -13,12 +13,20 @@ classdef Errol_OGS < Ground_Station
 
             %wavelength can be 780 or 850 only as these are what we have
             %data for 
-            switch Detector.Wavelength
-                case 780
+            
+            %mimic the behaviour of a switch statement, but with equalities and
+            %inequalities in wavelength
+            if Detector.Wavelength==780
                     Background_Light_Data_Location='orbit modelling resources\background count rate files\ErrolWithMoon780nm.mat';
-                case 850
+                elseif Detector.Wavelength==850
                     Background_Light_Data_Location='orbit modelling resources\background count rate files\ErrolWithMoon850nm.mat';
-                otherwise
+                elseif Detector.Wavelength>745&&Detector.Wavelength<=815
+                    Background_Light_Data_Location='orbit modelling resources\background count rate files\ErrolWithMoon780nm.mat';
+                    warning('no background light data for Errol at receiver wavelength. 780nm used as approximation')
+                elseif Detector.Wavelength>815&&Detector.Wavelength<885
+                    Background_Light_Data_Location='orbit modelling resources\background count rate files\ErrolWithMoon850nm.mat';
+                    warning('no background light data for Errol at receiver wavelength. 850nm used as approximation')
+                else
                     warning('no background light data for Errol at receiver wavelength. no background light simulated')
                     Background_Light_Data_Location='none';
             end
