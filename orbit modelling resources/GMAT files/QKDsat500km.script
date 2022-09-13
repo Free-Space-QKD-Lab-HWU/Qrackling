@@ -11,8 +11,8 @@ GMAT QKDSat.DateFormat = UTCGregorian;
 GMAT QKDSat.Epoch = '20 Jan 2022 11:59:28.000';
 GMAT QKDSat.CoordinateSystem = EarthMJ2000Eq;
 GMAT QKDSat.DisplayStateType = Keplerian;
-GMAT QKDSat.SMA = 6114.993467085945;
-GMAT QKDSat.ECC = 0.05821862849572354;
+GMAT QKDSat.SMA = 6114.993467085947;
+GMAT QKDSat.ECC = 0.0582186284957233;
 GMAT QKDSat.INC = 90;
 GMAT QKDSat.RAAN = 119;
 GMAT QKDSat.AOP = 270;
@@ -107,6 +107,7 @@ GMAT York.Temperature = 295.1;
 GMAT York.Pressure = 1013.5;
 GMAT York.Humidity = 55;
 GMAT York.MinimumElevationAngle = 30;
+
 
 
 

@@ -124,14 +124,16 @@ classdef PassSimulation
             %first produce a vector of time bin widths
             Downlink_Time_Windows = PassSimulation.Times(PassSimulation.Communicating_Flags)-PassSimulation.Times([PassSimulation.Communicating_Flags(2:end),false]);
             %the dot with sifted data rate
-            if ~isempty(Downlink_Time_Windows)
+            if ~isempty(Downlink_Time_Windows)&&isnumeric(Downlink_Time_Windows)
                 PassSimulation.Total_Sifted_Key = dot(Downlink_Time_Windows,PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags));
+            elseif ~isempty(Downlink_Time_Windows)&&isduration(Downlink_Time_Windows)
+                PassSimulation.Total_Sifted_Key = dot(seconds(Downlink_Time_Windows),PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags));
             else
                 PassSimulation.Total_Sifted_Key = 0;
             end
         end
 
-        function plot(PassSimulation,Range)
+        function Fig=plot(PassSimulation,Range)
             %% PLOT plot data from this PassSimulation, according to the keyword Range:
             %EMPTY=plot while satellite is in elevation window
             %Elevation=plot while satellite is in elevation window
@@ -160,7 +162,7 @@ classdef PassSimulation
             end
 
             %% plot ground path of satellite
-            figure('name',['Pass Simulation using ',PassSimulation.Protocol.Name,' protocol'],'WindowState','maximized')
+            Fig=figure('name',['Pass Simulation using ',PassSimulation.Protocol.Name,' protocol at ',num2str(PassSimulation.Satellite.Source.Wavelength),'nm'],'WindowState','maximized');
             subplot(4,4,[9,14])
             title('Satellite Ground Path')
             %plot non-flagged path (no comms or out of elevation range)
@@ -187,18 +189,19 @@ classdef PassSimulation
             % plot performance
             yyaxis left
             plot(PassSimulation.Times(Plot_Select_Flags),PassSimulation.Secret_Key_Rates(Plot_Select_Flags));
-            xlabel('Time (s)')
+            NameTimeAxis(PassSimulation.Times);
             ylabel('Secret Key Rate (bits/s)')
-            text(mean(PassSimulation.Times(Plot_Select_Flags)),mean(PassSimulation.Secret_Key_Rates(Plot_Select_Flags)),sprintf('total secret key\ntransfered=%3.2g',PassSimulation.Total_Sifted_Key),'VerticalAlignment','bottom','HorizontalAlignment','center')
+            text(0.5,0.5,sprintf('total secret key\ntransfered=%3.2g',PassSimulation.Total_Sifted_Key),'Units','Normalized','VerticalAlignment','bottom','HorizontalAlignment','center')
             % plot QBER
             yyaxis right
             plot(PassSimulation.Times(Plot_Select_Flags),PassSimulation.QBERs(Plot_Select_Flags));
+            NameTimeAxis(PassSimulation.Times);
             ylabel('QBER')
             % plot background counts
             subplot(4,4,[4,8])
             title('background count rate')
             PlotBackgroundCountRates(PassSimulation.Ground_Station,Plot_Select_Flags,PassSimulation.Times(Plot_Select_Flags));
-            xlabel('Time (s)')
+            NameTimeAxis(PassSimulation.Times);
             ax=gca; %put axis on right
             ax.YAxisLocation='right';
             clear ax;
@@ -206,7 +209,7 @@ classdef PassSimulation
             subplot(4,4,[5,7])
             title('Link loss')
             Plot(PassSimulation.Link_Model(Plot_Select_Flags),PassSimulation.Times(Plot_Select_Flags));
-
+            NameTimeAxis(PassSimulation.Times);
             %% plot key rate as a function of link loss
             subplot(4,4,[11,16])
             title('Link performance')
@@ -217,6 +220,16 @@ classdef PassSimulation
             ax=gca; %put axis on right
             ax.YAxisLocation='right';
             clear ax;
+            
+            function NameTimeAxis(Times)
+                %%NAMETIMEAXIS consistently name the time axis with units of
+                %%seconds if it is numeric or without if it is datetime
+                if isdatetime(Times)
+                    xlabel('Time')
+                else
+                    xlabel('Time (s)')
+                end
+            end
         end
 
         function PassSimulation = Set_N_Steps(PassSimulation,N_Steps)
