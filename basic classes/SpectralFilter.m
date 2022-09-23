@@ -1,4 +1,7 @@
-classdef SpectralFilter
+classdef SpectralFilter < matlab.mixin.Heterogeneous
+    %% a spectral filter class which inherits the ability to form heterogenous arrays
+
+    
     properties
         N = 0;
         files = {string.empty(0)};
@@ -15,6 +18,11 @@ classdef SpectralFilter
             addParameter(p, 'transmission', []);
             parse(p, varargin{:});
 
+            %% all matlab classes must support an empty constructor of some kind
+            if nargin==0
+                return
+            end
+
             %if isempty(p.Results.input_file)
             if all(arrayfun(@isempty, [p.Results.input_file, ...
                     p.Results.wavelengths, ...
@@ -26,11 +34,10 @@ classdef SpectralFilter
                     newline, char(9), 'wavelength and transmission data for a single filter']);
             end
 
-            if sum(arrayfun(@isempty, [p.Results.wavelengths, ...
-                    p.Results.transmission])) ~= 0;
+            if ~(isempty(p.Results.wavelengths)&&isempty(p.Results.transmission))
                 SpectralFilter.wavelengths = p.Results.wavelengths;
                 SpectralFilter.transmission = p.Results.transmission;
-                disp(1);
+                %disp(1);
                 return
             end
 
@@ -177,5 +184,26 @@ classdef SpectralFilter
 
         end
 
+        function Transmission  = computeTransmission(SpectralFilter,Wavelength)
+                %%COMPUTETRANSMISSION return the transmission from a spectral
+                %%filter vector at the specified wavelengths
+
+                %% input validation
+                assert(isvector(SpectralFilter),'Spectral filter groups must be formatted as vectors')
+                assert(isvector(Wavelength),'Wavelengths must be formatted as vectors')
+
+                %% sort into rows and columns
+                %formally, the spectral filters will be a row vector and
+                %wavelengths a column vector. The transmission data is formatted
+                %so that it is the result of the spectral filter of its row and
+                %the wavelength of its column
+                Transmission=zeros(numel(Wavelength),numel(SpectralFilter));
+
+                %% iterating over the elements of the spectral filter array
+                for i=1:numel(SpectralFilter)
+                %interpolate onto spectral filter data
+                Transmission(:,i)  = interp1(SpectralFilter(i).wavelengths,SpectralFilter(i).transmission,Wavelength);
+                end
+        end
     end
 end
