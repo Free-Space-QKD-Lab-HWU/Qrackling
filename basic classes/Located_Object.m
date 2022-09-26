@@ -248,5 +248,18 @@ classdef (Abstract=true)Located_Object
             %% if R_min is less than earth radius, shadowing is present
             ShadowFlag = R_min < Located_obj_1.Earth_Radius;
         end
+
+        function Direction_Vector = ComputeDirection(Located_Obj_1,Located_Obj_2)
+            %%COMPUTEDIRECTION compute a normalised (2-norm = 1) ENU direction
+            %%vector representing the direction of Located_Obj_1 from
+            %%Located_Onj_2
+
+            %% first compute full vector between them in ENU space
+            ENU_Vector = ComputeRelativeCoords(Located_Obj_1,Located_Obj_2);
+
+            %% then normalise
+            Direction_Vector = ENU_Vector./Row2Norms(ENU_Vector);
+        end
+
     end
 end

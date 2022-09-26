@@ -46,7 +46,7 @@ classdef Satellite_Reflection_Link_Model < Link_Model
             %assuming uniform hemispherical emission from background
             %source, link loss is satellite frontal area over steradians in
             %the full sphere. spectral pointance is per str for this reason
-            Uplink_Loss=Satellite.Frontal_Area./(4*pi*(Distances.^2)); %#ok<*PROPLC>
+            Uplink_Loss=Satellite.Surface.Area./(4*pi*(Distances.^2)); %#ok<*PROPLC>
 
             %add in pointing loss if the source is a jamming terminal
             if isa(Background_Source,'Jamming_Laser')
@@ -63,7 +63,58 @@ classdef Satellite_Reflection_Link_Model < Link_Model
             Satellite_Reflection_Link_Model=SetUplinkLoss(Satellite_Reflection_Link_Model,Uplink_Loss);
 
 
+            %% downlink loss
+            %downlink loss includes the geometric loss on downlink
+            %compute distances between OGS and satellite
+            Distances=ComputeDistanceBetween(Satellite,Ground_Station);
+            %assuming emission is relative to uniform hemispherical emission from background
+            %source, link loss is satellite frontal area over hemisphere of
+            %radius equal to link distance
+            Receiving_Steradians = (pi/4)*Ground_Station.Telescope.Diameter^2./Distances.^2;
+            Downlink_Loss=Receiving_Steradians/(2*pi);                               % divide through by 2*pi steradians in a hemisphere
+
+
+            %add in atmospheric loss
+            [~,Satellite_From_OGS_Elevation]=RelativeHeadingAndElevation(Satellite,Ground_Station);
+            Downlink_Atmospheric_Loss=AtmosphericTransmittance(Satellite.Source.Wavelength,Satellite_From_OGS_Elevation);
+            Downlink_Loss=Downlink_Loss.*Downlink_Atmospheric_Loss';
+             %is downlink from background source to satellite shadowed?
+            Downlink_Loss(IsEarthShadowed(Satellite,Ground_Station))=0;
+            Satellite_Reflection_Link_Model=SetDownlinkLoss(Satellite_Reflection_Link_Model,Downlink_Loss);
+
+
             %% reflectivity loss
+            %compute angle of incoming light
+                %first compute a vector representing the incoming light
+                %direction in ENU space
+                Background_Vector = ComputeDirection(Background_Source,Satellite);
+                %then compute a vector representing the surface normal of the
+                %satellite, which we assume to be pointing towards the OGS
+                Surface_Normal = ComputeDirection(Ground_Station,Satellite);
+                %then compute dot product and the arccos of the these vectors to
+                %find the angle between them
+                Dot_Product = dot(Background_Vector,Surface_Normal,2);
+            Incoming_Angle = acos(Dot_Product);                                 %output is in radians
+
+
+            %assume outgoing angle is zero because it runs down the surface
+            %normal of the surface
+            Outgoing_Angle = zeros(size(Incoming_Angle));
+            
+            %compute proportion of light reflected
+            Reflected_Light_Proportion = GetReflectedLightProportion(Satellite.Surface, Satellite.Source.Wavelength, Incoming_Angle, Outgoing_Angle, Receiving_Steradians);
+            
+            %split this proportion into Reflectivity loss and downlink loss
+            Reflectivity_Loss = Reflected_Light_Proportion./Downlink_Loss;
+            %where reflectivity loss is inf here, it is due to downlink being
+            %obscured. set reflectivity loss to 0
+            Reflectivity_Loss(Reflectivity_Loss==inf)=0;
+
+            %store value
+            Satellite_Reflection_Link_Model = SetReflectivityLoss(Satellite_Reflection_Link_Model,Reflectivity_Loss);
+
+            %{
+            LEGACY CODE SUPERCEDED BY SURFACE CLASS
             %compute the half-angle between source, satellite and OGS
             ENU_Background=ComputeRelativeCoords(Background_Source,Satellite);
             ENU_OGS=ComputeRelativeCoords(Ground_Station,Satellite);
@@ -75,26 +126,9 @@ classdef Satellite_Reflection_Link_Model < Link_Model
 
             %reflectivity=normal reflectivity* (cos(half angle))^1/2 * correction factor
             Angular_Reflectivity=Satellite.Reflectivity*cos_half_angle_of_reflection.^(1/2).*[Satellite_Reflection_Link_Model.Reflection_Correction_Factor];
-
+            %}
             %store this loss value
-            Satellite_Reflection_Link_Model=SetReflectivityLoss(Satellite_Reflection_Link_Model,Angular_Reflectivity);
-
-            %% downlink loss
-            %downlink loss includes the geometric loss on downlink
-            %compute distances between OGS and satellite
-            Distances=ComputeDistanceBetween(Satellite,Ground_Station);
-            %assuming emission is relative to uniform hemispherical emission from background
-            %source, link loss is satellite frontal area over hemisphere of
-            %radius equal to link distance
-            Downlink_Loss=((pi/4)*Ground_Station.Telescope.Diameter^2)./(2*pi*Distances.^2); %#ok<*PROPLC>
-            %add in atmospheric loss
-            [~,Satellite_From_OGS_Elevation]=RelativeHeadingAndElevation(Satellite,Ground_Station);
-            Downlink_Atmospheric_Loss=AtmosphericTransmittance(Satellite.Source.Wavelength,Satellite_From_OGS_Elevation);
-            Downlink_Loss=Downlink_Loss.*Downlink_Atmospheric_Loss';
-             %is downlink from background source to satellite shadowed?
-            Downlink_Loss(IsEarthShadowed(Satellite,Ground_Station))=0;
-            Satellite_Reflection_Link_Model=SetDownlinkLoss(Satellite_Reflection_Link_Model,Downlink_Loss);
-
+            Satellite_Reflection_Link_Model=SetReflectivityLoss(Satellite_Reflection_Link_Model,Reflectivity_Loss);
 
             %% set total loss
             [Satellite_Reflection_Link_Model,Link_Loss_dB]=SetTotalLoss(Satellite_Reflection_Link_Model);
@@ -138,8 +172,8 @@ classdef Satellite_Reflection_Link_Model < Link_Model
             %%SETREFLECTIVITYLOSS set the reflectivity loss in a link model array
 
             %% input validation
-            if ~all(isreal(Reflectivity_Loss)&Reflectivity_Loss>0)
-                error('reflectivity loss must be a real, positive array of numeric values')
+            if ~all(isreal(Reflectivity_Loss)&Reflectivity_Loss>=0)
+                error('reflectivity loss must be a real, non-negative array of numeric values')
             end
             sz=size(Reflectivity_Loss);
             if ~isequal(sz,size(Link_Models))
