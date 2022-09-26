@@ -190,11 +190,8 @@ classdef Satellite_Link_Model < Link_Model
             %compute elevation angles
             [~,Elevation_Angles]=RelativeHeadingAndElevation(Satellite,Ground_Station);
             %format spectral filters which correspond to these elevation angles
-            Atmosphere_Filters = Atmosphere_Spectral_Filter(Elevation_Angles);
-            %interrogate these spectral filters at the communications
-            %wavelength
-            Atmos_Loss=computeTransmission(Atmosphere_Filters,Satellite.Source.Wavelength);
-
+            Atmos_Loss = AtmosphericTransmittance(Satellite.Source.Wavelength,Elevation_Angles);
+            
             APTracking_Loss=exp(-8*(Ground_Station.Telescope.Pointing_Jitter/Ground_Station.Telescope.FOV)^2-8*(Satellite.Telescope.Pointing_Jitter/Satellite.Telescope.FOV)^2);
 
             %record loss values

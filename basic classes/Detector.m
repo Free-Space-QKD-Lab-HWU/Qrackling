@@ -8,6 +8,13 @@ classdef (Abstract) Detector
         Spectral_Filter_Width{mustBePositive,mustBeScalarOrEmpty}          %spectral filter width in nm
         Time_Gate_Width{mustBePositive,mustBeScalarOrEmpty}                %width of the time gate used in s
 
+
+        % polarisation reference is required for polarisation encoded QKD.
+        % poor polarisation compensation results in high QBER. We describe
+        % the rms error in polarisation compensation determines the QBER in
+        % degrees
+        Polarisation_Error{mustBeScalarOrEmpty,mustBeNonnegative}=asind(1/280);
+        %default value modelled off Micius
     end
     properties(Abstract=true,SetAccess=protected)
         Detection_Efficiency{mustBeScalarOrEmpty,mustBePositive,mustBeLessThanOrEqual(Detection_Efficiency,1)};%detection efficiency
@@ -142,5 +149,12 @@ classdef (Abstract) Detector
             %%SETDARKCOUNTRATE set detector dark count rate
             Detector.Dark_Count_Rate=DCR;
         end
+    
+        function Detector=SetPolarisationError(Detector,Polarisation_Error)
+            %%GETPOLARISATIONERROR set the polarisation error in a
+            %%modelled polarisation compensation system
+            Detector.Polarisation_Error=Polarisation_Error;
+        end
+         
     end
 end

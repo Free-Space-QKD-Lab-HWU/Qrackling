@@ -1,5 +1,5 @@
 function [secret_key_rate, qber] = BB84_single_photon_model(MPN, g2, state_prep_error, rep_rate,...
-    det_eff, prob_dark_counts, loss, prot_eff, qber_jitter, dead_time)
+    det_eff, prob_dark_counts, loss, prot_eff, qber_jitter, dead_time, polarisation_error)
 
 % Function to compute sifted key rate and QBER of the BB84 protocol with
 % single photon sources
@@ -61,7 +61,12 @@ mu = state_prep_error;
 prob_signal = MPN * loss;
 
 % QBER
-qber = (mu * prob_signal + prob_dark * 0.5) ./ prob_click + qber_jitter;
+%qber due to polarisation compensation error is the sine of the mean error
+%angle (in degrees)
+qber_polarisation_error = sind(polarisation_error);
+
+%add up qbers. since small, neglect overlapping probabilities
+qber = (mu * prob_signal + prob_dark * 0.5) ./ prob_click + qber_jitter + qber_polarisation_error;
 %% cs modified qber cannot exceed 0.5
 qber(qber>0.5)=0.5;
 

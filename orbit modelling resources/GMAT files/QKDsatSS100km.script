@@ -12,7 +12,7 @@ GMAT QKDSat.Epoch = '20 Jan 2022 11:59:28.000';
 GMAT QKDSat.CoordinateSystem = EarthMJ2000Eq;
 GMAT QKDSat.DisplayStateType = Keplerian;
 GMAT QKDSat.SMA = 6477.999999999979;
-GMAT QKDSat.ECC = 1.155546329329717e-15;
+GMAT QKDSat.ECC = 1.160617627010215e-15;
 GMAT QKDSat.INC = 98.6033;
 GMAT QKDSat.RAAN = 105;
 GMAT QKDSat.AOP = 0;
@@ -125,7 +125,6 @@ GMAT HWU.Temperature = 295.1;
 GMAT HWU.Pressure = 1013.5;
 GMAT HWU.Humidity = 55;
 GMAT HWU.MinimumElevationAngle = 30;
-
 
 
 
