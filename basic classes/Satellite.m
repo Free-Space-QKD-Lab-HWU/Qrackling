@@ -33,9 +33,11 @@ classdef Satellite < Located_Object
         Protocol_Efficiency{mustBeScalarOrEmpty} = 1;
 
         %% information about reflection
-        % a surface object detailing angular and spectal dependence of
-        % reflection
-        Surface {isa(Surface,'Surface')}
+        %   - frontal area of the satellite in m^2
+        %   - reflectivity of satellite coating (dimensionless)
+        Frontal_Area{mustBeScalarOrEmpty,mustBePositive} = 4;
+        Reflectivity{mustBeScalarOrEmpty, ...
+            mustBeLessThan(Reflectivity, 1)} = 0.3;
     end
 
     methods
@@ -70,8 +72,6 @@ classdef Satellite < Located_Object
             addParameter(p, 'stopTime', []);
             addParameter(p, 'sampleTime', []);
             addParameter(p, 'Name', '');
-            addParameter(p, 'Surface', Black_Anodised_Aluminium(4))
-            addParameter(p, 'Area', [])
 
             parse(p, Source, Telescope, varargin{:});
 
@@ -173,13 +173,6 @@ classdef Satellite < Located_Object
             Satellite.Telescope = p.Results.Telescope;
             Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
                 Satellite.Source.Wavelength);
-
-            %% set surface object of satellite
-            Satellite.Surface = p.Results.Surface;
-            %and set area property if given
-            if ~isempty(p.Results.Area)
-                Satellite.Surface = SetArea(Satellite.Surface,p.Results.Area);
-            end
         end
 
 
@@ -217,7 +210,6 @@ classdef Satellite < Located_Object
             alt = LLATData(3,:) * 1000; %conversion to m from km
             t = LLATData(4,:);
         end
-
 
         function [Satellite, lat, lon, alt, t, vE, vN, vU] = llatAndVelFromScenario(Satellite, ...
                                                                          varargin)
@@ -322,14 +314,13 @@ classdef Satellite < Located_Object
 
         function Satellite = SetFrontalArea(Satellite, Area)
             %%SETFRONTALAREA set the frontal area property
-            Satellite.Surface = SetArea(Satellite.Surface, Area);
+            Satellite.Frontal_Area = Area;
         end
 
 
         function Satellite = SetReflectivity(Satellite, reflectivity)
             %%SETFRONTALAREA set the frontal area property
             Satellite.Reflectivity = reflectivity;
-            warning('this behaviour is legacy and may no longer be support. Instead access the "Surface" class of the satellite')
         end
 
     end

@@ -2,11 +2,11 @@ classdef Excelitas_Detector<Detector
     %Excelitas_Detector a detector with excelitas properties
 
     properties (SetAccess=protected,Abstract=false)
-        Dark_Count_Rate=250;
-        Dead_Time=24E-9;
+        Dark_Count_Rate=100;
+        Dead_Time=0;
         Histogram_Data_Location='ExcelitasHistogram.mat';
         Histogram_Bin_Width=10^-12;
-        Detection_Efficiency=0.65;
+        Detection_Efficiency=0.6;
     end
 
     methods
