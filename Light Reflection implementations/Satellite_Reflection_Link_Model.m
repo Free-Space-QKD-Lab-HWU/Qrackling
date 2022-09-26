@@ -14,7 +14,6 @@ classdef Satellite_Reflection_Link_Model < Link_Model
         Downlink_Loss_dB{mustBeVector,mustBePositive,mustBeScalarOrEmpty}=inf;                 %dB loss between satellite reflected emission and ground station
         Downlink_Distance{mustBePositive,mustBeScalarOrEmpty}=inf;                             %distance between satellite and ground station
 
-        Reflection_Correction_Factor=3/(2*pi*(2-2^(1/4)));                                     %the correction factor which ensures that reflection from a surface conserves energy
     end
     
     properties (SetAccess=protected,Abstract=false)%inherited properties
@@ -71,7 +70,7 @@ classdef Satellite_Reflection_Link_Model < Link_Model
             %source, link loss is satellite frontal area over hemisphere of
             %radius equal to link distance
             Receiving_Steradians = (pi/4)*Ground_Station.Telescope.Diameter^2./Distances.^2;
-            Downlink_Loss=Receiving_Steradians/(2*pi);                               % divide through by 2*pi steradians in a hemisphere
+            Downlink_Loss=Receiving_Steradians/(2*pi);                          % divide through by 2*pi steradians in a hemisphere
 
 
             %add in atmospheric loss
@@ -102,10 +101,8 @@ classdef Satellite_Reflection_Link_Model < Link_Model
             Outgoing_Angle = zeros(size(Incoming_Angle));
             
             %compute proportion of light reflected
-            Reflected_Light_Proportion = GetReflectedLightProportion(Satellite.Surface, Satellite.Source.Wavelength, Incoming_Angle, Outgoing_Angle, Receiving_Steradians);
+            Reflectivity_Loss = GetReflectedLightProportion(Satellite.Surface, Satellite.Source.Wavelength, Incoming_Angle, Outgoing_Angle);
             
-            %split this proportion into Reflectivity loss and downlink loss
-            Reflectivity_Loss = Reflected_Light_Proportion./Downlink_Loss;
             %where reflectivity loss is inf here, it is due to downlink being
             %obscured. set reflectivity loss to 0
             Reflectivity_Loss(Reflectivity_Loss==inf)=0;
@@ -113,20 +110,7 @@ classdef Satellite_Reflection_Link_Model < Link_Model
             %store value
             Satellite_Reflection_Link_Model = SetReflectivityLoss(Satellite_Reflection_Link_Model,Reflectivity_Loss);
 
-            %{
-            LEGACY CODE SUPERCEDED BY SURFACE CLASS
-            %compute the half-angle between source, satellite and OGS
-            ENU_Background=ComputeRelativeCoords(Background_Source,Satellite);
-            ENU_OGS=ComputeRelativeCoords(Ground_Station,Satellite);
-            %normalise and then take arccos to compute angle
-            ENU_Background=ENU_Background./(Row2Norms(ENU_Background));
-            ENU_OGS=ENU_OGS./(Row2Norms(ENU_OGS));
-            Dot_btw_Coords=sum(ENU_OGS.*ENU_Background,2)'; %=cos(2*theta)
-            cos_half_angle_of_reflection=sqrt((Dot_btw_Coords+1)/2); %cos(theta)=sqrt((cos(2*theta)+1)/2)
 
-            %reflectivity=normal reflectivity* (cos(half angle))^1/2 * correction factor
-            Angular_Reflectivity=Satellite.Reflectivity*cos_half_angle_of_reflection.^(1/2).*[Satellite_Reflection_Link_Model.Reflection_Correction_Factor];
-            %}
             %store this loss value
             Satellite_Reflection_Link_Model=SetReflectivityLoss(Satellite_Reflection_Link_Model,Reflectivity_Loss);
 
