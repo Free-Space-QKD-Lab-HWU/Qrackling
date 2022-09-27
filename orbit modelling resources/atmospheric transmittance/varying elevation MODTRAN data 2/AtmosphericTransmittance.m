@@ -20,6 +20,8 @@ end
 %and is stored in the .mat file 'atmoshperic transmittance'
 if nargin<3
 TransmittanceSimulation=load("Elevation_Wavelength_Atmospheric_Transmittance.mat","Transmittance","Wavelength","Elevation");
+else
+TransmittanceSimulation=load(TransmittanceSimulation,"Transmittance","Wavelength","Elevation");
 end
 
 %interpolate this data to return transmittance

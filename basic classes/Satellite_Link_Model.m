@@ -16,6 +16,7 @@ classdef Satellite_Link_Model < Link_Model
         Atmospheric_Loss=nan;                                              %atmospheric loss in absolute terms
         Atmospheric_Loss_dB=nan;                                           %atmospheric loss in dB
         Length=nan;                                                        %link distance in m
+        Visibility {mustBeText} ='clear'                                   %tag identifying the visibility conditions of this link
     end
 
 
@@ -160,12 +161,15 @@ classdef Satellite_Link_Model < Link_Model
     end
     methods (Access=public)
 
-        function Satellite_Link_Model=Satellite_Link_Model(Data_Length)
+        function Satellite_Link_Model=Satellite_Link_Model(Data_Length,Visibility)
             %%SATELLITE_LINK_MODEL construct an instance of Satellite_Link_Model with the indicated number of modelled points
             if nargin==0
                 return
-            elseif isscalar(Data_Length)&&mod(Data_Length,1)==0&&Data_Length>0
-                Satellite_Link_Model=repmat(Satellite_Link_Model,1,Data_Length);
+            elseif nargin==1
+                Satellite_Link_Model=repmat(Satellite_Link_Model(),1,Data_Length);
+            elseif nargin==2
+                Satellite_Link_Model=repmat(Satellite_Link_Model(),1,Data_Length);
+                Satellite_Link_Model=SetVisibility(Satellite_Link_Model,Visibility);
             else
                 error('Data length must be a positive scalar integer describing the length of the Link_Model vector')
             end
@@ -190,7 +194,8 @@ classdef Satellite_Link_Model < Link_Model
             %compute elevation angles
             [~,Elevation_Angles]=RelativeHeadingAndElevation(Satellite,Ground_Station);
             %format spectral filters which correspond to these elevation angles
-            Atmos_Loss = AtmosphericTransmittance(Satellite.Source.Wavelength,Elevation_Angles);
+            Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles,Satellite.Source.Wavelength,{Link_Model.Visibility});
+            Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Source.Wavelength);
             
             APTracking_Loss=exp(-8*(Ground_Station.Telescope.Pointing_Jitter/Ground_Station.Telescope.FOV)^2-8*(Satellite.Telescope.Pointing_Jitter/Satellite.Telescope.FOV)^2);
 
@@ -311,5 +316,16 @@ classdef Satellite_Link_Model < Link_Model
             end
         end
 
+        function Satellite_Link_Model = SetVisibility(Satellite_Link_Model,Visibility)
+            %%SETVISIBILITY set the visibility tag of this link model
+            
+            %iterate over array
+            sz=size(Satellite_Link_Model);
+            for i=1:sz(1)
+                for j=1:sz(2)
+            Satellite_Link_Model(i,j).Visibility = Visibility;
+                end
+            end
+        end
     end
 end

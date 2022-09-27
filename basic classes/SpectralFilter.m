@@ -201,8 +201,14 @@ classdef SpectralFilter < matlab.mixin.Heterogeneous
 
                 %% iterating over the elements of the spectral filter array
                 for i=1:numel(SpectralFilter)
-                %interpolate onto spectral filter data
-                Transmission(:,i)  = interp1(SpectralFilter(i).wavelengths,SpectralFilter(i).transmission,Wavelength);
+
+                    %% two cases, either wavelength is already set correctly or interpolation is required
+                    if SpectralFilter(i).wavelengths==Wavelength
+                        Transmission(:,i)=SpectralFilter(i).transmission;
+                    else
+                    %interpolate onto spectral filter data
+                    Transmission(:,i)  = interp1(SpectralFilter(i).wavelengths,SpectralFilter(i).transmission,Wavelength);
+                    end
                 end
         end
     end

@@ -11,6 +11,8 @@ classdef PassSimulation
 
         Background_Sources;                              %array of background light pollution sources to be simulated
 
+        Visibility {mustBeText} = 'clear'                                   %tag identifying what atmospheric visibility to model
+
         Any_Communication_Flag=false;                                      %flag describing whether or not communication took place
         Elevation_Viability_Flag=false;                                    %flag describing whether the satellite passes through the elevation window of the receiver
 
@@ -41,12 +43,15 @@ classdef PassSimulation
             addRequired(P,'Ground_Station');
             %optional inputs
             addParameter(P,'Background_Sources',[]);
+            addParameter(P,'Visibility','clear');
+
             %parse inputs
             parse(P,Satellite,Protocol,Ground_Station,varargin{:});
 
             PassSimulation.Satellite = P.Results.Satellite;
             PassSimulation.Ground_Station = P.Results.Ground_Station;
             PassSimulation.Protocol=P.Results.Protocol;
+            PassSimulation.Visibility=P.Results.Visibility;
 
             if ~IsSourceCompatible(Protocol,Satellite.Source)
                 error('satellite source is not compatible with %s protocol',Protocol.Name);
@@ -84,7 +89,7 @@ classdef PassSimulation
 
             %% set number of steps in simulation
             PassSimulation=Set_N_Steps(PassSimulation,N_Steps);
-            PassSimulation.Link_Model=Satellite_Link_Model(N_Steps);
+            PassSimulation.Link_Model=Satellite_Link_Model(N_Steps,PassSimulation.Visibility);
 
 
             %% Compute background count rate and link heading and elevation
