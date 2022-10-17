@@ -1,0 +1,97 @@
+%% simulate an E91 QKD pass with the sun above
+clear all
+close all
+
+orbit_data_root = '/home/bp38/Projects/QKD_Sat_Link/smarts_integration/orbit modelling resources/orbit LLAT files/';
+
+% Declare common values
+Transmitter_Diameter = 0.08;
+Receiver_Diameter = 0.7;
+OrbitDataFileLocation = '500kmOrbitLLAT.txt';
+OrbitDataFileLocation= '500kmSSOrbitLLAT.txt';
+Time_Gate_Width = 10^-9;
+%Time_Gate_Width = 1;
+Repetition_Rate = 1;
+Spectral_Filter_Width = 10e-3;
+Spectral_Filter_Width = 1;
+Spectral_Filter_Width_arr = 10 .^ linspace(-4, 0, 25);
+% Spectral_Filter_Width_arr = 10 .^ linspace(0, 0, 1);
+Wavelength = 850;
+
+disp(OrbitDataFileLocation);
+
+total_skr = zeros(size(Spectral_Filter_Width_arr));
+
+% declare common components
+% Transmitter_Telescope = Telescope(Transmitter_Diameter,Wavelength);
+% Receiver_Telescope = Telescope(Receiver_Diameter,Wavelength);
+Transmitter_Telescope = Telescope(Transmitter_Diameter, "Wavelength", Wavelength);
+Receiver_Telescope = Telescope(Receiver_Diameter, "Wavelength", Wavelength);
+
+% import sun object
+Sun = getfield(load('Sun.mat'),'Sun');
+Sun = Sun.SetPosition('LLA', [53, 60, Sun.Altitude], 'Name', Sun.Location_Name);
+
+BB84_S = BB84_Source(Wavelength);
+BB84_P = BB84_Protocol();
+BB84_D = MPD_Detector(Wavelength, ...
+                      Repetition_Rate, ...
+                      Time_Gate_Width, ...
+                      Spectral_Filter_Width_arr(1));
+
+%make generic components
+SimSatellite = Satellite(BB84_S, Transmitter_Telescope, ...
+                         'OrbitDataFileLocation',OrbitDataFileLocation, ...
+                         'Protocol', BB84_P);
+
+SimGround_Station = Errol_OGS(BB84_D, Receiver_Telescope);
+
+% BB84_Pass = PassSimulation(SimSatellite, BB84_P, SimGround_Station, ...
+%     'Background_Sources', Sun);
+BB84_Pass = PassSimulation(SimSatellite, BB84_P, SimGround_Station);
+
+% N_B = BB84_Pass.Background_Sources.GetDirectedLight(SimGround_Station, 16.35);
+% disp(N_B);
+
+BB84_Pass = Simulate(BB84_Pass);
+
+disp("Starting");
+for i = 1 : length(Spectral_Filter_Width_arr)
+    disp(i);
+    Spectral_Filter_Width = Spectral_Filter_Width_arr(i);
+    % BB84
+    %declare specific components
+    BB84_D = MPD_Detector(Wavelength, ...
+                          Repetition_Rate, ...
+                          Time_Gate_Width, ...
+                          Spectral_Filter_Width);
+    
+    %make generic components
+    SimSatellite = Satellite(BB84_S, Transmitter_Telescope, ...
+                             'OrbitDataFileLocation',OrbitDataFileLocation, ...
+                             'Protocol', BB84_P);
+
+    SimGround_Station = Errol_OGS(BB84_D, Receiver_Telescope);
+    
+    % BB84_Pass = PassSimulation(SimSatellite, BB84_P, SimGround_Station, ...
+    %     'Background_Sources', Sun);
+    BB84_Pass = PassSimulation(SimSatellite, BB84_P, SimGround_Station);
+    
+    % N_B = BB84_Pass.Background_Sources.GetDirectedLight(SimGround_Station, 16.35);
+    % disp(N_B);
+    
+    BB84_Pass = Simulate(BB84_Pass);
+    total_skr(i) = BB84_Pass.Total_Sifted_Key;
+    disp(total_skr);
+    %plot(BB84_Pass)
+end
+
+figure
+semilogx(Spectral_Filter_Width_arr, total_skr);
+xlabel('Spectral Filter Width (nm)');
+ylabel('Secure Key Rate per Pass (Bits)');
+hold off
+
+%% hmmm...
+[skr, QBER] = EvaluateQKDLink(BB84_P, BB84_S, BB84_D, 
+                            BB84_Pass.Link_Loss_dB, Background_Count_Rate)

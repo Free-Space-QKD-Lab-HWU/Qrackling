@@ -56,6 +56,23 @@ inputs = {ispr, iatmos, ih20, i03, igas, ico2, iaeros, iturb, ialbdx, ...
 
 smarts_path = '/home/bp38/Downloads/smarts-295-linux-tar/SMARTS_295_Linux/';
 s = SMARTS_input(comment='this is a test', args=inputs, executable_path=smarts_path);
-assert(s.run_smarts(), 'Something failed...');
+[s, success, destination] = s.run_smarts();
+assert(success, 'Something failed...');
 %disp(s.input_string);
 
+into_path = @(arraylike, i, j) subsref(...
+                                  strsplit(arraylike, '/'), ...
+                                  struct('type', ...
+                                         '()', ...
+                                         'subs', ...
+                                  {{i:j }} ) );
+
+directory_of = @(path) join(into_path(path, 2, sum(path == '/')), '/'), 1;
+
+test = directory_of(destination);
+
+
+test = strrep(destination, 'inp', 'ext');
+test
+
+data = s.read_file();
