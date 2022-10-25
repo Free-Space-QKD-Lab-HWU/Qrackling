@@ -7,12 +7,19 @@ classdef Excelitas_Detector<Detector
         Histogram_Data_Location='ExcelitasHistogram.mat';
         Histogram_Bin_Width=10^-12;
         Detection_Efficiency=0.65;
+        Efficiency_Data_Location = 'Excelitas_efficiency.mat';
     end
 
     methods
-        function Excelitas_Detector=Excelitas_Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width)
+        function Excelitas_Detector=Excelitas_Detector(Wavelength, ...
+                                                       Repetition_Rate, ...
+                                                       Time_Gate_Width, ...
+                                                       Spectral_Filter_Width)
         %% constructor
-        Excelitas_Detector=Excelitas_Detector@Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
+            Excelitas_Detector = Excelitas_Detector@Detector(Wavelength, ...
+                                                             Repetition_Rate, ...
+                                                             Time_Gate_Width, ...
+                                                             Spectral_Filter_Width);
         end
     end
 end

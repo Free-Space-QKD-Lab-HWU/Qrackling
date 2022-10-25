@@ -2,31 +2,54 @@ classdef (Abstract) Detector
     %DETECTOR provide the properties of the qkd detector to be used for an OGS
 
     properties (Abstract = false)
-        Wavelength{mustBeScalarOrEmpty,mustBePositive};                    %wavelength (nm) used for communication
-        QBER_Jitter{mustBeNonnegative,mustBeScalarOrEmpty,mustBeLessThanOrEqual(QBER_Jitter,1)};%QBER contribution due to detectors' timing jitters
-        Jitter_Loss{mustBeNonnegative};                                    %loss due to timing jitter (absolute)
-        Spectral_Filter_Width{mustBePositive,mustBeScalarOrEmpty}          %spectral filter width in nm
-        Time_Gate_Width{mustBePositive,mustBeScalarOrEmpty}                %width of the time gate used in s
-        Repetition_Rate{mustBePositive,mustBeScalarOrEmpty}
+        %wavelength (nm) used for communication
+        Wavelength{mustBeScalarOrEmpty, mustBePositive};
 
+        %QBER contribution due to detectors' timing jitters
+        QBER_Jitter{mustBeNonnegative, mustBeScalarOrEmpty, ...
+                    mustBeLessThanOrEqual(QBER_Jitter, 1)};
+
+        %loss due to timing jitter (absolute)
+        Jitter_Loss{mustBeNonnegative};
+
+        %spectral filter width in nm
+        Spectral_Filter_Width{mustBePositive, mustBeScalarOrEmpty};
+
+        %width of the time gate used in s
+        Time_Gate_Width{mustBePositive, mustBeScalarOrEmpty};
+
+        Repetition_Rate{mustBePositive, mustBeScalarOrEmpty};
 
         % polarisation reference is required for polarisation encoded QKD.
         % poor polarisation compensation results in high QBER. We describe
         % the rms error in polarisation compensation determines the QBER in
         % degrees
-        Polarisation_Error{mustBeScalarOrEmpty,mustBeNonnegative} = asind(1/280);
+        Polarisation_Error{mustBeScalarOrEmpty, mustBeNonnegative} = asind(1/280);
         %default value modelled off Micius
+
+        Valid_Wavelength;
+        Detector_Efficiency_arr;
     end
     properties(Abstract = true,SetAccess = protected)
-        Detection_Efficiency{mustBeScalarOrEmpty,mustBePositive,mustBeLessThanOrEqual(Detection_Efficiency,1)};%detection efficiency
-        Dark_Count_Rate{mustBeNonnegative,mustBeScalarOrEmpty}             %rate at which eroneous counts occur
+        %detection efficiency
+        Detection_Efficiency{mustBeScalarOrEmpty, mustBePositive, ...
+                             mustBeLessThanOrEqual(Detection_Efficiency, 1)};
+
+        %rate at which eroneous counts occur
+        Dark_Count_Rate{mustBeNonnegative,mustBeScalarOrEmpty};
         Histogram_Data_Location;
         Histogram_Bin_Width;
+
+        %Data for wavelength dependant detector efficiency
+        Efficiency_Data_Location;
     end
 
 
     methods
-        function Detector  =  Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width, varargin)
+        function Detector = Detector(Wavelength, Repetition_Rate, ...
+                                     Time_Gate_Width, ...
+                                     Spectral_Filter_Width, ...
+                                     varargin)
             
             p  =  inputParser();
             addRequired(p, 'Wavelength');
@@ -55,14 +78,21 @@ classdef (Abstract) Detector
             %    Detector.Histogram_Bin_Width  =  p.Results.Bin_Width;
             %end
 
-            Detector = SetJitterPerformance(Detector,Histogram_Data,Histogram_Bin_Width,Time_Gate_Width,Repetition_Rate);
+            Detector = SetJitterPerformance(Detector, Histogram_Data, ...
+                                            Histogram_Bin_Width, ...
+                                            Time_Gate_Width, Repetition_Rate);
+
+            [wavelengths, efficiency] = LoadDetectorEfficiency(Detector);
+            Detector.Valid_Wavelength = wavelengths;
+            Detector.Detector_Efficiency_arr = efficiency;
+            Detector = CalculateDetectionEfficiency(Detector);
         end
 
         function Detector = SetHistogramBinWidth(Detector,Width)
             %%SETWAVELENGTH set wavelength
             Detector.Histogram_Bin_Width  =  Width;
-            [Histogram_Data, Histogram_Bin_Width]  =  LoadHistogramData(Detector);
-            Detector  =  SetJitterPerformance(Detector, Histogram_Data, ...
+            [Histogram_Data, Histogram_Bin_Width] = LoadHistogramData(Detector);
+            Detector = SetJitterPerformance(Detector, Histogram_Data, ...
                                             Width, Detector.Time_Gate_Width, ...
                                             Detector.Repetition_Rate);
         end
@@ -72,22 +102,25 @@ classdef (Abstract) Detector
             Detector.Wavelength = Wavelength;
         end
 
-        function Detector = SetDetectionEfficiency(Detector,Detection_Efficiency)
+        function Detector = SetDetectionEfficiency(Detector, ...
+                                                   Detection_Efficiency)
             %%SETDETECTIONEFFICIENCY
             Detector.Detection_Efficiency = Detection_Efficiency;
         end
 
-        function Detector = SetProtocol(Detector,Protocol)
+        function Detector = SetProtocol(Detector, Protocol)
             %%SETPROTOCOL
             Detector.Protocol = Protocol;
         end
 
-        function Detector = SetJitterPerformance(Detector,Histogram,Bin_Width,Gate_Width,Repetition_Rate)
+        function Detector = SetJitterPerformance(Detector, Histogram, ...
+                                                 Bin_Width, Gate_Width, ...
+                                                 Repetition_Rate)
             %%SETJITTERPERFORMANCE compute the QBER and loss due to jitter and record it in the detector.
 
             %% input validation
             %check that Histogram is a correctly computed histogram
-            if ~(numel(Histogram) > 1) && all(isreal(Histogram)&Histogram > 0)
+            if ~(numel(Histogram) > 1) && all(isreal(Histogram) & Histogram > 0)
                 error('Histogram must be a correctly computed count histogram, of many elements containing positive values')
             end
             %check that Bin_Width is a real scalar  > 0
@@ -117,10 +150,9 @@ classdef (Abstract) Detector
                 CDF(i) = sum(PDF(1:i));
             end
 
-
             %% turn time measures into index increments
-            Gate_Width_Index = 2*round(Gate_Width/(2*Bin_Width));
-            Repetition_Period_Index = round(1/(Repetition_Rate*Bin_Width));
+            Gate_Width_Index = 2 * round(Gate_Width / (2 * Bin_Width));
+            Repetition_Period_Index = round(1 / (Repetition_Rate * Bin_Width));
             %check that rounding results in reasonable precision
             if Gate_Width_Index < 10
                 warning('gate width is less than 10 histogram bins resulting in rounding errors')
@@ -133,7 +165,8 @@ classdef (Abstract) Detector
             [~,Mode_Time_Index] = max(PDF);
 
             %% compute loss
-            Loss =  - CDF(max(Mode_Time_Index - Gate_Width_Index/2,1)) + CDF(min(Mode_Time_Index + Gate_Width_Index/2,N));
+            Loss =  - CDF(max(Mode_Time_Index - Gate_Width_Index / 2, 1)) ...
+                    + CDF(min(Mode_Time_Index + Gate_Width_Index / 2, N));
 
             %% compute QBER
             QBER = 0;
@@ -141,14 +174,26 @@ classdef (Abstract) Detector
             %iterating over previous pulses
             Current_Shifted_Mode = Mode_Time_Index + Repetition_Period_Index;
             while Current_Shifted_Mode < N
-                QBER = QBER + 0.5*(CDF(min(Current_Shifted_Mode + Gate_Width_Index/2,N)) - CDF(max(Current_Shifted_Mode - Gate_Width_Index/2,1)));
-                Current_Shifted_Mode = Current_Shifted_Mode + Repetition_Period_Index;
+                QBER = QBER ...
+                       + 0.5*(CDF(min(Current_Shifted_Mode ...
+                                      + Gate_Width_Index / 2, N)) ...
+                       - CDF(max(Current_Shifted_Mode ...
+                                 - Gate_Width_Index / 2, 1)) );
+
+                Current_Shifted_Mode = Current_Shifted_Mode ...
+                                       + Repetition_Period_Index;
             end
+
             %iterating over forward pulses
             Current_Shifted_Mode = Mode_Time_Index - Repetition_Period_Index;
             while Current_Shifted_Mode > 0
-                QBER = QBER + 0.5*(CDF(min(Current_Shifted_Mode + Gate_Width_Index/2,N)) - CDF(max(Current_Shifted_Mode - Gate_Width_Index/2,1)));
-                Current_Shifted_Mode = Current_Shifted_Mode - Repetition_Period_Index;
+                QBER = QBER ...
+                       + 0.5*(CDF(min(Current_Shifted_Mode ...
+                                      + Gate_Width_Index / 2, N)) ...
+                       - CDF(max(Current_Shifted_Mode ...
+                                 - Gate_Width_Index / 2, 1)) );
+                Current_Shifted_Mode = Current_Shifted_Mode ...
+                                       - Repetition_Period_Index;
             end
             %QBER cannot exceed 0.5 due to this
             if QBER > 0.5
@@ -161,12 +206,15 @@ classdef (Abstract) Detector
             Detector.Jitter_Loss = Loss;
         end
 
-        function [Histogram_Data,Histogram_Bin_Width] = LoadHistogramData(Detector)
+        function [Histogram_Data, Histogram_Bin_Width] = LoadHistogramData(...
+                                                                    Detector)
             %%LOADHISTOGRAMDATA load in from an external file the data
             %%describing the timing jitter of a detector
 
             %% load in data
-            Histogram_Data = getfield(load(Detector.Histogram_Data_Location),'Counts');
+            Histogram_Data = getfield(...
+                                    load(Detector.Histogram_Data_Location), ...
+                                    'Counts');
             Histogram_Bin_Width = Detector.Histogram_Bin_Width;
         end
 
@@ -180,6 +228,35 @@ classdef (Abstract) Detector
             %%modelled polarisation compensation system
             Detector.Polarisation_Error = Polarisation_Error;
         end
-         
+
+        function [wavelengths, efficiency] = LoadDetectorEfficiency(Detector)
+            data = load(Detector.Efficiency_Data_Location);
+            wavelengths = data.wavelengths;
+            efficiency = data.efficiency;
+        end
+
+        function Detector = CalculateDetectionEfficiency(Detector)
+
+            if sum(Detector.Valid_Wavelength == Detector.Wavelength) > 1
+                Detector.Detection_Efficiency = Detector.Detector_Efficiency_arr(Detector.Wavelength);
+                return;
+            end
+
+            if min(Detector.Valid_Wavelength) > Detector.Wavelength
+                Detector.Detection_Efficiency = 0;
+                return
+            end
+
+            if max(Detector.Valid_Wavelength) < Detector.Wavelength
+                Detector.Detection_Efficiency = 0;
+                return
+            end
+
+            pw_poly = interp1(Detector.Valid_Wavelength, ...
+                              Detector.Detector_Efficiency_arr, 'cubic', 'pp');
+            Detector.Detection_Efficiency = ppval(pw_poly, ...
+                                                  Detector.Wavelength);
+
+        end
     end
 end

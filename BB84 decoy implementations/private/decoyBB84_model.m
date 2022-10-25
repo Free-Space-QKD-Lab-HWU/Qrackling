@@ -33,6 +33,8 @@
 
 function [SKR_decoyBB84, QBER] = decoyBB84_model(MPN, State_p, state_prep_error, rep_rate,...
     det_eff, prob_dark_counts, loss, prot_eff, qber_jitter, dead_time, polarisation_error)
+    
+    pD        = (MPN.*State_p)'*10.^(-loss/10).*det_eff + prob_dark_counts;
 
     QBER_cod        = state_prep_error;
     QBER_noise      = 0.5*prob_dark_counts./pD;
@@ -59,7 +61,9 @@ function [SKR_decoyBB84, QBER] = decoyBB84_model(MPN, State_p, state_prep_error,
     %disp([num2str(R), ' ', num2str(SKR_decoyBB84), ' ', num2str(test)]);
 
     SKR_decoyBB84 = dead_time_corrected_count_rate(rep_rate * R, dead_time, 1);
-    SKR_decoyBB84(isnan(R_sifted)) = NaN;
+    %disp(SKR_decoyBB84);
+    %SKR_decoyBB84(isnan(R_sifted)) = NaN;
+    SKR_decoyBB84(isnan(SKR_decoyBB84)) = NaN;
     
 
     %% modification cjs
