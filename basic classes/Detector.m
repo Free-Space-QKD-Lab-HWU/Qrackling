@@ -20,6 +20,12 @@ classdef (Abstract) Detector
 
         Repetition_Rate{mustBePositive, mustBeScalarOrEmpty};
 
+        Histogram_Data;
+
+        Total_Counts = 0; %sum(Detector.Histogram_Data);
+        CDF; %zeros(1,N);
+        PDF; %zeros(1,N);
+
         % polarisation reference is required for polarisation encoded QKD.
         % poor polarisation compensation results in high QBER. We describe
         % the rms error in polarisation compensation determines the QBER in
@@ -29,8 +35,11 @@ classdef (Abstract) Detector
 
         Valid_Wavelength;
         Detector_Efficiency_arr;
+        rise_time;
+        fall_time;
+
     end
-    properties(Abstract = true,SetAccess = protected)
+    properties(Abstract = true, SetAccess = protected)
         %detection efficiency
         Detection_Efficiency{mustBeScalarOrEmpty, mustBePositive, ...
                              mustBeLessThanOrEqual(Detection_Efficiency, 1)};
@@ -72,20 +81,25 @@ classdef (Abstract) Detector
 
             %% compute loss and QBER due to jitter
             % load in data for this detector
-            [Histogram_Data,Histogram_Bin_Width] = LoadHistogramData(Detector);
+            %[Histogram_Data,Histogram_Bin_Width] = LoadHistogramData(Detector);
+            Detector = LoadHistogramData(Detector);
             %if ~isnan(p.Results.Bin_Width)
             %    Histogram_Bin_Width  =  p.Results.Bin_Width
             %    Detector.Histogram_Bin_Width  =  p.Results.Bin_Width;
             %end
 
-            Detector = SetJitterPerformance(Detector, Histogram_Data, ...
-                                            Histogram_Bin_Width, ...
-                                            Time_Gate_Width, Repetition_Rate);
+            %Detector = SetJitterPerformance(Detector, Histogram_Data, ...
+            %                                Histogram_Bin_Width, ...
+            %                                Time_Gate_Width, Repetition_Rate);
 
-            [wavelengths, efficiency] = LoadDetectorEfficiency(Detector);
-            Detector.Valid_Wavelength = wavelengths;
-            Detector.Detector_Efficiency_arr = efficiency;
-            Detector = CalculateDetectionEfficiency(Detector);
+            Detector = SetJitterPerformance(Detector, Repetition_Rate);
+
+            if Detector.Efficiency_Data_Location
+                [wavelengths, efficiency] = LoadDetectorEfficiency(Detector);
+                Detector.Valid_Wavelength = wavelengths;
+                Detector.Detector_Efficiency_arr = efficiency;
+                Detector = CalculateDetectionEfficiency(Detector);
+            end
         end
 
         function Detector = SetHistogramBinWidth(Detector,Width)
@@ -113,48 +127,23 @@ classdef (Abstract) Detector
             Detector.Protocol = Protocol;
         end
 
-        function Detector = SetJitterPerformance(Detector, Histogram, ...
-                                                 Bin_Width, Gate_Width, ...
-                                                 Repetition_Rate)
+
+        function Detector = SetJitterPerformance(Detector, Incident_Photon_Rate)
+            % Repetition Rate: This is the rate of photons ARRIVING at the
+            % detector, this will need to be recalculated for every value of
+            % photons arriving at the detector.
+
+            % How do we optimise the calculations this performs?
+
             %%SETJITTERPERFORMANCE compute the QBER and loss due to jitter and record it in the detector.
 
-            %% input validation
-            %check that Histogram is a correctly computed histogram
-            if ~(numel(Histogram) > 1) && all(isreal(Histogram) & Histogram > 0)
-                error('Histogram must be a correctly computed count histogram, of many elements containing positive values')
-            end
-            %check that Bin_Width is a real scalar  > 0
-            if ~isscalar(Bin_Width) && isreal(Bin_Width) && Bin_Width > 0
-                error('Bin_Width must be a scalar real value  > 0')
-            end
-            %check that repetition rate is a real scalar  > 0
-            if ~isscalar(Repetition_Rate) && isreal(Repetiton_Rate) && Repetition_Rate > 0
-                error('Repetition_Rate must be a scalar real value  > 0')
-            end
-            %check that gate width is a real scalar  > 0
-            if ~isscalar(Gate_Width) && isreal(Gate_Width) && Gate_Width > 0
-                error('Gate_Width must be a scalar real value  > 0')
-            end
-
-            %% turn Histogram into a CDF
-            Total_Counts = sum(Histogram);
-            N = numel(Histogram);
-            CDF = zeros(1,N);
-            PDF = zeros(1,N);
-            
-            %iterating over elements in the Histogram
-            PDF(1) = Histogram(1)/Total_Counts;
-            CDF(1) = 0;
-            for i = 2:N
-                PDF(i) = Histogram(i)/Total_Counts;
-                CDF(i) = sum(PDF(1:i));
-            end
 
             %% turn time measures into index increments
-            Gate_Width_Index = 2 * round(Gate_Width / (2 * Bin_Width));
-            Repetition_Period_Index = round(1 / (Repetition_Rate * Bin_Width));
+            Time_Gate_Width_Index = 2 * round(Detector.Time_Gate_Width / (2 * Detector.Histogram_Bin_Width));
+            Repetition_Period_Index = round(1 / (Incident_Photon_Rate * Detector.Histogram_Bin_Width));
+
             %check that rounding results in reasonable precision
-            if Gate_Width_Index < 10
+            if Time_Gate_Width_Index < 10
                 warning('gate width is less than 10 histogram bins resulting in rounding errors')
             end
             if Repetition_Period_Index < 10
@@ -162,23 +151,26 @@ classdef (Abstract) Detector
             end
 
             %% compute mode point
-            [~,Mode_Time_Index] = max(PDF);
+            [~,Mode_Time_Index] = max(Detector.PDF);
 
+            N = numel(Detector.Histogram_Data);
             %% compute loss
-            Loss =  - CDF(max(Mode_Time_Index - Gate_Width_Index / 2, 1)) ...
-                    + CDF(min(Mode_Time_Index + Gate_Width_Index / 2, N));
+            Loss =  - Detector.CDF(max(Mode_Time_Index - Time_Gate_Width_Index / 2, 1)) ...
+                    + Detector.CDF(min(Mode_Time_Index + Time_Gate_Width_Index / 2, N));
 
             %% compute QBER
             QBER = 0;
 
+            % linspace(1, 21, floor(20 / 2) + 1)
+            % it should be possible to perform the below calculation with by getting the pairwise extrema if we have an array for the "current shifted mode"
             %iterating over previous pulses
             Current_Shifted_Mode = Mode_Time_Index + Repetition_Period_Index;
             while Current_Shifted_Mode < N
                 QBER = QBER ...
-                       + 0.5*(CDF(min(Current_Shifted_Mode ...
-                                      + Gate_Width_Index / 2, N)) ...
-                       - CDF(max(Current_Shifted_Mode ...
-                                 - Gate_Width_Index / 2, 1)) );
+                       + 0.5*(Detector.CDF(min(Current_Shifted_Mode ...
+                                      + Time_Gate_Width_Index / 2, N)) ...
+                       - Detector.CDF(max(Current_Shifted_Mode ...
+                                 - Time_Gate_Width_Index / 2, 1)) );
 
                 Current_Shifted_Mode = Current_Shifted_Mode ...
                                        + Repetition_Period_Index;
@@ -188,10 +180,10 @@ classdef (Abstract) Detector
             Current_Shifted_Mode = Mode_Time_Index - Repetition_Period_Index;
             while Current_Shifted_Mode > 0
                 QBER = QBER ...
-                       + 0.5*(CDF(min(Current_Shifted_Mode ...
-                                      + Gate_Width_Index / 2, N)) ...
-                       - CDF(max(Current_Shifted_Mode ...
-                                 - Gate_Width_Index / 2, 1)) );
+                       + 0.5*(Detector.CDF(min(Current_Shifted_Mode ...
+                                      + Time_Gate_Width_Index / 2, N)) ...
+                       - Detector.CDF(max(Current_Shifted_Mode ...
+                                 - Time_Gate_Width_Index / 2, 1)) );
                 Current_Shifted_Mode = Current_Shifted_Mode ...
                                        - Repetition_Period_Index;
             end
@@ -200,22 +192,87 @@ classdef (Abstract) Detector
                 QBER = 0.5;
             end
 
-
             %% store answers
             Detector.QBER_Jitter = QBER;
             Detector.Jitter_Loss = Loss;
         end
 
-        function [Histogram_Data, Histogram_Bin_Width] = LoadHistogramData(...
-                                                                    Detector)
+        function Detector = LoadHistogramData(Detector)
             %%LOADHISTOGRAMDATA load in from an external file the data
             %%describing the timing jitter of a detector
 
             %% load in data
-            Histogram_Data = getfield(...
+            Detector.Histogram_Data = getfield(...
                                     load(Detector.Histogram_Data_Location), ...
                                     'Counts');
             Histogram_Bin_Width = Detector.Histogram_Bin_Width;
+
+            %% input validation
+            %check that Histogram is a correctly computed histogram
+            if ~(numel(Detector.Histogram_Data) > 1) && all(isreal(Detector.Histogram_Data) & Detector.Histogram_Data > 0)
+                error('Detector.Histogram_Data must be a correctly computed count histogram, of many elements containing positive values')
+            end
+            %check that Detector.Histogram_Bin_Width is a real scalar  > 0
+            if ~isscalar(Detector.Histogram_Bin_Width) && isreal(Detector.Histogram_Bin_Width) && Detector.Histogram_Bin_Width > 0
+                error('Detector.Histogram_Bin_Width must be a scalar real value  > 0')
+            end
+            % %check that repetition rate is a real scalar  > 0
+            % if ~isscalar(Repetition_Rate) && isreal(Repetiton_Rate) && Repetition_Rate > 0
+            %     error('Repetition_Rate must be a scalar real value  > 0')
+            % end
+            %check that gate width is a real scalar  > 0
+            if ~isscalar(Detector.Time_Gate_Width) && isreal(Detector.Time_Gate_Width) && Detector.Time_Gate_Width > 0
+                error('Detector.Time_Gate_Width must be a scalar real value  > 0')
+            end
+
+            Detector.Total_Counts = sum(Detector.Histogram_Data);
+            N = numel(Detector.Histogram_Data);
+            Detector.CDF = zeros(1,N);
+            Detector.PDF = zeros(1,N);
+
+            %iterating over elements in the Detector.Histogram_Data
+            Detector.PDF(1) = Detector.Histogram_Data(1)/Detector.Total_Counts;
+            Detector.CDF(1) = 0;
+            for i = 2:N
+                Detector.PDF(i) = Detector.Histogram_Data(i)/Detector.Total_Counts;
+                Detector.CDF(i) = sum(Detector.PDF(1:i));
+            end
+
+            index = linspace(1, N, N);
+            time_arr = index .* Detector.Histogram_Bin_Width;
+            centre = time_arr(Detector.Histogram_Data ...
+                              == max(Detector.Histogram_Data));
+
+            % all languages should have a quick way of getting minmax
+            extrema = @(array) [min(array), max(array)];
+
+            % from an array of times get the difference from the first and last
+            time_difference = @(times) sum(fliplr( extrema(times)) .* [1, -1]);
+
+            % Assuming 10-90 rise/fall times for an electrical signal
+            min_cut_off = 0.1;
+            max_cut_off = 0.9;
+
+            min_counts = min(Detector.Histogram_Data);
+            max_counts = max(Detector.Histogram_Data);
+
+            % Find where the time array is greater than the cut-off and get the
+            % first and last points of this region
+            peak_points = extrema( time_arr(Detector.Histogram_Data ...
+                                   > (max_counts * max_cut_off)) );
+
+            % Get the indices of the rising edge of the pulse
+            rise_index = index( ( Detector.Histogram_Data ...
+                                  > min_cut_off * min_counts ) ...
+                               & ( time_arr < peak_points(1) ) );
+
+            % Do the same for the falling edge
+            fall_index = index( ( Detector.Histogram_Data ...
+                                  > min_cut_off * min_counts ) ...
+                               & ( time_arr > peak_points(2) ) );
+
+            Detector.rise_time = time_difference( extrema( time_arr(rise_index) ) );
+            Detector.fall_time = time_difference( extrema( time_arr(fall_index) ) );
         end
 
         function Detector = SetDarkCountRate(Detector,DCR)
@@ -230,9 +287,15 @@ classdef (Abstract) Detector
         end
 
         function [wavelengths, efficiency] = LoadDetectorEfficiency(Detector)
-            data = load(Detector.Efficiency_Data_Location);
-            wavelengths = data.wavelengths;
-            efficiency = data.efficiency;
+            if isempty(Detector.Efficiency_Data_Location)
+                wavelengths = Detector.Wavelength;
+                efficiency = Detector.Detection_Efficiency
+            else
+                data = load(Detector.Efficiency_Data_Location);
+                wavelengths = data.wavelengths;
+                efficiency = data.efficiency;
+            end
+
         end
 
         function Detector = CalculateDetectionEfficiency(Detector)
@@ -260,3 +323,104 @@ classdef (Abstract) Detector
         end
     end
 end
+
+
+%         function Detector = SetJitterPerformance(Detector, Histogram, ...
+%                                                  Bin_Width, Gate_Width, ...
+%                                                  Repetition_Rate)
+%         function Detector = SetJitterPerformance(Detector, Repetition_Rate)
+%             % Repetition Rate: This is the rate of photons ARRIVING at the
+%             % detector, this will need to be recalculated for every value of
+%             % photons arriving at the detector.
+% 
+%             % How do we optimise the calculations this performs?
+% 
+%             %%SETJITTERPERFORMANCE compute the QBER and loss due to jitter and record it in the detector.
+% 
+%             %% input validation
+%             %check that Histogram is a correctly computed histogram
+%             if ~(numel(Detector.Histogram_Data) > 1) && all(isreal(Detector.Histogram_Data) & Detector.Histogram_Data > 0)
+%                 error('Detector.Histogram_Data must be a correctly computed count histogram, of many elements containing positive values')
+%             end
+%             %check that Detector.Histogram_Bin_Width is a real scalar  > 0
+%             if ~isscalar(Detector.Histogram_Bin_Width) && isreal(Detector.Histogram_Bin_Width) && Detector.Histogram_Bin_Width > 0
+%                 error('Detector.Histogram_Bin_Width must be a scalar real value  > 0')
+%             end
+%             %check that repetition rate is a real scalar  > 0
+%             if ~isscalar(Repetition_Rate) && isreal(Repetiton_Rate) && Repetition_Rate > 0
+%                 error('Repetition_Rate must be a scalar real value  > 0')
+%             end
+%             %check that gate width is a real scalar  > 0
+%             if ~isscalar(Detector.Time_Gate_Width) && isreal(Detector.Time_Gate_Width) && Detector.Time_Gate_Width > 0
+%                 error('Detector.Time_Gate_Width must be a scalar real value  > 0')
+%             end
+% 
+%             %% turn Detector.Histogram_Data into a CDF
+%             Total_Counts = sum(Detector.Histogram_Data);
+%             N = numel(Detector.Histogram_Data);
+%             CDF = zeros(1,N);
+%             PDF = zeros(1,N);
+%             
+%             %iterating over elements in the Detector.Histogram_Data
+%             PDF(1) = Detector.Histogram_Data(1)/Total_Counts;
+%             CDF(1) = 0;
+%             for i = 2:N
+%                 PDF(i) = Detector.Histogram_Data(i)/Total_Counts;
+%                 CDF(i) = sum(PDF(1:i));
+%             end
+% 
+%             %% turn time measures into index increments
+%             Time_Gate_Width_Index = 2 * round(Detector.Time_Gate_Width / (2 * Detector.Histogram_Bin_Width));
+%             Repetition_Period_Index = round(1 / (Repetition_Rate * Detector.Histogram_Bin_Width));
+%             %check that rounding results in reasonable precision
+%             if Time_Gate_Width_Index < 10
+%                 warning('gate width is less than 10 histogram bins resulting in rounding errors')
+%             end
+%             if Repetition_Period_Index < 10
+%                 warning('repetition period is less than 10 histogram bins resulting in rounding errors')
+%             end
+% 
+%             %% compute mode point
+%             [~,Mode_Time_Index] = max(PDF);
+% 
+%             %% compute loss
+%             Loss =  - CDF(max(Mode_Time_Index - Time_Gate_Width_Index / 2, 1)) ...
+%                     + CDF(min(Mode_Time_Index + Time_Gate_Width_Index / 2, N));
+% 
+%             %% compute QBER
+%             QBER = 0;
+% 
+%             %iterating over previous pulses
+%             Current_Shifted_Mode = Mode_Time_Index + Repetition_Period_Index;
+%             while Current_Shifted_Mode < N
+%                 QBER = QBER ...
+%                        + 0.5*(CDF(min(Current_Shifted_Mode ...
+%                                       + Time_Gate_Width_Index / 2, N)) ...
+%                        - CDF(max(Current_Shifted_Mode ...
+%                                  - Time_Gate_Width_Index / 2, 1)) );
+% 
+%                 Current_Shifted_Mode = Current_Shifted_Mode ...
+%                                        + Repetition_Period_Index;
+%             end
+% 
+%             %iterating over forward pulses
+%             Current_Shifted_Mode = Mode_Time_Index - Repetition_Period_Index;
+%             while Current_Shifted_Mode > 0
+%                 QBER = QBER ...
+%                        + 0.5*(CDF(min(Current_Shifted_Mode ...
+%                                       + Time_Gate_Width_Index / 2, N)) ...
+%                        - CDF(max(Current_Shifted_Mode ...
+%                                  - Time_Gate_Width_Index / 2, 1)) );
+%                 Current_Shifted_Mode = Current_Shifted_Mode ...
+%                                        - Repetition_Period_Index;
+%             end
+%             %QBER cannot exceed 0.5 due to this
+%             if QBER > 0.5
+%                 QBER = 0.5;
+%             end
+% 
+% 
+%             %% store answers
+%             Detector.QBER_Jitter = QBER;
+%             Detector.Jitter_Loss = Loss;
+%         end

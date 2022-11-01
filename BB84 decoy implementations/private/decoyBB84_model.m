@@ -31,45 +31,74 @@
 % From thesis "(2005) Xiongfeng Ma - Security of Quantum Key Distribution with Realistic Devices",
 % although these equations are fairly known
 
-function [SKR_decoyBB84, QBER] = decoyBB84_model(MPN, State_p, state_prep_error, rep_rate,...
-    det_eff, prob_dark_counts, loss, prot_eff, qber_jitter, dead_time, polarisation_error)
+function [SKR_decoyBB84, QBER, Rate_In, Rate_Det] = decoyBB84_model(MPN, State_p, ...
+                                                 state_prep_error, ...
+                                                 rep_rate,...
+                                                 det_eff, ...
+                                                 prob_dark_counts, ...
+                                                 loss, ...
+                                                 prot_eff, ...
+                                                 qber_jitter, ...
+                                                 dead_time, ...
+                                                 polarisation_error, ...
+                                                 Detector)
     
-    pD        = (MPN.*State_p)'*10.^(-loss/10).*det_eff + prob_dark_counts;
+    pD = (MPN .* State_p)' * 10.^(-(loss) / 10) .* det_eff + prob_dark_counts;
+    %disp(sum(pD) * rep_rate);
+    tau1 = Detector.fall_time;
+    tau2 = Detector.rise_time;
+    Rate_In = rep_rate;
+    Rate_Det = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
+    % Detector = Detector.SetJitterPerformance(rep_rate);
 
-    QBER_cod        = state_prep_error;
-    QBER_noise      = 0.5*prob_dark_counts./pD;
-    QBER_jitter     = qber_jitter;
-    QBER_polarisation_error=sind(polarisation_error);                    %QBER due to polarisation misalignment (in degrees)
+    QBER_cod = state_prep_error;
+    QBER_noise = 0.5 * prob_dark_counts ./ pD;
+    %QBER_jitter = qber_jitter;
+    Detector = SetJitterPerformance(Detector, sum(pD) * rep_rate);
+    QBER_jitter = Detector.QBER_Jitter;
+
+    %QBER due to polarisation misalignment (in degrees)
+    QBER_polarisation_error = sind(polarisation_error);
     
     % To avoid that due to QBER_cod and QBER_jitter (fixed) the QBER
     % can go higher than 50%, which doesn't make sense
-    QBER = min(QBER_cod + QBER_noise + QBER_jitter + QBER_polarisation_error, 0.5);
+    QBER = min(QBER_cod + QBER_noise ...
+               + QBER_jitter + QBER_polarisation_error, ...
+               0.5);
 
     % Estimation of the Secret Key Rate
-    pM_weak = photonDetc(MPN(2)*State_p(2), 2, 10.^(-loss/10).*det_eff, prob_dark_counts)';
-    pS_weak = pD(2,:) - pM_weak - prob_dark_counts*exp(-MPN(2)*State_p(2));
-    QBERs = (QBER(2,:).*pD(2,:) - 0.5*prob_dark_counts*exp(-MPN(2)*State_p(2)))./pS_weak;
+    pM_weak = photonDetc(MPN(2) * State_p(2), 2, ...
+                         10.^(-loss/10) .* det_eff, ...
+                         prob_dark_counts)';
+    pS_weak = pD(2,:) - pM_weak - prob_dark_counts * exp(-MPN(2) * State_p(2));
+    QBERs = (QBER(2,:) .* pD(2,:) ...
+             - 0.5 * prob_dark_counts * exp(-MPN(2) * State_p(2))) ./ pS_weak;
 
-    pS_signal = photonDetc(MPN(1)*State_p(1), 1, 10.^(-loss/10).*det_eff, prob_dark_counts);
+    pS_signal = photonDetc(MPN(1) * State_p(1), 1, ...
+                           10.^(-loss / 10) .* det_eff, prob_dark_counts);
 
     f = 1.2;
-    R = prot_eff * ( -pD(1,:)  *f .* H(QBER(1,:) ) ...
+    R = prot_eff * ( -pD(1,:) * f .* H(QBER(1,:) ) ...
                     + pS_signal .* ( 1 - H(QBERs) ) );
-    % R_sifted = rep_rate*R;
+    % deadtime should be converted to a probability here I think
+    %R_sifted = rep_rate*R;
 
-    % SKR_decoyBB84 = min(R_sifted, 1/dead_time);
+    %SKR_decoyBB84 = min(R_sifted, 1/dead_time);
     %disp([num2str(R), ' ', num2str(SKR_decoyBB84), ' ', num2str(test)]);
+    %SKR_decoyBB84 = R_sifted;
 
-    SKR_decoyBB84 = dead_time_corrected_count_rate(rep_rate * R, dead_time, 1);
+    SKR_decoyBB84 = dead_time_corrected_count_rate(rep_rate * R, tau1, tau2, 1);
+    %SKR_decoyBB84 = min(rep_rate * R, 1 / dead_time);
+    %SKR_decoyBB84 = R;
     %disp(SKR_decoyBB84);
     %SKR_decoyBB84(isnan(R_sifted)) = NaN;
     SKR_decoyBB84(isnan(SKR_decoyBB84)) = NaN;
     
-
     %% modification cjs
     %SKR cannot be negative. negative results should be replaced by
     %zero
-    SKR_decoyBB84(SKR_decoyBB84<0)=0;
+    %SKR_decoyBB84(SKR_decoyBB84 < 0)=0;
+    %disp(sum(SKR_decoyBB84));
     %output only signal state QBER
     QBER=QBER(1,:);
 end
@@ -94,3 +123,4 @@ function [entropy] = H(x)
         entropy = NaN;
     end
 end
+

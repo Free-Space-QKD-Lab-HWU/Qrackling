@@ -63,17 +63,23 @@
 % typically assymetric detector responses.
 %
 
-function mu = dead_time_corrected_count_rate(count_rate, dead_time, ...
+function mu = dead_time_corrected_count_rate(count_rate, tau1, tau2, ...
                                              integration_time)
     % tau = dead_time;
     T = 1; % / rep_rate;
-    tauT = dead_time / integration_time;
-    tauPrime = dead_time / 2;
-    rate = count_rate * tauT;
+    tau = tau1 + tau2;
+    tauT = tau / integration_time;
+    %tauPrime = dead_time; % / 2;
+    tauPrime = max(tau1, tau2);
+    rate = count_rate .* tauT;
     ratePrime = count_rate * (tauPrime / integration_time);
 
-    m = count_rate * exp(-count_rate * tauT);
+    m = count_rate .* exp(-count_rate .* tauT);
 
-    mu = ( ((1 - rate) ^ 2) * m ) ...
-         / ( 1 + (2*exp(-ratePrime)) - (2*exp(-rate) * (1 + rate)) );
+    mu = ( ((1 - rate) .^ 2) .* m ) ...
+         / ( 1 + (2*exp(-ratePrime)) - (2*exp(-rate) .* (1 + rate)) );
+
+    %if mu > (1 / dead_time)
+    %    mu = (1 / dead_time);
+    %end
 end

@@ -57,6 +57,9 @@ classdef PassSimulation
 
         %flag describing whether the satellite is in the elevation field of the OGS
         Elevation_Limit_Flags = false(0, 0);
+
+        Rates_In ;
+        Rates_Det;
     end
 
     properties
@@ -151,7 +154,8 @@ classdef PassSimulation
             PassSimulation.Link_Model = Computed_Link_Models;
 
             %% compute SKR and QBER for links inside the elevation window
-            [Computed_Sifted_Key_Rates, Computed_QBERs] = EvaluateQKDLink(...
+            %[Computed_Sifted_Key_Rates, Computed_QBERs] = EvaluateQKDLink(...
+            [Computed_Sifted_Key_Rates, Computed_QBERs, Rates_In, Rates_Det] = EvaluateQKDLink(...
                 PassSimulation.Protocol, PassSimulation.Satellite.Source, ...
                 PassSimulation.Ground_Station.Detector, ...
                 [Computed_Link_Models(Elevation_Limit_Flags).Link_Loss_dB], ...
@@ -162,6 +166,8 @@ classdef PassSimulation
             PassSimulation.QBERs(Elevation_Limit_Flags) = Computed_QBERs;
             PassSimulation.Communicating_Flags = ~(isnan(PassSimulation.Secret_Key_Rates)|PassSimulation.Secret_Key_Rates <= 0);
             PassSimulation.Elevation_Limit_Flags = Elevation_Limit_Flags;
+            PassSimulation.Rates_In = Rates_In;
+            PassSimulation.Rates_Det = Rates_Det;
 
 
             %% post-processing
@@ -174,14 +180,22 @@ classdef PassSimulation
             %compute total data downlink
             %first produce a vector of time bin widths
             Downlink_Time_Windows = PassSimulation.Times(PassSimulation.Communicating_Flags)-PassSimulation.Times([PassSimulation.Communicating_Flags(2:end), false]);
+
             %the dot with sifted data rate
             if ~isempty(Downlink_Time_Windows)&&isnumeric(Downlink_Time_Windows)
                 PassSimulation.Total_Sifted_Key = dot(Downlink_Time_Windows, PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags));
+
             elseif ~isempty(Downlink_Time_Windows)&&isduration(Downlink_Time_Windows)
                 PassSimulation.Total_Sifted_Key = dot(seconds(Downlink_Time_Windows), PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags));
             else
                 PassSimulation.Total_Sifted_Key = 0;
             end
+
+            % replacing the above logic with the code below is a reasonable
+            % performance increase, should check to ensure it works in all cases
+            %PassSimulation.Total_Sifted_Key = sum(...
+            %                       PassSimulation.Secret_Key_Rates(...
+            %                           PassSimulation.Secret_Key_Rates ~= 0));
         end
 
         function Fig = plot(PassSimulation, Range)
@@ -245,9 +259,9 @@ classdef PassSimulation
             text(0.5, 0.5, sprintf('total secret key\ntransfered = %3.2g', PassSimulation.Total_Sifted_Key), 'Units', 'Normalized', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center')
             % plot QBER
             yyaxis right
-            plot(PassSimulation.Times(Plot_Select_Flags), PassSimulation.QBERs(Plot_Select_Flags));
+            plot(PassSimulation.Times(Plot_Select_Flags), PassSimulation.QBERs(Plot_Select_Flags).*100);
             NameTimeAxis(PassSimulation.Times);
-            ylabel('QBER')
+            ylabel('QBER (%)')
             % plot background counts
             subplot(4, 4, [4, 8])
             title('background count rate')

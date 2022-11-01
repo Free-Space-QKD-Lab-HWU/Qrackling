@@ -7,6 +7,7 @@ classdef Laser_Component_Detector<Detector
         Histogram_Data_Location='LaserComponentHistogram.mat';
         Histogram_Bin_Width=10^-12;
         Detection_Efficiency=0.6;
+        Efficiency_Data_Location = 'LaserComponents_efficiency.mat';
     end
 
     methods

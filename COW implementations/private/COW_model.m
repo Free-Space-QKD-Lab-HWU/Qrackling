@@ -14,7 +14,8 @@ function [SKR_COW_2008, QBER] = COW_model(MPN, State_Prep_Error, rep_rate, prob_
     P_click = R + prob_dark_counts;                           % probability of pings at receiver
     
     R_sifted = 0.5*R*rep_rate + prob_dark_counts*rep_rate;   %frequency of pings at the receiver
-    R_sifted = min(R_sifted, 1/dead_time);
+    %R_sifted = min(R_sifted, 1/dead_time);
+    R_sifted = dead_time_corrected_count_rate(R_sifted, dead_time, 1);
 
     %% QBER totalling
     QBER_dark       =  0.5*prob_dark_counts./P_click;

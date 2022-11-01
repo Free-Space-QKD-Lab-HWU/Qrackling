@@ -311,6 +311,11 @@ classdef Satellite < Located_Object
                 Wavelength);
         end
 
+        function Satellite = SetSource(Satellite, source)
+            Satellite.Source = Source;
+            Satellite = Satellite.SetWavelength(Source.Wavelength);
+        end
+
 
         function Distances = ComputeDistancesTo(Satellite, LLA)
             %%COMPUTEDISTANCESTO return the distances to a fixed LLA over a

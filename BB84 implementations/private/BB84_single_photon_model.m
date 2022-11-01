@@ -84,8 +84,10 @@ f = 1.366 .* qber + 1.117;
 bin_ent = -qber.*log2(qber) - (1-qber).*log2(1-qber);
 
 % secret key rate
-sifted_key_rate = rep_rate .* prot_eff .* prob_click;
-sifted_key_rate(sifted_key_rate>1/dead_time)=1/dead_time;
+rate = rep_rate .* prot_eff .* prob_click;
+%sifted_key_rate = rep_rate .* prot_eff .* prob_click;
+%sifted_key_rate(sifted_key_rate>1/dead_time)=1/dead_time;
+sifted_key_rate = dead_time_corrected_count_rate(rate, dead_time, 1);
 secret_key_rate = sifted_key_rate.* (beta .* tau - f .* bin_ent);
 secret_key_rate(secret_key_rate<0) = 0; 
 %% cs modification: output sifted key rate of zero in place of nan when calculation returns zero

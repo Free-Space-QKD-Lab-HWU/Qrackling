@@ -7,6 +7,7 @@ classdef SNSPD_780_Detector<Detector
         Histogram_Data_Location='SNSPD780Histogram.mat';
         Histogram_Bin_Width=2E-11;
         Detection_Efficiency=0.9;
+        Efficiency_Data_Location = 'quantum_opus_840_efficiency.mat';
     end
 
     methods
