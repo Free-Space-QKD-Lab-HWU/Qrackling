@@ -6,8 +6,10 @@
 %
 % Calculate the number of sky photons coupled into the telescope
 
-function N = sky_photons(radiance, FOV, rx_diameter, wavelength, filter_width,
-    integration_time)
+function N = sky_photons(radiance, FOV, rx_diameter, wavelength, ...
+                         filter_width, integration_time)
+    h = 6.62607015*10^-34; % plank's constant
+    c = 299792458; % speed of light
     N = ( radiance .* FOV .* pi .* (rx_diameter .^ 2) .* wavelength ...
           .* filter_width .* integration_time ) ./ (4 * h * c);
 end

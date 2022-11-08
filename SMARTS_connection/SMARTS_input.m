@@ -22,6 +22,7 @@ classdef SMARTS_input
         input_string = '';
         smarts_path = '';
         current_ext_file_path = '';
+        file_path_stub = '';
     
     end
 
@@ -85,11 +86,16 @@ classdef SMARTS_input
             addParameter(p, 'comment', 'test');
             addParameter(p, 'args', []);
             addParameter(p, 'executable_path', '');
+            addParameter(p, 'stub', '');
 
             parse(p, varargin{:});
 
             assert(length(p.Results.comment) < 64, ...
                 'Comment must not exceed 64 characters');
+
+            assert(~isempty(p.Results.stub), ...
+                'Must set a base path to store results at');
+            SMARTS_input.file_path_stub = p.Results.stub;
 
             SMARTS_input.comment = [SMARTS_input.comment, '''', ...
                             strrep(p.Results.comment, ' ', '_'), '''', ...
@@ -262,8 +268,8 @@ classdef SMARTS_input
                 mkdir(file_path);
             end
 
-            destination = [file_path, '/', file_name];
-            disp(destination)
+            destination = [file_path, file_name];
+            % disp(destination)
             fileID = fopen(destination, 'w');
             fprintf(fileID, SMARTS_input.input_string);
             result = fclose(fileID);
@@ -309,7 +315,7 @@ classdef SMARTS_input
             movefile('./smarts295.ext.txt', strrep(destination, 'inp', 'ext'));
             movefile('./smarts295.out.txt', strrep(destination, 'inp', 'out'));
             SMARTS_input.current_ext_file_path = strrep(destination, 'inp', 'ext');
-            disp(SMARTS_input.current_ext_file_path)
+            % disp(SMARTS_input.current_ext_file_path)
 
             cd(cur_dir);
             success = true;

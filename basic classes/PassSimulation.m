@@ -60,6 +60,25 @@ classdef PassSimulation
 
         Rates_In ;
         Rates_Det;
+
+        % SMARTS configuration
+        smarts_configuration SMARTS_input;
+
+        % SMARTS data paths
+        smarts_results = {};
+
+        % SMARTS wavelengths
+        Wavelengths = [];
+
+        % Spectra of atmosphere as received by the ground station in terms of
+        % photon number
+        Sky_Irradiance = [];
+        Sky_Radiance = [];
+
+        % Sky photons calculated from 'Sky_Spectra' via
+        % 'basic classes/sky_photons.m', see reference there for details.
+        Sky_Photons = [];
+        sky_photon_rate = [];
     end
 
     properties
@@ -79,6 +98,7 @@ classdef PassSimulation
             addRequired(P, 'Protocol');
             addRequired(P, 'Ground_Station');
             %optional inputs
+            addParameter(P, 'SMARTS', []);
             addParameter(P, 'Background_Sources', []);
             addParameter(P, 'Visibility', 'clear');
 
@@ -102,7 +122,9 @@ classdef PassSimulation
             %if background sources are provided,  add them
             PassSimulation.Background_Sources = P.Results.Background_Sources;
 
-
+            if ~isempty(P.Results.SMARTS)
+                PassSimulation.smarts_configuration = P.Results.SMARTS;
+            end
         end
 
         function PassSimulation = setExtraCounts(PassSimulation, extra_counts)
@@ -148,6 +170,72 @@ classdef PassSimulation
                 error('satellite does not enter elevation window of ground station');
             end
 
+            PassSimulation.Elevation_Limit_Flags = Elevation_Limit_Flags;
+
+            % Run smarts
+            % If 'smarts_configuration' contains a 'SMARTS_input' object run a
+            % SMARTS simulation *ONLY* on the azimuth (heading) and elevation
+            % positions that correspond to where 'Elevation_Limit_Flags' is set
+            % to true.
+            if ~isempty(PassSimulation.smarts_configuration)
+                PassSimulation.smarts_results = generate_smarts_data(...
+                                PassSimulation.smarts_configuration, ...
+                                Headings, Elevations, Elevation_Limit_Flags);
+            end
+            
+            cumulative_sum = cumsum(PassSimulation.Elevation_Limit_Flags);
+            idx_first_file = sum(cumulative_sum == 0) + 1;
+            % idx_last_file = cumulative_sum(cumulative_sum == max(cumulative_sum));
+            % idx_last_file = idx_last_file(1);
+            idx_last_file = idx_first_file + sum(PassSimulation.Elevation_Limit_Flags == 1) - 1;
+
+            disp([idx_first_file, idx_last_file]);
+            disp(PassSimulation.smarts_results{idx_first_file});
+            disp(PassSimulation.smarts_results{idx_last_file});
+
+            data = readtable(PassSimulation.smarts_results{...
+                sum(cumsum(PassSimulation.Elevation_Limit_Flags) == 0) + 1});
+            PassSimulation.Wavelengths = data.Wvlgth;
+            PassSimulation.Sky_Irradiance = zeros(numel(Elevation_Limit_Flags), ...
+                                             numel(PassSimulation.Wavelengths));
+            PassSimulation.Sky_Radiance = zeros(size(PassSimulation.Sky_Irradiance));
+            PassSimulation.Sky_Photons = zeros(size(PassSimulation.Sky_Radiance));
+
+            %for i = 1 : numel(PassSimulation.smarts_results)
+            for i = idx_first_file : idx_last_file
+                % disp(PassSimulation.smarts_results{i});
+                if isempty(PassSimulation.smarts_results{i})
+                    continue;
+                end
+                data = readtable(PassSimulation.smarts_results{i});
+                PassSimulation.Sky_Irradiance(i, :) = data.Global_tilted_irradiance;
+
+                PassSimulation.Sky_Radiance(i, :) = irradiance2radiance(...
+                                        PassSimulation.Sky_Irradiance(i, :), ...
+                                        PassSimulation.Wavelengths', 1e-9);
+
+                PassSimulation.Sky_Photons(i, :) = ...
+                        sky_photons(...
+                            PassSimulation.Sky_Radiance(i, :), ...
+                            PassSimulation.Ground_Station.Telescope.FOV^2, ...
+                            PassSimulation.Ground_Station.Telescope.Diameter, ...
+                            PassSimulation.Wavelengths', 1e-9, 1);
+            end
+
+            solar_scatter_wavlength_bounds = ...
+                        PassSimulation.Ground_Station.Detector.Wavelength ...
+                        + (...
+                PassSimulation.Ground_Station.Detector.Spectral_Filter_Width ...
+                .* ([-1, 1] ./ 2));
+
+            solar_scatter_wavlength_idx = ...
+                ( PassSimulation.Wavelengths ...
+                  > solar_scatter_wavlength_bounds(1) ) ...
+                & ( PassSimulation.Wavelengths < ...
+                    solar_scatter_wavlength_bounds(2) );
+
+            PassSimulation.sky_photon_rate = PassSimulation.Sky_Photons(:, solar_scatter_wavlength_idx);
+            Background_Count_Rates = Background_Count_Rates + PassSimulation.sky_photon_rate;
 
             %% Compute Link loss
             Computed_Link_Models = Compute_Link_Loss(PassSimulation.Link_Model, PassSimulation.Satellite, PassSimulation.Ground_Station);
@@ -165,7 +253,7 @@ classdef PassSimulation
             PassSimulation.Secret_Key_Rates(Elevation_Limit_Flags) = Computed_Sifted_Key_Rates;
             PassSimulation.QBERs(Elevation_Limit_Flags) = Computed_QBERs;
             PassSimulation.Communicating_Flags = ~(isnan(PassSimulation.Secret_Key_Rates)|PassSimulation.Secret_Key_Rates <= 0);
-            PassSimulation.Elevation_Limit_Flags = Elevation_Limit_Flags;
+            %PassSimulation.Elevation_Limit_Flags = Elevation_Limit_Flags;
             PassSimulation.Rates_In = Rates_In;
             PassSimulation.Rates_Det = Rates_Det;
 
