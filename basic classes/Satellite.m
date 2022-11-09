@@ -70,7 +70,7 @@ classdef Satellite < Located_Object
             addParameter(p, 'stopTime', []);
             addParameter(p, 'sampleTime', []);
             addParameter(p, 'Name', '');
-            addParameter(p, 'Surface', Black_Anodised_Aluminium(4))
+            addParameter(p, 'Surface', Satellite_Foil_Surface(4))
             addParameter(p, 'Area', [])
 
             parse(p, Source, Telescope, varargin{:});
