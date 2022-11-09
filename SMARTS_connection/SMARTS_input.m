@@ -134,6 +134,9 @@ classdef SMARTS_input
                 end
             end
 
+            result = compose(SMARTS_input);
+            SMARTS_input.input_string = result;
+
         end
 
 

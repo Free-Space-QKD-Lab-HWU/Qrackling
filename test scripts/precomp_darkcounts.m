@@ -59,6 +59,7 @@ hour = 10;
 start_time = datetime(2022, 8, 15, hour, 0, 0);
 file_path = ['/home/bp38/Documents/MATLAB/SMARTS/precomptest', num2str(hour), '/'];
 file_path = ['/home/bp38/Documents/MATLAB/SMARTS/newtest', num2str(hour), '/'];
+file_path = ['/home/bp38/Documents/MATLAB/SMARTS/anothertest', num2str(hour), '/'];
 disp(file_path);
 imass = solar_position_and_airmass(dateAndTime=start_time, ...
         latitude=56.405, longitude=-3.183);
