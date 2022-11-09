@@ -4,6 +4,7 @@ classdef Satellite_Foil_Surface < Surface
     %%Distribution to Disruption from Ground-Based Lasers"
 properties(Constant)
         Reflection_Correction_Factor=3/(2*pi*(2-2^(1/4)));                                     %the correction factor which ensures that reflection from a surface conserves energy
+        Reflectance = 0.3;
 end
 
 
@@ -25,7 +26,7 @@ end
             cos_half_angle_of_reflection=cosd(Reflection_Angle/2);
 
             %reflectivity=normal reflectivity* (cos(half angle))^1/2 * correction factor
-            RLP=Satellite.Reflectivity*cos_half_angle_of_reflection.^(1/2)*[Satellite_Foil_Surface.Reflection_Correction_Factor];
+            RLP=Satellite_Foil_Surface.Reflectance*cos_half_angle_of_reflection.^(1/2)*[Satellite_Foil_Surface.Reflection_Correction_Factor];
         end
     end
 end
