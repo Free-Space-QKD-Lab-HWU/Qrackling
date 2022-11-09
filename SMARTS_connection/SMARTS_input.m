@@ -117,7 +117,7 @@ classdef SMARTS_input
         end
 
 
-        function SMARTS_input = set_card(SMARTS_input, new_card)
+        function SMARTS_input = update_card(SMARTS_input, new_card)
             if isempty(inputname(2))
                 input_name = 'anonymous';
             else
