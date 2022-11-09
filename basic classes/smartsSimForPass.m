@@ -3,7 +3,7 @@
 % moved into one of the other classes.
 function [smarts_results, Wavelengths, Sky_Irradiance, Sky_Radiance, ...
           Sky_Photons, sky_photon_rate] = ...
-    smartsSimForPass(SMARTS_Conf, Azimuth, Elevation, Flags)
+    smartsSimForPass(SMARTS_Conf, Azimuth, Elevation, Flags, Ground_Station)
 
     smarts_results = generate_smarts_data(SMARTS_Conf, Azimuth, Elevation, ...
                                           Flags);
@@ -43,6 +43,5 @@ function [smarts_results, Wavelengths, Sky_Irradiance, Sky_Radiance, ...
         & ( Wavelengths < solar_scatter_wavlength_bounds(2) );
     
     sky_photon_rate = Sky_Photons(:, solar_scatter_wavlength_idx);
-    Background_Count_Rates = Background_Count_Rates + sky_photon_rate;
 end
 

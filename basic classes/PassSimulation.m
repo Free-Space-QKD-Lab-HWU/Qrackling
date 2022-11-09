@@ -78,7 +78,7 @@ classdef PassSimulation
         % Sky photons calculated from 'Sky_Spectra' via
         % 'basic classes/sky_photons.m', see reference there for details.
         Sky_Photons = [];
-        sky_photon_rate = [];
+        Sky_Photon_Rate = [];
     end
 
     properties
@@ -133,16 +133,6 @@ classdef PassSimulation
 
         function PassSimulation = Simulate(PassSimulation)
 
-            % this all needs to be simplified...
-            % why is there a function to init a bunch of arrays but we later
-            % assign new arrays to their names?
-            % is there any reason this is really an object,  couldn't this all 
-            % be a function?
-            % sure the holding of satellites etc in this object is wasteful in 
-            % terms of memory?
-            % also does this even need its own state?
-            % make this behave more like a module than an object? i.e. no state
-
             %SIMULATE Peform the simulation with the components of PassSimulation
 
             %% load in data
@@ -166,9 +156,11 @@ classdef PassSimulation
             %% Check elevation limit
             Elevation_Limit_Flags = Elevations>PassSimulation.Ground_Station.Elevation_Limit;
             %Check that satellite rises above elevation limit at some point
-            if ~any(Elevation_Limit_Flags)
-                error('satellite does not enter elevation window of ground station');
-            end
+            assert(any(Elevation_Limit_Flags), ...
+                'satellite does not enter elevation window of ground station');
+            % if ~any(Elevation_Limit_Flags)
+            %     error('satellite does not enter elevation window of ground station');
+            % end
 
             PassSimulation.Elevation_Limit_Flags = Elevation_Limit_Flags;
 
@@ -181,7 +173,18 @@ classdef PassSimulation
                 [smarts_results, Wavelengths, Sky_Irradiance, Sky_Radiance, ...
                  Sky_Photons, sky_photon_rate] = ...
                     smartsSimForPass(PassSimulation.smarts_configuration, ...
-                                Headings, Elevations, Elevation_Limit_Flags);
+                            Headings, Elevations, Elevation_Limit_Flags, ...
+                            PassSimulation.Ground_Station);
+                
+                PassSimulation.smarts_results = smarts_results;
+                PassSimulation.Wavelengths = Wavelengths;
+                PassSimulation.Sky_Irradiance = Sky_Irradiance;
+                PassSimulation.Sky_Radiance = Sky_Radiance;
+                PassSimulation.Sky_Photons = Sky_Photons;
+                PassSimulation.Sky_Photon_Rate = sky_photon_rate;
+
+                Background_Count_Rates = Background_Count_Rates ...
+                                         + PassSimulation.Sky_Photon_Rate;
             end
 
             %% Compute Link loss

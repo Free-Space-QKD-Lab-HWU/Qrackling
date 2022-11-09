@@ -102,7 +102,7 @@ classdef SMARTS_input
                             char(9), '!Card 1 Comment'];
 
             for i = 1 : length(p.Results.args)
-                SMARTS_input = set_card(SMARTS_input, p.Results.args{i});
+                SMARTS_input = update_card(SMARTS_input, p.Results.args{i});
             end
 
             result = compose(SMARTS_input);
