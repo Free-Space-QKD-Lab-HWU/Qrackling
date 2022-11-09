@@ -27,7 +27,9 @@ function [SKR_COW_2008, QBER, R_In, R_Det] = COW_model(MPN, ...
     % frequency of pings at the receiver
     Rates_In = 0.5 * R * rep_rate + prob_dark_counts * rep_rate;
     %R_sifted = min(R_sifted, 1/dead_time);
-    R_sifted = dead_time_corrected_count_rate(Rates_In, dead_time, 1);
+    tau1 = Detector.fall_time;
+    tau2 = Detector.rise_time;
+    R_sifted = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
     Rates_Det = R_sifted
 
     %% QBER totalling

@@ -79,6 +79,9 @@ function [secret_key_rate, qber, Rate_In, Rate_Det] = ...
     % angle (in degrees)
 
     Rate_In = rep_rate .* prob_click;
+    tau1 = Detector.fall_time;
+    tau2 = Detector.rise_time;
+    Rate_Det = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
     Detector = SetJitterPerformance(Detector, Rate_In);
     qber_jitter = Detector.QBER_Jitter;
     qber_polarisation_error = sind(polarisation_error);
@@ -105,7 +108,6 @@ function [secret_key_rate, qber, Rate_In, Rate_Det] = ...
     
     % secret key rate
     rate = rep_rate .* prot_eff .* prob_click;
-    Rate_Det = dead_time_corrected_count_rate(rate, dead_time, 1);
     secret_key_rate = rate .* (beta .* tau - f .* bin_ent);
     secret_key_rate(secret_key_rate < 0) = 0; 
     % cs modification: output sifted key rate of zero in place of nan when 
