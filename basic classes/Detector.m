@@ -140,7 +140,7 @@ classdef (Abstract) Detector
 
             %% turn time measures into index increments
             Time_Gate_Width_Index = 2 * round(Detector.Time_Gate_Width / (2 * Detector.Histogram_Bin_Width));
-            Repetition_Period_Index = round(1 / (Incident_Photon_Rate * Detector.Histogram_Bin_Width));
+            Repetition_Period_Index = round(1 ./ (Incident_Photon_Rate * Detector.Histogram_Bin_Width));
 
             %check that rounding results in reasonable precision
             if Time_Gate_Width_Index < 10

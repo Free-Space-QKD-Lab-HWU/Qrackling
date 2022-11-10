@@ -170,3 +170,129 @@ end
 figure
 plot(sum(n_ph_sky, 2))
 
+%% radiance map
+
+orbit_data_root = '/home/bp38/Projects/QKD_Sat_Link/smarts_integration/orbit modelling resources/orbit LLAT files/';
+
+% Declare common values
+Transmitter_Diameter = 0.08;
+Receiver_Diameter = 0.7;
+OrbitDataFileLocation = '500kmOrbitLLAT.txt';
+OrbitDataFileLocation= '500kmSSOrbitLLAT.txt';
+Time_Gate_Width = 10^-9;
+%Time_Gate_Width = 1;
+Repetition_Rate = 1;
+Spectral_Filter_Width = 10e-3;
+Spectral_Filter_Width = 1;
+Spectral_Filter_Width_arr = 10 .^ linspace(-4, 0, 25);
+% Spectral_Filter_Width_arr = 10 .^ linspace(0, 0, 1);
+Wavelength = 850;
+
+disp(OrbitDataFileLocation);
+
+total_skr = zeros(size(Spectral_Filter_Width_arr));
+
+% declare common components
+% Transmitter_Telescope = Telescope(Transmitter_Diameter,Wavelength);
+% Receiver_Telescope = Telescope(Receiver_Diameter,Wavelength);
+Transmitter_Telescope = Telescope(Transmitter_Diameter, "Wavelength", Wavelength);
+Receiver_Telescope = Telescope(Receiver_Diameter, "Wavelength", Wavelength);
+
+% import sun object
+Sun = getfield(load('Sun.mat'),'Sun');
+Sun = Sun.SetPosition('LLA', [53, 60, Sun.Altitude], 'Name', Sun.Location_Name);
+
+BB84_S = BB84_Source(Wavelength);
+BB84_P = BB84_Protocol();
+BB84_D = MPD_Detector(Wavelength, ...
+                      Repetition_Rate, ...
+                      Time_Gate_Width, ...
+                      Spectral_Filter_Width_arr(1));
+
+%make generic components
+SimSatellite = Satellite(BB84_S, Transmitter_Telescope, ...
+                         'OrbitDataFileLocation',OrbitDataFileLocation, ...
+                         'Protocol', BB84_P);
+
+SimGround_Station = Errol_OGS(BB84_D, Receiver_Telescope);
+
+% BB84_Pass = PassSimulation(SimSatellite, BB84_P, SimGround_Station, ...
+%     'Background_Sources', Sun);
+BB84_Pass = PassSimulation(SimSatellite, BB84_P, SimGround_Station);
+BB84_Pass = Simulate(BB84_Pass);
+
+active_azimuth = BB84_Pass.Headings(BB84_Pass.Elevation_Limit_Flags == 1);
+active_elevations = BB84_Pass.Elevations(BB84_Pass.Elevation_Limit_Flags == 1);
+
+base_data_path = dir('/home/bp38/Documents/MATLAB/SMARTS/');
+base_dirs = {};
+j = 1;
+for p = 3 : numel(base_data_path)
+    current_dir = base_data_path(p);
+    if contains(current_dir.name, 'PassAt')
+        base_dirs{j} = current_dir.name;
+        j = j + 1;
+    end
+end
+
+tokeniseFileList = @(flist) cellfun(@(fstr) split(fstr, '.'), flist, UniformOUtput=false);
+firstElement = @(flist_tokens) cellfun(@(ftokens) str2num(ftokens{1}), flist_tokens);
+reconstruct = @(base_path, flist_first) arrayfun(@(ffirst) ...
+                    [base_path, num2str(ffirst), '.ext.txt'], flist_first, ...
+                    UniformOUtput=false);
+
+for b = 1 : numel(base_dirs);
+    %irradiance_data_path = '/home/bp38/Documents/MATLAB/SMARTS/PassAt12/';
+    irradiance_data_path = ['/home/bp38/Documents/MATLAB/SMARTS/', base_dirs{b}, '/'];
+    irradiance_files = dir(irradiance_data_path);
+    %irradiance_files = irradiance_files.name;
+    files = {};
+    j = 1;
+    for i = 1 : numel(irradiance_files)
+        current = irradiance_files(i);
+        if contains(current.name, 'ext')
+            files{j} = current.name;
+            j = j + 1;
+        end
+    end
+    
+    f = reconstruct(irradiance_data_path, ...
+                    sort(firstElement(tokeniseFileList(files))));
+    
+    x_elems = 0;
+    y_elems = 0;
+    
+    
+    for i = 1 : y_elems
+        %disp(f{i});
+        current_file = readtable(f{i});
+        if ~isempty(current_file)
+            if x_elems == 0
+                x_elems = 2002;
+                y_elems = numel(f);
+                radiance = zeros(y_elems, x_elems);
+            end
+            radiance(i, :) = irradiance2radiance(...
+                                    current_file.Global_tilted_irradiance, ...
+                                    current_file.Wvlgth, 1e-9);
+            wavelengths = current_file.Wvlgth';
+        end
+    end
+    
+    assert(all([numel(active_azimuth), numel(active_elevations)] == numel(f)), ...
+        'Not enough azimuth and elevations for number of files');
+    
+    filter_bounds = @(central, filter_width) central + (filter_width .* ([-1, 1] ./ 2));
+    bandpass_array = @(array, bound_vals) (array > bound_vals(1)) ...
+                                           & (array < bound_vals(2));
+    
+    mask = bandpass_array(wavelengths, filter_bounds(850, 1));
+    valid_wavlengths = wavelengths .* mask;
+    
+    total_photons = zeros(numel(active_azimuth), numel(active_elevations));
+    
+    
+    disp(sum(sky_photons(radiance(1, :), BB84_Pass.Ground_Station.Telescope.FOV^2, ...
+                     BB84_Pass.Ground_Station.Telescope.Diameter, ...
+                     valid_wavlengths', 1e-9, 1)));
+end

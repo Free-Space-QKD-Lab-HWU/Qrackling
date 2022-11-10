@@ -33,6 +33,7 @@ classdef BB84_Protocol < Protocol
                                     Detector.Polarisation_Error, ...
                                     Detector);
 
+            Secret_Key_Rate = Current_SKR;
             QBER = Current_QBER;
             Photon_Rate_In = R_In;
             Photon_Rate_Det = R_Det;
