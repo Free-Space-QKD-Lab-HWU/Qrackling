@@ -3,7 +3,7 @@ classdef Surface_Imported_from_Paper < Surface
         DataFileLocation
     end
     properties (SetAccess = protected)
-        Reflectance                                                             %diffuse reflectance of a surface ata given wavelength
+        Reflectance                                                             %diffuse reflectance of a surface at a given wavelength
         Specular_Reflectance_Proportion                                         %proportion of light which is specularly reflected
         Wavelength                                                              %wavelength in nm at which reflectance is measured
     end
