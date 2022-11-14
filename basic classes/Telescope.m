@@ -60,7 +60,6 @@ classdef Telescope
             %%SETFOV set the FOV of a telescope and update the far field
             %%divergence coefficient to suit
             Telescope.FOV = FOV;
-            Telescope.Far_Field_Divergence_Coefficient = FOV * Telescope.Diameter / (2.44 * Telescope.Wavelength*10^-9);
         end
     end
 end
