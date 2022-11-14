@@ -7,6 +7,7 @@ classdef SNSPD_1550_Room_Temp_Detector<Detector
         Histogram_Data_Location='SNSPD_1550_Room_TempAmpsHistogram.mat';
         Histogram_Bin_Width=10^-12;
         Detection_Efficiency=0.6;
+        Efficiency_Data_Location = 'quantum_opus_1550_efficiency.mat';
     end
 
     methods
