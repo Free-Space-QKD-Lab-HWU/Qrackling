@@ -16,17 +16,24 @@ classdef PassSimulation
         Any_Communication_Flag=false;                                      %flag describing whether or not communication took place
         Elevation_Viability_Flag=false;                                    %flag describing whether the satellite passes through the elevation window of the receiver
 
+
         Total_Sifted_Key=0;                                                %how much sifted data is downlinked over the whole pass
 
         Headings=[];                                                   %heading of satellite relative to OGS in deg
         Elevations=[];                                                 %elevation of satellite relative to OGS in deg
         Times=[];                                                      %time of each point of link simulation in s
-        Link_Losses_dB=[];                                               %Link loss in dB
+        Link_Losses_dB=[];                                             %Link loss in dB
         Background_Count_Rates=[];                                     %background count rate from detector and light pollution in cps
         Secret_Key_Rates=[];                                           %secret key rate in bits/s. SKR is nan outside of the elevation window and 0 when no link is achieved within this window
         QBERs=[];                                                      %quantum bit error rate during pass
-        Communicating_Flags=false(0,0);                                 %flag describing whether communication is happening
-        Elevation_Limit_Flags=false(0,0);                               %flag describing whether the satellite is in the elevation field of the OGS
+        Communicating_Flags=false(0,0);                                %flag describing whether communication is happening
+        Elevation_Limit_Flags=false(0,0);                              %flag describing whether the satellite is in the elevation field of the OGS
+                                     
+  
+        Downlink_Beacon_Flag=false;                                             %flag describing whether a downlink beacon is being simulated
+        Downlink_Beacon_Power = [];                                             %power of the downlink beacon which is received 
+        Downlink_Beacon_Link_Model;                                             %link model describing loss from beacon on satellite to intensity at the ground
+        Line_Of_Sight_Flags = false(0,0);                                        %flag describing whether the link from satellite to ground station is above the horizon
     end
 
 
@@ -86,21 +93,36 @@ classdef PassSimulation
             %satellite data
             N_Steps=PassSimulation.Satellite.N_Steps;
             PassSimulation.Times=PassSimulation.Satellite.Times;
-
+           
             %% set number of steps in simulation
             PassSimulation=Set_N_Steps(PassSimulation,N_Steps);
             PassSimulation.Link_Model=Satellite_Link_Model(N_Steps,PassSimulation.Visibility);
 
-
             %% Compute background count rate and link heading and elevation
-            [Background_Count_Rates,Ground_Station,Headings,Elevations]=ComputeTotalBackgroundCountRate(PassSimulation.Ground_Station,PassSimulation.Background_Sources,PassSimulation.Satellite);
+            [Heading,Elevation,Range] = RelativeHeadingAndElevation(PassSimulation.Satellite,PassSimulation.Ground_Station);
+            [Background_Count_Rates,Ground_Station]=ComputeTotalBackgroundCountRate(PassSimulation.Ground_Station,PassSimulation.Background_Sources,PassSimulation.Satellite,Heading,Elevation);
             PassSimulation.Ground_Station=Ground_Station;
+            %flag when LOS from OGS to satellite is present
+            Line_Of_Sight_Flag = Elevation > 0;
+
+            %% Beaconing
+            %does the satellite have a beacon present?
+            DownlinkBeaconFlag = ~isempty(PassSimulation.Satellite.Beacon);
+            if DownlinkBeaconFlag
+                % if a beacon is present, simulate it
+                    [Beacon_Downlink_model,DownlinkBeaconLossdB] =...
+                                                    Compute_Link_Loss(Beacon_Downlink_Model(N_Steps,PassSimulation.Visibility),...
+                                                    PassSimulation.Satellite,...
+                                                    PassSimulation.Ground_Station);
+                    Downlink_Beacon_Power = PassSimulation.Satellite.Beacon.Power*10.^(-DownlinkBeaconLossdB/10);
+            end
+
 
             %% Check elevation limit
-            Elevation_Limit_Flags=Elevations>PassSimulation.Ground_Station.Elevation_Limit;
+            Elevation_Limit_Flags=Elevation>PassSimulation.Ground_Station.Elevation_Limit;
             %Check that satellite rises above elevation limit at some point
             if ~any(Elevation_Limit_Flags)
-                error('satellite does not enter elevation window of ground station');
+                warning('satellite does not enter elevation window of ground station');
             end
 
 
@@ -111,7 +133,7 @@ classdef PassSimulation
             %% compute SKR and QBER for links inside the elevation window
             [Computed_Sifted_Key_Rates,Computed_QBERs]=EvaluateQKDLink(PassSimulation.Protocol,PassSimulation.Satellite.Source,PassSimulation.Ground_Station.Detector,[Computed_Link_Models(Elevation_Limit_Flags).Link_Loss_dB],[Background_Count_Rates(Elevation_Limit_Flags)]);
 
-            %store this step's data
+            %store data
             PassSimulation.Secret_Key_Rates(Elevation_Limit_Flags)=Computed_Sifted_Key_Rates;
             PassSimulation.QBERs(Elevation_Limit_Flags)=Computed_QBERs;
             PassSimulation.Communicating_Flags=~(isnan(PassSimulation.Secret_Key_Rates)|PassSimulation.Secret_Key_Rates<=0);
@@ -119,8 +141,8 @@ classdef PassSimulation
 
 
             %% post-processing
-            PassSimulation.Headings = Headings;
-            PassSimulation.Elevations = Elevations;
+            PassSimulation.Headings = Heading;
+            PassSimulation.Elevations = Elevation;
             PassSimulation.Link_Losses_dB = [PassSimulation.Link_Model.Link_Loss_dB];
             PassSimulation.Background_Count_Rates = Background_Count_Rates; %#ok<*PROP>
             PassSimulation.Any_Communication_Flag = any(PassSimulation.Communicating_Flags);
@@ -136,9 +158,14 @@ classdef PassSimulation
             else
                 PassSimulation.Total_Sifted_Key = 0;
             end
+            %downlink beacon
+            PassSimulation.Downlink_Beacon_Flag = DownlinkBeaconFlag;
+            PassSimulation.Downlink_Beacon_Power = Downlink_Beacon_Power;
+            PassSimulation.Downlink_Beacon_Link_Model = Beacon_Downlink_model;
+            PassSimulation.Line_Of_Sight_Flags = Line_Of_Sight_Flag;
         end
 
-        function Fig=plot(PassSimulation,Range)
+        function QKD_Fig=plot(PassSimulation,Range)
             %% PLOT plot data from this PassSimulation, according to the keyword Range:
             %EMPTY=plot while satellite is in elevation window
             %Elevation=plot while satellite is in elevation window
@@ -167,7 +194,7 @@ classdef PassSimulation
             end
 
             %% plot ground path of satellite
-            Fig=figure('name',['Pass Simulation using ',PassSimulation.Protocol.Name,' protocol at ',num2str(PassSimulation.Satellite.Source.Wavelength),'nm'],'WindowState','maximized');
+            QKD_Fig=figure('name',['Pass Simulation using ',PassSimulation.Protocol.Name,' protocol at ',num2str(PassSimulation.Satellite.Source.Wavelength),'nm'],'WindowState','maximized');
             subplot(4,4,[9,14])
             title('Satellite Ground Path')
             %plot non-flagged path (no comms or out of elevation range)
@@ -215,6 +242,7 @@ classdef PassSimulation
             title('Link loss')
             Plot(PassSimulation.Link_Model(Plot_Select_Flags),PassSimulation.Times(Plot_Select_Flags));
             NameTimeAxis(PassSimulation.Times);
+
             %% plot key rate as a function of link loss
             subplot(4,4,[11,16])
             title('Link performance')
@@ -226,6 +254,24 @@ classdef PassSimulation
             ax.YAxisLocation='right';
             clear ax;
             
+            %% if present, plot beacon performance as a function of time.
+            if PassSimulation.Downlink_Beacon_Flag
+                % expand a new figure
+                BeaconFig = figure('name','Dowlink Beacon');
+
+                %first, plot intensity as a function of time
+                subplot(4,4,[1,3])
+                plot(PassSimulation.Times(PassSimulation.Line_Of_Sight_Flags),PassSimulation.Downlink_Beacon_Power(PassSimulation.Line_Of_Sight_Flags));
+                ylabel('Beacon power (W)')
+                NameTimeAxis(GetTimes(PassSimulation));
+
+                %then, plot link loss
+                subplot(4,4,[5,7])
+                title('Beacon Downlink loss (dB)')
+                Plot(PassSimulation.Downlink_Beacon_Link_Model(PassSimulation.Line_Of_Sight_Flags),PassSimulation.Times(PassSimulation.Line_Of_Sight_Flags));
+                NameTimeAxis(PassSimulation.Times);
+            end
+
             function NameTimeAxis(Times)
                 %%NAMETIMEAXIS consistently name the time axis with units of
                 %%seconds if it is numeric or without if it is datetime

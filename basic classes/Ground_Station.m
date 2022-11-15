@@ -27,6 +27,9 @@ classdef Ground_Station < Located_Object
                          isfield(Background_Rates, 'Heading'), ...
                          isfield(Background_Rates, 'Elevation'), ...
                          isfield(Background_Rates, 'Count_Rate')};
+
+        %the camera which receives beacon light, if beaconing is simulated
+        Camera=[];
     end
 
     properties (Abstract = false, SetAccess = protected, Hidden = true)
@@ -78,6 +81,7 @@ classdef Ground_Station < Located_Object
             addParameter(p, 'LLA', nan);
             addParameter(p, 'name', 'Bob');
             addParameter(p, 'Background_Count_Rate_File_Location', 'none');
+            addParameter(p, 'Camera', []);
 
             parse(p, Detector, Telescope, varargin{:});
 
@@ -93,7 +97,9 @@ classdef Ground_Station < Located_Object
             Ground_Station = ReadBackgroundCountRateData(Ground_Station, ...
                                 p.Results.Background_Count_Rate_File_Location);
 
-
+            % set camera
+            Ground_Station.Camera = p.Results.Camera;
+            
             if isnan(p.Results.LLA)
                 LLA = [p.Results.latitude, p.Results.longitude, p.Results.altitude];
             else
@@ -225,13 +231,9 @@ classdef Ground_Station < Located_Object
         end
 
 
-        function [Total_Background_Count_Rate, Ground_Station, Headings, Elevations] = ComputeTotalBackgroundCountRate(Ground_Station, Background_Sources, Satellite)
+        function [Total_Background_Count_Rate,Ground_Station] = ComputeTotalBackgroundCountRate(Ground_Station, Background_Sources, Satellite, Headings, Elevations)
             % COMPUTETOTALBACKGROUNDCOUNTRATE return the total count rate
             % at the given headings and elevations
-
-            % Background light pollution
-            % compute relative heading and elevation
-            [Headings, Elevations, ~] = RelativeHeadingAndElevation(Satellite, Ground_Station); % #ok<*PROP>
 
             % find light pollution count rate for given headings and elevations
             Light_Pollution_Count_Rate = GetLightPollutionCountRate(Ground_Station, Headings, Elevations);

@@ -36,6 +36,9 @@ classdef Satellite < Located_Object
         % a surface object detailing angular and spectal dependence of
         % reflection
         Surface {isa(Surface,'Surface')}
+
+        %% beacon on satellite
+        Beacon =[];
     end
 
     methods
@@ -70,8 +73,11 @@ classdef Satellite < Located_Object
             addParameter(p, 'stopTime', []);
             addParameter(p, 'sampleTime', []);
             addParameter(p, 'Name', '');
+            % satellite surface reflection properties
             addParameter(p, 'Surface', Satellite_Foil_Surface(4))
             addParameter(p, 'Area', [])
+            % downlink beacon, if wanted
+            addParameter(p, 'Beacon', [])
 
             parse(p, Source, Telescope, varargin{:});
 
@@ -180,6 +186,9 @@ classdef Satellite < Located_Object
             if ~isempty(p.Results.Area)
                 Satellite.Surface = SetArea(Satellite.Surface,p.Results.Area);
             end
+
+            %% set beacon on satellite
+            Satellite.Beacon = p.Results.Beacon;
         end
 
 
