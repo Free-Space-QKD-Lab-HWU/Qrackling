@@ -32,6 +32,7 @@ classdef PassSimulation
   
         Downlink_Beacon_Flag=false;                                             %flag describing whether a downlink beacon is being simulated
         Downlink_Beacon_Power = [];                                             %power of the downlink beacon which is received 
+        Downlink_Beacon_SNR_dB = [];                                            %signal to noise ratio (in dB) of the downlink beacon
         Downlink_Beacon_Link_Model;                                             %link model describing loss from beacon on satellite to intensity at the ground
         Line_Of_Sight_Flags = false(0,0);                                        %flag describing whether the link from satellite to ground station is above the horizon
     end
@@ -115,6 +116,7 @@ classdef PassSimulation
                                                     PassSimulation.Satellite,...
                                                     PassSimulation.Ground_Station);
                     Downlink_Beacon_Power = PassSimulation.Satellite.Beacon.Power*10.^(-DownlinkBeaconLossdB/10);
+                    Downlink_Beacon_SNR_dB = 10*log10(Downlink_Beacon_Power./PassSimulation.Ground_Station.Camera.Noise);
             end
 
 
@@ -161,6 +163,7 @@ classdef PassSimulation
             %downlink beacon
             PassSimulation.Downlink_Beacon_Flag = DownlinkBeaconFlag;
             PassSimulation.Downlink_Beacon_Power = Downlink_Beacon_Power;
+            PassSimulation.Downlink_Beacon_SNR_dB = Downlink_Beacon_SNR_dB;
             PassSimulation.Downlink_Beacon_Link_Model = Beacon_Downlink_model;
             PassSimulation.Line_Of_Sight_Flags = Line_Of_Sight_Flag;
         end
@@ -260,16 +263,21 @@ classdef PassSimulation
                 BeaconFig = figure('name','Dowlink Beacon');
 
                 %first, plot intensity as a function of time
-                subplot(4,4,[1,3])
+                subplot(3,1,1)
                 plot(PassSimulation.Times(PassSimulation.Line_Of_Sight_Flags),PassSimulation.Downlink_Beacon_Power(PassSimulation.Line_Of_Sight_Flags));
                 ylabel('Beacon power (W)')
                 NameTimeAxis(GetTimes(PassSimulation));
 
                 %then, plot link loss
-                subplot(4,4,[5,7])
-                title('Beacon Downlink loss (dB)')
+                subplot(3,1,2)
                 Plot(PassSimulation.Downlink_Beacon_Link_Model(PassSimulation.Line_Of_Sight_Flags),PassSimulation.Times(PassSimulation.Line_Of_Sight_Flags));
                 NameTimeAxis(PassSimulation.Times);
+
+                %finally, plot SNR
+                subplot(3,1,3)
+                plot(PassSimulation.Times(PassSimulation.Line_Of_Sight_Flags),PassSimulation.Downlink_Beacon_SNR_dB(PassSimulation.Line_Of_Sight_Flags));
+                NameTimeAxis(PassSimulation.Times);
+                ylabel('SNR (dB)');
             end
 
             function NameTimeAxis(Times)
