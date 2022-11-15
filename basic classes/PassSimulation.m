@@ -382,5 +382,11 @@ classdef PassSimulation
             %%GETTIMES return the time indices (in s) over a pass
             Times = PassSimulation.Times;
         end
+
+        function SKR = GetSecretKeyRates(PassSimulation)
+            %%GETSECRETKEYRATES return the secret key rate (in bits/s) over a
+            %%pass
+            SKR = PassSimulation.Secret_Key_Rates;
+        end
     end
 end
