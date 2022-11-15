@@ -10,3 +10,4 @@ classdef Acktar_Fractal_Black < Surface_Imported_from_Paper
         end
     end
 end
+
