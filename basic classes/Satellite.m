@@ -29,7 +29,7 @@ classdef Satellite < Located_Object
 
         %% information about protocol
         % protocol used (BB84,BBN92,...)
-        Protocol{mustBeText} = '';
+        Protocol Protocol = BB84_Protocol();
         Protocol_Efficiency{mustBeScalarOrEmpty} = 1;
 
         %% information about reflection
@@ -53,7 +53,7 @@ classdef Satellite < Located_Object
             p = inputParser();
 
             addRequired(p, 'Source');
-            addRequired(p, 'Telescope')
+            addRequired(p, 'Telescope');
             addParameter(p, 'OrbitDataFileLocation','');
             addParameter(p, 'ToolBoxSatellite', []);
             addParameter(p, 'scenario', nan);
@@ -72,6 +72,7 @@ classdef Satellite < Located_Object
             addParameter(p, 'Name', '');
             addParameter(p, 'Surface', Satellite_Foil_Surface(4))
             addParameter(p, 'Area', [])
+            addParameter(p, 'Protocol', []);
 
             parse(p, Source, Telescope, varargin{:});
 
@@ -179,6 +180,10 @@ classdef Satellite < Located_Object
             %and set area property if given
             if ~isempty(p.Results.Area)
                 Satellite.Surface = SetArea(Satellite.Surface,p.Results.Area);
+            end
+
+            if ~isempty(p.Results.Protocol)
+                Satellite.Protocol = p.Results.Protocol;
             end
         end
 
@@ -304,6 +309,11 @@ classdef Satellite < Located_Object
             Satellite.Source = SetWavelength(Satellite.Source, Wavelength);
             Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
                 Wavelength);
+        end
+
+        function Satellite = SetSource(Satellite, source)
+            Satellite.Source = Source;
+            Satellite = Satellite.SetWavelength(Source.Wavelength);
         end
 
 

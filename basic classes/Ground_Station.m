@@ -54,6 +54,9 @@ classdef Ground_Station < Located_Object
 
         % count rates at the Ground station due to reflected light off satellite
         Reflection_Count_Rates{mustBeVector, mustBeNonnegative} = 0;
+
+        % count rates at the Ground station due to reflected light off satellite
+        Directed_Count_Rates{mustBeVector, mustBeNonnegative} = 0;
     end
 
     methods
@@ -235,7 +238,10 @@ classdef Ground_Station < Located_Object
 
             % find light pollution count rate for given headings and elevations
             Light_Pollution_Count_Rate = GetLightPollutionCountRate(Ground_Station, Headings, Elevations);
-
+            % if any values are negative set them to zero
+            Light_Pollution_Count_Rate( Light_Pollution_Count_Rate < 0 ) = 0;
+            Light_Pollution_Count_Rate( isnan(Light_Pollution_Count_Rate) ) = 0;
+            Light_Pollution_Count_Rate( isinf(Light_Pollution_Count_Rate) ) = 0;
 
             % Reflected light pollution
             Reflection_Count_Rate = zeros(size(Light_Pollution_Count_Rate));
@@ -248,6 +254,12 @@ classdef Ground_Station < Located_Object
                 Reflection_Count_Rate(Background_Source_Elevations>Elevation_Limit) = Reflection_Count_Rate(Background_Source_Elevations>Elevation_Limit)+Possible_Refleced_Counts(Background_Source_Elevations>Elevation_Limit); % #ok<*AGROW>
             end
 
+            Direct_Count_Rate = ones(size(Headings));
+            for i = 1:length(Background_Sources)
+                solar_counts = Background_Sources(i).GetDirectedLight(Ground_Station, 16.35) .* ones(size(Direct_Count_Rate));
+                Direct_Count_Rate = Direct_Count_Rate + solar_counts;
+            end
+
             % Dark_Counts
             Dark_Counts = ones(size(Headings))*Ground_Station.Detector.Dark_Count_Rate;
 
@@ -255,14 +267,27 @@ classdef Ground_Station < Located_Object
             Ground_Station.Light_Pollution_Count_Rates = Light_Pollution_Count_Rate;
             Ground_Station.Reflection_Count_Rates = Reflection_Count_Rate;
             Ground_Station.Dark_Count_Rates = Dark_Counts;
-            Total_Background_Count_Rate = Light_Pollution_Count_Rate+Reflection_Count_Rate+Dark_Counts;
+            Ground_Station.Directed_Count_Rates = Direct_Count_Rate;
+            Total_Background_Count_Rate = Light_Pollution_Count_Rate + ...
+                                          Reflection_Count_Rate + ...
+                                          Direct_Count_Rate + ...
+                                          + Dark_Counts;
         end
 
 
         function PlotBackgroundCountRates(Ground_Station, Plotting_Indices, X_Axis)
             % PLOTBACKGROUNDCOUNTRATES plot the background count rates
             % affecting the ground station
-            area(X_Axis, [Ground_Station.Dark_Count_Rates(Plotting_Indices)', Ground_Station.Reflection_Count_Rates(Plotting_Indices)', Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)']);
+            disp(size(Ground_Station.Dark_Count_Rates(Plotting_Indices)'));
+            disp(size(Ground_Station.Reflection_Count_Rates(Plotting_Indices)'));
+            disp(size(Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)'));
+            disp(size(Ground_Station.Directed_Count_Rates(Plotting_Indices)'));
+            
+            area(X_Axis, ...
+                 [Ground_Station.Dark_Count_Rates(Plotting_Indices)', ...
+                 Ground_Station.Reflection_Count_Rates(Plotting_Indices)', ...
+                 Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)', ...
+                 Ground_Station.Directed_Count_Rates(Plotting_Indices)']);
             ylabel('Background count rate (cps)')
 
             % adjust legend to represent what is plotted
@@ -275,6 +300,8 @@ classdef Ground_Station < Located_Object
                 % no Light pollution
             elseif (any(Ground_Station.Reflection_Count_Rates(Plotting_Indices)))&&(~any(Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)))
                 legend('Dark counts', 'Reflection off satellite', '');
+            elseif (any(Ground_Station.Directed_Count_Rates(Plotting_Indices)))&&(~any(Ground_Station.Directed_Count_Rates(Plotting_Indices)))
+                legend('Dark counts', 'Directed count rates (Solar)', '');
             else
                 % neither reflection nor light pollution
                 legend('Dark counts', '', '');

@@ -3,10 +3,12 @@ classdef MPD_Detector<Detector
 
     properties (SetAccess=protected,Abstract=false)
         Dark_Count_Rate=10;
-        Dead_Time=0;
+        Dead_Time=77E-9;
         Histogram_Data_Location='MPDHistogram.mat';
         Histogram_Bin_Width=10^-12;
         Detection_Efficiency=0.6;
+        Efficiency_Data_Location = 'MPD_efficiency.mat';
+
     end
 
     methods
