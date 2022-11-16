@@ -114,8 +114,10 @@ classdef Satellite < Located_Object
                     error('No toolbox satellite supplied');
                     
                 else
-                    [Satellite, lat, lon, alt, t, vE, vN, vU] = llatAndVelFromScenario(...
-                        Satellite, 'satCommsSatellite', p.Results.ToolBoxSatellite);
+                    [Satellite, lat, lon, alt, t, vE, vN, vU] = ...
+                        llatAndVelFromScenario(Satellite, ...
+                        satCommsSatellite=p.Results.ToolBoxSatellite, ...
+                        scenario=p.Results.scenario);
                     hasVelocity = true;
                 end
 
@@ -170,7 +172,9 @@ classdef Satellite < Located_Object
             Satellite.N_Steps = Satellite.N_Position;
             Satellite.Times = t;
 
-            Satellite.Source = p.Results.Source;
+            if isa(Source, 'Source')
+                Satellite.Source = p.Results.Source;
+            end
             Satellite.Telescope = p.Results.Telescope;
             Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
                 Satellite.Source.Wavelength);
@@ -224,8 +228,8 @@ classdef Satellite < Located_Object
         end
 
 
-        function [Satellite, lat, lon, alt, t, vE, vN, vU] = llatAndVelFromScenario(Satellite, ...
-                                                                         varargin)
+        function [Satellite, lat, lon, alt, t, vE, vN, vU] = ...
+                            llatAndVelFromScenario(Satellite, varargin)
             p = inputParser();
             addRequired(p, 'Satellite');
             addParameter(p, 'satCommsSatellite', nan);
@@ -270,9 +274,9 @@ classdef Satellite < Located_Object
                                                  'CoordinateFrame', 'geographic');
                 Satellite.Name = sc_sat.satellite(1).Name;
 
-            % elseif ~any(arrayfun(@isnan, [p.Results.satCommsSatellite, ...
-            %                               p.Results.KeplerElements]))
-            elseif any([isnan(p.Results.satCommsSatellite), isempty(p.Results.KeplerElements)])
+            elseif isa(p.Results.satCommsSatellite, ...
+                       'matlabshared.satelliteScenario.Satellite') ...
+                   & ~isempty(p.Results.KeplerElements)
 
                 % Third case: same as above except we have received an array of
                 % kepler elements rather than TLE data

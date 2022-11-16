@@ -10,10 +10,14 @@ pass = 0;
 debug = false;
 
 %startTime = datetime(2020,6,02,8,23,0);
-startTime = datetime(2020,6,02,18,43,16);
+%startTime = datetime(2020,6,02,18,43,16);
+tleraw = readlines("threeSatelliteConstellation.tle");
+tlestr = sprintf('%s', join(tleraw(1:3), newline))
+utils().tleStartTime(tlestr)
 stopTime = startTime + hours(5);
-%sampleTime = 360;
-sampleTime = 6;
+sampleTime = 360;
+%sampleTime = 6;
+
 
 Transmitter_Diameter=0.08;
 Receiver_Diameter=0.7;
@@ -30,13 +34,13 @@ Receiver_Telescope=Telescope(Receiver_Diameter,...
 
 BB84_S=BB84_Source(Wavelength);
 
-constellation = Constellation(source=BB84_S, ...
-                              telescope=Receiver_Telescope, ...
+[constellation, scene] = Constellation(BB84_S, ...
+                              Receiver_Telescope, ...
+                              useSatCommsToolbox=true, ...
                               startTime = startTime, ...
                               stopTime = stopTime, ...
                               sampleTime = sampleTime, ...
                               TLE="threeSatelliteConstellation.tle");
-
 
 % [sma, ecc, inc, raan, aop, ta] = constellation.elementsFromScenario(constellation.toolbox_satellites{1})
 % 
@@ -65,19 +69,23 @@ tle = sprintf([...
 [name, kepler_elements] = utils().TLE2Kepler(TLE=tle);
 [sma, ecc, inc, raan, aop, ta] = utils().splat(kepler_elements);
 
-constellation = Constellation(source=BB84_S, ...
-                              telescope=Receiver_Telescope, ...
+[constellation, scene] = Constellation(BB84_S, ...
+                              Receiver_Telescope, ...
+                              useSatCommsToolbox=true, ...
                               startTime = startTime, ...
                               stopTime = stopTime, ...
                               sampleTime = sampleTime, ...
                               name=name, ...
                               KeplerElements=[sma, ecc, inc, raan, aop, ta]);
 
+scene.Satellites(1).show()
 if debug
     for i = 1 : constellation.N
         disp(constellation.Satellites{i});
     end
 end
+
+scene.play
 
 assert(constellation.N == 1);
 pass = pass + 1;
@@ -103,8 +111,9 @@ tle_4lines = sprintf([...
 [sma, ecc, inc, raan, aop, ta] = utils().splat(kepler_elements);
 
 
-constellation = Constellation(source=BB84_S, ...
-                              telescope=Receiver_Telescope, ...
+[constellation, scene] = Constellation(BB84_S, ...
+                              Receiver_Telescope, ...
+                              useSatCommsToolbox=true, ...
                               startTime = startTime, ...
                               stopTime = stopTime, ...
                               sampleTime = sampleTime, ...
@@ -117,10 +126,55 @@ if debug
     end
 end
 
-sat = constellation.toolbox_satellites{1};
-show(sat);
+% sat = constellation.Satellites{1};
+% show(sat);
 
 assert(constellation.N == 4);
 pass = pass + 1;
 
 fprintf(1, 'Passing test [%d / %d]\n', pass, tests);
+
+
+
+
+%%testing
+
+fpath = 'threeSatelliteConstellation.tle';
+if strcmp('.tle', lower(fpath(numel(fpath)-3 : end)))
+    tledata = readlines(fpath);
+end
+
+disp(tledata)
+
+tledata(1:3)
+sprintf('%s', [tledata(1), newline, tledata(2), newline, tledata(3)])
+
+l1 = sprintf('%s', tledata(2))
+l1(19:20)
+l1(21:32)
+
+
+m_ratio = 365 / 12
+
+days = str2num(l1(21:32))
+
+month = floor(days / m_ratio)
+
+day = floor(days - floor(m_ratio * month))
+
+HOUR = (days - (floor(m_ratio * month) + day)) * 24
+hour = floor(HOUR)
+MINUTES = (HOUR - hour) * 60
+minutes = floor(MINUTES)
+seconds = (MINUTES - minutes) * 60
+
+tlestr = sprintf('%s', [tledata(1), newline, tledata(2), newline, tledata(3)])
+splits = strsplit(tlestr, '\n')
+numel(splits{2})
+numel(splits{3})
+
+class(tlestr)
+
+splits{2}(19:20)
+
+
