@@ -127,7 +127,19 @@ classdef (Abstract) Detector
             Detector.Protocol = Protocol;
         end
 
-
+        % Jitter calculations...
+        % This is a non-trivial component of the model. Depending on the kind
+        % of source, the method to calculate the jitter and so the contribution
+        % it makes to the QBER is different. For weak coherent pulses we must
+        % assume that the repetition rate is equal to the incident photon rate
+        % where the average photon per pulse has been reduced due to loss. This
+        % is different to sources with continuous wave pumping where the only
+        % contribution to QBER from jitter can be from the photons that have
+        % arrived.
+        % TODO
+        % - Does the c.w. case mentioned above hold for heralded source in
+        %   general? i.e. c.w. and pulsed sources of single-photons or 
+        %   entangled photon pairs.
         function Detector = SetJitterPerformance(Detector, Incident_Photon_Rate)
             % Repetition Rate: This is the rate of photons ARRIVING at the
             % detector, this will need to be recalculated for every value of
@@ -273,6 +285,9 @@ classdef (Abstract) Detector
 
             Detector.rise_time = time_difference( extrema( time_arr(rise_index) ) );
             Detector.fall_time = time_difference( extrema( time_arr(fall_index) ) );
+            % TODO
+            % - Detector dead time behaviour needs to be over riden in the case
+            %   of artificial dead times (hold times, temporal filtering, etc)
         end
 
         function Detector = SetDarkCountRate(Detector,DCR)
