@@ -12,7 +12,7 @@ function [wavelengths, intensities] = gaussian_spectra(central_wavelength, ...
     addParameter(p, 'FWHM', nan);
     addParameter(p, 'exponential_width', nan);
     addParameter(p, 'points', 2^10); % default to 1024 points
-    
+
     parse(p, central_wavelength, window, mean_photon_number, varargin{:});
 
     assert(0 ~= sum(isnan([p.Results.FWHM, p.Results.exponential_width])), ...

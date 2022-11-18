@@ -283,8 +283,10 @@ classdef (Abstract) Detector
                                   > min_cut_off * min_counts ) ...
                                & ( time_arr > peak_points(2) ) );
 
-            Detector.rise_time = time_difference( extrema( time_arr(rise_index) ) );
-            Detector.fall_time = time_difference( extrema( time_arr(fall_index) ) );
+            Detector.rise_time = time_difference( ...
+                                        extrema( time_arr(rise_index) ) );
+            Detector.fall_time = time_difference( ...
+                                        extrema( time_arr(fall_index) ) );
             % TODO
             % - Detector dead time behaviour needs to be over riden in the case
             %   of artificial dead times (hold times, temporal filtering, etc)
@@ -294,7 +296,7 @@ classdef (Abstract) Detector
             %%SETDARKCOUNTRATE set detector dark count rate
             Detector.Dark_Count_Rate = DCR;
         end
-    
+
         function Detector = SetPolarisationError(Detector,Polarisation_Error)
             %%GETPOLARISATIONERROR set the polarisation error in a
             %%modelled polarisation compensation system

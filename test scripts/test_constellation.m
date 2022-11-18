@@ -13,7 +13,7 @@ debug = false;
 %startTime = datetime(2020,6,02,18,43,16);
 tleraw = readlines("threeSatelliteConstellation.tle");
 tlestr = sprintf('%s', join(tleraw(1:3), newline))
-utils().tleStartTime(tlestr)
+startTime = utils().tleStartTime(tlestr);
 stopTime = startTime + hours(5);
 sampleTime = 360;
 %sampleTime = 6;
@@ -66,6 +66,10 @@ tle = sprintf([...
 '2 07530 101.9048 168.4749 0012358   5.5276 108.6298 12.53655723179980' ...
     ]);
 
+startTime = utils().tleStartTime(tle)
+stopTime = startTime + hours(5);
+sampleTime = 360;
+
 [name, kepler_elements] = utils().TLE2Kepler(TLE=tle);
 [sma, ecc, inc, raan, aop, ta] = utils().splat(kepler_elements);
 
@@ -105,6 +109,12 @@ tle_4lines = sprintf([...
 'HUBBLE\n', ...
 '1 20580U 90037B   22188.33037000  .00001415  00000-0  72628-4 0  9991\n', ...
 '2 20580  28.4709  37.0879 0002358 248.6535 282.4652 15.10634529569221']);
+
+splits = strsplit(tle_4lines, newline);
+j = join(splits(1:3), newline)
+startTime = utils().tleStartTime(j{1});
+stopTime = startTime + hours(5);
+sampleTime = 360;
 
 [names, kepler_elements] = utils().TLE2Kepler(TLE=tle_4lines);
 

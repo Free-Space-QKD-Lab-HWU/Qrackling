@@ -112,7 +112,7 @@ classdef Satellite < Located_Object
             elseif p.Results.useSatCommsToolbox == true
                 if isempty(p.Results.ToolBoxSatellite) | isempty(p.Results.scenario)
                     error('No toolbox satellite supplied');
-                    
+
                 else
                     [Satellite, lat, lon, alt, t, vE, vN, vU] = ...
                         llatAndVelFromScenario(Satellite, ...
@@ -267,11 +267,12 @@ classdef Satellite < Located_Object
                 % the TLE data to construct a satellite and get its position, 
                 % velocity and time steps
 
-                sc_sat = satellite(p.Results.scenario, p.Results.TLE, "Name", ... 
-                    Satellite.Name, "OrbitPropagator", "two-body-keplerian");
+                sc_sat = satellite(p.Results.scenario, p.Results.TLE, ...
+                                   "Name", Satellite.Name, ...
+                                   "OrbitPropagator", "two-body-keplerian");
 
-                [position, velocity, t] = states(sc_sat, ...
-                                                 'CoordinateFrame', 'geographic');
+                [position, velocity, t] = states(...
+                                    sc_sat, 'CoordinateFrame', 'geographic');
                 Satellite.Name = sc_sat.satellite(1).Name;
 
             elseif isa(p.Results.satCommsSatellite, ...
@@ -281,13 +282,15 @@ classdef Satellite < Located_Object
                 % Third case: same as above except we have received an array of
                 % kepler elements rather than TLE data
 
-                [sma, ecc, inc, raan, aop, ta] = utils().splat(p.Results.KeplerElements);
+                [sma, ecc, inc, raan, aop, ta] = ...
+                        utils().splat(p.Results.KeplerElements);
 
-                sc_sat = satellite(p.Results.scenario, sma, ecc, inc, raan, aop, ta, ...
-                    "Name", Satellite.Name, "OrbitPropagator", "two-body-keplerian");
+                sc_sat = satellite(p.Results.scenario, sma, ecc, inc, ...
+                                   raan, aop, ta, "Name", Satellite.Name, ...
+                                   "OrbitPropagator", "two-body-keplerian");
 
-                [position, velocity, t] = states(sc_sat, ...
-                                                 'CoordinateFrame', 'geographic');
+                [position, velocity, t] = states(...
+                                sc_sat, 'CoordinateFrame', 'geographic');
                 Satellite.Name = sc_sat.Name;
             end
 

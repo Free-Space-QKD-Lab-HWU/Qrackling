@@ -181,10 +181,21 @@ classdef utils
             kepler_elements = [sma', ecc', inc', raan', aop', ta'];
         end
 
-        % Extract the start time from a two-line element set
         function start_time = tleStartTime(utils, tle_set)
+            % Extract the start time from a two-line element set
+            %
+            % EXAMPLE:
+            % tle_lines = readlines("threeSatelliteConstellation.tle");
+            % first_satellite_str = sprintf('%s', join(tleraw(1:3), newline));
+            % startTime = utils().tleStartTime(first_satellite_str);
+            % stopTime = startTime + hours(5);
+            %
             assert(ischar(tle_set), ...
                    'TLE set must be a string or character vector');
+
+            if strcmp('.tle', lower(tle_set(numel(tle_set)-3: end)))
+                
+            end
 
             lines = strsplit(tle_set, '\n');
             assert(3 == numel(lines), 'TLE set malformed, must be 3 lines');
