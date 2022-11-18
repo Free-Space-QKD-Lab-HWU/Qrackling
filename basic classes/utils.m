@@ -104,7 +104,6 @@ classdef utils
         end
 
         function semimajor_axis = meanmotion2semimajoraxis(self, mean_motion)
-            % TODO is this correct
             M = 5.97237e24;
             G = 6.67430e-11;
             mu = G * M;
@@ -114,8 +113,14 @@ classdef utils
 
         function [name, kepler_elements] = TLE2Kepler(Utils, ...
                 varargin)
-            % TODO -> expand this out to accept multi TLE settings, currently
-            % only works for a single TLE
+
+            % Derive the names and kepler elements from TLE sets.
+            % EXAMPLE
+            % fpath = 'threeSatelliteConstellation.tle';
+            % if strcmp('.tle', lower(fpath(numel(fpath)-3 : end)))
+            %     tledata = readlines(fpath);
+            % end
+            % [names, k_e] = utils().TLE2Kepler(TLE=tledata)
 
             p = inputParser;
 
@@ -128,7 +133,14 @@ classdef utils
             parse(p, Utils, varargin{:});
 
             if ~isempty(p.Results.TLE)
-                lines = strsplit(p.Results.TLE, "\n");
+                if strcmp('', p.Results.TLE(end))
+                    
+                    % lines = strsplit(sprintf(...
+                    %             '%s', p.Results.TLE(1:end-1)), "\n");
+                    lines = p.Results.TLE(1:end-1);
+                else
+                    lines = strsplit(p.Results.TLE, "\n");
+                end
             end
 
             if isempty(p.Results.name)
@@ -145,6 +157,9 @@ classdef utils
             end
 
             n_tle = length(lines) / 3;
+            disp(lines)
+            disp(numel(lines))
+            disp(n_tle);
             if n_tle > 1
                 name = cell.empty;
             end

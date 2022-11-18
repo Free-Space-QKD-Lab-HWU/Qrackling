@@ -154,7 +154,15 @@ if strcmp('.tle', lower(fpath(numel(fpath)-3 : end)))
     tledata = readlines(fpath);
 end
 
+
+strcmp('', tledata(end))
+
+strsplit(sprintf('%s', tledata(1:end-1)), '\n')
+
 disp(tledata)
+
+tledata
+[name, ke] = utils().TLE2Kepler(TLE=tledata)
 
 tledata(1:3)
 sprintf('%s', [tledata(1), newline, tledata(2), newline, tledata(3)])
