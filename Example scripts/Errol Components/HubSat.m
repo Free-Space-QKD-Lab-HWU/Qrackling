@@ -1,5 +1,27 @@
-function HubSat = HubSat()
+function HubSat = HubSat(StartTime,StopTime,SampleTime)
             %HUBSAT Construct a model of the Quantum Comms hub satellite
+            
+            %% allow variable start and stop time of simulations
+            switch nargin
+                case 0
+                    StartTime = datetime(2024,1,1,5,0,0);
+                    StopTime = datetime(2024,1,1,6,0,0);
+                    SampleTime = 1;
+                case 1
+                    assert(isdatetime(StartTime));
+                    StopTime = StartTime + days(1);
+                    SampleTime = 1;
+                case 2
+                    assert(isdatetime(StartTime));
+                    assert(isdatetime(StopTime));
+                    SampleTime = 1;
+                case 3
+                    assert(isdatetime(StartTime));
+                    assert(isdatetime(StopTime));
+                    if isduration(SampleTime)
+                        SampleTime = seconds(SampleTime);
+                    end
+            end
 
             %need to implement parameters and components first, then create a
             %satellite with the correct orbital parameters
@@ -41,12 +63,12 @@ function HubSat = HubSat()
                             'Surface',Satellite_Foil_Surface(0.01),...          %correctly set reflevctive surface proporties and area
                             'SemiMajorAxis',500E3 + earthRadius,...             %mean orbital radius = Altitude + Earth radius
                             'eccentricity',0,...                                %measure of ellipticity of the orbit, for circular, =0
-                            'inclination',90,...                                %inclination of orbit in deg
+                            'inclination',1.006316534636167e+02,...             %inclination of orbit in deg- set by sun synchronicity
                             'rightAscensionOfAscendingNode',0,...               %measure of location of orbit in longitude
                             'argumentOfPeriapsis',0,...                         %measurement of location of orbit in latitude
                             'trueAnomaly',0,...                                 
-                            'StartTime',datetime(2024,1,1,5,0,0),...                   %start of simulation
-                            'StopTime',datetime(2024,1,1,6,0,0),...                 %end of simulation
-                            'sampleTime',1);                                    %simulation interval in s     
+                            'StartTime',StartTime,...                   %start of simulation
+                            'StopTime',StopTime,...                 %end of simulation
+                            'sampleTime',SampleTime);                                    %simulation interval in s     
 end
 
