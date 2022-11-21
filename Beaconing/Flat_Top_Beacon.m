@@ -9,11 +9,12 @@ classdef Flat_Top_Beacon < Beacon
     methods
         function Flat_Top_Beacon = Flat_Top_Beacon(Power,...
                                                    Wavelength,...
-                                                   Limit_Half_Angle)
+                                                   Limit_Half_Angle,...
+                                                   varargin)
             %%Gaussian_Beacon Construct an instance of this class
             
             %construct abstract beacon class
-            Flat_Top_Beacon@Beacon(Power,Wavelength);
+            Flat_Top_Beacon@Beacon(Power,Wavelength,varargin{:});
             %then implement Flat_Top_Beacon properties
             Flat_Top_Beacon.Limit_Half_Angle = Limit_Half_Angle;
         end

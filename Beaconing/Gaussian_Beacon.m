@@ -9,11 +9,12 @@ classdef Gaussian_Beacon < Beacon
     methods
         function Gaussian_Beacon = Gaussian_Beacon(Power,...
                                                    Wavelength,...
-                                                   Divergence_Half_Angle)
+                                                   Divergence_Half_Angle,...
+                                                   varargin)
             %%Gaussian_Beacon Construct an instance of this class
             
             %construct abstract beacon class
-            Gaussian_Beacon@Beacon(Power,Wavelength);
+            Gaussian_Beacon@Beacon(Power,Wavelength,varargin{:});
             %then implement Gaussian_Beacon properties
             Gaussian_Beacon.Divergence_Half_Angle = Divergence_Half_Angle;
         end

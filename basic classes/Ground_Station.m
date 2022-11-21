@@ -6,7 +6,7 @@ classdef Ground_Station < Located_Object
 
     properties (Abstract = false, SetAccess = protected)
         % name of protocol to be used
-        Protocol{mustBeText} = '';
+        %Protocol{mustBeText} = '';
 
         % a detector object, validated individually in subclasses
         Detector

@@ -283,10 +283,10 @@ classdef PassSimulation
             function NameTimeAxis(Times)
                 %%NAMETIMEAXIS consistently name the time axis with units of
                 %%seconds if it is numeric or without if it is datetime
-                if isdatetime(Times)
-                    xlabel('Time')
-                else
+                if ~isdatetime(Times)
                     xlabel('Time (s)')
+                else
+                    xlabel('')
                 end
             end
         end

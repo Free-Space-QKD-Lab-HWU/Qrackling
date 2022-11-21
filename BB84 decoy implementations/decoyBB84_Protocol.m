@@ -14,6 +14,13 @@ classdef decoyBB84_Protocol < Protocol
         end
 
         function [Secret_Key_Rate,QBER] = EvaluateQKDLink(Protocol,Source,Detector,Link_Loss_dB,Background_Count_Rate)
+            %if input is empty, return empty output
+            if isempty(Link_Loss_dB)&&isempty(Background_Count_Rate)
+                Secret_Key_Rate=[];
+                QBER=[];
+                return
+            end
+            
             %serialise to deal with singular output of decoyBB84_Model
             if ~(isvector(Link_Loss_dB)&&isvector(Background_Count_Rate))
                 error('Link loss and BCR must be at most 1-dimensional arrays (i.e vectors)')
@@ -33,11 +40,12 @@ classdef decoyBB84_Protocol < Protocol
             Eff=Protocol.Efficiency;
             QBER_Jit=Detector.QBER_Jitter;
             DT=Detector.Dead_Time;
+            PE=Detector.Polarisation_Error;
 
             % serialise task
             for i=1:L
             [Current_SKR,Current_QBER]=decoyBB84_model(MPN, SP, SPE, RR,...
-    DE, BCR_Prob(i), Link_Loss_dB(i), Eff, QBER_Jit, DT);
+    DE, BCR_Prob(i), Link_Loss_dB(i), Eff, QBER_Jit, DT, PE);
                 Secret_Key_Rate(i)=Current_SKR;
                 %use the first QBER as this is from the signal states
                 QBER(i)=Current_QBER(1);

@@ -14,15 +14,20 @@ classdef(Abstract) Beacon
     end
 
     methods
-        function Beacon = Beacon(Power,Wavelength,Efficiency)
+        function Beacon = Beacon(Power,Wavelength,varargin)
             %%BEACON construct a beacon class
             
-            %% too simple to use inputParser, minimum number of inputs is 2
-            Beacon.Power = Power;
-            Beacon.Wavelength = Wavelength;
-            if nargin==3
-                Beacon.Efficiency=Efficiency;
-            end
+           %% use inputparser
+           p=inputParser();
+           addRequired(p,'Power');
+           addRequired(p,'Wavelength');
+           addParameter(p,'Efficiency',1);
+           parse(p,Power,Wavelength,varargin{:});
+           %required
+           Beacon.Power = p.Results.Power;
+           Beacon.Wavelength = p.Results.Wavelength;
+           %optional
+           Beacon.Efficiency=p.Results.Efficiency;
         end
     end
     methods (Abstract = true)
