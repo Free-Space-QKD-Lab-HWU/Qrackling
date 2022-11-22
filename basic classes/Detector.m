@@ -264,9 +264,6 @@ classdef (Abstract) Detector
             Detector.rise_time = rise_time;
             Detector.fall_time = fall_time;
 
-            % TODO
-            % - Detector dead time behaviour needs to be over riden in the case
-            %   of artificial dead times (hold times, temporal filtering, etc)
         end
 
         function [stretched_histogram] = StretchDetectorHistogram(Detector, dead_time)

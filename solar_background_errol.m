@@ -19,9 +19,9 @@
 %                                                    file_name='new_result');
 % assert(success, 'SMARTS Simulation failed...');
 
-function solar_background_errol = solar_background_errol(varargin)
+function configuration = solar_background_errol(varargin)
 
-    card_types = solar_background_errol.card_types;
+    % card_types = solar_background_errol.card_types;
 
     p = inputParser;
     addParameter(p, 'executable_path', '');
@@ -80,7 +80,7 @@ function solar_background_errol = solar_background_errol(varargin)
     % solar_background_errol.configuration = SMARTS_input(...
     %     comment='Errol_airstrip', args=input_cards, ...
     %     executable_path = p.Results.executable_path);
-configuration = SMARTS_input(comment = 'Errol_airstrip', ...
+    configuration = SMARTS_input(comment = 'Errol_airstrip', ...
                              args = defaults, ...
                              executable_path = p.Results.executable_path, ...
                              stub = p.Results.stub);
