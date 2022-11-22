@@ -37,6 +37,7 @@ classdef (Abstract) Detector
         Detector_Efficiency_arr;
         rise_time;
         fall_time;
+        dead_time;
 
     end
     properties(Abstract = true, SetAccess = protected)
@@ -66,6 +67,7 @@ classdef (Abstract) Detector
             addRequired(p, 'Time_Gate_Width');
             addRequired(p, 'Spectral_Filter_Width');
             addParameter(p, 'Bin_Width', nan);
+            addParameter(p, 'Dead_Time', nan);
 
             parse(p, Wavelength, Repetition_Rate, Time_Gate_Width, ...
                   Spectral_Filter_Width, varargin{:});
@@ -93,6 +95,14 @@ classdef (Abstract) Detector
             %                                Time_Gate_Width, Repetition_Rate);
 
             Detector = SetJitterPerformance(Detector, Repetition_Rate);
+
+            if isnan(p.Results.Dead_Time)
+                Detector.dead_time = Detector.rise_time + Detector.fall_time;
+            else
+                Detector.dead_time = p.Results.Dead_Time;
+                detector.rise_time = P.Results.Dead_Time / 2;
+                detector.fall_time = P.Results.Dead_Time / 2;
+            end
 
             if Detector.Efficiency_Data_Location
                 [wavelengths, efficiency] = LoadDetectorEfficiency(Detector);
@@ -127,7 +137,19 @@ classdef (Abstract) Detector
             Detector.Protocol = Protocol;
         end
 
-
+        % Jitter calculations...
+        % This is a non-trivial component of the model. Depending on the kind
+        % of source, the method to calculate the jitter and so the contribution
+        % it makes to the QBER is different. For weak coherent pulses we must
+        % assume that the repetition rate is equal to the incident photon rate
+        % where the average photon per pulse has been reduced due to loss. This
+        % is different to sources with continuous wave pumping where the only
+        % contribution to QBER from jitter can be from the photons that have
+        % arrived.
+        % TODO
+        % - Does the c.w. case mentioned above hold for heralded source in
+        %   general? i.e. c.w. and pulsed sources of single-photons or 
+        %   entangled photon pairs.
         function Detector = SetJitterPerformance(Detector, Incident_Photon_Rate)
             % Repetition Rate: This is the rate of photons ARRIVING at the
             % detector, this will need to be recalculated for every value of
@@ -238,6 +260,65 @@ classdef (Abstract) Detector
                 Detector.CDF(i) = sum(Detector.PDF(1:i));
             end
 
+            [rise_time, fall_time] = DetectorTimeConstants(Detector);
+            Detector.rise_time = rise_time;
+            Detector.fall_time = fall_time;
+
+            % TODO
+            % - Detector dead time behaviour needs to be over riden in the case
+            %   of artificial dead times (hold times, temporal filtering, etc)
+        end
+
+        function [stretched_histogram] = StretchDetectorHistogram(Detector, dead_time)
+            % Set a "false" dead time.
+            % Takes the histogram data, finds the peak and rising edge and then
+            % extends the envelope by (dead time - rising time) forming a 
+            % square function.
+            % NOTE How useful is this function, should this be used to alter 
+            %       the value calculated by SetJitterPerformance?
+
+            N = numel(Detector.Histogram_Data);
+            index = linspace(1, N, N);
+            times = Detector.Histogram_Bin_Width .* index;
+
+            peak_loc = index(Detector.Histogram_Data ...
+                             == max(Detector.Histogram_Data));
+
+            min_val = 0.01;
+            max_val = 0.01;
+            up_to_max = ( Detector.Histogram_Data ...
+                          > (min_val * min(Detector.Histogram_Data)) ) ...
+                        & (times < times(peak_loc));
+
+            rising = up_to_max ...
+                     & ( Detector.Histogram_Data ...
+                         > (min_val * max(Detector.Histogram_Data)) );
+
+            after_max = (times > times(peak_loc));
+            falling = after_max & ...
+                      ( Detector.Histogram_Data ...
+                        > (min_val * max(Detector.Histogram_Data)) );
+
+            rise_time = sum(fliplr(extrema(times(rising))) .* [1, -1]);
+
+            additional_dead_time = dead_time - rise_time;
+            stretched_histogram = Detector.Histogram_Data;
+            max_time = times(peak_loc) + additional_dead_time;
+            waveform_mask = (times < max_time) & (times > times(peak_loc));
+            stretched_histogram(waveform_mask) = max(Detector.Histogram_Data);
+
+        end
+
+        function [rise_time, fall_time] = DetectorTimeConstants(Detector)
+            % Calculate the length of time taken for the Detector histogram to
+            % rise and fall. Returns a separete value for rise and fall time.
+
+            assert(Detector.Histogram_Bin_Width > 0, ...
+                   'Histogram_Bin_Width must be greater than 0');
+            assert(~isempty(Detector.Histogram_Data), ...
+                   'No histogram data in Detector');
+
+            N = numel(Detector.Histogram_Data);
             index = linspace(1, N, N);
             time_arr = index .* Detector.Histogram_Bin_Width;
             centre = time_arr(Detector.Histogram_Data ...
@@ -271,15 +352,15 @@ classdef (Abstract) Detector
                                   > min_cut_off * min_counts ) ...
                                & ( time_arr > peak_points(2) ) );
 
-            Detector.rise_time = time_difference( extrema( time_arr(rise_index) ) );
-            Detector.fall_time = time_difference( extrema( time_arr(fall_index) ) );
+            rise_time = time_difference( extrema( time_arr(rise_index) ) );
+            fall_time = time_difference( extrema( time_arr(fall_index) ) );
         end
 
         function Detector = SetDarkCountRate(Detector,DCR)
             %%SETDARKCOUNTRATE set detector dark count rate
             Detector.Dark_Count_Rate = DCR;
         end
-    
+
         function Detector = SetPolarisationError(Detector,Polarisation_Error)
             %%GETPOLARISATIONERROR set the polarisation error in a
             %%modelled polarisation compensation system

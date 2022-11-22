@@ -82,7 +82,7 @@ function [secret_key_rate, qber, Rate_In, Rate_Det] = ...
     tau1 = Detector.fall_time;
     tau2 = Detector.rise_time;
     Rate_Det = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
-    Detector = SetJitterPerformance(Detector, Rate_In);
+    %Detector = SetJitterPerformance(Detector, Rate_In);
     qber_jitter = Detector.QBER_Jitter;
     qber_polarisation_error = sind(polarisation_error);
     

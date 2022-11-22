@@ -86,6 +86,16 @@ E = sat_pass.Elevations(sat_pass.Communicating_Flags == 1);
 T = sat_pass.Times(sat_pass.Communicating_Flags == 1);
 disp(size(H));
 
+
+telescope_rx = Telescope(Receiver_Diameter, "Wavelength", Wavelength);
+telescope_rx = telescope_rx.SetFOV(...
+                        diffraction_limited_fov(Wavelength*(1e-9), ...
+                                                Receiver_Diameter));
+ogs = Errol_OGS(detector, telescope_rx);
+sat_pass = PassSimulation(sat, protocol, ogs, SMARTS=s);
+sat_pass = Simulate(sat_pass);
+sat_pass.plot();
+
 %% SMARTS
 
 ispr = sitePressure(spr=1013.25, altit=0, height=0);
@@ -296,3 +306,7 @@ for b = 1 : numel(base_dirs);
                      BB84_Pass.Ground_Station.Telescope.Diameter, ...
                      valid_wavlengths', 1e-9, 1)));
 end
+
+%% Satellite orbit
+
+
