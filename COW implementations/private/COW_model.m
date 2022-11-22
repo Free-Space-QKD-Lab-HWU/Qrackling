@@ -33,7 +33,7 @@ function [SKR_COW_2008, QBER, R_In, R_Det] = COW_model(MPN, ...
     Rates_Det = R_sifted
 
     %% QBER totalling
-    Detector = SetJitterPerformance(Detector, Rates_In);
+    %Detector = SetJitterPerformance(Detector, Rates_In);
     QBER_Jitter = Detector.QBER_Jitter;
     QBER_dark = 0.5 * prob_dark_counts ./ P_click;
     

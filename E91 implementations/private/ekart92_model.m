@@ -74,7 +74,7 @@ function [sifted_key_rate, qber, Rate_In, Rate_Det] = ekart92_model(...
     Rate_Det = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
     
     % QBER
-    Detector = SetJitterPerformance(Detector, s1 * rep_rate); %?
+    %Detector = SetJitterPerformance(Detector, s1 * rep_rate); %?
     qber_jitter = Detector.QBER_Jitter;
     qber = 1/2 .* (1-t_d.*t_e);
     qber = qber + qber_jitter;

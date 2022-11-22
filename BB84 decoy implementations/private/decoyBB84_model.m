@@ -54,7 +54,7 @@ function [SKR_decoyBB84, QBER, Rate_In, Rate_Det] = decoyBB84_model(MPN, ...
     QBER_cod = state_prep_error;
     QBER_noise = 0.5 * prob_dark_counts ./ pD;
     %QBER_jitter = qber_jitter;
-    Detector = SetJitterPerformance(Detector, sum(pD) * rep_rate);
+    % Detector = SetJitterPerformance(Detector, sum(pD) * rep_rate);
     QBER_jitter = Detector.QBER_Jitter;
 
     %QBER due to polarisation misalignment (in degrees)
