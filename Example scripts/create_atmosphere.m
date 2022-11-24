@@ -9,3 +9,5 @@ config = solar_background_errol(executable_path=smarts_path, stub=results_path);
 
 genAtmos = GenerateAtmosphere(config);
 genAtmos.ExportAtmosphere('/home/bp38/Documents/MATLAB/test_atmosphere.mat');
+
+% need to do further tests
