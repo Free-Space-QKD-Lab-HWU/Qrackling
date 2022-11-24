@@ -138,8 +138,8 @@ classdef GenerateAtmosphere
                 for e = 1 : numel(GenerateAtmosphere.elevation)
                     file_path = [GenerateAtmosphere.result_files{a, e}, '.ext.txt'];
                     data = readtable(file_path, 'VariableNamingRule', 'preserve');
-                    temp.azimuth = a;
-                    temp.elevation = e;
+                    temp.azimuth = GenerateAtmosphere.azimuth(a);
+                    temp.elevation = GenerateAtmosphere.elevation(e);
                     temp.transmittance = data.Mixed_gas__transmittance;
                     temp.global_tilted_irradiance = data.Global_tilted_irradiance;
                     GenerateAtmosphere.atmosphere{a, e} = temp;
