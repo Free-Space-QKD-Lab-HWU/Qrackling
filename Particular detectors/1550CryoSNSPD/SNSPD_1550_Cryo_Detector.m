@@ -7,6 +7,7 @@ classdef SNSPD_1550_Cryo_Detector<Detector
         Histogram_Data_Location='SNSPD1550CryoAmpsHistogram.mat';
         Histogram_Bin_Width=2E-11;
         Detection_Efficiency=0.7;
+        Efficiency_Data_Location = 'quantum_opus_1550_efficiency.mat';
     end
 
     methods

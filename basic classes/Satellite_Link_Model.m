@@ -202,7 +202,7 @@ classdef Satellite_Link_Model < Link_Model
             %record loss values
             Link_Model=SetGeometricLoss(Link_Model,Geo_Loss);
             Link_Model=SetOpticalEfficiencyLoss(Link_Model,Eff_Loss);
-            Link_Model=SetAtmosphericLoss(Link_Model,Atmos_Loss);
+            %Link_Model=SetAtmosphericLoss(Link_Model,Atmos_Loss);
             Link_Model=SetAPTLoss(Link_Model,APTracking_Loss);
 
             %compute total loss
@@ -222,19 +222,19 @@ classdef Satellite_Link_Model < Link_Model
             end
         end
 
-        function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Link_Model)
-            %%GETATMOSPHERICLOSSDB return an array of atmospheric losses in dB the
-            %same dimensions as the satellite link model
-            sz=size(Satellite_Link_Model);
-            Atmospheric_Loss_dB=zeros(sz);
+        % function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Link_Model)
+        %     %%GETATMOSPHERICLOSSDB return an array of atmospheric losses in dB the
+        %     %same dimensions as the satellite link model
+        %     sz=size(Satellite_Link_Model);
+        %     Atmospheric_Loss_dB=zeros(sz);
 
-            %iterate over all elements
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Atmospheric_Loss_dB(i,j)=Satellite_Link_Model(i,j).Atmospheric_Loss_dB;
-                end
-            end
-        end
+        %     %iterate over all elements
+        %     for i=1:sz(1)
+        %         for j=1:sz(2)
+        %             Atmospheric_Loss_dB(i,j)=Satellite_Link_Model(i,j).Atmospheric_Loss_dB;
+        %         end
+        %     end
+        % end
 
         function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Satellite_Link_Model)
             %%GETEFFICIENCYLOSSDB return an array of efficiency losses in dB the
@@ -271,7 +271,8 @@ classdef Satellite_Link_Model < Link_Model
             if isrow(Satellite_Link_Model)
                 Satellite_Link_Model=Satellite_Link_Model';
             end
-            area(X_Axis,[GetGeometricLossdB(Satellite_Link_Model),GetAtmosphericLossdB(Satellite_Link_Model),GetOpticalEfficiencyLossdB(Satellite_Link_Model),GetAPTLossdB(Satellite_Link_Model)]);
+            %area(X_Axis,[GetGeometricLossdB(Satellite_Link_Model),GetAtmosphericLossdB(Satellite_Link_Model),GetOpticalEfficiencyLossdB(Satellite_Link_Model),GetAPTLossdB(Satellite_Link_Model)]);
+            area(X_Axis,[GetGeometricLossdB(Satellite_Link_Model),GetOpticalEfficiencyLossdB(Satellite_Link_Model),GetAPTLossdB(Satellite_Link_Model)]);
             xlabel('Time (s)')
             ylabel('losses (dB)')
 
@@ -292,12 +293,13 @@ classdef Satellite_Link_Model < Link_Model
 
             %% adjust legend to represent what is plotted
             %atmospheric loss is non zero
-            if any(GetAtmosphericLossdB(Satellite_Link_Model))
-                legend('Geometric loss','Atmospheric loss','Efficiency loss','APT loss');
-            else
-                %atmospheric loss is zero
-                legend('Geometric loss','','Efficiency loss','APT loss');
-            end
+            legend('Geometric loss','Efficiency loss','APT loss');
+            % if any(GetAtmosphericLossdB(Satellite_Link_Model))
+            %     legend('Geometric loss','Atmospheric loss','Efficiency loss','APT loss');
+            % else
+            %     %atmospheric loss is zero
+            %     legend('Geometric loss','','Efficiency loss','APT loss');
+            % end
             legend('Location','south')
         end
 
@@ -309,7 +311,8 @@ classdef Satellite_Link_Model < Link_Model
             for i=1:sz(1)
                 for j=1:sz(2)
 
-                    Total_Loss_dB=Link_Model(i,j).Geometric_Loss_dB+Link_Model(i,j).Optical_Efficiency_Loss_dB+Link_Model(i,j).Atmospheric_Loss_dB+Link_Model(i,j).APT_Loss_dB;
+                    %Total_Loss_dB=Link_Model(i,j).Geometric_Loss_dB+Link_Model(i,j).Optical_Efficiency_Loss_dB+Link_Model(i,j).Atmospheric_Loss_dB+Link_Model(i,j).APT_Loss_dB;
+                    Total_Loss_dB=Link_Model(i,j).Geometric_Loss_dB+Link_Model(i,j).Optical_Efficiency_Loss_dB+Link_Model(i,j).APT_Loss_dB;
                     Link_Model(i,j).Link_Loss_dB=Total_Loss_dB;
                     Link_Model(i,j).Link_Loss=10^(-Total_Loss_dB/10);
                 end

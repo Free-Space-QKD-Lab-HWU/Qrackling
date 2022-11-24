@@ -2,4 +2,4 @@
 *Session.vim
 
 # exclude scripts for testing
-/test scripts/
+# /test scripts/

@@ -6,7 +6,9 @@ classdef Perkin_Elmer_Detector<Detector
         Dead_Time=0;
         Histogram_Data_Location='Perkin_ElmerHistogram.mat';
         Histogram_Bin_Width=10^-12;
+        Detector_Efficiency_Data=''
         Detection_Efficiency=0.6;
+        Efficiency_Data_Location = 'perkin_elmer_efficiency.mat';
     end
 
     methods
