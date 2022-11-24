@@ -76,7 +76,7 @@ classdef Satellite_Reflection_Link_Model < Link_Model
             %add in atmospheric loss
             [~,Satellite_From_OGS_Elevation]=RelativeHeadingAndElevation(Satellite,Ground_Station);
             Downlink_Atmospheric_Loss=AtmosphericTransmittance(Satellite.Source.Wavelength,Satellite_From_OGS_Elevation);
-            Downlink_Loss=Downlink_Loss.*Downlink_Atmospheric_Loss';
+            Downlink_Loss=Downlink_Loss.*Downlink_Atmospheric_Loss'*Ground_Station.Detector.Detection_Efficiency;
              %is downlink from background source to satellite shadowed?
             Downlink_Loss(IsEarthShadowed(Satellite,Ground_Station))=0;
             Satellite_Reflection_Link_Model=SetDownlinkLoss(Satellite_Reflection_Link_Model,Downlink_Loss);

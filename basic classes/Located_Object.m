@@ -175,7 +175,7 @@ classdef (Abstract=true)Located_Object
 
         function [Headings, Elevations, Distances] = RelativeHeadingAndElevation(Located_Obj_1, ...
                 Located_Obj_2)
-            %%RELATIVEHEADINGANDELEVATION returh the heading and elevation
+            %%RELATIVEHEADINGANDELEVATION return the heading and elevation
             % [H, E, D] == [Headings, Elevations, Distances]
             %%of object 1 relative to object 2
             %% get ENU of 1 from 2

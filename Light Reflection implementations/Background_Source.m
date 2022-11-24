@@ -172,6 +172,5 @@ classdef Background_Source < Located_Object
             %%SETELEVATIONLIMIT
             Background_Source.Elevation_Limit = Elevation_Limit;
         end
-
     end
 end
