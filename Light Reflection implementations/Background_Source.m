@@ -105,55 +105,5 @@ classdef Background_Source < Located_Object
 
         end
 
-        function [Reflected_Count_Rate,Reflected_Power]=GetReflectedLightPollution(Background_Source,Satellite,Ground_Station)
-            %%GETREFLECTEDLIGHTPOLLUTION return the count rate and optical
-            %%power reflected off a satellite and into a ground station
-            %%from a background source over many time periods
-            h=6.62607015*10^-34;%plank's constant
-            c=299792458; %speed of light
-
-            %% compute emission inside the ground_Station wavelength filter width
-            Wavelength_Floor=Ground_Station.Detector.Wavelength-Ground_Station.Detector.Spectral_Filter_Width/2;
-            Wavelength_Ceiling=Ground_Station.Detector.Wavelength+Ground_Station.Detector.Spectral_Filter_Width/2;
-            Radiant_Power=GetRadiantEmission(Background_Source,Wavelength_Floor,Wavelength_Ceiling);
-
-            %% get reflective link loss
-            Sat_Ref_Link_Model=Satellite_Reflection_Link_Model(Satellite.N_Steps);
-            Sat_Ref_Link_Model=Compute_Link_Loss(Sat_Ref_Link_Model,Satellite,Ground_Station,Background_Source);
-            [~,~,Total_Loss]=SetTotalLoss(Sat_Ref_Link_Model);
-
-            %% use this to compute reflected power
-            Reflected_Power=Radiant_Power.*Total_Loss;
-
-            %% and photon count
-            Reflected_Count_Rate=Reflected_Power*(Ground_Station.Detector.Wavelength*10^-9)/(h*c);
-
-        end
-
-        function PlotLOS(Background_Source,Satellite_Altitude)
-            %% plot the location and LOS of a background source
-
-            % plot ground station
-            geoplot(Background_Source.Latitude,Background_Source.Longitude,'r*','MarkerSize',8);
-            hold on
-            %plot the ground station's elevation window
-            Headings=1:359;
-            WindowLat=zeros(1,359);
-            WindowLon=zeros(1,359);
-            ArcDistance=ComputeLOSWindow(Satellite_Altitude,Background_Source.Elevation_Limit);
-            for Heading=Headings
-                [CurrentWindowLat,CurrentWindowLon]=MoveAlongSurface(Background_Source.Latitude,Background_Source.Longitude,ArcDistance,Heading);
-                WindowLat(Heading)=CurrentWindowLat;
-                WindowLon(Heading)=CurrentWindowLon;
-            end
-            geoplot(WindowLat,WindowLon,'r--')
-            AddToLegend([Background_Source.Location_Name,' orbit LOS'],Background_Source.Location_Name);
-        end
-
-        function Background_Source=SetElevationLimit(Background_Source,Elevation_Limit)
-            %%SETELEVATIONLIMIT
-            Background_Source.Elevation_Limit=Elevation_Limit;
-        end
-
     end
 end
