@@ -6,21 +6,21 @@
 % calculate the amount of atmospheric transmission present across the region of
 % sky visible to a ground station / telescope.
 %
-% # Example usage
-% smarts_path = '/some/path/to/write/smarts/results/to';
-% results_path = '/some/path/to/your/copy/of/the/SMARTS/executable';
+% % Example usage
+% smarts_path = 'some/path/to/write/smarts/results/to';
+% results_path = 'some/path/to/your/copy/of/the/SMARTS/executable';
 % % basic smarts configuration for Errol can be found here (remember that the
 % %     time is pre-configured in here to be the 15/8/2022 @ 12:00:00)
 % config = solar_background_errol(executable_path=smarts_path, stub=results_path);
 % 
 % genAtmos = GenerateAtmosphere(config);
-% genAtmos.ExportAtmosphere('/path/to/write/atmosphere.mat');
+% genAtmos.ExportAtmosphere('path/to/write/atmosphere.mat');
 %
-% # Optionally, set the size of the steps in azimuth end elevation
+% % Optionally, set the size of the steps in azimuth end elevation
 % genAtmos = GenerateAtmosphere(config, ...
 %                               step_size_aziumth=10, ...
 %                               step_size_elevation=10);
-% genAtmos.ExportAtmosphere('/path/to/write/atmosphere.mat');
+% genAtmos.ExportAtmosphere('path/to/write/atmosphere.mat');
 
 classdef GenerateAtmosphere
 
