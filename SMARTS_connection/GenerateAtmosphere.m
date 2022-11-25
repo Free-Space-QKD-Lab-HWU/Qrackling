@@ -20,7 +20,9 @@
 % genAtmos = GenerateAtmosphere(config, ...
 %                               step_size_aziumth=10, ...
 %                               step_size_elevation=10);
-% genAtmos.ExportAtmosphere('path/to/write/atmosphere.mat');
+% output_path = 'path/to/write/atmosphere.mat';
+% genAtmos.ExportAtmosphere(output_path);
+% atmosphere = genAtmos.LoadAtmosphere(output_path)
 
 classdef GenerateAtmosphere
 
@@ -28,6 +30,7 @@ classdef GenerateAtmosphere
         
         azimuth;
         elevation;
+        wavelengths;
         SMARTS_conf SMARTS_input;
         result_files;
         atmosphere;
@@ -87,6 +90,9 @@ classdef GenerateAtmosphere
 
             SMARTS_conf = GenerateAtmosphere.SMARTS_conf;
 
+            spectral_reflectance = SMARTS_conf.ialbdx.spectral_reflectance;
+            foreground_local_albedo = SMARTS_conf.ialbdx.local_foreground_albedo;
+
             for a = 1 : numel(azimuth)
                 for e = 1 : numel(elevation)
 
@@ -145,12 +151,27 @@ classdef GenerateAtmosphere
                     GenerateAtmosphere.atmosphere{a, e} = temp;
                 end
             end
+
+            GenerateAtmosphere.wavelengths = data.Wvlgth;
         end
 
         function ExportAtmosphere(GenerateAtmosphere, result_path)
             % Save the calculated atmosphere to disk
-            atmosphere = GenerateAtmosphere.atmosphere;
+            atmosphere.wavelengths = GenerateAtmosphere.wavelengths;
+            atmosphere.values = GenerateAtmosphere.atmosphere;
             save(result_path, 'atmosphere');
+        end
+
+        function atmosphere = LoadAtmosphere(GenerateAtmosphere, file_path)
+            assert(2 == exist(file_path), 'File does not exist');
+
+            data = load(file_path);
+
+            fields = fieldnames(data);
+            assert(convertCharsToStrings(fields{1}) == "atmosphere", ...
+                   'Not an atmosphere');
+
+            atmosphere = load(file_path).atmosphere;
         end
 
     end

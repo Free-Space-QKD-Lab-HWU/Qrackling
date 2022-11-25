@@ -197,6 +197,7 @@ classdef PassSimulation
 
                 Background_Count_Rates = Background_Count_Rates ...
                                          + PassSimulation.Sky_Photon_Rate;
+            end
 
             %% Beaconing
             %does the satellite have a beacon present?
@@ -272,20 +273,20 @@ classdef PassSimulation
             % this only works when the simulation time interval =1s
         end
 
-        function Fig = plot(PassSimulation, Range)
-            %% PLOT plot data from this PassSimulation,  according to the keyword Range:
-            %EMPTY = plot while satellite is in elevation window
-            %Elevation = plot while satellite is in elevation window
-            %Communication = plot while satellite is communicating
-            %All =  plot whole pass
+        % function Fig = plot(PassSimulation, Range)
+        %     %% PLOT plot data from this PassSimulation,  according to the keyword Range:
+        %     %EMPTY = plot while satellite is in elevation window
+        %     %Elevation = plot while satellite is in elevation window
+        %     %Communication = plot while satellite is communicating
+        %     %All =  plot whole pass
 
-            %downlink beacon
-            PassSimulation.Downlink_Beacon_Flag = DownlinkBeaconFlag;
-            PassSimulation.Downlink_Beacon_Power = Downlink_Beacon_Power;
-            PassSimulation.Downlink_Beacon_SNR_dB = Downlink_Beacon_SNR_dB;
-            PassSimulation.Downlink_Beacon_Link_Model = Beacon_Downlink_model;
-            PassSimulation.Line_Of_Sight_Flags = Line_Of_Sight_Flag;
-        end
+        %     %downlink beacon
+        %     PassSimulation.Downlink_Beacon_Flag = DownlinkBeaconFlag;
+        %     PassSimulation.Downlink_Beacon_Power = Downlink_Beacon_Power;
+        %     PassSimulation.Downlink_Beacon_SNR_dB = Downlink_Beacon_SNR_dB;
+        %     PassSimulation.Downlink_Beacon_Link_Model = Beacon_Downlink_model;
+        %     PassSimulation.Line_Of_Sight_Flags = Line_Of_Sight_Flag;
+        % end
 
         function QKD_Fig=plot(PassSimulation,Range)
             %% PLOT plot data from this PassSimulation, according to the keyword Range:

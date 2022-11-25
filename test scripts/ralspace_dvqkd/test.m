@@ -52,8 +52,7 @@ telescope_rx = Telescope(diameter_rx, Wavelength = wvl);
 telescope_rx.Optical_Efficiency = obscurationRatio(diameter_rx, ...
                                                 central_obscuration_ratio_rx);
 satellite = Satellite(source_dv, telescope_tx, ...
-                      'OrbitDataFileLocation',OrbitDataFileLocation, ...
-                      'Protocol', protocol);
+                      'OrbitDataFileLocation',OrbitDataFileLocation);
 
 ogs = Errol_OGS(detector_dv, telescope_rx);
 
