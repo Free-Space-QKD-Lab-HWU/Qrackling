@@ -205,7 +205,7 @@ classdef Ground_Station < Located_Object
                     % get background counts per steradian
                     Background_Rates_sr_nm(i, j) = Ground_Station.Background_Rates.Count_Rate(Heading_Index, Elevation_Index);
                     % if any values are negative, nan or inf set them to zero
-                    Background_Rates_sr_nm( Light_Pollution_Count_Rate < 0 ) = 0;
+                    Background_Rates_sr_nm( Background_Rates_sr_nm < 0 ) = 0;
                     Background_Rates_sr_nm( isnan(Background_Rates_sr_nm) ) = 0;
                     Background_Rates_sr_nm( isinf(Background_Rates_sr_nm) ) = 0;
 
