@@ -69,3 +69,46 @@ decoybb84_pass = Simulate(decoybb84_pass);
 %title('Rates')
 
 decoybb84_pass.plot();
+
+pos = get (gcf, 'position');
+set(0, 'DefaultFigurePosition', pos)
+
+
+%% Loss plot
+
+elevation_cut_off = 10; % degrees
+
+index = decoybb84_pass.Elevations > elevation_cut_off;
+headings = decoybb84_pass.Headings(index);
+elevations = decoybb84_pass.Elevations(index);
+
+losses.Link_Loss_dB = zeros(1, sum(index));
+losses.Geometric_Loss_dB = zeros(1, sum(index));
+losses.Optical_Efficiency_Loss_dB = zeros(1, sum(index));
+losses.APT_Loss_dB = zeros(1, sum(index));
+losses.Atmospheric_Loss_dB = zeros(1, sum(index));
+
+fields = fieldnames(losses);
+
+j = 0;
+k = sum(index);
+for i = 1 : numel(index)
+    if index(i) == false
+        continue
+    end
+    if j == k
+        break
+    end
+    j = j + 1;
+    for fn = 1 : numel(fields)
+        field = fields{fn};
+        losses.(field)(j) = decoybb84_pass.Link_Model(i).(field);
+    end
+end
+disp(j)
+
+% for i = 1 : numel(fields);
+%     losses(fn{i}) = {zeros(1, numel(fields))};
+% end
+
+

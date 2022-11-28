@@ -1,3 +1,7 @@
+% TODO
+% this is being used to later define data in an Array-of-Structs formalism, 
+% seems nice on paper but would like to change to Struct-of-Arrays since its
+% easier to work with plus data oriented design is just preferable
 classdef (Abstract=true) Link_Model
     %%LINK_MODEL Class for computing and storing link loss
 
