@@ -28,7 +28,7 @@ classdef (Abstract) Detector
 
         % polarisation reference is required for polarisation encoded QKD.
         % poor polarisation compensation results in high QBER. We describe
-        % the rms error in polarisation compensation determines the QBER in
+        % the rms error in polarisation compensation which determines QBER in
         % degrees
         Polarisation_Error{mustBeScalarOrEmpty, mustBeNonnegative} = asind(1/280);
         %default value modelled off Micius
@@ -371,7 +371,7 @@ classdef (Abstract) Detector
         function [wavelengths, efficiency] = LoadDetectorEfficiency(Detector)
             if isempty(Detector.Efficiency_Data_Location)
                 wavelengths = Detector.Wavelength;
-                efficiency = Detector.Detection_Efficiency
+                efficiency = Detector.Detection_Efficiency;
             else
                 data = load(Detector.Efficiency_Data_Location);
                 wavelengths = data.wavelengths;

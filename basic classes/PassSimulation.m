@@ -291,7 +291,7 @@ classdef PassSimulation
             %% plot ground path of satellite
 
             Fig = figure('name', ['Pass Simulation using ', PassSimulation.Protocol.Name, ' protocol at ', num2str(PassSimulation.Satellite.Source.Wavelength), 'nm'], 'WindowState', 'maximized');
-            subplot(4, 4, [9, 14])
+            subplot(3, 3, [3, 6])
 
             title('Satellite Ground Path')
             %plot non-flagged path (no comms or out of elevation range)
@@ -314,7 +314,7 @@ classdef PassSimulation
             end
 
             %% plot the status during comms above one another
-            subplot(4, 4, [1, 3])
+            subplot(3, 3, [1, 2])
             % plot performance
             yyaxis left
             plot(PassSimulation.Times(Plot_Select_Flags), PassSimulation.Secret_Key_Rates(Plot_Select_Flags));
@@ -327,24 +327,21 @@ classdef PassSimulation
             NameTimeAxis(PassSimulation.Times);
             ylabel('QBER (%)')
             % plot background counts
-            subplot(4, 4, [4, 8])
+            subplot(3, 3, [7, 8])
             title('background count rate')
             PlotBackgroundCountRates(PassSimulation.Ground_Station, Plot_Select_Flags, PassSimulation.Times(Plot_Select_Flags));
             NameTimeAxis(PassSimulation.Times);
-            ax = gca; %put axis on right
-            ax.YAxisLocation = 'right';
-            clear ax;
             % plot link loss
-            subplot(4, 4, [5, 7])
-            title('Link loss')
+            subplot(3, 3, [4, 5])
+            title('Link Loss')
             Plot(PassSimulation.Link_Model(Plot_Select_Flags), PassSimulation.Times(Plot_Select_Flags));
             NameTimeAxis(PassSimulation.Times);
 
             %% plot key rate as a function of link loss
-            subplot(4, 4, [11, 16])
+            subplot(3, 3, [9, 9])
             title('Link performance')
             semilogy(GetLinkLossdB(PassSimulation.Link_Model), PassSimulation.Secret_Key_Rates, 'k-')
-            xlabel('Link loss (dB)')
+            xlabel('Link Loss (dB)')
             ylabel('Secret Key Rate (bps)')
             grid on
             ax = gca; %put axis on right
@@ -362,7 +359,7 @@ classdef PassSimulation
                 %first, plot intensity as a function of time
                 subplot(3,1,1)
                 plot(PassSimulation.Times(PassSimulation.Line_Of_Sight_Flags),PassSimulation.Downlink_Beacon_Power(PassSimulation.Line_Of_Sight_Flags));
-                ylabel('Beacon power (W)')
+                ylabel('Beacon Power (W)')
                 NameTimeAxis(GetTimes(PassSimulation));
 
                 %then, plot link loss
