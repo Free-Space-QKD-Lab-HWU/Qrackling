@@ -1,10 +1,9 @@
 %% Decoy testing
 clear all
-close all
+% close all
 clc
 
 %% declare lambdas...
-
 circAreaFromDiameter = @(d) pi * (d / 2)^2;
 obscurationRatio = @(d, obs) 1 - (circAreaFromDiameter(d*obs) ...
                                   / circAreaFromDiameter(d));

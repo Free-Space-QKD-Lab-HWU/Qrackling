@@ -88,7 +88,7 @@ classdef Satellite < Located_Object
             raan = p.Results.rightAscensionOfAscendingNode;
             aop = p.Results.argumentOfPeriapsis;
             ta = p.Results.trueAnomaly;
-            
+
             hasVelocity = false;
 
             if (~any(isnan(arrayfun(@isnan, [sma, ecc, inc, raan, aop, ta]))) ...
