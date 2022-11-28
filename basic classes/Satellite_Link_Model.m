@@ -184,7 +184,7 @@ classdef Satellite_Link_Model < Link_Model
             Link_Model=SetLinkLength(Link_Model,Link_Lengths);
 
             %% see Link loss analysis for a satellite quantum communication down-link Chunmei Zhang*, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller, Ross J. Donaldson
-            Geo_Loss=(Ground_Station.Telescope.Diameter./(ones(size(Link_Lengths))*Satellite.Telescope.Diameter+Link_Lengths*Satellite.Telescope.FOV)).^2;
+            Geo_Loss=(sqrt(pi)/8)*(Ground_Station.Telescope.Diameter./(ones(size(Link_Lengths))*Satellite.Telescope.Diameter+Link_Lengths*Satellite.Telescope.FOV)).^2;
             %compute when earth shadowing of link is present
             Shadowing=IsEarthShadowed(Satellite,Ground_Station);
             Geo_Loss(Shadowing)=0;
@@ -197,12 +197,14 @@ classdef Satellite_Link_Model < Link_Model
             Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles,Satellite.Source.Wavelength,{Link_Model.Visibility});
             Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Source.Wavelength);
             
-            APTracking_Loss=exp(-8*(Ground_Station.Telescope.Pointing_Jitter/Ground_Station.Telescope.FOV)^2-8*(Satellite.Telescope.Pointing_Jitter/Satellite.Telescope.FOV)^2);
+            APTracking_Loss=...
+                Satellite.Telescope.FOV^2/(Satellite.Telescope.Pointing_Jitter^2+Satellite.Telescope.FOV^2)*...%satellite pointing loss
+                (1-exp(-(Ground_Station.Telescope.FOV^2/(8*Ground_Station.Telescope.Pointing_Jitter^2))));%ground station pointing loss
 
             %record loss values
             Link_Model=SetGeometricLoss(Link_Model,Geo_Loss);
             Link_Model=SetOpticalEfficiencyLoss(Link_Model,Eff_Loss);
-            %Link_Model=SetAtmosphericLoss(Link_Model,Atmos_Loss);
+            Link_Model=SetAtmosphericLoss(Link_Model,Atmos_Loss);
             Link_Model=SetAPTLoss(Link_Model,APTracking_Loss);
 
             %compute total loss

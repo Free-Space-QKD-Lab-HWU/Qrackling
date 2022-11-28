@@ -320,7 +320,7 @@ classdef SMARTS_input
             %copy input file to SMARTS input file
 
             %% FOR NOW we avoid copying as the custom instructions do not work%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            status = copyfile(destination, target);
+            %status = copyfile(destination, target);
             %check copying was successful
             assert(isfile(target), 'Input file has been lost during copy');
             %path to SMARTS exe

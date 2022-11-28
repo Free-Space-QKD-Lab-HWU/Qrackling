@@ -349,6 +349,10 @@ classdef PassSimulation
             grid on
             ax = gca; %put axis on right
             ax.YAxisLocation = 'right';
+            %if no SKR is transmitted, label
+            if PassSimulation.Total_Sifted_Key==0
+                text(30,0.5,'No Secret Key Downlinked','FontSize',16);
+            end
             clear ax;
 
             %% if present, plot beacon performance as a function of time.
