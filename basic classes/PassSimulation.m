@@ -345,7 +345,12 @@ classdef PassSimulation
 
             %% plot ground path of satellite
 
-            Fig = figure('name', ['Pass Simulation using ', PassSimulation.Protocol.Name, ' protocol at ', num2str(PassSimulation.Satellite.Source.Wavelength), 'nm'], 'WindowState', 'maximized');
+            Fig = figure('name', ['Pass Simulation using ', ...
+                                  PassSimulation.Protocol.Name, ...
+                                  ' protocol at ', ...
+                                  num2str(PassSimulation.Satellite.Source.Wavelength), ...
+                                  'nm'], 'WindowState', 'maximized');
+
             subplot(4, 4, [9, 14])
 
             title('Satellite Ground Path')

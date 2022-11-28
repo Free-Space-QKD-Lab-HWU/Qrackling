@@ -41,9 +41,9 @@ source_dv = Source(wvl, ...
 % detector_dv = detector_dv.SetDarkCountRate(dcr);
 %test_detector(wvl, reprate, time_gate, spectral_filter, 600)
 
-%detector_dv = Excelitas_Detector(wvl, reprate, time_gate, spectral_filter);
+detector_dv = Excelitas_Detector(wvl, reprate, time_gate, spectral_filter);
 
-detector_dv = MPD_Detector(wvl, reprate, time_gate, spectral_filter);
+%detector_dv = MPD_Detector(wvl, reprate, time_gate, spectral_filter);
 
 telescope_tx = Telescope(diameter_tx, Wavelength = wvl);
 telescope_rx = Telescope(diameter_rx, Wavelength = wvl);
@@ -73,7 +73,6 @@ decoybb84_pass.plot();
 pos = get (gcf, 'position');
 set(0, 'DefaultFigurePosition', pos)
 
-
 %% Loss plot
 
 elevation_cut_off = 10; % degrees
@@ -82,33 +81,33 @@ index = decoybb84_pass.Elevations > elevation_cut_off;
 headings = decoybb84_pass.Headings(index);
 elevations = decoybb84_pass.Elevations(index);
 
-losses.Link_Loss_dB = zeros(1, sum(index));
-losses.Geometric_Loss_dB = zeros(1, sum(index));
-losses.Optical_Efficiency_Loss_dB = zeros(1, sum(index));
-losses.APT_Loss_dB = zeros(1, sum(index));
-losses.Atmospheric_Loss_dB = zeros(1, sum(index));
+all_fields = fieldnames(decoybb84_pass.Link_Model);
 
-fields = fieldnames(losses);
+losses = struct_of_arrays( ...
+            decoybb84_pass.Link_Model, [1, sum(index)], ...
+            mask = index, ...
+            restrict_to = all_fields(contains(all_fields, 'dB')) );
 
-j = 0;
-k = sum(index);
-for i = 1 : numel(index)
-    if index(i) == false
-        continue
-    end
-    if j == k
-        break
-    end
-    j = j + 1;
-    for fn = 1 : numel(fields)
-        field = fields{fn};
-        losses.(field)(j) = decoybb84_pass.Link_Model(i).(field);
-    end
+
+figure
+hold on
+loss_fields = fieldnames(losses);
+loss_fields = loss_fields(~contains(loss_fields, 'Link_Loss'))
+for i = 1 : numel(loss_fields)
+    plot(losses.(loss_fields{i}));
 end
-disp(j)
+legend(loss_fields)
+hold off
 
-% for i = 1 : numel(fields);
-%     losses(fn{i}) = {zeros(1, numel(fields))};
-% end
 
+figure
+hold on
+index = linspace(1, numel(elevations), numel(elevations));
+lim = index(elevations == max(elevations));
+plot(elevations(1:lim), losses.Geometric_Loss_dB(1:lim))
+for i = 2 : numel(loss_fields) - 1
+    temp = sum_fields(losses, loss_fields(1:i));
+    plot(elevations(1:lim), temp(1:lim))
+end
+legend(cellfun(@(X) replace(X, '_', ' '), loss_fields, UniformOutput=false))
 
