@@ -297,6 +297,10 @@ classdef SMARTS_input
 
             parse(p, varargin{:});
             
+            if true == ispc
+                SMARTS_input.input_string = replace(SMARTS_input.input_string, newline, [char(13), char(10)]);
+            end
+            
             [write_success, destination] = SMARTS_input.write_file(...
                                             file_path=p.Results.file_path, ...
                                             file_name=p.Results.file_name);
