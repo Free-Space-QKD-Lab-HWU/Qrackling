@@ -18,7 +18,7 @@ wvl = 808;
 n_ph_opts = linspace(0.3, 0.8, 6);
 n_ph = n_ph_opts(1);
 reprate = 50e6;
-reprate = 200e6;
+%reprate = 200e6;
 %reprate = 1e9;
 time_gate = 10^-9;
 spectral_filter = 1; 
@@ -88,29 +88,42 @@ losses = struct_of_arrays( ...
             mask = index, ...
             restrict_to = all_fields(contains(all_fields, 'dB')) );
 
-
-figure
-hold on
-loss_fields = fieldnames(losses);
-loss_fields = loss_fields(~contains(loss_fields, 'Link_Loss'))
-for i = 1 : numel(loss_fields)
-    plot(losses.(loss_fields{i}));
-end
-legend(loss_fields)
-hold off
-
-
+% close all
 figure
 hold on
 index = linspace(1, numel(elevations), numel(elevations));
 lim = index(elevations == max(elevations));
-plot(elevations(1:lim), losses.Geometric_Loss_dB(1:lim))
-for i = 2 : numel(loss_fields)
+loss_fields = fieldnames(losses);
+loss_fields = loss_fields(~contains(loss_fields, 'Link_Loss'));
+[~, field_order] = sort(cellfun(@(X) sum(losses.(X)), loss_fields), 'descend');
+loss_fields = loss_fields(field_order);
+a = losses.Geometric_Loss_dB(1:lim);
+Elevations = linspace(min(elevations)*2, 180 - min(elevations), numel(elevations));
+for i = 1 : numel(loss_fields)
     if any(isnan(losses.(loss_fields{i})))
         continue
     end
-    temp = sum_fields(losses, loss_fields(1:i));
-    plot(elevations(1:lim), temp(1:lim))
+    offset = numel(loss_fields) - i + 1;
+    b = sum_fields(losses, loss_fields(1:offset));
+    area(elevations(1:lim), b(1:lim));
+    % area(Elevations, b);
+    a = b;
 end
-legend(cellfun(@(X) replace(X, '_', ' '), loss_fields, UniformOutput=false))
+xlim([20, 90])
+legend(...
+    cellfun(@(X) replace(X, '_', ' '), flipud(loss_fields), UniformOutput=false), ...
+    Location='southwest')
+title('Stack Plot of Errors in Satellite Pass')
+xlabel('Elevation (\circ)')
+ylabel('Loss (dB)');
+
+%% SKR plot
+figure
+hold on
+
+
+
+%% set figure position
+pos = get (gcf, 'position');
+set(0, 'DefaultFigurePosition', pos)
 

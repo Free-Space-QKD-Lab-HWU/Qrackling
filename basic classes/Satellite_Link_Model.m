@@ -202,7 +202,7 @@ classdef Satellite_Link_Model < Link_Model
             %record loss values
             Link_Model=SetGeometricLoss(Link_Model,Geo_Loss);
             Link_Model=SetOpticalEfficiencyLoss(Link_Model,Eff_Loss);
-            %Link_Model=SetAtmosphericLoss(Link_Model,Atmos_Loss);
+            Link_Model=SetAtmosphericLoss(Link_Model,Atmos_Loss);
             Link_Model=SetAPTLoss(Link_Model,APTracking_Loss);
 
             %compute total loss
