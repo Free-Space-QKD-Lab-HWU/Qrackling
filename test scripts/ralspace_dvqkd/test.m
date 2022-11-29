@@ -55,7 +55,7 @@ satellite = Satellite(source_dv, telescope_tx, ...
 
 ogs = Errol_OGS(detector_dv, telescope_rx);
 
-decoybb84_pass = PassSimulation(satellite, protocol, ogs);
+decoybb84_pass = PassSimulation(satellite, protocol, ogs, Visibility='50km');
 decoybb84_pass = Simulate(decoybb84_pass);
 
 %figure
@@ -105,7 +105,10 @@ hold on
 index = linspace(1, numel(elevations), numel(elevations));
 lim = index(elevations == max(elevations));
 plot(elevations(1:lim), losses.Geometric_Loss_dB(1:lim))
-for i = 2 : numel(loss_fields) - 1
+for i = 2 : numel(loss_fields)
+    if any(isnan(losses.(loss_fields{i})))
+        continue
+    end
     temp = sum_fields(losses, loss_fields(1:i));
     plot(elevations(1:lim), temp(1:lim))
 end

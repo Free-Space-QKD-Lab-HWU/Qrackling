@@ -194,7 +194,7 @@ classdef Satellite_Link_Model < Link_Model
             %compute elevation angles
             [~,Elevation_Angles]=RelativeHeadingAndElevation(Satellite,Ground_Station);
             %format spectral filters which correspond to these elevation angles
-            Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles,Satellite.Source.Wavelength,{Link_Model.Visibility});
+            Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles, Satellite.Source.Wavelength, {Link_Model.Visibility});
             Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Source.Wavelength);
             
             APTracking_Loss=exp(-8*(Ground_Station.Telescope.Pointing_Jitter/Ground_Station.Telescope.FOV)^2-8*(Satellite.Telescope.Pointing_Jitter/Satellite.Telescope.FOV)^2);
@@ -222,19 +222,19 @@ classdef Satellite_Link_Model < Link_Model
             end
         end
 
-        % function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Link_Model)
-        %     %%GETATMOSPHERICLOSSDB return an array of atmospheric losses in dB the
-        %     %same dimensions as the satellite link model
-        %     sz=size(Satellite_Link_Model);
-        %     Atmospheric_Loss_dB=zeros(sz);
+        function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Link_Model)
+            %%GETATMOSPHERICLOSSDB return an array of atmospheric losses in dB the
+            %same dimensions as the satellite link model
+            sz=size(Satellite_Link_Model);
+            Atmospheric_Loss_dB=zeros(sz);
 
-        %     %iterate over all elements
-        %     for i=1:sz(1)
-        %         for j=1:sz(2)
-        %             Atmospheric_Loss_dB(i,j)=Satellite_Link_Model(i,j).Atmospheric_Loss_dB;
-        %         end
-        %     end
-        % end
+            %iterate over all elements
+            for i=1:sz(1)
+                for j=1:sz(2)
+                    Atmospheric_Loss_dB(i,j)=Satellite_Link_Model(i,j).Atmospheric_Loss_dB;
+                end
+            end
+        end
 
         function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Satellite_Link_Model)
             %%GETEFFICIENCYLOSSDB return an array of efficiency losses in dB the
