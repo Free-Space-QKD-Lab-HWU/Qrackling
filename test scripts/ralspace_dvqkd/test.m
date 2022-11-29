@@ -14,7 +14,7 @@ close all
 OrbitDataFileLocation= '500kmSSOrbitLLAT.txt';
 
 wvl = 808;
-%wvl = 780;
+wvl = 785;
 n_ph_opts = linspace(0.3, 0.8, 6);
 n_ph = n_ph_opts(1);
 reprate = 50e6;
@@ -113,17 +113,31 @@ xlim([20, 90])
 legend(...
     cellfun(@(X) replace(X, '_', ' '), flipud(loss_fields), UniformOutput=false), ...
     Location='southwest')
-title('Stack Plot of Errors in Satellite Pass')
+title(sprintf('Stack Plot of Errors in Satellite Pass (%.3g nm)', wvl))
 xlabel('Elevation (\circ)')
 ylabel('Loss (dB)');
 
 %% SKR plot
+qindex = false(1, numel(decoybb84_pass.Elevations));
+qindex(decoybb84_pass.QBERs > min(decoybb84_pass.QBERs)) = true;
+[~, max_idx] = max(decoybb84_pass.Elevations);
+qindex(max_idx + 1 : end) = false;
 figure
 hold on
+yyaxis left
+plot(decoybb84_pass.Elevations(qindex), decoybb84_pass.QBERs(qindex)*100)
+ylabel('QBER (%)')
+yyaxis right
+plot(decoybb84_pass.Elevations(qindex), decoybb84_pass.Secret_Key_Rates(qindex))
+ylabel('Secret Key Rate (Bits / s)')
+xlabel('Elevation (\circ)')
+title(sprintf('QBER & SKR in Satellite Pass (%.3g nm)', wvl))
+
 
 
 
 %% set figure position
 pos = get (gcf, 'position');
 set(0, 'DefaultFigurePosition', pos)
+
 
