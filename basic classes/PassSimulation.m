@@ -194,13 +194,27 @@ classdef PassSimulation
             %does the satellite have a beacon present?
             DownlinkBeaconFlag = ~isempty(PassSimulation.Satellite.Beacon);
             if DownlinkBeaconFlag
-                % if a beacon is present, simulate it
+                % if a beacon is present, simulate the beacon channel
                 [Beacon_Downlink_model,DownlinkBeaconLossdB] =...
                     Compute_Link_Loss(Beacon_Downlink_Model(N_Steps,PassSimulation.Visibility),...
                     PassSimulation.Satellite,...
                     PassSimulation.Ground_Station);
+                %compute beacon received power
                 Downlink_Beacon_Power = PassSimulation.Satellite.Beacon.Power*10.^(-DownlinkBeaconLossdB/10);
-                Downlink_Beacon_SNR_dB = 10*log10(Downlink_Beacon_Power./PassSimulation.Ground_Station.Camera.Noise);
+                
+                if ~isempty(PassSimulation.smarts_configuration)
+                %computed beacon channel noise
+                Beacon_Sky_Radiance = interp1(PassSimulation.Ground_Station.Wavelengths,...
+                    PassSimulation.Ground_Station.Sky_Radiance',...
+                    PassSimulation.Satellite.Beacon.Wavelength);
+                Downlink_Beacon_Noise = PassSimulation.Ground_Station.Camera.Noise +...
+                    Beacon_Sky_Radiance * PassSimulation.Ground_Station.Camera.FOV;
+                else
+                    Downlink_Beacon_Noise = PassSimulation.Ground_Station.Camera.Noise;
+                end
+
+                %compute SNR
+                Downlink_Beacon_SNR_dB = 10*log10(Downlink_Beacon_Power./Downlink_Beacon_Noise);
 
                 PassSimulation.Downlink_Beacon_Flag = DownlinkBeaconFlag;
                 PassSimulation.Downlink_Beacon_Power = Downlink_Beacon_Power;

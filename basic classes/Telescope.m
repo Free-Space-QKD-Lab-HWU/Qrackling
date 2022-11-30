@@ -17,15 +17,23 @@ classdef Telescope
     end
     properties(SetAccess=protected)
         %wavelength of the transmitter (in nm), set by the satellite it is mounted to
-        Wavelength{mustBeScalarOrEmpty,mustBePositive};
+        Wavelength{mustBeScalarOrEmpty,mustBePositive}=[];
 
         %angle in rads describing spread of photons as the propagate
         FOV{mustBeScalarOrEmpty,mustBeNonnegative};
+
+        %collecting area of the telescope in m^2
+        Collecting_Area (1,1) double {mustBeNonnegative}
     end
 
     methods
         function obj = Telescope(Diameter,varargin)
             %%TELESCOPE construct a telescope object
+
+            %% allow empty default creation
+            if nargin==0
+                return
+            end
 
             %% create and use input parser
             P=inputParser();
@@ -54,19 +62,11 @@ classdef Telescope
         function Telescope=SetWavelength(Telescope,Wavelength)
             %%SETWAVELENGTH set the wavelength (nm) of the transmitter
             Telescope.Wavelength=Wavelength;
-            Telescope.FOV = 2.44 ...
-                            * Telescope.Far_Field_Divergence_Coefficient ...
-                            *( Telescope.Wavelength * 10^-9 ) ...
-                            / Telescope.Diameter;
         end
 
         function Telescope=SetDiameter(Telescope,Diameter)
             %%SETWAVELENGTH set the diameter (in m) of the transmitter
             Telescope.Diameter=Diameter;
-            Telescope.FOV = 2.44 ...
-                            * Telescope.Far_Field_Divergence_Coefficient ...
-                            *( Telescope.Wavelength * 10^-9 ) ...
-                            / Telescope.Diameter;
         end
 
         function Telescope=SetPointingJitter(Telescope,Pointing_Jitter)
@@ -75,9 +75,31 @@ classdef Telescope
         end
 
         function Telescope = SetFOV(Telescope, FOV)
-            %%SETFOV set the FOV of a telescope and update the far field
+            %%SETFOV set the FOV of a telescope by updating the far field
             %%divergence coefficient to suit
-            Telescope.FOV = FOV;
+            Telescope.Far_Field_Divergence_Coefficient = ...
+                        FOV * Telescope.Diameter / ...
+                            (2.44 *( Telescope.Wavelength * 10^-9 ));  
+        end
+
+        function Area = get.Collecting_Area(Telescope)
+            %%COLLECTINGAREA return the total collecting area of the telescope in
+            %%m^2
+    
+            Area = (pi/4)*Telescope.Diameter^2;
+        end
+
+        function FOV = get.FOV(Telescope)
+            %%FOV return the FOV of the telescope in radians, computed by
+            %%scaling the divergence limited FOV
+
+            %check that wavelength is known
+            assert(~isempty(Telescope.Wavelength),'Must set Telescope wavelength before querying FOV');
+    
+            FOV = 2.44 ...
+                    * Telescope.Far_Field_Divergence_Coefficient ...
+                    *( Telescope.Wavelength * 10^-9 ) ...
+                    / Telescope.Diameter;
         end
     end
 end

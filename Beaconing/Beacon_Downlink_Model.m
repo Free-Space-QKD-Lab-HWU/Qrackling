@@ -50,7 +50,7 @@ classdef Beacon_Downlink_Model < Link_Model
         Geo_Loss(Shadowing)=0;
 
         %% efficiency loss
-        Eff_Loss=Satellite.Beacon.Efficiency*Ground_Station.Camera.Efficiency;
+        Eff_Loss=Satellite.Beacon.Efficiency*Ground_Station.Camera.Total_Efficiency;
 
         %% atmospheric loss
         %compute elevation angles

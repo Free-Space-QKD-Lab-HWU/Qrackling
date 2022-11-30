@@ -14,7 +14,7 @@ Spectral_Filter_Width=10;                                                  %cons
 Beacon_Power = 3;                                                           %beacon power in W
 Beacon_Wavelength = 650;                                                    %beacon wavelength in nm
 Beacon_Divergence_Half_Angle = 1E-3;                                        %gaussian beacon divergence half angle
-Camera_Collecting_Area = (pi/4)*0.25^2;                                     %collecting area of the beacon camera used (m^2)
+Camera_Scope_Diameter = 0.1;                                                %camera telescope diameter in m
 %% 2. Construct components
 
 %2.1 Satellite
@@ -42,7 +42,8 @@ MPD_BB84_Detector=MPD_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Tim
 Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);
 
 %2.2.3 add a beacon camera to the ground station
-Cam = Camera(Camera_Collecting_Area);
+Camera_Scope = Telescope(Camera_Scope_Diameter,'Wavelength',Beacon_Wavelength);
+Cam = Camera(Camera_Scope);
 
 %2.2.4 construct ground station, use Errol as an example
 SimGround_Station=Errol_OGS(MPD_BB84_Detector,Receiver_Telescope,...
@@ -51,9 +52,13 @@ SimGround_Station=Errol_OGS(MPD_BB84_Detector,Receiver_Telescope,...
 %2.3 protocol
 BB84_protocol=BB84_Protocol;
 
+%2.4 SMARTS atmospheric modelling config
+SMARTS_Config = solar_background_errol('executable_path','C:\Git\SMARTS\','stub','C:\Git\QKD_Sat_Link\SMARTS_connection\SMARTS cache\');
+
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station);
+Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'SMARTS',SMARTS_Config);
+
 %3.2 run simulation
 Pass=Simulate(Pass);
 %3.3 plot results
