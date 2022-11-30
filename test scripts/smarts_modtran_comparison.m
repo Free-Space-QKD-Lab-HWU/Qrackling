@@ -109,7 +109,7 @@ xlim([0.4, 1])
 
 subplot(1, 2, 2)
 hold on
-plot(nm2um(wavelength), irradiance ./ wavelength ./ (4*pi) .* 100); % ./ ((1e-4) .* (wavelength.*1000) .* (4 * pi)) )
+plot(nm2um(wavelength), irradiance ./ wavelength ./ (2*pi) .* 100); % ./ ((1e-4) .* (wavelength.*1000) .* (4 * pi)) )
 xlabel('wavelength (microns)')
 ylabel('radiance (W/cm^{2}/{\mu}m/sr)')
 xlim([0.4, 1])

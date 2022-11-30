@@ -13,5 +13,9 @@
 
 function radiance = irradiance2radiance(irradiance, wavelengths, units)
     wavelengths = wavelengths .* units;
-    radiance = irradiance ./ wavelengths ./ (4 * pi);
+    %radiance = irradiance ./ wavelengths ./ (4 * pi);
+    % typically conversion to steradians requires a factor of (4 pi) for a
+    % full sphere, however in our case we are working in terms of a hemisphere
+    % so require only (2*pi)
+    radiance = irradiance ./ wavelengths ./ (2 * pi);
 end
