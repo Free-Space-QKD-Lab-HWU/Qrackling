@@ -37,6 +37,9 @@ function [smarts_results, Wavelengths, Sky_Irradiance, Sky_Radiance, ...
             continue;
         end
         data = readtable(smarts_results{i});
+        if isempty(data)
+            continue
+        end
         Sky_Irradiance(i, :) = data.Global_tilted_irradiance;
 
         Sky_Radiance(i, :) = irradiance2radiance(Sky_Irradiance(i, :), ...
