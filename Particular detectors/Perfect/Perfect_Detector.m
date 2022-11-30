@@ -9,7 +9,7 @@ classdef Perfect_Detector<Detector
         Detection_Efficiency=1;
         tB=1;
         Visibility=1;
-        Efficiency_Data_Location = '';
+        Efficiency_Data_Location = 'Perfect_Efficiency.mat';
     end
 
     methods

@@ -1,10 +1,10 @@
-%% implement a simulation of a satellite in a 500km orbit over a ground station using the decoy BB84 protocol
+%% implement a simulation of a satellite in a 100km orbit over a ground station using the decoy BB84 protocol
 %% First, we must construct the components of a simulation, this time including background light sources (which in this case are cities).
 %% Then we form them all into a single PassSimulation object.
 %% Then we simulate the pass and plot the results.
 
 %% 1. Choose parameters
-Wavelength=850;                                                            %wavelength is measured in nm
+Wavelength=780;                                                            %wavelength is measured in nm
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
 OrbitDataFileLocation='100kmOrbitLLAT.txt';                                %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
 Receiver_Telescope_Diameter=1;                                           

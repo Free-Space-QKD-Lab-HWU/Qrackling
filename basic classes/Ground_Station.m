@@ -306,10 +306,13 @@ classdef Ground_Station < Located_Object
             end
 
             Direct_Count_Rate = zeros(size(Headings));
+            %%%%%%%%%%%%%This does not currently work
+            %{
             for i = 1:length(Background_Sources)
                 solar_counts = Background_Sources(i).GetDirectedLight(Ground_Station, 16.35) .* ones(size(Direct_Count_Rate));
                 Direct_Count_Rate = Direct_Count_Rate + solar_counts;
             end
+            %}
 
             % Dark_Counts
             Dark_Counts = ones(size(Headings))*Ground_Station.Detector.Dark_Count_Rate;
@@ -339,7 +342,7 @@ classdef Ground_Station < Located_Object
                  Ground_Station.Reflection_Count_Rates(Plotting_Indices)', ...
                  Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)', ...
                  Ground_Station.Directed_Count_Rates(Plotting_Indices)']);
-            ylabel('Background count rate (cps)')
+            ylabel('Background Count Rate (cps)')
 
             % adjust legend to represent what is plotted
             % reflection and light poluution are non zero

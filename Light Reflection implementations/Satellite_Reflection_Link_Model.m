@@ -14,6 +14,7 @@ classdef Satellite_Reflection_Link_Model < Link_Model
         Downlink_Loss_dB{mustBeVector,mustBePositive,mustBeScalarOrEmpty}=inf;                 %dB loss between satellite reflected emission and ground station
         Downlink_Distance{mustBePositive,mustBeScalarOrEmpty}=inf;                             %distance between satellite and ground station
 
+
     end
     
     properties (SetAccess=protected,Abstract=false)%inherited properties
@@ -45,11 +46,12 @@ classdef Satellite_Reflection_Link_Model < Link_Model
             %assuming uniform hemispherical emission from background
             %source, link loss is satellite frontal area over steradians in
             %the full sphere. spectral pointance is per str for this reason
-            Uplink_Loss=Satellite.Surface.Area./(4*pi*(Distances.^2)); %#ok<*PROPLC>
 
-            %add in pointing loss if the source is a jamming terminal
-            if isa(Background_Source,'Jamming_Laser')
-            Uplink_Loss=Uplink_Loss*exp(-8*(Background_Source.Pointing_Jitter/Background_Source.FOV)^2);
+            %% link loss depends on whether or not this background source is a jamming laser
+            if ~isa(Background_Source,'Jamming_Laser')
+                Uplink_Loss=Satellite.Surface.Area./(4*pi*(Distances.^2)); %#ok<*PROPLC>
+            else
+            Uplink_Loss=(sqrt(pi)/8)*((Satellite.Surface.Area)./(Distances.^2*(Background_Source.Pointing_Jitter^2+Background_Source.FOV^2)));
             end
             
             %add in atmospheric loss
@@ -110,25 +112,41 @@ classdef Satellite_Reflection_Link_Model < Link_Model
             %store value
             Satellite_Reflection_Link_Model = SetReflectivityLoss(Satellite_Reflection_Link_Model,Reflectivity_Loss);
 
-
-            %store this loss value
-            Satellite_Reflection_Link_Model=SetReflectivityLoss(Satellite_Reflection_Link_Model,Reflectivity_Loss);
-
             %% set total loss
             [Satellite_Reflection_Link_Model,Link_Loss_dB]=SetTotalLoss(Satellite_Reflection_Link_Model);
         end
 
 
-        function Plot(Satellite_Reflectivity_Link_Model,X_Axis)
-            %% plot the link loss over time of the satellite link
+        function Plot(Satellite_Reflection_Link_Model,X_Axis)
+            %%PLOT plot the link loss over time of the satellite link
+
             %must use column vector of losses for area
-            if isrow(Satellite_Reflectivity_Link_Model)
-                Satellite_Reflectivity_Link_Model=Satellite_Reflectivity_Link_Model';
+            if isrow(Satellite_Reflection_Link_Model)
+                Satellite_Reflection_Link_Model=Satellite_Reflection_Link_Model';
             end
-            area(X_Axis,[GetUplinkLossdB(Satellite_Reflectivity_Link_Model),GetReflectivityLossdB(Satellite_Reflectivity_Link_Model),GetDownlinkLossdB(Satellite_Reflectivity_Link_Model)]);
+            area(X_Axis,[GetUplinkLossdB(Satellite_Reflection_Link_Model),GetReflectivityLossdB(Satellite_Reflection_Link_Model),GetDownlinkLossdB(Satellite_Reflection_Link_Model)]);
             xlabel('Time (s)')
-            ylabel('losses (dB)')
-            legend('Uplink spreading loss','Reflection loss','Downlink spreading loss');
+            ylabel('Losses (dB)')
+
+            %% display shadowed time
+            Uplink_Loss_dB=GetUplinkLossdB(Satellite_Reflection_Link_Model);
+            Downlink_Loss_dB=GetDownlinkLossdB(Satellite_Reflection_Link_Model);
+            Shadowing_Indices=(Uplink_Loss_dB==inf|Downlink_Loss_dB==inf);
+            if any(Shadowing_Indices)
+                Max_Up_Loss=max(Uplink_Loss_dB(~Shadowing_Indices));
+                hold on
+                scatter(X_Axis(Shadowing_Indices),Max_Up_Loss*ones(1,sum(Shadowing_Indices)),'k.');
+                if ~isempty(Max_Up_Loss)
+                    text(X_Axis(end),Max_Up_Loss,'Link shadowed by earth','VerticalAlignment','bottom','HorizontalAlignment','right')
+                else
+                    text(X_Axis(end),0,'Link constantly shadowed by earth','VerticalAlignment','bottom','HorizontalAlignment','right')
+                end
+                hold off
+            end
+
+            %% adjust legend to represent what is plotted
+            legend('Uplink loss','Reflectivity loss','Downlink loss');
+            legend('Location','south')
         end
     
         function [Link_Model,Total_Loss_dB,Total_Loss]=SetTotalLoss(Link_Model)
@@ -232,6 +250,54 @@ classdef Satellite_Reflection_Link_Model < Link_Model
                 for j=1:sz(2)
                     Link_Models(i,j).Downlink_Loss=Downlink_Loss(i,j);
                     Link_Models(i,j).Downlink_Loss_dB=-10*log10(Downlink_Loss(i,j));
+                end
+            end
+        end
+
+       function Uplink_Loss_dB=GetUplinkLossdB(Link_Model)
+            %%GETLINKLOSSDB return an array of link losses the same
+            %%dimensions as the link model array
+
+            %% measure size of link model and prepare memory
+            sz=size(Link_Model);
+            Uplink_Loss_dB=nan(sz);
+
+            %% iterate over the link model
+            for i=1:sz(1)
+                for j=1:sz(2)
+                    Uplink_Loss_dB(i,j)=Link_Model(i,j).Uplink_Loss_dB;
+                end
+            end
+       end
+
+       function Downlink_Loss_dB=GetDownlinkLossdB(Link_Model)
+            %%GETLINKLOSSDB return an array of link losses the same
+            %%dimensions as the link model array
+
+            %% measure size of link model and prepare memory
+            sz=size(Link_Model);
+            Downlink_Loss_dB=nan(sz);
+
+            %% iterate over the link model
+            for i=1:sz(1)
+                for j=1:sz(2)
+                    Downlink_Loss_dB(i,j)=Link_Model(i,j).Downlink_Loss_dB;
+                end
+            end
+       end
+
+       function Reflectivity_Loss_dB=GetReflectivityLossdB(Link_Model)
+            %%GETLINKLOSSDB return an array of link losses the same
+            %%dimensions as the link model array
+
+            %% measure size of link model and prepare memory
+            sz=size(Link_Model);
+            Reflectivity_Loss_dB=nan(sz);
+
+            %% iterate over the link model
+            for i=1:sz(1)
+                for j=1:sz(2)
+                    Reflectivity_Loss_dB(i,j)=Link_Model(i,j).Reflectivity_Loss_dB;
                 end
             end
         end

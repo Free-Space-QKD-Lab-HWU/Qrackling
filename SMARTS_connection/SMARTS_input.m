@@ -249,6 +249,11 @@ classdef SMARTS_input
             assert(~isempty(SMARTS_input.input_string), ...
                 'No configuration has been set');
 
+            %% windows machines require CR/LF line return characters
+            %these are not written by MATLAB as default. therefore we need to
+            %introduce them by replacing the newline chatacter
+            SMARTS_input.input_string=replace(SMARTS_input.input_string, newline, [char(13), char(10)]);
+
             if isempty(file_name)
                 file_name = 'smarts295.inp.txt';
             end
@@ -274,7 +279,7 @@ classdef SMARTS_input
             destination = [file_path, file_name];
             % disp(destination)
             fileID = fopen(destination, 'w');
-            fprintf(fileID, SMARTS_input.input_string);
+            fwrite(fileID, SMARTS_input.input_string);
             frewind(fileID);
             result = fclose(fileID);
             
@@ -319,8 +324,7 @@ classdef SMARTS_input
             %% copy input file to SMARTS input and run
             %copy input file to SMARTS input file
 
-            %% FOR NOW we avoid copying as the custom instructions do not work%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            %status = copyfile(destination, target);
+            status = copyfile(destination, target);
             %check copying was successful
             assert(isfile(target), 'Input file has been lost during copy');
             %path to SMARTS exe
@@ -332,7 +336,14 @@ classdef SMARTS_input
             evalc('system("smarts295bat.exe")');
             %system("smarts295bat.exe")
 
-            %copy output files back to stub location
+            %copy output files back to stub location %%%%%%%%%%%%% error comes
+            %here- SMARTS does not run correctly with custom cards- it errors
+            %and does not produce all output files
+            %{
+smarts295.inp.txt
+Data transfer beyond end of file, FILE=smarts295.inp.txt, UNIT=14 RECORD=2,
+ POSITION=0.
+            %}
             assert(isfile('smarts295.ext.txt'),' smarts295.ext.txt not created by SMARTS')
             movefile('smarts295.ext.txt', strrep(destination, 'inp', 'ext'));
             assert(isfile('smarts295.out.txt'),' smarts295.out.txt not created by SMARTS')

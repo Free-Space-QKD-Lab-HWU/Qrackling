@@ -30,5 +30,5 @@ end
 %so...
 function radiance = irradiance2radiance(irradiance, wavelengths, units)
     %wavelengths = wavelengths .* units;
-    radiance = irradiance ./(4 * pi);
+    radiance = irradiance ./(2 * pi);
 end

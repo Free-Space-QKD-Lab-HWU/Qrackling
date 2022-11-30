@@ -4,7 +4,7 @@
 
 %altered by Cameron Simmons
 % further altered by Peter Barrow
-function [SKR_COW_2008, QBER, R_In, R_Det] = COW_model(MPN, ...
+function [SKR_COW_2008, QBER, Rate_In, Rates_Det] = COW_model(MPN, ...
                                                        State_Prep_Error, ...
                                                        rep_rate, ...
                                                        prob_dark_counts, ...
@@ -25,12 +25,12 @@ function [SKR_COW_2008, QBER, R_In, R_Det] = COW_model(MPN, ...
     P_click = R + prob_dark_counts;
     
     % frequency of pings at the receiver
-    Rates_In = 0.5 * R * rep_rate + prob_dark_counts * rep_rate;
+    Rate_In = 0.5 * R * rep_rate + prob_dark_counts * rep_rate;
     %R_sifted = min(R_sifted, 1/dead_time);
     tau1 = Detector.fall_time;
     tau2 = Detector.rise_time;
     R_sifted = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
-    Rates_Det = R_sifted
+    Rates_Det = R_sifted;
 
     %% QBER totalling
     %Detector = SetJitterPerformance(Detector, Rates_In);

@@ -36,6 +36,7 @@ classdef COW_Protocol < Protocol
                     COW_Detector); 
 
             QBER = Current_QBER;
+            Secret_Key_Rate=Current_SKR;
             Photon_Rate_In = R_In;
             Photon_Rate_Det = R_Det;
             

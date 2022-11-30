@@ -340,16 +340,12 @@ classdef PassSimulation
             %% plot key rate as a function of link loss
             subplot(3, 3, [9, 9])
             title('Link performance')
-            semilogy(GetLinkLossdB(PassSimulation.Link_Model), PassSimulation.Secret_Key_Rates, 'k-')
+            semilogy(PassSimulation.Link_Losses_dB(Plot_Select_Flags), PassSimulation.Secret_Key_Rates(Plot_Select_Flags), 'k-')
             xlabel('Link Loss (dB)')
             ylabel('Secret Key Rate (bps)')
             grid on
             ax = gca; %put axis on right
             ax.YAxisLocation = 'right';
-            %if no SKR is transmitted, label
-            if PassSimulation.Total_Sifted_Key==0
-                text(30,0.5,'No Secret Key Downlinked','FontSize',16);
-            end
             clear ax;
 
             %% if present, plot beacon performance as a function of time.
