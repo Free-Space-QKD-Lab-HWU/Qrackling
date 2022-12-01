@@ -54,9 +54,11 @@ function HubSat = HubSat(StartTime,StopTime,SampleTime)
             BeaconPower = 1;                                                    %beacon optical power in w
             BeaconWavelength = 850;                                             %beacon wavelength in nm
             BeaconEfficiency = 1;                                               %beacon optical efficiency (unitless)
-            BeaconHalfAngle = 1E-3;                                             %beacon flat top half angle in rads
+            BeaconHalfAngle = 1E-4;                                             %beacon flat top half angle in rads
+            BeaconPointingPrecision = 1E-4;                                     %beacon pointing precision (coarse pointing precision) in rads
             HubSatBeacon = Flat_Top_Beacon(BeaconPower,BeaconWavelength,...
-                                BeaconHalfAngle,'Efficiency',BeaconEfficiency);
+                                BeaconHalfAngle,'Efficiency',BeaconEfficiency,...
+                                'Pointing_Jitter',BeaconPointingPrecision);
 
             %% construct satellite with correct orbital parameters
             HubSat=Satellite(HubSatSource,HubSatScope,'Beacon',HubSatBeacon,...

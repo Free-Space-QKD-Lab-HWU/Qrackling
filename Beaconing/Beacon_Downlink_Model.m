@@ -59,8 +59,7 @@ classdef Beacon_Downlink_Model < Link_Model
         Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles,Satellite.Beacon.Wavelength,{Beacon_Downlink_Model.Visibility});
         Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Beacon.Wavelength);
         
-        Pointing_Error = Satellite.Telescope.Pointing_Jitter*ones(1,Satellite.N_Steps);
-        APTracking_Loss=GetAPTLoss(Satellite.Beacon,Pointing_Error);
+        APTracking_Loss=GetAPTLoss(Satellite.Beacon,Ground_Station.Camera);
 
         %record loss values
         Beacon_Downlink_Model=SetGeometricLoss(Beacon_Downlink_Model,Geo_Loss);

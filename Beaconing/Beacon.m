@@ -11,6 +11,8 @@ classdef(Abstract) Beacon
         Wavelength (1,1) double {mustBeNonnegative}
         %efficiency of the optical pass in the transmitter
         Efficiency (1,1) double {mustBeNonnegative,mustBeLessThanOrEqual(Efficiency,1)}=1;
+        %pointing jitter of beacon (i.e. coarse pointing precision)
+        Pointing_Jitter (1,1) double {mustBeNonnegative}
     end
 
     methods
@@ -22,12 +24,14 @@ classdef(Abstract) Beacon
            addRequired(p,'Power');
            addRequired(p,'Wavelength');
            addParameter(p,'Efficiency',1);
+           addParameter(p,'Pointing_Jitter',1E-3)
            parse(p,Power,Wavelength,varargin{:});
            %required
            Beacon.Power = p.Results.Power;
            Beacon.Wavelength = p.Results.Wavelength;
            %optional
            Beacon.Efficiency=p.Results.Efficiency;
+           Beacon.Pointing_Jitter = p.Results.Pointing_Jitter;
         end
     end
     methods (Abstract = true)
