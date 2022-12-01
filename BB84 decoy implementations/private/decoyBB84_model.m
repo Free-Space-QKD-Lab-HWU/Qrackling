@@ -92,6 +92,9 @@ function [SKR_decoyBB84, QBER, Rate_In, Rate_Det] = decoyBB84_model(MPN, ...
     %disp(SKR_decoyBB84);
     %SKR_decoyBB84(isnan(R_sifted)) = NaN;
     SKR_decoyBB84(isnan(SKR_decoyBB84)) = NaN;
+    %% modification cjs
+    %do not allow negative SKR
+    SKR_decoyBB84(SKR_decoyBB84<0)=0;
     
     %% modification cjs
     %SKR cannot be negative. negative results should be replaced by

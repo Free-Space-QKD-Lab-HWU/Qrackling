@@ -67,8 +67,8 @@ function HubSat = HubSat(StartTime,StopTime,SampleTime)
                             'rightAscensionOfAscendingNode',0,...               %measure of location of orbit in longitude
                             'argumentOfPeriapsis',0,...                         %measurement of location of orbit in latitude
                             'trueAnomaly',0,...                                 
-                            'StartTime',StartTime,...                   %start of simulation
-                            'StopTime',StopTime,...                 %end of simulation
-                            'sampleTime',SampleTime);                                    %simulation interval in s     
+                            'StartTime',StartTime,...                           %start of simulation
+                            'StopTime',StopTime,...                             %end of simulation
+                            'sampleTime',SampleTime);                           %simulation interval in s     
 end
 

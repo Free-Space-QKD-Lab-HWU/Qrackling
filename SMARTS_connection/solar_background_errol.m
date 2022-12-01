@@ -26,6 +26,7 @@ function configuration = solar_background_errol(varargin)
     p = inputParser;
     addParameter(p, 'executable_path', '');
     addParameter(p, 'stub', '');
+    addParameter(p, 'dateAndTime', datetime("now"))
     parse(p, varargin{:});
 
     ispr = sitePressure(spr=1013.25, altit=0, height=0);
@@ -46,7 +47,7 @@ function configuration = solar_background_errol(varargin)
     iscan = scanning(filtering=0);
     illum = illuminance(value=0);
     iuv =  broadband_uv(value=0);
-    imass = solar_position_and_airmass(dateAndTime=datetime('now'), ...
+    imass = solar_position_and_airmass(dateAndTime=p.Results.dateAndTime, ...
             latitude=56.405, longitude=-3.183);
 
     defaults = {ispr, iatmos, ih20, i03, igas, ico2, iaeros, ...

@@ -29,16 +29,23 @@ function [smarts_results, Wavelengths, Sky_Irradiance, Sky_Radiance, ...
     %prevent a warning about renaming table variables
     warning('off','MATLAB:table:ModifiedAndSavedVarnames');
     data = readtable(smarts_results{sum(cumsum(Flags) == 0) + 1});
+    if ~isempty(data)
     Wavelengths = data.Wvlgth;
+    else %if no simulated atmospherics, get wavelengths from config
+        Wavelengths=SMARTS_Conf.iscan.wavelength_min:...
+            SMARTS_Conf.iscan.step:...
+            SMARTS_Conf.iscan.wavelength_max;
+    end
     Sky_Irradiance = zeros(numel(Flags), numel(Wavelengths));
     Sky_Radiance = zeros(size(Sky_Irradiance));
     Sky_Photons = zeros(size(Sky_Radiance));
 
     for i = idx_first_file : idx_last_file
-        if isempty(smarts_results{i})
+        data = readtable(smarts_results{i});
+        if isempty(data)
             continue;
         end
-        data = readtable(smarts_results{i});
+
         Sky_Irradiance(i, :) = data.Global_tilted_irradiance;
 
         Sky_Radiance(i, :) = irradiance2radiance(Sky_Irradiance(i, :), ...

@@ -13,7 +13,7 @@ Spectral_Filter_Width=10;                                                  %cons
 
 Beacon_Power = 1;                                                           %beacon power in W
 Beacon_Wavelength = 650;                                                    %beacon wavelength in nm
-Beacon_Divergence_Half_Angle = 1E-3;                                        %gaussian beacon divergence half angle
+Beacon_Divergence_Half_Angle = 1E-5;                                        %gaussian beacon divergence half angle
 Camera_Scope_Diameter = 0.1;                                                %camera telescope diameter in m
 %% 2. Construct components
 
