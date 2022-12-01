@@ -10,12 +10,12 @@
 % Units: units for wavelengths
 % The 'units' argument is needed to perform the correct calculation to spectral
 % radiance, for SMARTS data this would be '1e-9'.
-%{
+
 function radiance = irradiance2radiance(irradiance, wavelengths, units)
     wavelengths = wavelengths .* units;
     radiance = irradiance ./ wavelengths ./ (4 * pi);
 end
-%}
+
 
 
 %% is this correct? should we be dividing by wavelength or by wavelength interval?
@@ -28,7 +28,9 @@ end
 %presumably, the exposed surface solid angle is a hemisphere, so 2pi steradians
 
 %so...
+%{
 function radiance = irradiance2radiance(irradiance, wavelengths, units)
     %wavelengths = wavelengths .* units;
     radiance = irradiance ./(2 * pi);
 end
+%}
