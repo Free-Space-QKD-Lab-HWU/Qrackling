@@ -135,7 +135,7 @@ classdef Beacon_Downlink_Model < Link_Model
         end
         area(X_Axis,[GetGeometricLossdB(Satellite_Link_Model),GetAtmosphericLossdB(Satellite_Link_Model),GetOpticalEfficiencyLossdB(Satellite_Link_Model),GetAPTLossdB(Satellite_Link_Model)]);
         xlabel('Time (s)')
-        ylabel('losses (dB)')
+        ylabel('Losses (dB)')
 
         %% display shadowed time
         GeoLossdB=GetGeometricLossdB(Satellite_Link_Model);

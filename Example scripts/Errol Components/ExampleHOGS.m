@@ -7,9 +7,9 @@ HOGS=HOGS();%current HOGS model
 %can run using default times
 %Sat=HubSat();
 % or using custom start, stop and interval times
-StartTime = datetime(2022,12,25,6,10,0);                                         %5am to 6am christmas day 2022, with 1 second simulation interval
-StopTime = datetime(2022,12,25,6,55,0);
-SampleTime = seconds(15);
+StartTime = datetime(2022,12,25,6,40,0);                                         %0610 to 0655 christmas day 2022, with 1 second simulation interval
+StopTime = datetime(2022,12,25,7,20,0);
+SampleTime = seconds(60);
 Sat=HubSat(StartTime,StopTime,SampleTime);
 %use decoy BB84
 Protocol=decoyBB84_Protocol();

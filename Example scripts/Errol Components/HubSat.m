@@ -66,11 +66,45 @@ function HubSat = HubSat(StartTime,StopTime,SampleTime)
                             'SemiMajorAxis',500E3 + earthRadius,...             %mean orbital radius = Altitude + Earth radius
                             'eccentricity',0,...                                %measure of ellipticity of the orbit, for circular, =0
                             'inclination',1.006316534636167e+02,...             %inclination of orbit in deg- set by sun synchronicity
-                            'rightAscensionOfAscendingNode',0,...               %measure of location of orbit in longitude
+                            'rightAscensionOfAscendingNode',-2,...               %measure of location of orbit in longitude
                             'argumentOfPeriapsis',0,...                         %measurement of location of orbit in latitude
                             'trueAnomaly',0,...                                 
                             'StartTime',StartTime,...                           %start of simulation
                             'StopTime',StopTime,...                             %end of simulation
                             'sampleTime',SampleTime);                           %simulation interval in s     
+
+            %% passes
+            %this orbit will directly overfly Errol between 0700 and 0710 on
+            %christmas day 2022.
+            %you can simulate this period using
+            %StartTime = datetime(2022,12,25,6,40,0);
+            %StopTime = datetime(2022,12,25,7,20,0);
+
+            %additional passes are:
+            %25/12/22 0844
+
+            %25/12/22 1450
+            %25/12/22 1622
+            %25/12/22 1755
+
+            %26/12/22 0515
+            %26/12/22 0649
+            %26/12/22 0822
+            %26/12/22 0954
+
+            %26/12/22 1427
+            %26/12/22 1600
+            %26/12/22 1732
+            %26/12/22 1907
+
+            %27/12/22 0420
+            %27/12/22 0627
+            %27/12/22 0800
+            %27/12/22 0931
+
+            %passes tend to be arranged in groups of 4. This is the number of
+            %orbits the satellite makes while its orbital path is inside the
+            %elevation window of the ground station. The middle passes tend to
+            %be higher performance as they pass closer to Errol.
 end
 

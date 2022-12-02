@@ -25,6 +25,7 @@ function [smarts_results, Wavelengths, Sky_Irradiance, Sky_Radiance, ...
     cumulative_sum = cumsum(Flags);
     idx_first_file = sum(cumulative_sum == 0) + 1;
     idx_last_file = idx_first_file + sum(Flags == 1) - 1;
+     assert(idx_first_file<=idx_last_file,'no true flags entered. no simulation can take place');
 
     %prevent a warning about renaming table variables
     warning('off','MATLAB:table:ModifiedAndSavedVarnames');
