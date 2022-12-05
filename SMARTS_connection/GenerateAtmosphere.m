@@ -93,6 +93,10 @@ classdef GenerateAtmosphere
             spectral_reflectance = SMARTS_conf.ialbdx.spectral_reflectance;
             foreground_local_albedo = SMARTS_conf.ialbdx.local_foreground_albedo;
 
+            progress = waitbar(0, 'Starting');
+            N = numel(azimuth) * numel(elevation);
+            i = 1;
+
             for a = 1 : numel(azimuth)
                 for e = 1 : numel(elevation)
 
@@ -123,8 +127,12 @@ classdef GenerateAtmosphere
                             SMARTS_conf.run_smarts(...
                                     file_path=SMARTS_conf.file_path_stub, ...
                                     file_name=file_name);
+                    waitbar(i / N, progress, sprintf('Completed %d/%d SMARTS Simulation', i, N));
+                    pause(0);
+                    i = i + 1;
                 end
             end
+            close(progress);
             GenerateAtmosphere.SMARTS_conf = SMARTS_conf;
         end
 
@@ -135,6 +143,11 @@ classdef GenerateAtmosphere
             % transmission and global tilted irradiance. Each of these arrays
             % is then added to a matrix of structs containing the azimuth,
             % and elevation as well for ease of use later.
+
+            progress = waitbar(0, 'Starting');
+            N = numel(GenerateAtmosphere.azimuth) ...
+                * numel(GenerateAtmosphere.elevation);
+            i = 1;
 
             GenerateAtmosphere.atmosphere = cell(...
                                         numel(GenerateAtmosphere.azimuth), ...
@@ -148,9 +161,13 @@ classdef GenerateAtmosphere
                     temp.elevation = GenerateAtmosphere.elevation(e);
                     temp.data = GenerateAtmosphere.extractVariables(data);
                     GenerateAtmosphere.atmosphere{a, e} = temp;
+                    waitbar(i / N, progress, sprintf('Collecting %d/%d SMARTS Simulation', i, N));
+                    pause(0);
+                    i = i + 1;
                 end
             end
 
+            close(progress);
             GenerateAtmosphere.wavelengths = data.Wvlgth;
         end
 

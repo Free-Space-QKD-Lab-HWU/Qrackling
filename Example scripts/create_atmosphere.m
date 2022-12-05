@@ -13,8 +13,6 @@ genAtmos.ExportAtmosphere(output_atmosphere_path);
 
 atmosphere = genAtmos.LoadAtmosphere(output_atmosphere_path)
 
-config.output_opt
-
 data = readtable(sprintf('%s.ext.txt', genAtmos.result_files{1}), VariableNamingRule='preserve' );
 
 %% plot

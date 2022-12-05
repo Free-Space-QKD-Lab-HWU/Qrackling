@@ -285,7 +285,6 @@ classdef SMARTS_input
 
         function [SMARTS_input, success, destination] = run_smarts(SMARTS_input, varargin)
 
-            disp(SMARTS_input.smarts_path);
             % assert((~isempty(SMARTS_input.smarts_path)) ...
             %     & isdir(SMARTS_input.smarts_path), 'No valid path for SMARTS');
 
@@ -306,7 +305,7 @@ classdef SMARTS_input
                                             file_name=p.Results.file_name);
 
             assert(write_success, 'Writing SMARTS input failed');
-            assert(isfile(destination), 'Input file has been lost')
+            assert(isfile(destination), 'Input file has been lost');
 
             parts = strsplit(destination, '/');
             target = [SMARTS_input.smarts_path, 'smarts295.inp.txt'];
@@ -317,7 +316,7 @@ classdef SMARTS_input
             exe = [SMARTS_input.smarts_path, 'smarts295bat'];
             cur_dir = pwd;
             cd(SMARTS_input.smarts_path);
-            system('./smarts295bat');
+            [~, ~] = system('./smarts295bat');
 
             movefile('./smarts295.ext.txt', strrep(destination, 'inp', 'ext'));
             movefile('./smarts295.out.txt', strrep(destination, 'inp', 'out'));
