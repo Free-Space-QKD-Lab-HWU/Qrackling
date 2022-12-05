@@ -306,7 +306,12 @@ classdef SMARTS_input
             addParameter(p, 'file_path', '');%where to write input file
             addParameter(p, 'file_name', '');%what to call input file
             parse(p, varargin{:});
-            %create input file
+
+            %if the system in use is windows, need to turn CRLF newlines into UNIX newlines
+            if true == ispc
+                SMARTS_input.input_string = replace(SMARTS_input.input_string, newline, [char(13), char(10)]);
+            end
+            
             [write_success, destination] = SMARTS_input.write_file(...
                                             file_path=p.Results.file_path, ...
                                             file_name=p.Results.file_name);
