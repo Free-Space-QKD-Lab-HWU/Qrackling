@@ -41,13 +41,12 @@ classdef scanning < card
                 assert(p.Results.wavelength_max - p.Results.wavelength_min ...
                        > 2 * p.Results.fwhm, ...
                        '"wavelength_max" - "wavelength_min" > 2 * "fwhm" must hold');
-
+            end
                 scanning.flag = 1;
                 scanning.wavelength_min = p.Results.wavelength_min;
                 scanning.wavelength_max = p.Results.wavelength_max;
                 scanning.step = p.Results.step;
                 scanning.fwhm = p.Results.fwhm;
-            end
 
             
 

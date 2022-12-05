@@ -249,6 +249,11 @@ classdef SMARTS_input
             assert(~isempty(SMARTS_input.input_string), ...
                 'No configuration has been set');
 
+            %% windows machines require CR/LF line return characters
+            %these are not written by MATLAB as default. therefore we need to
+            %introduce them by replacing the newline chatacter
+            SMARTS_input.input_string=replace(SMARTS_input.input_string, newline, [char(13), char(10)]);
+
             if isempty(file_name)
                 file_name = 'smarts295.inp.txt';
             end
@@ -267,16 +272,17 @@ classdef SMARTS_input
                 ['No path found, not even "userpath", '...
                 '... something has gone terribly wrong']);
 
-            if ~isdir(file_path);
+            if ~isfolder(file_path)
                 mkdir(file_path);
             end
 
             destination = [file_path, file_name];
             % disp(destination)
             fileID = fopen(destination, 'w');
-            fprintf(fileID, SMARTS_input.input_string);
+            fwrite(fileID, SMARTS_input.input_string);
+            frewind(fileID);
             result = fclose(fileID);
-
+            
             if 0 == result
                 success = true;
             end
@@ -284,19 +290,24 @@ classdef SMARTS_input
         end
 
         function [SMARTS_input, success, destination] = run_smarts(SMARTS_input, varargin)
+            %%RUNSMARTS execute SMARTS with defined input, then move the input
+            %%and output files to a specified location (stub).
 
-            disp(SMARTS_input.smarts_path);
-            % assert((~isempty(SMARTS_input.smarts_path)) ...
-            %     & isdir(SMARTS_input.smarts_path), 'No valid path for SMARTS');
+            %% Input validation
+            %ensure that the SMARTS directory is valid
+            %disp(SMARTS_input.smarts_path);
+             assert((~isempty(SMARTS_input.smarts_path)) ...
+                 & isfolder(SMARTS_input.smarts_path), 'No valid path to SMARTS directory');
 
             success = false;
-
-            p = inputParser;
-            addParameter(p, 'file_path', '');
-            addParameter(p, 'file_name', '');
-
-            parse(p, varargin{:});
             
+            %% parse inputs and create input file for SMARTS
+            p = inputParser;
+            addParameter(p, 'file_path', '');%where to write input file
+            addParameter(p, 'file_name', '');%what to call input file
+            parse(p, varargin{:});
+
+            %if the system in use is windows, need to turn CRLF newlines into UNIX newlines
             if true == ispc
                 SMARTS_input.input_string = replace(SMARTS_input.input_string, newline, [char(13), char(10)]);
             end
@@ -304,26 +315,48 @@ classdef SMARTS_input
             [write_success, destination] = SMARTS_input.write_file(...
                                             file_path=p.Results.file_path, ...
                                             file_name=p.Results.file_name);
-
+            %check writing was a success
             assert(write_success, 'Writing SMARTS input failed');
             assert(isfile(destination), 'Input file has been lost')
 
-            parts = strsplit(destination, '/');
+            %broken down path to input file
+            parts = strsplit(destination, filesep);
+            %input file which SMARTS runs, must be copied to
             target = [SMARTS_input.smarts_path, 'smarts295.inp.txt'];
+            %path of original input file
             data_path = strrep(destination, parts{end}, '');
 
+            %% copy input file to SMARTS input and run
+            %copy input file to SMARTS input file
+
             status = copyfile(destination, target);
+            %check copying was successful
             assert(isfile(target), 'Input file has been lost during copy');
-            exe = [SMARTS_input.smarts_path, 'smarts295bat'];
+            %path to SMARTS exe
+            exe = [SMARTS_input.smarts_path, 'smarts295bat.exe'];
+            %move to SMARTS exe directory
             cur_dir = pwd;
             cd(SMARTS_input.smarts_path);
-            system('./smarts295bat');
+            %run SMARTS- (suppress output to command window)
+            evalc('system("smarts295bat.exe")');
+            %system("smarts295bat.exe")
 
-            movefile('./smarts295.ext.txt', strrep(destination, 'inp', 'ext'));
-            movefile('./smarts295.out.txt', strrep(destination, 'inp', 'out'));
+            %copy output files back to stub location %%%%%%%%%%%%% error comes
+            %here- SMARTS does not run correctly with custom cards- it errors
+            %and does not produce all output files
+            %{
+smarts295.inp.txt
+Data transfer beyond end of file, FILE=smarts295.inp.txt, UNIT=14 RECORD=2,
+ POSITION=0.
+            %}
+            assert(isfile('smarts295.ext.txt'),' smarts295.ext.txt not created by SMARTS')
+            movefile('smarts295.ext.txt', strrep(destination, 'inp', 'ext'));
+            assert(isfile('smarts295.out.txt'),' smarts295.out.txt not created by SMARTS')
+            movefile('smarts295.out.txt', strrep(destination, 'inp', 'out'));
             SMARTS_input.current_ext_file_path = strrep(destination, 'inp', 'ext');
             % disp(SMARTS_input.current_ext_file_path)
 
+            %% move back to original directory and signal success
             cd(cur_dir);
             success = true;
         end

@@ -15,3 +15,22 @@ function radiance = irradiance2radiance(irradiance, wavelengths, units)
     wavelengths = wavelengths .* units;
     radiance = irradiance ./ wavelengths ./ (4 * pi);
 end
+
+
+
+%% is this correct? should we be dividing by wavelength or by wavelength interval?
+
+% i would go with
+%radiance = power / {(solid angle)*(area)}
+%irradiance = power / {area}
+%so radiance  = irradiance/{solid angle}
+
+%presumably, the exposed surface solid angle is a hemisphere, so 2pi steradians
+
+%so...
+%{
+function radiance = irradiance2radiance(irradiance, wavelengths, units)
+    %wavelengths = wavelengths .* units;
+    radiance = irradiance ./(2 * pi);
+end
+%}

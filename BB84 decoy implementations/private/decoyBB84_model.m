@@ -34,15 +34,18 @@ function [SKR_decoyBB84, QBER, Rate_In, Rate_Det] = decoyBB84_model(MPN, ...
                                                     State_p, ...
                                                     state_prep_error, ...
                                                     rep_rate,...
-                                                    det_eff, ...
                                                     prob_dark_counts, ...
                                                     loss, ...
                                                     prot_eff, ...
-                                                    qber_jitter, ...
-                                                    dead_time, ...
-                                                    polarisation_error, ...
                                                     Detector)
-    
+
+    %% get variables from detector object
+    det_eff = Detector.Detection_Efficiency;
+    QBER_jitter = Detector.QBER_Jitter;
+    %QBER due to polarisation misalignment (in degrees)
+    QBER_polarisation_error = sind(Detector.Polarisation_Error);
+
+
     pD = (MPN .* State_p)' * 10.^(-(loss) / 10) .* det_eff + prob_dark_counts;
     %disp(sum(pD) * rep_rate);
     tau1 = Detector.fall_time;
@@ -55,10 +58,6 @@ function [SKR_decoyBB84, QBER, Rate_In, Rate_Det] = decoyBB84_model(MPN, ...
     QBER_noise = 0.5 * prob_dark_counts ./ pD;
     %QBER_jitter = qber_jitter;
     % Detector = SetJitterPerformance(Detector, sum(pD) * rep_rate);
-    QBER_jitter = Detector.QBER_Jitter;
-
-    %QBER due to polarisation misalignment (in degrees)
-    QBER_polarisation_error = sind(polarisation_error);
     
     % To avoid that due to QBER_cod and QBER_jitter (fixed) the QBER
     % can go higher than 50%, which doesn't make sense
@@ -93,6 +92,9 @@ function [SKR_decoyBB84, QBER, Rate_In, Rate_Det] = decoyBB84_model(MPN, ...
     %disp(SKR_decoyBB84);
     %SKR_decoyBB84(isnan(R_sifted)) = NaN;
     SKR_decoyBB84(isnan(SKR_decoyBB84)) = NaN;
+    %% modification cjs
+    %do not allow negative SKR
+    SKR_decoyBB84(SKR_decoyBB84<0)=0;
     
     %% modification cjs
     %SKR cannot be negative. negative results should be replaced by

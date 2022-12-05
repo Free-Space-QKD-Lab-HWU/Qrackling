@@ -19,21 +19,23 @@ classdef Gaussian_Beacon < Beacon
             Gaussian_Beacon.Divergence_Half_Angle = Divergence_Half_Angle;
         end
 
-        function Loss = GetAPTLoss(Gaussian_Beacon, Angle)
+        function Loss = GetAPTLoss(Gaussian_Beacon, Camera)
         %Get the loss (absolute, i.e. the fraction of transmitted power)
         % at an angle off the optical axis of the beacon
 
 
             %% compute intensity distribution function at this angle
-            Loss = 1/sqrt(2*pi*Gaussian_Beacon.Divergence_Half_Angle)*...
-                exp(0.5*(Angle/Gaussian_Beacon.Divergence_Half_Angle).^2);
+            Downlink_APT_Loss = Gaussian_Beacon.Divergence_Half_Angle^2/(Gaussian_Beacon.Divergence_Half_Angle^2+Gaussian_Beacon.Pointing_Jitter^2);
+            Uplooking_APT_Loss= 1-exp(-(Camera.FOV).^2./(8*Camera.Telescope.Pointing_Jitter.^2));
+            %take product
+            Loss = Downlink_APT_Loss.*Uplooking_APT_Loss;
         end
 
         function GeoLoss = GetGeoLoss(Gaussian_Beacon, Range, Camera)
         %%GETGEOLOSS Get the loss incurred by the spreading of the beacon beam
         %relative to the receiver camera area. Value is a unitless ratio <1
 
-        GeoLoss = Camera.Collecting_Area./(pi*(Gaussian_Beacon.Divergence_Half_Angle*Range).^2);
+        GeoLoss = (sqrt(pi)/8)*Camera.Collecting_Area./((Gaussian_Beacon.Divergence_Half_Angle*Range).^2);
         end
     end
 end

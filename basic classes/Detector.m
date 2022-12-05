@@ -28,7 +28,7 @@ classdef (Abstract) Detector
 
         % polarisation reference is required for polarisation encoded QKD.
         % poor polarisation compensation results in high QBER. We describe
-        % the rms error in polarisation compensation determines the QBER in
+        % the rms error in polarisation compensation which determines QBER in
         % degrees
         Polarisation_Error{mustBeScalarOrEmpty, mustBeNonnegative} = asind(1/280);
         %default value modelled off Micius
@@ -68,6 +68,7 @@ classdef (Abstract) Detector
             addRequired(p, 'Spectral_Filter_Width');
             addParameter(p, 'Bin_Width', nan);
             addParameter(p, 'Dead_Time', nan);
+            addParameter(p, 'Polarisation_Error',asind(1/280));
 
             parse(p, Wavelength, Repetition_Rate, Time_Gate_Width, ...
                   Spectral_Filter_Width, varargin{:});
@@ -100,8 +101,8 @@ classdef (Abstract) Detector
                 Detector.dead_time = Detector.rise_time + Detector.fall_time;
             else
                 Detector.dead_time = p.Results.Dead_Time;
-                detector.rise_time = P.Results.Dead_Time / 2;
-                detector.fall_time = P.Results.Dead_Time / 2;
+                Detector.rise_time = P.Results.Dead_Time / 2;
+                Detector.fall_time = P.Results.Dead_Time / 2;
             end
 
             if Detector.Efficiency_Data_Location
@@ -370,7 +371,7 @@ classdef (Abstract) Detector
         function [wavelengths, efficiency] = LoadDetectorEfficiency(Detector)
             if isempty(Detector.Efficiency_Data_Location)
                 wavelengths = Detector.Wavelength;
-                efficiency = Detector.Detection_Efficiency
+                efficiency = Detector.Detection_Efficiency;
             else
                 data = load(Detector.Efficiency_Data_Location);
                 wavelengths = data.wavelengths;
