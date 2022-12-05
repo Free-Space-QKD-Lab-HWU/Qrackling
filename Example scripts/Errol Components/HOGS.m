@@ -13,10 +13,10 @@ HOGS_Telescope = Telescope(Telescope_Diameter,...
     'Optical_Efficiency',Optical_Efficiency);
 
 %Detector
-Wavelength = 780;                                                   %signal wavelength in nm
+Wavelength = 785;                                                   %signal wavelength in nm
 Repetition_Rate = 1E8;                                              %signal rep rate in Hz
-Time_Gate = 1E-9;                                                   %time gate width in s
-Spectral_Filter_Width = 1;                                          %spectral filter width in nm
+Time_Gate = 2E-9;                                                   %time gate width in s
+Spectral_Filter_Width = 2;                                          %spectral filter width in nm
 HOGS_Detector = MPD_Detector(Wavelength,Repetition_Rate,...
     Time_Gate,Spectral_Filter_Width);
 
