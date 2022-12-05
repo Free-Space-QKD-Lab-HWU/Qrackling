@@ -66,7 +66,7 @@ tle = sprintf([...
 '2 07530 101.9048 168.4749 0012358   5.5276 108.6298 12.53655723179980' ...
     ]);
 
-startTime = utils().tleStartTime(tle)
+startTime = utils().tleStartTime(tle);
 stopTime = startTime + hours(5);
 sampleTime = 360;
 
@@ -82,7 +82,7 @@ sampleTime = 360;
                               name=name, ...
                               KeplerElements=[sma, ecc, inc, raan, aop, ta]);
 
-scene.Satellites(1).show()
+scene.Satellites(1).show();
 if debug
     for i = 1 : constellation.N
         disp(constellation.Satellites{i});

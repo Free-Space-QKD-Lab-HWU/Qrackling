@@ -154,12 +154,7 @@ classdef Beacon_Downlink_Model < Link_Model
 
         %% adjust legend to represent what is plotted
         %atmospheric loss is non zero
-        if any(GetAtmosphericLossdB(Satellite_Link_Model))
-            legend('Geometric loss','Atmospheric loss','Efficiency loss','APT loss');
-        else
-            %atmospheric loss is zero
-            legend('Geometric loss','','Efficiency loss','APT loss');
-        end
+        legend('Geometric loss','Atmospheric loss','Efficiency loss','APT loss','Orientation','horizontal');
         legend('Location','south')
     end
 

@@ -46,6 +46,7 @@ classdef Telescope
             addParameter(P,'Far_Field_Divergence_Coefficient', ...
                          obj.Far_Field_Divergence_Coefficient);
             addParameter(P,'Pointing_Jitter',obj.Pointing_Jitter);
+            addParameter(P,'FOV',[])
             %parse inputs
             parse(P,Diameter,varargin{:});
 
@@ -56,6 +57,9 @@ classdef Telescope
             obj.Optical_Efficiency=P.Results.Optical_Efficiency;
             obj=SetPointingJitter(obj,P.Results.Pointing_Jitter);
             obj=SetWavelength(obj,P.Results.Wavelength);
+            if ~isempty(P.Results.FOV)
+                obj=SetFOV(obj,P.Results.FOV);
+            end
 
         end
 
@@ -77,9 +81,14 @@ classdef Telescope
         function Telescope = SetFOV(Telescope, FOV)
             %%SETFOV set the FOV of a telescope by updating the far field
             %%divergence coefficient to suit
+
+            if ~isempty(Telescope.Wavelength)
             Telescope.Far_Field_Divergence_Coefficient = ...
                         FOV * Telescope.Diameter / ...
                             (2.44 *( Telescope.Wavelength * 10^-9 ));  
+            else
+                Telescope.FOV = FOV;
+            end
         end
 
         function Area = get.Collecting_Area(Telescope)
