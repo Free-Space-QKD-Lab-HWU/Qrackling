@@ -1,6 +1,6 @@
 %% Decoy testing
 clear all
-% close all
+close all
 clc
 
 %% declare lambdas...
@@ -8,20 +8,31 @@ circAreaFromDiameter = @(d) pi * (d / 2)^2;
 obscurationRatio = @(d, obs) 1 - (circAreaFromDiameter(d*obs) ...
                                   / circAreaFromDiameter(d));
 
-%% Set Params and Simulate
+% %% Set Params and Simulate
 close all
 
 OrbitDataFileLocation= '500kmSSOrbitLLAT.txt';
 
 wvl = 808;
-wvl = 785;
+%wvl = 785;
+
+if 808 == wvl
+    eta_back = 0.9;
+    eta_back = 0.81;
+elseif 785 == wvl
+    eta_back = 0.935;
+    eta_back = 0.81;
+else
+    eta_back = 1;
+end
+
 n_ph_opts = linspace(0.3, 0.8, 6);
 n_ph = n_ph_opts(1);
-reprate = 50e6;
+reprate = 200e6;
 %reprate = 200e6;
 %reprate = 1e9;
 time_gate = 10^-9;
-spectral_filter = 1; 
+spectral_filter = 10; 
 dcr = 1000; % optionally 200
 
 central_obscuration_ratio_rx = 0.3;
@@ -30,9 +41,21 @@ diameter_rx = 0.7;
 
 protocol = decoyBB84_Protocol();
 
-source_dv = Source(wvl, ...
-                   Repetition_Rate = reprate, ...
-                   Mean_Photon_Number = [n_ph, 1-n_ph,0], ...
+source_dv50 = Source(wvl, ...
+                   Repetition_Rate = 50e6, ...
+                   Mean_Photon_Number = [n_ph, 0.8, 0], ...
+                   State_Prep_Error = 0.025, ...
+                   State_Probabilities =[0.7,0.2,0.1]);
+
+source_dv200 = Source(wvl, ...
+                   Repetition_Rate = 200e6, ...
+                   Mean_Photon_Number = [n_ph, 0.8, 0], ...
+                   State_Prep_Error = 0.025, ...
+                   State_Probabilities =[0.7,0.2,0.1]);
+
+source_dv500 = Source(wvl, ...
+                   Repetition_Rate = 500e6, ...
+                   Mean_Photon_Number = [n_ph, 0.8, 0], ...
                    State_Prep_Error = 0.025, ...
                    State_Probabilities =[0.7,0.2,0.1]);
 
@@ -41,22 +64,57 @@ source_dv = Source(wvl, ...
 % detector_dv = detector_dv.SetDarkCountRate(dcr);
 %test_detector(wvl, reprate, time_gate, spectral_filter, 600)
 
-detector_dv = Excelitas_Detector(wvl, reprate, time_gate, spectral_filter);
+detector_dv50 = Excelitas_Detector(wvl, 50e6, time_gate, spectral_filter, Dead_Time = 1e-6);
+detector_dv200 = Excelitas_Detector(wvl, 200e6, time_gate, spectral_filter, Dead_Time = 1e-6);
+detector_dv500 = Excelitas_Detector(wvl, 500e6, time_gate, spectral_filter, Dead_Time = 1e-6);
 
 %detector_dv = MPD_Detector(wvl, reprate, time_gate, spectral_filter);
 
 telescope_tx = Telescope(diameter_tx, Wavelength = wvl);
 telescope_rx = Telescope(diameter_rx, Wavelength = wvl);
 
-telescope_rx.Optical_Efficiency = obscurationRatio(diameter_rx, ...
+telescope_rx.Optical_Efficiency = eta_back * obscurationRatio(diameter_rx, ...
                                                 central_obscuration_ratio_rx);
-satellite = Satellite(source_dv, telescope_tx, ...
+
+ogs50 = Errol_OGS(detector_dv50, telescope_rx);
+ogs200 = Errol_OGS(detector_dv200, telescope_rx);
+ogs500 = Errol_OGS(detector_dv500, telescope_rx);
+
+satellite50 = Satellite(source_dv50, telescope_tx, ...
+                      'OrbitDataFileLocation',OrbitDataFileLocation);
+satellite200 = Satellite(source_dv200, telescope_tx, ...
+                      'OrbitDataFileLocation',OrbitDataFileLocation);
+satellite500 = Satellite(source_dv500, telescope_tx, ...
                       'OrbitDataFileLocation',OrbitDataFileLocation);
 
-ogs = Errol_OGS(detector_dv, telescope_rx);
+decoybb84_pass50 = PassSimulation(satellite50, protocol, ogs50, Visibility='50km');
+decoybb84_pass200 = PassSimulation(satellite200, protocol, ogs200, Visibility='50km');
+decoybb84_pass500 = PassSimulation(satellite500, protocol, ogs500, Visibility='50km');
 
-decoybb84_pass = PassSimulation(satellite, protocol, ogs, Visibility='50km');
-decoybb84_pass = Simulate(decoybb84_pass);
+decoybb84_pass50 = Simulate(decoybb84_pass50);
+decoybb84_pass200 = Simulate(decoybb84_pass200);
+decoybb84_pass500 = Simulate(decoybb84_pass500);
+
+qindex = false(1, numel(decoybb84_pass50.Elevations));
+qindex(decoybb84_pass50.QBERs > min(decoybb84_pass50.QBERs)) = true;
+[~, max_idx] = max(decoybb84_pass50.Elevations);
+qindex(max_idx + 1 : end) = false;
+figure
+hold on
+yyaxis left
+l1 = plot(decoybb84_pass50.Elevations(qindex), decoybb84_pass50.QBERs(qindex)*100)
+l2 = plot(decoybb84_pass200.Elevations(qindex), decoybb84_pass200.QBERs(qindex)*100)
+l3 = plot(decoybb84_pass500.Elevations(qindex), decoybb84_pass500.QBERs(qindex)*100)
+ylabel('QBER (%)')
+yyaxis right
+r1 = plot(decoybb84_pass50.Elevations(qindex), decoybb84_pass50.Secret_Key_Rates(qindex)*100)
+r2 = plot(decoybb84_pass200.Elevations(qindex), decoybb84_pass200.Secret_Key_Rates(qindex)*100)
+r3 = plot(decoybb84_pass500.Elevations(qindex), decoybb84_pass500.Secret_Key_Rates(qindex)*100)
+ylabel('Secret Key Rate (Bits / s)')
+xlabel('Elevation (\circ)')
+title(sprintf('QBER & SKR in Satellite Pass (%.3g nm)', wvl))
+hold off
+legend([l1, l2, l3, r1, r2, r3], '50MHz', '200MHz', '500MHz', '50MHz', '200MHz', '500MHz');
 
 %figure
 %semilogy(decoybb84_pass.Rates_In(decoybb84_pass.Rates_In ~= 0) ...
@@ -73,7 +131,7 @@ decoybb84_pass.plot();
 pos = get (gcf, 'position');
 set(0, 'DefaultFigurePosition', pos)
 
-%% Loss plot
+% %% Loss plot
 
 elevation_cut_off = 10; % degrees
 
@@ -109,7 +167,7 @@ for i = 1 : numel(loss_fields)
     % area(Elevations, b);
     a = b;
 end
-xlim([20, 90])
+xlim([30, 90])
 legend(...
     cellfun(@(X) replace(X, '_', ' '), flipud(loss_fields), UniformOutput=false), ...
     Location='southwest')
@@ -117,7 +175,7 @@ title(sprintf('Stack Plot of Errors in Satellite Pass (%.3g nm)', wvl))
 xlabel('Elevation (\circ)')
 ylabel('Loss (dB)');
 
-%% SKR plot
+% %% SKR plot
 qindex = false(1, numel(decoybb84_pass.Elevations));
 qindex(decoybb84_pass.QBERs > min(decoybb84_pass.QBERs)) = true;
 [~, max_idx] = max(decoybb84_pass.Elevations);

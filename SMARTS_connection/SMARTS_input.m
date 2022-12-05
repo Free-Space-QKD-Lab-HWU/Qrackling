@@ -23,7 +23,7 @@ classdef SMARTS_input
         smarts_path = '';
         current_ext_file_path = '';
         file_path_stub = '';
-    
+
     end
 
     properties(SetAccess=protected, Hidden=true)
@@ -73,7 +73,7 @@ classdef SMARTS_input
             'Dirct_normal_photon_flux', ...
             'Dif_horizntl_photon_flux', ...
             'Global_tiltd_photon_flux'}
-    
+
     end
 
     methods
@@ -154,10 +154,10 @@ classdef SMARTS_input
                     end
                 end
             end
-            
+
         end
 
-        
+
         function input_string = compose(SMARTS_input)
 
             valid = validate_cards(SMARTS_input);

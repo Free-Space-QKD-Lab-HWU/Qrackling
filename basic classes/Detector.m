@@ -52,6 +52,7 @@ classdef (Abstract) Detector
 
         %Data for wavelength dependant detector efficiency
         Efficiency_Data_Location;
+        Dead_Time;
     end
 
 
@@ -98,10 +99,12 @@ classdef (Abstract) Detector
 
             if isnan(p.Results.Dead_Time)
                 Detector.dead_time = Detector.rise_time + Detector.fall_time;
+                Detector = SetDeadTime(Detector, p.Results.Dead_Time);
             else
                 Detector.dead_time = p.Results.Dead_Time;
-                detector.rise_time = P.Results.Dead_Time / 2;
-                detector.fall_time = P.Results.Dead_Time / 2;
+                Detector = SetDeadTime(Detector, p.Results.Dead_Time);
+                detector.rise_time = p.Results.Dead_Time / 2;
+                detector.fall_time = p.Results.Dead_Time / 2;
             end
 
             if Detector.Efficiency_Data_Location
@@ -135,6 +138,10 @@ classdef (Abstract) Detector
         function Detector = SetProtocol(Detector, Protocol)
             %%SETPROTOCOL
             Detector.Protocol = Protocol;
+        end
+
+        function Detector = SetDeadTime(Detector, Dead_Time)
+            Detector.Dead_Time = Dead_Time;
         end
 
         % Jitter calculations...

@@ -143,16 +143,35 @@ classdef GenerateAtmosphere
             for a = 1 : numel(GenerateAtmosphere.azimuth)
                 for e = 1 : numel(GenerateAtmosphere.elevation)
                     file_path = [GenerateAtmosphere.result_files{a, e}, '.ext.txt'];
-                    data = readtable(file_path, 'VariableNamingRule', 'preserve');
+                    data = readtable(file_path, VariableNamingRule = 'preserve');
                     temp.azimuth = GenerateAtmosphere.azimuth(a);
                     temp.elevation = GenerateAtmosphere.elevation(e);
-                    temp.transmittance = data.Mixed_gas__transmittance;
-                    temp.global_tilted_irradiance = data.Global_tilted_irradiance;
+                    temp.data = GenerateAtmosphere.extractVariables(data);
                     GenerateAtmosphere.atmosphere{a, e} = temp;
                 end
             end
 
             GenerateAtmosphere.wavelengths = data.Wvlgth;
+        end
+
+        function res_table = extractVariables(GenerateAtmosphere, smarts_data)
+
+            cases = {'irrad', 'transmit'};
+            n_opt = linspace(1, numel(cases), numel(cases));
+
+            res_table = struct();
+            for i = 2 : numel(smarts_data.Properties.VariableNames)
+                vn = smarts_data.Properties.VariableNames{i};
+                switch sum(cellfun(@(c) contains(vn, c), cases) .* n_opt)
+                    case 0
+                        continue
+                    otherwise
+                        res_table.(vn) = smarts_data.(vn);
+                end
+            end
+
+            res_table = struct2table(res_table);
+
         end
 
         function ExportAtmosphere(GenerateAtmosphere, result_path)
