@@ -308,9 +308,9 @@ classdef SMARTS_input
             parse(p, varargin{:});
 
             %if the system in use is windows, need to turn CRLF newlines into UNIX newlines
-            if true == ispc
-                SMARTS_input.input_string = replace(SMARTS_input.input_string, newline, [char(13), char(10)]);
-            end
+            %if true == ispc
+            %    SMARTS_input.input_string = replace(SMARTS_input.input_string, newline, [char(13), char(10)]);
+            %end
             
             [write_success, destination] = SMARTS_input.write_file(...
                                             file_path=p.Results.file_path, ...
@@ -341,14 +341,6 @@ classdef SMARTS_input
             evalc('system("smarts295bat.exe")');
             %system("smarts295bat.exe")
 
-            %copy output files back to stub location %%%%%%%%%%%%% error comes
-            %here- SMARTS does not run correctly with custom cards- it errors
-            %and does not produce all output files
-            %{
-smarts295.inp.txt
-Data transfer beyond end of file, FILE=smarts295.inp.txt, UNIT=14 RECORD=2,
- POSITION=0.
-            %}
             assert(isfile('smarts295.ext.txt'),' smarts295.ext.txt not created by SMARTS')
             movefile('smarts295.ext.txt', strrep(destination, 'inp', 'ext'));
             assert(isfile('smarts295.out.txt'),' smarts295.out.txt not created by SMARTS')

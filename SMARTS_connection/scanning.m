@@ -16,7 +16,7 @@ classdef scanning < card
 
             scanning.card_type = 'ISCAN';
             scanning.card_num = 14;
-            scanning.groups = {{}, {'wavelength_min', 'wavelength_max', ...
+            scanning.groups = {{}, {'filtering', 'wavelength_min', 'wavelength_max', ...
                                 'step', 'fwhm'}};
             scanning.suffix = {'', 'a'};
 
@@ -36,13 +36,14 @@ classdef scanning < card
                            p.Results.fwhm]))
 
                 assert(p.Results.filtering == 0 | p.Results.filtering == 1, ...
-                       '"Filtering" must be -> {0: Gaussian, 1: Triangular}');
+                       '"Filtering" must be -> {1: Gaussian, 0: Triangular}');
 
                 assert(p.Results.wavelength_max - p.Results.wavelength_min ...
                        > 2 * p.Results.fwhm, ...
                        '"wavelength_max" - "wavelength_min" > 2 * "fwhm" must hold');
             end
-                scanning.flag = 1;
+                scanning.flag = 0;
+                scanning.filtering = p.Results.filtering;
                 scanning.wavelength_min = p.Results.wavelength_min;
                 scanning.wavelength_max = p.Results.wavelength_max;
                 scanning.step = p.Results.step;

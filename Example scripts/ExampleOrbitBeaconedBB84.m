@@ -57,7 +57,7 @@ SMARTS_Config = solar_background_errol('executable_path','C:\Git\SMARTS\','stub'
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'SMARTS',SMARTS_Config);
+Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'SMARTS',SMARTS_Config,'Visibility','30km');
 
 %3.2 run simulation
 Pass=Simulate(Pass);
