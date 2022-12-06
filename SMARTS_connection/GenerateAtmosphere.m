@@ -60,7 +60,9 @@ classdef GenerateAtmosphere
                                                     STOP / STEP );
 
             GenerateAtmosphere.azimuth = arange(0, 360, p.Results.step_size_aziumth);
-            GenerateAtmosphere.elevation = arange(0, 90, p.Results.step_size_elevation);
+            GenerateAtmosphere.elevation = arange(0, ...
+                                                  90 + p.Results.step_size_elevation, ...
+                                                  p.Results.step_size_elevation);
 
             GenerateAtmosphere = GenerateAtmosphere.SimulateAtmosphere(...
                                      force_run_SMARTS=p.Results.force_run_SMARTS);
@@ -111,6 +113,10 @@ classdef GenerateAtmosphere
 
                     if ( all(2 == arrayfun(@(F) exist(F, 'file'), fn_str + extensions)) ...
                          & (p.Results.force_run_SMARTS == false) )
+                        waitbar(i / N, ...
+                                progress, ...
+                                sprintf('Completed %d/%d SMARTS Simulation', i, N));
+                        i = i + 1;
                         continue
                     end
 

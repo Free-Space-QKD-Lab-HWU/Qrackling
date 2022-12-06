@@ -109,7 +109,69 @@ elevation = decoybb84_pass.Elevations(decoybb84_pass.Elevation_Limit_Flags);
 
 reorderAngles = @(angles) mod((angles - 180), 360);
 azimuth = reorderAngles(azimuth);
-elevation = reorderAngles(elevation);
+%elevation = reorderAngles(elevation);
 
 figure
 plot(azimuth, elevation)
+xlabel('Azimuth \circ')
+ylabel('Elevation \circ')
+
+
+%% extraction
+
+fieldnames(atmosphere.values{1, 1}.data)
+
+min_idx = find(atmosphere.wavelengths == wvl);
+[N_a, N_e] = size(atmosphere.values);
+store = zeros(size(atmosphere.values));
+atmos_elevation = zeros(size(atmosphere.values));
+atmos_azimuth = zeros(size(atmosphere.values));
+choice = 'Difuse_tilted_irradiance';
+for i = 1 : N_e
+    for j = 1 : N_a
+        store(j, i) = atmosphere.values{j, i}.data.(choice)(min_idx);
+        atmos_azimuth(j, i) = atmosphere.values{j, i}.azimuth;
+        atmos_elevation(j, i) = atmosphere.values{j, i}.elevation;
+    end
+end
+
+% sum(sum(store == store(1,1))) == (N_a * N_e)
+
+figure
+contourf(atmos_azimuth', atmos_elevation', store')
+xlabel('Azimuth \circ')
+ylabel('Elevation \circ')
+
+
+%% interpolation
+
+[X, Y] = meshgrid(unique(atmos_azimuth), unique(atmos_elevation));
+[newX, newY] = meshgrid(azimuth, elevation);
+Vq = interp2(X, Y, store', newX, newY, 'cubic', 0);
+
+figure
+contourf(newX, newY, Vq, 25)
+xlabel('Azimuth \circ')
+ylabel('Elevation \circ')
+
+
+%% overlay pass onto interpolated data
+
+figure
+grid on
+plot3(azimuth, elevation, Vq(eye(numel(azimuth)) == 1))
+xlabel('Azimuth \circ')
+ylabel('Elevation \circ')
+zlabel(sprintf('%s @ %.3gnm', replace(choice, '_', ' '), wvl))
+
+figure
+grid on
+hold on
+plot3(azimuth, elevation, Vq(eye(numel(azimuth)) == 1), 'LineWidth', 3)
+surfl(newX, newY, Vq)
+colormap(pink)    % change color map
+shading interp
+hold off
+xlabel('Azimuth \circ')
+ylabel('Elevation \circ')
+zlabel(sprintf('%s @ %.3gnm', replace(choice, '_', ' '), wvl))
