@@ -14,7 +14,7 @@ classdef PassSimulation
         Ground_Station Ground_Station;
 
         %object which holds link properties over the pass
-        Link_Model;
+        Link_Model (1,1);   %must be singular
 
         %array of background light pollution sources to be simulated
         Background_Sources;
@@ -137,7 +137,7 @@ classdef PassSimulation
             PassSimulation.Times = PassSimulation.Satellite.Times;
             %% set number of steps in simulation
             PassSimulation = Set_N_Steps(PassSimulation, N_Steps);
-            PassSimulation.Link_Model = Satellite_Link_Model(N_Steps, PassSimulation.Visibility);
+            PassSimulation.Link_Model = Satellite_Link_Model(N_Steps,PassSimulation.Visibility);
 
             %% Compute background count rate and link heading and elevation
             [Headings,Elevations,Ranges]=RelativeHeadingAndElevation(PassSimulation.Satellite, PassSimulation.Ground_Station);
@@ -232,14 +232,14 @@ classdef PassSimulation
             [Computed_Sifted_Key_Rates, Computed_QBERs, Rates_In, Rates_Det] = EvaluateQKDLink(...
                 PassSimulation.Protocol, PassSimulation.Satellite.Source, ...
                 PassSimulation.Ground_Station.Detector, ...
-                [Computed_Link_Models(Elevation_Limit_Flags).Link_Loss_dB], ...
+                [Computed_Link_Models.Link_Loss_dB(Elevation_Limit_Flags)], ...
                 [Background_Count_Rates(Elevation_Limit_Flags)]);
 
             %store this step's data
             PassSimulation.Secret_Key_Rates(Elevation_Limit_Flags) = Computed_Sifted_Key_Rates;
             PassSimulation.QBERs(Elevation_Limit_Flags) = Computed_QBERs;
             PassSimulation.Communicating_Flags = ~(isnan(PassSimulation.Secret_Key_Rates)|PassSimulation.Secret_Key_Rates <= 0);
-            %PassSimulation.Elevation_Limit_Flags = Elevation_Limit_Flags;
+            PassSimulation.Elevation_Limit_Flags = Elevation_Limit_Flags;
             PassSimulation.Rates_In = Rates_In;
             PassSimulation.Rates_Det = Rates_Det;
 
@@ -348,7 +348,7 @@ classdef PassSimulation
             % plot link loss
             subplot(3, 3, [4, 5])
             title('Link Loss')
-            Plot(PassSimulation.Link_Model(Plot_Select_Flags), PassSimulation.Times(Plot_Select_Flags));
+            Plot(PassSimulation.Link_Model, PassSimulation.Times,Plot_Select_Flags);
             NameTimeAxis(PassSimulation.Times);
 
             %% plot key rate as a function of link loss

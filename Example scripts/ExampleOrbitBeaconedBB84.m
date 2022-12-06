@@ -53,11 +53,11 @@ SimGround_Station=Errol_OGS(MPD_BB84_Detector,Receiver_Telescope,...
 BB84_protocol=BB84_Protocol;
 
 %2.4 SMARTS atmospheric modelling config
-SMARTS_Config = solar_background_errol('executable_path','C:\Git\SMARTS\','stub','C:\Git\QKD_Sat_Link\SMARTS_connection\SMARTS cache\');
+SMARTS_Config = solar_background_errol_fast('executable_path','C:\Git\SMARTS\','stub','C:\Git\QKD_Sat_Link\SMARTS_connection\SMARTS cache\');
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'SMARTS',SMARTS_Config,'Visibility','30km');
+Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'SMARTS',SMARTS_Config,'Visibility','50km');
 
 %3.2 run simulation
 Pass=Simulate(Pass);
