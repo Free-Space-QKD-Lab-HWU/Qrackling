@@ -70,3 +70,11 @@ conditions = atmosphere.satellitePassConditions(decoybb84_pass, wvl, choice);
 cf = atmosphere.plotContourForField(decoybb84_pass, wvl, choice)
 sf = atmosphere.plotSurfaceForField(decoybb84_pass, wvl, choice)
 csf = atmosphere.plotSurfaceForCondition(conditions)
+
+%% Many Conditions
+conditions = atmosphere.satellitePassConditions(decoybb84_pass, [400, wvl, 1550], choice);
+
+conditions = atmosphere.satellitePassConditions(decoybb84_pass, 400, choice);
+csf = atmosphere.plotSurfaceForCondition(conditions)
+
+atmosphere.plotField(choice)

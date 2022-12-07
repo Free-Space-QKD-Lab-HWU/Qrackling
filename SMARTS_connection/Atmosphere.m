@@ -80,13 +80,14 @@ classdef Atmosphere
             conditions = cell(0, 0);
             nWavelengths = numel(Wavelengths);
 
+            azimuth = SatellitePass.Headings(SatellitePass.Elevation_Limit_Flags);
+            elevation = SatellitePass.Elevations(SatellitePass.Elevation_Limit_Flags);
+
+            reorderAngles = @(angles) mod((angles - 180), 360);
+            azimuth = reorderAngles(azimuth);
+
             for i = 1 : nWavelengths
                 Wavelength = Wavelengths(i);
-                azimuth = SatellitePass.Headings(SatellitePass.Elevation_Limit_Flags);
-                elevation = SatellitePass.Elevations(SatellitePass.Elevation_Limit_Flags);
-
-                reorderAngles = @(angles) mod((angles - 180), 360);
-                azimuth = reorderAngles(azimuth);
 
                 [atmos_azimuth, atmos_elevation, store] = Atmosphere.extractField(...
                                     SatellitePass, Wavelength, Field);
@@ -189,6 +190,62 @@ classdef Atmosphere
             hold off
 
         end
+
+
+        function fig = plotField(Atmosphere, Field)
+
+            values = Atmosphere.data(:, 1);
+            azimuth = zeros(1, numel(values));
+            data = zeros(numel(values), numel(values{1}.data.(Field)));
+
+            for i = 1 : numel(values)
+                data(i, :) = values{i}.data.(Field);
+                azimuth(i) = values{i}.azimuth;
+            end
+
+            [X, Y] = meshgrid(Atmosphere.wavelengths, azimuth);
+
+            fig = figure
+            axs = {subplot(1, 2, 1), subplot(1, 2, 2)}
+
+            axes(axs{1});
+            grid on
+            hold on
+            surf(X, Y, data, 'FaceAlpha', 0.4)
+            colormap(summer)
+            shading interp
+            xlim([Atmosphere.wavelengths(1), Atmosphere.wavelengths(end)])
+            ylim([azimuth(1), azimuth(end)])
+            xlabel('Wavelength nm')
+            ylabel('Azimth \circ')
+            zlabel(replace(Field, '_', ' '))
+            hold off
+
+            values = Atmosphere.data(1, :);
+            elevation = zeros(1, numel(values));
+            data = zeros(numel(values), numel(values{1}.data.(Field)));
+
+            for i = 1 : numel(values)
+                data(i, :) = values{i}.data.(Field);
+                elevation(i) = values{i}.elevation;
+            end
+
+            [X, Y] = meshgrid(Atmosphere.wavelengths, elevation);
+            axes(axs{2});
+            grid on
+            hold on
+            surf(X, Y, data, 'FaceAlpha', 0.4)
+            colormap(summer)
+            shading interp
+            xlim([Atmosphere.wavelengths(1), Atmosphere.wavelengths(end)])
+            ylim([elevation(1), elevation(end)])
+            xlabel('Wavelength nm')
+            ylabel('Elevation \circ')
+            zlabel(replace(Field, '_', ' '))
+            hold off
+
+        end
+
 
     end
 
