@@ -27,7 +27,7 @@
 classdef GenerateAtmosphere
 
     properties
-        
+
         azimuth;
         elevation;
         wavelengths;
@@ -204,7 +204,7 @@ classdef GenerateAtmosphere
             save(result_path, 'atmosphere');
         end
 
-        function atmosphere = LoadAtmosphere(GenerateAtmosphere, file_path)
+        function atmosphere = LoadAtmosphere(Atmosphere, file_path)
             assert(2 == exist(file_path), 'File does not exist');
 
             data = load(file_path);
