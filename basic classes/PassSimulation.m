@@ -14,7 +14,7 @@ classdef PassSimulation
         Ground_Station Ground_Station;
 
         %object which holds link properties over the pass
-        Link_Model;
+        Link_Model (1,1);   %must be singular
 
         %array of background light pollution sources to be simulated
         Background_Sources;
@@ -65,7 +65,7 @@ classdef PassSimulation
         %signal to noise ratio (in dB) of the downlink beacon
         Downlink_Beacon_SNR_dB = [];
         %link model describing loss from beacon on satellite to intensity at the ground
-        Downlink_Beacon_Link_Model;
+        Downlink_Beacon_Link_Model (1,1);
         %flag describing whether the link from satellite to ground station is above the horizon
         Line_Of_Sight_Flags = false(0,0);
 
@@ -131,33 +131,7 @@ classdef PassSimulation
 
         function PassSimulation = Simulate(PassSimulation)
             %SIMULATE Peform the simulation with the components of PassSimulation
-            
-            %perform correct one of up or down link (or both)
-            if ~isempty(PassSimulation.Satellite.Source)&&~isempty(PassSimulation.Ground_Station.Detector)
-                PassSimulation.Link_Direction = 'Down';
-               
-                %perform downlink sim
-                [PassSimulation.Times,...
-                PassSimulation.Headings,...
-                PassSimulation.Elevations,...
-                PassSimulation.Link_Losses_dB,...
-                PassSimulation.Link_Model,...
-                PassSimulation.Ground_Station,...
-                PassSimulation.Background_Count_Rates,...
-                PassSimulation.Any_Communication_Flag,...
-                PassSimulation.Elevation_Viability_Flag,...
-                PassSimulation.Secret_Key_Rates,...
-                PassSimulation.QBERs,...
-                PassSimulation.Communicating_Flags,...
-                PassSimulation.Elevation_Limit_Flags,...
-                PassSimulation.Line_Of_Sight_Flags,...
-                PassSimulation.Rates_In,...
-                PassSimulation.Rates_Det,...
-                PassSimulation.Total_Sifted_Key,...
-                PassSimulation.Downlink_Beacon_Flag,...
                 PassSimulation.Downlink_Beacon_Power,...
-                PassSimulation.Downlink_Beacon_SNR_dB,...
-                PassSimulation.Downlink_Beacon_Link_Model]=SimulateDownlink(PassSimulation);
             end
 
             if ~isempty(PassSimulation.Satellite.Detector)&&~isempty(PassSimulation.Ground_Station.Source)
@@ -243,7 +217,7 @@ classdef PassSimulation
             % plot link loss
             subplot(3, 3, [4, 5])
             title('Link Loss')
-            Plot(PassSimulation.Link_Model(Plot_Select_Flags), PassSimulation.Times(Plot_Select_Flags));
+            Plot(PassSimulation.Link_Model, PassSimulation.Times,Plot_Select_Flags);
             NameTimeAxis(PassSimulation.Times);
 
             %% plot key rate as a function of link loss
@@ -269,7 +243,7 @@ classdef PassSimulation
 
                 %then, plot link loss
                 subplot(3,1,2)
-                Plot(PassSimulation.Downlink_Beacon_Link_Model(PassSimulation.Line_Of_Sight_Flags),PassSimulation.Times(PassSimulation.Line_Of_Sight_Flags));
+                Plot(PassSimulation.Downlink_Beacon_Link_Model,PassSimulation.Times,PassSimulation.Line_Of_Sight_Flags);
                 NameTimeAxis(PassSimulation.Times);
 
                 %finally, plot SNR
