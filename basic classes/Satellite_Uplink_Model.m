@@ -239,57 +239,28 @@ classdef Satellite_Uplink_Model < Link_Model
 
         function Geometric_Loss_dB=GetGeometricLossdB(Satellite_Uplink_Model)
             %%GETGEOMETRICLOSSDB return an array of geometric losses in dB the same dimensions as the satellite link model
-            sz=size(Satellite_Uplink_Model);
-            Geometric_Loss_dB=zeros(sz);
 
-            %iterate over all elements
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Geometric_Loss_dB(i,j)=Satellite_Uplink_Model(i,j).Geometric_Loss_dB;
-                end
-            end
+            Geometric_Loss_dB=Satellite_Uplink_Model.Geometric_Loss_dB;
         end
 
         function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Uplink_Model)
             %%GETATMOSPHERICLOSSDB return an array of atmospheric losses in dB the
-            %same dimensions as the satellite link model
-            sz=size(Satellite_Uplink_Model);
-            Atmospheric_Loss_dB=zeros(sz);
 
-            %iterate over all elements
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Atmospheric_Loss_dB(i,j)=Satellite_Uplink_Model(i,j).Atmospheric_Loss_dB;
-                end
-            end
+            Atmospheric_Loss_dB=Satellite_Uplink_Model.Atmospheric_Loss_dB;
         end
 
         function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Satellite_Uplink_Model)
             %%GETEFFICIENCYLOSSDB return an array of efficiency losses in dB the
-            % same dimensions as the satellite link model
-            sz=size(Satellite_Uplink_Model);
-            OpticalEfficiency_Loss_dB=zeros(sz);
 
-            %iterate over all elements
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    OpticalEfficiency_Loss_dB(i,j)=Satellite_Uplink_Model(i,j).Optical_Efficiency_Loss_dB;
-                end
-            end
+           OpticalEfficiency_Loss_dB=Satellite_Uplink_Model.Optical_Efficiency_Loss_dB;
+
         end
 
         function APT_Loss_dB=GetAPTLossdB(Satellite_Uplink_Model)
             %%GETAPTLOSSDB return an array of acquistition, pointing and tracking
-            % losses in dB the same dimensions as the satellite link model
-            sz=size(Satellite_Uplink_Model);
-            APT_Loss_dB=zeros(sz);
 
-            %iterate over all elements
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    APT_Loss_dB(i,j)=Satellite_Uplink_Model(i,j).APT_Loss_dB;
-                end
-            end
+          APT_Loss_dB=Satellite_Uplink_Model.APT_Loss_dB;
+
         end
 
         function Plot(Satellite_Uplink_Model,X_Axis)
@@ -327,29 +298,13 @@ classdef Satellite_Uplink_Model < Link_Model
         function [Link_Model,Total_Loss_dB]=SetTotalLoss(Link_Model)
             %%SETTOTALLOSS update total loss to reflect stored loss values
 
-            %stay in dB domain for numerical precision
-            sz=size(Link_Model);
-            for i=1:sz(1)
-                for j=1:sz(2)
-
-                    %Total_Loss_dB=Link_Model(i,j).Geometric_Loss_dB+Link_Model(i,j).Optical_Efficiency_Loss_dB+Link_Model(i,j).Atmospheric_Loss_dB+Link_Model(i,j).APT_Loss_dB;
-                    Total_Loss_dB=Link_Model(i,j).Geometric_Loss_dB+Link_Model(i,j).Optical_Efficiency_Loss_dB+Link_Model(i,j).APT_Loss_dB;
-                    Link_Model(i,j).Link_Loss_dB=Total_Loss_dB;
-                    Link_Model(i,j).Link_Loss=10^(-Total_Loss_dB/10);
-                end
-            end
+            Total_Loss_dB=Link_Model.Geometric_Loss_dB+Link_Model.Optical_Efficiency_Loss_dB+Link_Model.APT_Loss_dB;
         end
 
         function Satellite_Uplink_Model = SetVisibility(Satellite_Uplink_Model,Visibility)
             %%SETVISIBILITY set the visibility tag of this link model
-            
-            %iterate over array
-            sz=size(Satellite_Uplink_Model);
-            for i=1:sz(1)
-                for j=1:sz(2)
-            Satellite_Uplink_Model(i,j).Visibility = Visibility;
-                end
-            end
+
+            Satellite_Uplink_Model.Visibility = Visibility;
         end
     end
 end
