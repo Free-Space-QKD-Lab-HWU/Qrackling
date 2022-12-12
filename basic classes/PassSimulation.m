@@ -108,15 +108,43 @@ classdef PassSimulation
             PassSimulation.Protocol = P.Results.Protocol;
             PassSimulation.Visibility = P.Results.Visibility;
 
-            if ~IsSourceCompatible(Protocol, Satellite.Source)
-                error('satellite source is not compatible with %s protocol', Protocol.Name);
-            end
-            if ~IsDetectorCompatible(Protocol, Ground_Station.Detector)
-                error('Ground station detector is not compatible with %s protocol', Protocol.Name);
-            end
-            if ~isequal(Satellite.Source.Wavelength, Ground_Station.Detector.Wavelength)
+
+            %perform correct one of up or down link. UPLINK is given
+            %preference. Both cannot be performed (yet)
+            if ~isempty(PassSimulation.Satellite.Detector)&&~isempty(PassSimulation.Ground_Station.Source)
+
+                %flag uplink sim
+                PassSimulation.Link_Direction = 'Up';
+                %verify compatibility
+                if ~IsSourceCompatible(Protocol, Ground_Station.Source)
+                error('ground station source is not compatible with %s protocol', Protocol.Name);
+                end
+                if ~IsDetectorCompatible(Protocol, Satellite.Detector)
+                    error('Satellite detector is not compatible with %s protocol', Protocol.Name);
+                end
+                if ~isequal(Ground_Station.Source.Wavelength, Satellite.Detector.Wavelength)
                 error('satellite and ground station must use the same wavelength')
+                end
+
+            elseif ~isempty(PassSimulation.Satellite.Source)&&~isempty(PassSimulation.Ground_Station.Detector)
+               
+                %flag downlink sim
+                PassSimulation.Link_Direction = 'Down';
+                %verify compatability            
+                if ~IsSourceCompatible(Protocol, Satellite.Source)
+                    error('satellite source is not compatible with %s protocol', Protocol.Name);
+                end
+                if ~IsDetectorCompatible(Protocol, Ground_Station.Detector)
+                    error('Ground station detector is not compatible with %s protocol', Protocol.Name);
+                end
+                if ~isequal(Satellite.Source.Wavelength, Ground_Station.Detector.Wavelength)
+                error('satellite and ground station must use the same wavelength')
+                end
+
+            else
+                error('must have satellite and ground station support either uplink or downlink')
             end
+
             %if background sources are provided,  add them
             PassSimulation.Background_Sources = P.Results.Background_Sources;
 
@@ -134,17 +162,14 @@ classdef PassSimulation
             
             %perform correct one of up or down link. UPLINK is given
             %preference. Both cannot be performed (yet)
-            if ~isempty(PassSimulation.Satellite.Detector)&&~isempty(PassSimulation.Ground_Station.Source)
+            switch PassSimulation.Link_Direction
+                case 'Up'
 
-                %perform uplink sim
-                PassSimulation.Link_Direction = 'Up';
                 PassSimulation=SimulateUplink(PassSimulation);
-            elseif ~isempty(PassSimulation.Satellite.Source)&&~isempty(PassSimulation.Ground_Station.Detector)
-                PassSimulation.Link_Direction = 'Down';
-               
-                %perform downlink sim
+                case 'Down'
+
                 PassSimulation=SimulateDownlink(PassSimulation);
-            else
+                otherwise
                 error('must have satellite and ground station support either uplink or downlink')
             end
 

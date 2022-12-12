@@ -24,7 +24,7 @@ classdef Satellite < Located_Object
         Orbit_Data_File_Location{mustBeText} = '';
 
         %object containing transmitter details
-        Source Source = BB84_Source(1);
+        Source =[]
         Telescope Telescope
 
         %% information about protocol
@@ -41,7 +41,7 @@ classdef Satellite < Located_Object
         Beacon =[];
 
         %% detector on satellite (for uplink)
-        Detector
+        Detector =[];
     end
 
     methods
@@ -86,7 +86,7 @@ classdef Satellite < Located_Object
             %detector, for uplink
             addParameter(p,'Detector',[]);
 
-            parse(p, Source, Telescope, varargin{:});
+            parse(p, Telescope, varargin{:});
 
             sma = p.Results.semiMajorAxis;
             ecc = p.Results.eccentricity;
@@ -183,13 +183,22 @@ classdef Satellite < Located_Object
 
             Satellite.N_Steps = Satellite.N_Position;
             Satellite.Times = t;
-
-            if isa(Source, 'Source')
-                Satellite.Source = p.Results.Source;
-            end
             Satellite.Telescope = p.Results.Telescope;
+
+            %infer correct wavelength from source or detector
+            if ~isempty(p.Results.Source)
+
+            Satellite.Source = p.Results.Source;
             Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
                 Satellite.Source.Wavelength);
+            elseif ~isempty(p.Results.Detector)
+            Satellite.Detector = p.Results.Detector;
+            Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
+                Satellite.Detector.Wavelength);
+            else
+                error('must provide either a source or detector')
+            end
+
 
             %% set surface object of satellite
             Satellite.Surface = p.Results.Surface;

@@ -2,6 +2,7 @@ classdef Satellite_Uplink_Model < Link_Model
     %Satellite_Uplink_Model a link model specific to satellite to OGS downlink
 
     properties (SetAccess=protected,Abstract=false)
+        N                                                                  %number of time steps to simulate
         Link_Loss;                                                         %link loss in absolute terms
         Link_Loss_dB;                                                      %link loss measured in dB
         Shadow_Flag;                                                       %flag describing when the link is shadowed
@@ -143,17 +144,17 @@ classdef Satellite_Uplink_Model < Link_Model
     end
     methods (Access=public)
 
-        function Satellite_Uplink_Model=Satellite_Uplink_Model(Data_Length,Visibility)
-            %%Satellite_Uplink_Model construct an instance of Satellite_Uplink_Model with the indicated number of modelled points
+        function Satellite_Uplink_Model=Satellite_Uplink_Model(N,Visibility)
+            %%Satellite_Downlink_Model construct an instance of Satellite_Downlink_Model with the indicated number of modelled points
             if nargin==0
                 return
             elseif nargin==1
-                Satellite_Uplink_Model=repmat(Satellite_Uplink_Model(),1,Data_Length);
+                Satellite_Uplink_Model=SetNumSteps(Satellite_Uplink_Model,N);
             elseif nargin==2
-                Satellite_Uplink_Model=repmat(Satellite_Uplink_Model(),1,Data_Length);
+                Satellite_Uplink_Model=SetNumSteps(Satellite_Uplink_Model,N);
                 Satellite_Uplink_Model=SetVisibility(Satellite_Uplink_Model,Visibility);
             else
-                error('Data length must be a positive scalar integer describing the length of the Link_Model vector')
+                error('To instantiate link model, provide a number of steps and, optionally, a visibility string')
             end
         end
 
@@ -293,6 +294,23 @@ classdef Satellite_Uplink_Model < Link_Model
             %%SETVISIBILITY set the visibility tag of this link model
 
             Satellite_Uplink_Model.Visibility = Visibility;
+        end
+
+       function Satellite_Downlink_Model = SetNumSteps(Satellite_Downlink_Model,N)
+            %%SETNUMSTEPS set the number of points in the simulated link model
+
+        Satellite_Downlink_Model.N=N;
+        Satellite_Downlink_Model.Geometric_Loss=zeros(1,N);                                                %geometric loss in absolute terms
+        Satellite_Downlink_Model.Geometric_Loss_dB=zeros(1,N);                                             %geometric loss in dB
+        Satellite_Downlink_Model.Turbulence_Loss=zeros(1,N);                                               %turbulence loss in absolute terms
+        Satellite_Downlink_Model.Turbulence_Loss_dB=zeros(1,N);                                            %turbulence loss in dB
+        Satellite_Downlink_Model.Optical_Efficiency_Loss=zeros(1,N);                                       %Optical Efficiency loss in absolute terms
+        Satellite_Downlink_Model.Optical_Efficiency_Loss_dB=zeros(1,N);                                    %Optical Efficiency loss in dB
+        Satellite_Downlink_Model.APT_Loss=zeros(1,N);                                                      %tracking loss in absolute term s
+        Satellite_Downlink_Model.APT_Loss_dB=zeros(1,N);                                                   %tracking loss in dB
+        Satellite_Downlink_Model.Atmospheric_Loss=zeros(1,N);                                              %atmospheric loss in absolute terms
+        Satellite_Downlink_Model.Atmospheric_Loss_dB=zeros(1,N);                                           %atmospheric loss in dB
+        Satellite_Downlink_Model.Length=zeros(1,N);                                                        %link distance in m
         end
     end
 end

@@ -9,7 +9,7 @@ classdef Ground_Station < Located_Object
         %Protocol{mustBeText} = '';
 
         % a detector object, validated individually in subclasses
-        Detector
+        Detector =[];
         Telescope Telescope
 
         % is is possible to replace this with a hash or index to get the object
@@ -32,7 +32,7 @@ classdef Ground_Station < Located_Object
         Camera=[];
 
         %% source for uplink
-        Source;
+        Source =[];
     end
 
     properties (Abstract = false, SetAccess = protected, Hidden = true)
@@ -82,7 +82,7 @@ classdef Ground_Station < Located_Object
     end
 
     methods
-        function [Ground_Station, varargout] = Ground_Station(Detector, Telescope, varargin)
+        function [Ground_Station, varargout] = Ground_Station(Telescope, varargin)
             % GROUND_STATION instantiate a ground station using either its
             % component classes and requiring a name and location (LLA = lat
             % lon alt)
@@ -106,15 +106,25 @@ classdef Ground_Station < Located_Object
             addParameter(p, 'Camera', []);
             addParameter(p, 'Source', []);
 
-            parse(p, Detector, Telescope, varargin{:});
+            parse(p, Telescope, varargin{:});
 
             % set Telescope parameters
-            Ground_Station.Detector = Detector;
             Ground_Station.Telescope = Telescope;
 
-            % set Telescope to be wavelength of detector
-            Ground_Station.Telescope = SetWavelength(Telescope, ...
-                                                     Detector.Wavelength);
+            %infer correct wavelength from source or detector
+            if ~isempty(p.Results.Source)
+
+            Ground_Station.Source = p.Results.Source;
+            Ground_Station.Telescope = SetWavelength(Ground_Station.Telescope, ...
+                Ground_Station.Source.Wavelength);
+            elseif ~isempty(p.Results.Detector)
+            Ground_Station.Detector = p.Results.Detector;
+            Ground_Station.Telescope = SetWavelength(Ground_Station.Telescope, ...
+                Ground_Station.Detector.Wavelength);
+            else
+                error('must provide either a source or detector')
+            end
+
 
             % set Background count rate data
             Ground_Station = ReadBackgroundCountRateData(Ground_Station, ...

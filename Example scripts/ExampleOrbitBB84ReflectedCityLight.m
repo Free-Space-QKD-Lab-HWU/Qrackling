@@ -20,7 +20,9 @@ Transmitter_Source=Source(Wavelength);                                %we use de
 Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
 
 %2.1.3 Construct satellite
-SimSatellite=Satellite(Transmitter_Source,Transmitter_Telescope,'OrbitDataFileLocation',OrbitDataFileLocation);
+SimSatellite=Satellite(Transmitter_Telescope,...
+                        'Source',Transmitter_Source,...
+                        'OrbitDataFileLocation',OrbitDataFileLocation);
 
 %2.2 Ground station
 %2.2.1 Detector
@@ -32,7 +34,7 @@ MPD_BB84_Detector=MPD_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Tim
 Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);
 
 %2.2.3 construct ground station, use Errol as an example
-SimGround_Station=Errol_OGS(MPD_BB84_Detector,Receiver_Telescope);
+SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',MPD_BB84_Detector);
 
 %2.3 protocol
 BB84_protocol=BB84_Protocol;
