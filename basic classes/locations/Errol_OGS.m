@@ -7,7 +7,7 @@ classdef Errol_OGS < Ground_Station
     end
 
     methods
-        function Errol_OGS = Errol_OGS(Detector,Telescope,varargin)
+        function Errol_OGS = Errol_OGS(Telescope,varargin)
             %Errol_OGS Construct an instance of a OGS at HWU site at the
             %input wavelength
 
@@ -31,7 +31,7 @@ classdef Errol_OGS < Ground_Station
                     Background_Light_Data_Location='none';
             end
 
-            Errol_OGS=Errol_OGS@Ground_Station(Detector,...
+            Errol_OGS=Errol_OGS@Ground_Station(...
                 Telescope,...
                 'LLA',[56.40555555,-3.18833333,10],... %coords
                 'Background_Count_Rate_File_Location',Background_Light_Data_Location,... 

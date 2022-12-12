@@ -131,26 +131,19 @@ classdef PassSimulation
 
         function PassSimulation = Simulate(PassSimulation)
             %SIMULATE Peform the simulation with the components of PassSimulation
-<<<<<<< Updated upstream
-                PassSimulation.Downlink_Beacon_Power,...
-            end
-=======
             
-            %perform correct one of up or down link. DOWNLINK is given
+            %perform correct one of up or down link. UPLINK is given
             %preference. Both cannot be performed (yet)
-            if ~isempty(PassSimulation.Satellite.Source)&&~isempty(PassSimulation.Ground_Station.Detector)
-                PassSimulation.Link_Direction = 'Down';
-               
-                %perform downlink sim
-                PassSimulation=SimulateDownlink(PassSimulation);
-
-            elseif ~isempty(PassSimulation.Satellite.Detector)&&~isempty(PassSimulation.Ground_Station.Source)
->>>>>>> Stashed changes
+            if ~isempty(PassSimulation.Satellite.Detector)&&~isempty(PassSimulation.Ground_Station.Source)
 
                 %perform uplink sim
                 PassSimulation.Link_Direction = 'Up';
                 PassSimulation=SimulateUplink(PassSimulation);
-            
+            elseif ~isempty(PassSimulation.Satellite.Source)&&~isempty(PassSimulation.Ground_Station.Detector)
+                PassSimulation.Link_Direction = 'Down';
+               
+                %perform downlink sim
+                PassSimulation=SimulateDownlink(PassSimulation);
             else
                 error('must have satellite and ground station support either uplink or downlink')
             end
@@ -590,7 +583,7 @@ classdef PassSimulation
             PassSimulation.Downlink_Beacon_Power=Downlink_Beacon_Power;
             PassSimulation.Downlink_Beacon_SNR_dB=Downlink_Beacon_SNR_dB;
             PassSimulation.Downlink_Beacon_Link_Model=Downlink_Beacon_Link_Model;
-
+        end
         
         function [Satellite, Protocol, Ground_Station,...
                 Background_Sources, smarts_configuration,...

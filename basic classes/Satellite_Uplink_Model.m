@@ -30,25 +30,17 @@ classdef Satellite_Uplink_Model < Link_Model
             if ~all(isreal(Geometric_Loss)&Geometric_Loss>=0)
                 error('geometric loss must be a non-negative array of numeric values')
             end
-            sz=size(Geometric_Loss);
-            if ~isequal(sz,size(Link_Models))
-                if isequal(size(Geometric_Loss'),size(Link_Models))
-                    Geometric_Loss=Geometric_Loss'; %can transpose lengths to match dimensions of Link_Models
-                    sz=size(Geometric_Loss);
-                elseif isscalar(Geometric_Loss)
-                    Geometric_Loss=Geometric_Loss*ones(size(Link_Models)); %if provided a scalar, put this into everywhere in the array
-                    sz=size(Geometric_Loss);
-                else
-                    error('Lengths array must have the same dimensions as the array of link models');
-                end
+            if isscalar(Geometric_Loss)
+                Geometric_Loss=Geometric_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
+            elseif isrow(Geometric_Loss)
+            elseif iscolumn(Geometric_Loss)
+                Geometric_Loss=Geometric_Loss'; %can transpose lengths to match dimensions of Link_Models
+            else
+                error('Array must be a vector or scalar');
             end
 
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Link_Models(i,j).Geometric_Loss=Geometric_Loss(i,j);
-                    Link_Models(i,j).Geometric_Loss_dB=-10*log10(Geometric_Loss(i,j));
-                end
-            end
+            Link_Models.Geometric_Loss=Geometric_Loss;
+            Link_Models.Geometric_Loss_dB=-10*log10(Geometric_Loss);
         end
 
         function Link_Models=SetAtmosphericLoss(Link_Models,Atmospheric_Loss)
@@ -58,25 +50,17 @@ classdef Satellite_Uplink_Model < Link_Model
             if ~all(isreal(Atmospheric_Loss)&Atmospheric_Loss>=0)
                 error('atmospheric loss must be a real, nonnegative array of numeric values')
             end
-            sz=size(Atmospheric_Loss);
-            if ~isequal(sz,size(Link_Models))
-                if isequal(size(Atmospheric_Loss'),size(Link_Models))
-                    Atmospheric_Loss=Atmospheric_Loss'; %can transpose lengths to match dimensions of Link_Models
-                    sz=size(Atmospheric_Loss);
-                elseif isscalar(Atmospheric_Loss)
-                    Atmospheric_Loss=Atmospheric_Loss*ones(size(Link_Models)); %if provided a scalar, put this into everywhere in the array
-                    sz=size(Atmospheric_Loss);
-                else
-                    error('Lengths array must have the same dimensions as the array of link models');
-                end
+            if isscalar(Atmospheric_Loss)
+                Atmospheric_Loss=Atmospheric_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
+            elseif isrow(Atmospheric_Loss)
+            elseif iscolumn(Atmospheric_Loss)
+                Atmospheric_Loss=Atmospheric_Loss'; %can transpose lengths to match dimensions of Link_Models
+            else
+                error('Array must be a vector or scalar');
             end
-
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Link_Models(i,j).Atmospheric_Loss=Atmospheric_Loss(i,j);
-                    Link_Models(i,j).Atmospheric_Loss_dB=-10*log10(Atmospheric_Loss(i,j));
-                end
-            end
+            
+            Link_Models.Atmospheric_Loss=Atmospheric_Loss;
+            Link_Models.Atmospheric_Loss_dB=-10*log10(Atmospheric_Loss);
         end
 
         function Link_Models=SetOpticalEfficiencyLoss(Link_Models,Optical_Efficiency_Loss)
@@ -86,25 +70,17 @@ classdef Satellite_Uplink_Model < Link_Model
             if ~all(isreal(Optical_Efficiency_Loss)&Optical_Efficiency_Loss>=0)
                 error('optical efficiency loss must be a real, positive array of numeric values')
             end
-            sz=size(Optical_Efficiency_Loss);
-            if ~isequal(sz,size(Link_Models))
-                if isequal(size(Optical_Efficiency_Loss'),size(Link_Models))
-                    Optical_Efficiency_Loss=Optical_Efficiency_Loss'; %can transpose lengths to match dimensions of Link_Models
-                    sz=size(Optical_Efficiency_Loss);
-                elseif isscalar(Optical_Efficiency_Loss)
-                    Optical_Efficiency_Loss=Optical_Efficiency_Loss*ones(size(Link_Models)); %if provided a scalar, put this into everywhere in the array
-                    sz=size(Optical_Efficiency_Loss);
-                else
-                    error('Lengths array must have the same dimensions as the array of link models');
-                end
+            if isscalar(Optical_Efficiency_Loss)
+                Optical_Efficiency_Loss=Optical_Efficiency_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
+            elseif isrow(Optical_Efficiency_Loss)
+            elseif iscolumn(Optical_Efficiency_Loss)
+                Optical_Efficiency_Loss=Optical_Efficiency_Loss'; %can transpose lengths to match dimensions of Link_Models
+            else
+                error('Array must be a vector or scalar');
             end
 
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Link_Models(i,j).Optical_Efficiency_Loss=Optical_Efficiency_Loss(i,j);
-                    Link_Models(i,j).Optical_Efficiency_Loss_dB=-10*log10(Optical_Efficiency_Loss(i,j));
-                end
-            end
+            Link_Models.Optical_Efficiency_Loss=Optical_Efficiency_Loss;
+            Link_Models.Optical_Efficiency_Loss_dB=-10*log10(Optical_Efficiency_Loss);
         end
 
         function Link_Models=SetAPTLoss(Link_Models,APT_Loss)
@@ -114,25 +90,17 @@ classdef Satellite_Uplink_Model < Link_Model
             if ~all(isreal(APT_Loss)&APT_Loss>=0)
                 error('tracking loss must be a real, nonnegative array of numeric values')
             end
-            sz=size(APT_Loss);
-            if ~isequal(sz,size(Link_Models))
-                if isequal(size(APT_Loss'),size(Link_Models))
-                    APT_Loss=APT_Loss'; %can transpose lengths to match dimensions of Link_Models
-                    sz=size(APT_Loss);
-                elseif isscalar(APT_Loss)
-                    APT_Loss=APT_Loss*ones(size(Link_Models)); %if provided a scalar, put this into everywhere in the array
-                    sz=size(APT_Loss);
-                else
-                    error('Lengths array must have the same dimensions as the array of link models');
-                end
+            if isscalar(APT_Loss)
+                APT_Loss=APT_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
+            elseif isrow(APT_Loss)
+            elseif iscolumn(APT_Loss)
+                APT_Loss=APT_Loss'; %can transpose lengths to match dimensions of Link_Models
+            else
+                error('Array must be a vector or scalar');
             end
 
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Link_Models(i,j).APT_Loss=APT_Loss(i,j);
-                    Link_Models(i,j).APT_Loss_dB=-10*log10(APT_Loss(i,j));
-                end
-            end
+            Link_Models.APT_Loss=APT_Loss;
+            Link_Models.APT_Loss_dB=-10*log10(APT_Loss);
         end
 
         function Link_Models=SetLinkLength(Link_Models,Lengths)
@@ -142,24 +110,36 @@ classdef Satellite_Uplink_Model < Link_Model
             if ~all(isreal(Lengths)&Lengths>0)
                 error('lengths must be a real, positive array of numeric values')
             end
-            sz=size(Lengths);
-            if ~isequal(sz,size(Link_Models))
-                if isequal(size(Lengths'),size(Link_Models))
+            
+            assert(isvector(Lengths),'Lengths must be a vector')
+                if iscolumn(Lengths)
                     Lengths=Lengths'; %can transpose lengths to match dimensions of Link_Models
-                    sz=size(Lengths);
                 else
                     error('Lengths array must have the same dimensions as the array of link models');
                 end
-            end
 
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Link_Models(i,j).Length=Lengths(i,j);
-                end
-            end
-
+            Link_Models.Length=Lengths;
         end
 
+        function Link_Models = SetTurbulenceLoss(Link_Models,Turbulence_Loss)
+            %%SETTURBULENCELOSS set the turbulence loss of the link
+
+            %% input validation
+            if ~all(isreal(Turbulence_Loss)&Turbulence_Loss>=0)
+                error('tracking loss must be a real, nonnegative array of numeric values')
+            end
+            if isscalar(Turbulence_Loss)
+                Turbulence_Loss=Turbulence_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
+            elseif isrow(Turbulence_Loss)
+            elseif iscolumn(Turbulence_Loss)
+                Turbulence_Loss=Turbulence_Loss'; %can transpose lengths to match dimensions of Link_Models
+            else
+                error('Array must be a vector or scalar');
+            end
+
+            Link_Models.APT_Loss=Turbulence_Loss;
+            Link_Models.APT_Loss_dB=-10*log10(Turbulence_Loss);
+        end
     end
     methods (Access=public)
 
@@ -220,7 +200,7 @@ classdef Satellite_Uplink_Model < Link_Model
             %APT loss
             %wander_tl = residual_beam_wander(error_snr, error_delay, error_centroid, ...
             %                                   error_tilt, spot_tl, L);
-            Turbulence_Loss = (Geo_Spot_Size./spot_tl).^2;
+            Turb_Loss = (Geo_Spot_Size./spot_tl).^2;
 
             %% Acquisition, pointing and tracking loss
             APTracking_Loss=...
@@ -232,6 +212,7 @@ classdef Satellite_Uplink_Model < Link_Model
             Link_Model=SetOpticalEfficiencyLoss(Link_Model,Eff_Loss);
             Link_Model=SetAtmosphericLoss(Link_Model,Atmos_Loss);
             Link_Model=SetAPTLoss(Link_Model,APTracking_Loss);
+            Link_Model=SetTurbulenceLoss(Link_Model,Turb_Loss);
 
             %compute total loss
             [Link_Model,Link_Loss_dB]=SetTotalLoss(Link_Model);
@@ -239,28 +220,35 @@ classdef Satellite_Uplink_Model < Link_Model
 
         function Geometric_Loss_dB=GetGeometricLossdB(Satellite_Uplink_Model)
             %%GETGEOMETRICLOSSDB return an array of geometric losses in dB the same dimensions as the satellite link model
-
+            
             Geometric_Loss_dB=Satellite_Uplink_Model.Geometric_Loss_dB;
         end
 
         function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Uplink_Model)
             %%GETATMOSPHERICLOSSDB return an array of atmospheric losses in dB the
-
+            %same dimensions as the satellite link model
             Atmospheric_Loss_dB=Satellite_Uplink_Model.Atmospheric_Loss_dB;
         end
 
         function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Satellite_Uplink_Model)
             %%GETEFFICIENCYLOSSDB return an array of efficiency losses in dB the
+            % same dimensions as the satellite link model
 
-           OpticalEfficiency_Loss_dB=Satellite_Uplink_Model.Optical_Efficiency_Loss_dB;
-
+            OpticalEfficiency_Loss_dB = Satellite_Uplink_Model.Optical_Efficiency_Loss_dB;
         end
 
         function APT_Loss_dB=GetAPTLossdB(Satellite_Uplink_Model)
             %%GETAPTLOSSDB return an array of acquistition, pointing and tracking
+            % losses in dB the same dimensions as the satellite link model
 
-          APT_Loss_dB=Satellite_Uplink_Model.APT_Loss_dB;
+            APT_Loss_dB=Satellite_Uplink_Model.APT_Loss_dB;
+        end
 
+        function Turbulence_Loss_dB=GetTurbulenceLossdB(Satellite_Uplink_Model)
+            %%GETTURBULENCELOSSDB return an array of acquistition, pointing and tracking
+            % losses in dB the same dimensions as the satellite link model
+
+            Turbulence_Loss_dB=Satellite_Uplink_Model.Turbulence_Loss_dB;
         end
 
         function Plot(Satellite_Uplink_Model,X_Axis)

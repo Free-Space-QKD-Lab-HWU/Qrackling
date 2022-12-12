@@ -89,9 +89,9 @@ classdef Ground_Station < Located_Object
 
             p = inputParser;
             % required inputs
-            addRequired(p, 'Detector');
             addRequired(p, 'Telescope');
             % optional inputs
+            addParameter(p,'Detector',[])
             addParameter(p, 'scenario', nan);
             addParameter(p, 'useSatCommsToolbox', false);
             addParameter(p, 'startTime', nan);

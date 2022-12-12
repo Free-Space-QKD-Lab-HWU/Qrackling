@@ -45,7 +45,7 @@ classdef Satellite < Located_Object
     end
 
     methods
-        function [Satellite, varargout] = Satellite(Source, Telescope, varargin)
+        function [Satellite, varargout] = Satellite(Telescope, varargin)
 
             % SATELLITE Construct an instance of satellite using an orbital
             % User must provide either an 'OrbitDataFileLocation' file, TLE
@@ -58,8 +58,8 @@ classdef Satellite < Located_Object
 
             p = inputParser();
 
-            addRequired(p, 'Source');
             addRequired(p, 'Telescope');
+            addParameter(p, 'Source',[]);
             addParameter(p, 'OrbitDataFileLocation','');
             addParameter(p, 'ToolBoxSatellite', []);
             addParameter(p, 'scenario', nan);
