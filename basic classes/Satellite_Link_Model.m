@@ -2,21 +2,24 @@ classdef Satellite_Link_Model < Link_Model
     %SATELLITE_LINK_MODEL a link model specific to satellite to OGS downlink
 
     properties (SetAccess=protected,Abstract=false)
+        N                                                                  %number of timestamps simulated, equal to the dimension of all loss vectors
         Link_Loss;                                                         %link loss in absolute terms
         Link_Loss_dB;                                                      %link loss measured in dB
         Shadow_Flag;                                                       %flag describing when the link is shadowed
     end
     properties (SetAccess=protected)
-        Geometric_Loss=nan;                                                %geometric loss in absolute terms
-        Geometric_Loss_dB=nan;                                             %geometric loss in dB
-        Optical_Efficiency_Loss=nan;                                       %Optical Efficiency loss in absolute terms
-        Optical_Efficiency_Loss_dB=nan;                                    %Optical Efficiency loss in dB
-        APT_Loss=nan;                                                      %tracking loss in absolute term s
-        APT_Loss_dB=nan;                                                   %tracking loss in dB
-        Atmospheric_Loss=nan;                                              %atmospheric loss in absolute terms
-        Atmospheric_Loss_dB=nan;                                           %atmospheric loss in dB
-        Length=nan;                                                        %link distance in m
         Visibility {mustBeText} ='clear'                                   %tag identifying the visibility conditions of this link
+
+        %% all of these properties are 1xN vectors
+        Geometric_Loss(1,:)=nan;                                                %geometric loss in absolute terms
+        Geometric_Loss_dB(1,:)=nan;                                             %geometric loss in dB
+        Optical_Efficiency_Loss(1,:)=nan;                                       %Optical Efficiency loss in absolute terms
+        Optical_Efficiency_Loss_dB(1,:)=nan;                                    %Optical Efficiency loss in dB
+        APT_Loss(1,:)=nan;                                                      %tracking loss in absolute term s
+        APT_Loss_dB(1,:)=nan;                                                   %tracking loss in dB
+        Atmospheric_Loss(1,:)=nan;                                              %atmospheric loss in absolute terms
+        Atmospheric_Loss_dB(1,:)=nan;                                           %atmospheric loss in dB
+        Length(1,:)=nan;                                                        %link distance in m
     end
 
 
@@ -28,25 +31,17 @@ classdef Satellite_Link_Model < Link_Model
             if ~all(isreal(Geometric_Loss)&Geometric_Loss>=0)
                 error('geometric loss must be a non-negative array of numeric values')
             end
-            sz=size(Geometric_Loss);
-            if ~isequal(sz,size(Link_Models))
-                if isequal(size(Geometric_Loss'),size(Link_Models))
-                    Geometric_Loss=Geometric_Loss'; %can transpose lengths to match dimensions of Link_Models
-                    sz=size(Geometric_Loss);
-                elseif isscalar(Geometric_Loss)
-                    Geometric_Loss=Geometric_Loss*ones(size(Link_Models)); %if provided a scalar, put this into everywhere in the array
-                    sz=size(Geometric_Loss);
-                else
-                    error('Lengths array must have the same dimensions as the array of link models');
-                end
+            if isscalar(Geometric_Loss)
+                Geometric_Loss=Geometric_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
+            elseif isrow(Geometric_Loss)
+            elseif iscolumn(Geometric_Loss)
+                Geometric_Loss=Geometric_Loss'; %can transpose lengths to match dimensions of Link_Models
+            else
+                error('Array must be a vector or scalar');
             end
 
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Link_Models(i,j).Geometric_Loss=Geometric_Loss(i,j);
-                    Link_Models(i,j).Geometric_Loss_dB=-10*log10(Geometric_Loss(i,j));
-                end
-            end
+            Link_Models.Geometric_Loss=Geometric_Loss;
+            Link_Models.Geometric_Loss_dB=-10*log10(Geometric_Loss);
         end
 
         function Link_Models=SetAtmosphericLoss(Link_Models,Atmospheric_Loss)
@@ -56,25 +51,17 @@ classdef Satellite_Link_Model < Link_Model
             if ~all(isreal(Atmospheric_Loss)&Atmospheric_Loss>=0)
                 error('atmospheric loss must be a real, nonnegative array of numeric values')
             end
-            sz=size(Atmospheric_Loss);
-            if ~isequal(sz,size(Link_Models))
-                if isequal(size(Atmospheric_Loss'),size(Link_Models))
-                    Atmospheric_Loss=Atmospheric_Loss'; %can transpose lengths to match dimensions of Link_Models
-                    sz=size(Atmospheric_Loss);
-                elseif isscalar(Atmospheric_Loss)
-                    Atmospheric_Loss=Atmospheric_Loss*ones(size(Link_Models)); %if provided a scalar, put this into everywhere in the array
-                    sz=size(Atmospheric_Loss);
-                else
-                    error('Lengths array must have the same dimensions as the array of link models');
-                end
+            if isscalar(Atmospheric_Loss)
+                Atmospheric_Loss=Atmospheric_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
+            elseif isrow(Atmospheric_Loss)
+            elseif iscolumn(Atmospheric_Loss)
+                Atmospheric_Loss=Atmospheric_Loss'; %can transpose lengths to match dimensions of Link_Models
+            else
+                error('Array must be a vector or scalar');
             end
-
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Link_Models(i,j).Atmospheric_Loss=Atmospheric_Loss(i,j);
-                    Link_Models(i,j).Atmospheric_Loss_dB=-10*log10(Atmospheric_Loss(i,j));
-                end
-            end
+            
+            Link_Models.Atmospheric_Loss=Atmospheric_Loss;
+            Link_Models.Atmospheric_Loss_dB=-10*log10(Atmospheric_Loss);
         end
 
         function Link_Models=SetOpticalEfficiencyLoss(Link_Models,Optical_Efficiency_Loss)
@@ -84,25 +71,17 @@ classdef Satellite_Link_Model < Link_Model
             if ~all(isreal(Optical_Efficiency_Loss)&Optical_Efficiency_Loss>=0)
                 error('optical efficiency loss must be a real, positive array of numeric values')
             end
-            sz=size(Optical_Efficiency_Loss);
-            if ~isequal(sz,size(Link_Models))
-                if isequal(size(Optical_Efficiency_Loss'),size(Link_Models))
-                    Optical_Efficiency_Loss=Optical_Efficiency_Loss'; %can transpose lengths to match dimensions of Link_Models
-                    sz=size(Optical_Efficiency_Loss);
-                elseif isscalar(Optical_Efficiency_Loss)
-                    Optical_Efficiency_Loss=Optical_Efficiency_Loss*ones(size(Link_Models)); %if provided a scalar, put this into everywhere in the array
-                    sz=size(Optical_Efficiency_Loss);
-                else
-                    error('Lengths array must have the same dimensions as the array of link models');
-                end
+            if isscalar(Optical_Efficiency_Loss)
+                Optical_Efficiency_Loss=Optical_Efficiency_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
+            elseif isrow(Optical_Efficiency_Loss)
+            elseif iscolumn(Optical_Efficiency_Loss)
+                Optical_Efficiency_Loss=Optical_Efficiency_Loss'; %can transpose lengths to match dimensions of Link_Models
+            else
+                error('Array must be a vector or scalar');
             end
 
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Link_Models(i,j).Optical_Efficiency_Loss=Optical_Efficiency_Loss(i,j);
-                    Link_Models(i,j).Optical_Efficiency_Loss_dB=-10*log10(Optical_Efficiency_Loss(i,j));
-                end
-            end
+            Link_Models.Optical_Efficiency_Loss=Optical_Efficiency_Loss;
+            Link_Models.Optical_Efficiency_Loss_dB=-10*log10(Optical_Efficiency_Loss);
         end
 
         function Link_Models=SetAPTLoss(Link_Models,APT_Loss)
@@ -112,25 +91,17 @@ classdef Satellite_Link_Model < Link_Model
             if ~all(isreal(APT_Loss)&APT_Loss>=0)
                 error('tracking loss must be a real, nonnegative array of numeric values')
             end
-            sz=size(APT_Loss);
-            if ~isequal(sz,size(Link_Models))
-                if isequal(size(APT_Loss'),size(Link_Models))
-                    APT_Loss=APT_Loss'; %can transpose lengths to match dimensions of Link_Models
-                    sz=size(APT_Loss);
-                elseif isscalar(APT_Loss)
-                    APT_Loss=APT_Loss*ones(size(Link_Models)); %if provided a scalar, put this into everywhere in the array
-                    sz=size(APT_Loss);
-                else
-                    error('Lengths array must have the same dimensions as the array of link models');
-                end
+            if isscalar(APT_Loss)
+                APT_Loss=APT_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
+            elseif isrow(APT_Loss)
+            elseif iscolumn(APT_Loss)
+                APT_Loss=APT_Loss'; %can transpose lengths to match dimensions of Link_Models
+            else
+                error('Array must be a vector or scalar');
             end
 
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Link_Models(i,j).APT_Loss=APT_Loss(i,j);
-                    Link_Models(i,j).APT_Loss_dB=-10*log10(APT_Loss(i,j));
-                end
-            end
+            Link_Models.APT_Loss=APT_Loss;
+            Link_Models.APT_Loss_dB=-10*log10(APT_Loss);
         end
 
         function Link_Models=SetLinkLength(Link_Models,Lengths)
@@ -140,38 +111,31 @@ classdef Satellite_Link_Model < Link_Model
             if ~all(isreal(Lengths)&Lengths>0)
                 error('lengths must be a real, positive array of numeric values')
             end
-            sz=size(Lengths);
-            if ~isequal(sz,size(Link_Models))
-                if isequal(size(Lengths'),size(Link_Models))
+            
+            assert(isvector(Lengths),'Lengths must be a vector')
+                if iscolumn(Lengths)
                     Lengths=Lengths'; %can transpose lengths to match dimensions of Link_Models
-                    sz=size(Lengths);
                 else
                     error('Lengths array must have the same dimensions as the array of link models');
                 end
-            end
 
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Link_Models(i,j).Length=Lengths(i,j);
-                end
-            end
-
+            Link_Models.Length=Lengths;
         end
 
     end
     methods (Access=public)
 
-        function Satellite_Link_Model=Satellite_Link_Model(Data_Length,Visibility)
+        function Satellite_Link_Model=Satellite_Link_Model(N,Visibility)
             %%SATELLITE_LINK_MODEL construct an instance of Satellite_Link_Model with the indicated number of modelled points
             if nargin==0
                 return
             elseif nargin==1
-                Satellite_Link_Model=repmat(Satellite_Link_Model(),1,Data_Length);
+                Satellite_Link_Model=SetNumSteps(Satellite_Link_Model,N);
             elseif nargin==2
-                Satellite_Link_Model=repmat(Satellite_Link_Model(),1,Data_Length);
+                Satellite_Link_Model=SetNumSteps(Satellite_Link_Model,N);
                 Satellite_Link_Model=SetVisibility(Satellite_Link_Model,Visibility);
             else
-                error('Data length must be a positive scalar integer describing the length of the Link_Model vector')
+                error('To instantiate link model, provide a number of steps and, optionally, a visibility string')
             end
         end
 
@@ -214,84 +178,52 @@ classdef Satellite_Link_Model < Link_Model
 
         function Geometric_Loss_dB=GetGeometricLossdB(Satellite_Link_Model)
             %%GETGEOMETRICLOSSDB return an array of geometric losses in dB the same dimensions as the satellite link model
-            sz=size(Satellite_Link_Model);
-            Geometric_Loss_dB=zeros(sz);
-
-            %iterate over all elements
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Geometric_Loss_dB(i,j)=Satellite_Link_Model(i,j).Geometric_Loss_dB;
-                end
-            end
+            
+            Geometric_Loss_dB=Satellite_Link_Model.Geometric_Loss_dB;
         end
 
         function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Link_Model)
             %%GETATMOSPHERICLOSSDB return an array of atmospheric losses in dB the
             %same dimensions as the satellite link model
-            sz=size(Satellite_Link_Model);
-            Atmospheric_Loss_dB=zeros(sz);
-
-            %iterate over all elements
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Atmospheric_Loss_dB(i,j)=Satellite_Link_Model(i,j).Atmospheric_Loss_dB;
-                end
-            end
+            
+            Atmospheric_Loss_dB=Satellite_Link_Model.Atmospheric_Loss_dB;
         end
 
         function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Satellite_Link_Model)
             %%GETEFFICIENCYLOSSDB return an array of efficiency losses in dB the
             % same dimensions as the satellite link model
-            sz=size(Satellite_Link_Model);
-            OpticalEfficiency_Loss_dB=zeros(sz);
 
-            %iterate over all elements
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    OpticalEfficiency_Loss_dB(i,j)=Satellite_Link_Model(i,j).Optical_Efficiency_Loss_dB;
-                end
-            end
+            OpticalEfficiency_Loss_dB = Satellite_Link_Model.Optical_Efficiency_Loss_dB;
         end
 
         function APT_Loss_dB=GetAPTLossdB(Satellite_Link_Model)
             %%GETAPTLOSSDB return an array of acquistition, pointing and tracking
             % losses in dB the same dimensions as the satellite link model
-            sz=size(Satellite_Link_Model);
-            APT_Loss_dB=zeros(sz);
+            
 
-            %iterate over all elements
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    APT_Loss_dB(i,j)=Satellite_Link_Model(i,j).APT_Loss_dB;
-                end
-            end
+            APT_Loss_dB=Satellite_Link_Model.APT_Loss_dB;
         end
 
-        function Plot(Satellite_Link_Model,X_Axis)
+        function Plot(Satellite_Link_Model,X_Axis,Plot_Select_Flags)
             %%PLOT plot the link loss over time of the satellite link
 
-            %must use column vector of losses for area
-            if isrow(Satellite_Link_Model)
-                Satellite_Link_Model=Satellite_Link_Model';
+            %get losses
+            Geo=GetGeometricLossdB(Satellite_Link_Model);
+            Atmos=GetAtmosphericLossdB(Satellite_Link_Model);
+            Eff=GetOpticalEfficiencyLossdB(Satellite_Link_Model);
+            APT=GetAPTLossdB(Satellite_Link_Model);
+
+            if nargin==3
+            %if flags provided, select what to plot
+            Geo=Geo(Plot_Select_Flags);
+            Atmos=Atmos(Plot_Select_Flags);
+            Eff=Eff(Plot_Select_Flags);
+            APT=APT(Plot_Select_Flags);
             end
-            area(X_Axis,[GetGeometricLossdB(Satellite_Link_Model),GetAtmosphericLossdB(Satellite_Link_Model),GetOpticalEfficiencyLossdB(Satellite_Link_Model),GetAPTLossdB(Satellite_Link_Model)]);
+
+            area(X_Axis(Plot_Select_Flags),[Geo',Atmos',Eff',APT']);
             xlabel('Time (s)')
             ylabel('Losses (dB)')
-
-            %% display shadowed time
-            GeoLossdB=GetGeometricLossdB(Satellite_Link_Model);
-            Shadowing_Indices=(GeoLossdB==inf);
-            if any(Shadowing_Indices)
-                Max_Geo_Loss=max(GeoLossdB(~Shadowing_Indices));
-                hold on
-                scatter(X_Axis(Shadowing_Indices),Max_Geo_Loss*ones(1,sum(Shadowing_Indices)),'k.');
-                if ~isempty(Max_Geo_Loss)
-                    text(X_Axis(end),Max_Geo_Loss,'Link shadowed by earth','VerticalAlignment','bottom','HorizontalAlignment','right')
-                else
-                    text(X_Axis(end),0,'Link constantly shadowed by earth','VerticalAlignment','bottom','HorizontalAlignment','right')
-                end
-                hold off
-            end
 
             %% adjust legend to represent what is plotted
             %atmospheric loss is non zero
@@ -302,29 +234,31 @@ classdef Satellite_Link_Model < Link_Model
         function [Link_Model,Total_Loss_dB]=SetTotalLoss(Link_Model)
             %%SETTOTALLOSS update total loss to reflect stored loss values
 
-            %stay in dB domain for numerical precision
-            sz=size(Link_Model);
-            for i=1:sz(1)
-                for j=1:sz(2)
+            Total_Loss_dB=Link_Model.Geometric_Loss_dB+Link_Model.Optical_Efficiency_Loss_dB+Link_Model.APT_Loss_dB+Link_Model.Atmospheric_Loss_dB;
+            Link_Model.Link_Loss_dB=Total_Loss_dB;
+            Link_Model.Link_Loss=10.^(-Total_Loss_dB/10);
 
-                    %Total_Loss_dB=Link_Model(i,j).Geometric_Loss_dB+Link_Model(i,j).Optical_Efficiency_Loss_dB+Link_Model(i,j).Atmospheric_Loss_dB+Link_Model(i,j).APT_Loss_dB;
-                    Total_Loss_dB=Link_Model(i,j).Geometric_Loss_dB+Link_Model(i,j).Optical_Efficiency_Loss_dB+Link_Model(i,j).APT_Loss_dB;
-                    Link_Model(i,j).Link_Loss_dB=Total_Loss_dB;
-                    Link_Model(i,j).Link_Loss=10^(-Total_Loss_dB/10);
-                end
-            end
         end
 
         function Satellite_Link_Model = SetVisibility(Satellite_Link_Model,Visibility)
             %%SETVISIBILITY set the visibility tag of this link model
-            
-            %iterate over array
-            sz=size(Satellite_Link_Model);
-            for i=1:sz(1)
-                for j=1:sz(2)
-            Satellite_Link_Model(i,j).Visibility = Visibility;
-                end
-            end
+
+            Satellite_Link_Model.Visibility = Visibility;
+        end
+    
+        function Satellite_Link_Model = SetNumSteps(Satellite_Link_Model,N)
+            %%SETNUMSTEPS set the number of points in the simulated link model
+
+        Satellite_Link_Model.N=N;
+        Satellite_Link_Model.Geometric_Loss=zeros(1,N);                                              %geometric loss in absolute terms
+        Satellite_Link_Model.Geometric_Loss_dB=zeros(1,N);                                             %geometric loss in dB
+        Satellite_Link_Model.Optical_Efficiency_Loss=zeros(1,N);                                       %Optical Efficiency loss in absolute terms
+        Satellite_Link_Model.Optical_Efficiency_Loss_dB=zeros(1,N);                                    %Optical Efficiency loss in dB
+        Satellite_Link_Model.APT_Loss=zeros(1,N);                                                      %tracking loss in absolute term s
+        Satellite_Link_Model.APT_Loss_dB=zeros(1,N);                                                   %tracking loss in dB
+        Satellite_Link_Model.Atmospheric_Loss=zeros(1,N);                                              %atmospheric loss in absolute terms
+        Satellite_Link_Model.Atmospheric_Loss_dB=zeros(1,N);                                           %atmospheric loss in dB
+        Satellite_Link_Model.Length=zeros(1,N);                                                        %link distance in m
         end
     end
 end
