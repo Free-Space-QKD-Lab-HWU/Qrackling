@@ -1,5 +1,5 @@
-classdef Satellite_Link_Model < Link_Model
-    %SATELLITE_LINK_MODEL a link model specific to satellite to OGS downlink
+classdef Satellite_Downlink_Model < Link_Model
+    %SATELLITE_DOWNLINK_MODEL a link model specific to satellite to OGS downlink
 
     properties (SetAccess=protected,Abstract=false)
         N                                                                  %number of timestamps simulated, equal to the dimension of all loss vectors
@@ -125,6 +125,7 @@ classdef Satellite_Link_Model < Link_Model
     end
     methods (Access=public)
 
+<<<<<<< Updated upstream:basic classes/Satellite_Link_Model.m
         function Satellite_Link_Model=Satellite_Link_Model(N,Visibility)
             %%SATELLITE_LINK_MODEL construct an instance of Satellite_Link_Model with the indicated number of modelled points
             if nargin==0
@@ -134,6 +135,17 @@ classdef Satellite_Link_Model < Link_Model
             elseif nargin==2
                 Satellite_Link_Model=SetNumSteps(Satellite_Link_Model,N);
                 Satellite_Link_Model=SetVisibility(Satellite_Link_Model,Visibility);
+=======
+        function Satellite_Downlink_Model=Satellite_Downlink_Model(Data_Length,Visibility)
+            %%Satellite_Downlink_Model construct an instance of Satellite_Downlink_Model with the indicated number of modelled points
+            if nargin==0
+                return
+            elseif nargin==1
+                Satellite_Downlink_Model=repmat(Satellite_Downlink_Model(),1,Data_Length);
+            elseif nargin==2
+                Satellite_Downlink_Model=repmat(Satellite_Downlink_Model(),1,Data_Length);
+                Satellite_Downlink_Model=SetVisibility(Satellite_Downlink_Model,Visibility);
+>>>>>>> Stashed changes:basic classes/Satellite_Downlink_Model.m
             else
                 error('To instantiate link model, provide a number of steps and, optionally, a visibility string')
             end
@@ -176,29 +188,66 @@ classdef Satellite_Link_Model < Link_Model
             [Link_Model,Link_Loss_dB]=SetTotalLoss(Link_Model);
         end
 
-        function Geometric_Loss_dB=GetGeometricLossdB(Satellite_Link_Model)
+        function Geometric_Loss_dB=GetGeometricLossdB(Satellite_Downlink_Model)
             %%GETGEOMETRICLOSSDB return an array of geometric losses in dB the same dimensions as the satellite link model
+<<<<<<< Updated upstream:basic classes/Satellite_Link_Model.m
             
             Geometric_Loss_dB=Satellite_Link_Model.Geometric_Loss_dB;
+=======
+            sz=size(Satellite_Downlink_Model);
+            Geometric_Loss_dB=zeros(sz);
+
+            %iterate over all elements
+            for i=1:sz(1)
+                for j=1:sz(2)
+                    Geometric_Loss_dB(i,j)=Satellite_Downlink_Model(i,j).Geometric_Loss_dB;
+                end
+            end
+>>>>>>> Stashed changes:basic classes/Satellite_Downlink_Model.m
         end
 
-        function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Link_Model)
+        function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Downlink_Model)
             %%GETATMOSPHERICLOSSDB return an array of atmospheric losses in dB the
             %same dimensions as the satellite link model
+<<<<<<< Updated upstream:basic classes/Satellite_Link_Model.m
             
             Atmospheric_Loss_dB=Satellite_Link_Model.Atmospheric_Loss_dB;
+=======
+            sz=size(Satellite_Downlink_Model);
+            Atmospheric_Loss_dB=zeros(sz);
+
+            %iterate over all elements
+            for i=1:sz(1)
+                for j=1:sz(2)
+                    Atmospheric_Loss_dB(i,j)=Satellite_Downlink_Model(i,j).Atmospheric_Loss_dB;
+                end
+            end
+>>>>>>> Stashed changes:basic classes/Satellite_Downlink_Model.m
         end
 
-        function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Satellite_Link_Model)
+        function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Satellite_Downlink_Model)
             %%GETEFFICIENCYLOSSDB return an array of efficiency losses in dB the
             % same dimensions as the satellite link model
+<<<<<<< Updated upstream:basic classes/Satellite_Link_Model.m
 
             OpticalEfficiency_Loss_dB = Satellite_Link_Model.Optical_Efficiency_Loss_dB;
+=======
+            sz=size(Satellite_Downlink_Model);
+            OpticalEfficiency_Loss_dB=zeros(sz);
+
+            %iterate over all elements
+            for i=1:sz(1)
+                for j=1:sz(2)
+                    OpticalEfficiency_Loss_dB(i,j)=Satellite_Downlink_Model(i,j).Optical_Efficiency_Loss_dB;
+                end
+            end
+>>>>>>> Stashed changes:basic classes/Satellite_Downlink_Model.m
         end
 
-        function APT_Loss_dB=GetAPTLossdB(Satellite_Link_Model)
+        function APT_Loss_dB=GetAPTLossdB(Satellite_Downlink_Model)
             %%GETAPTLOSSDB return an array of acquistition, pointing and tracking
             % losses in dB the same dimensions as the satellite link model
+<<<<<<< Updated upstream:basic classes/Satellite_Link_Model.m
             
 
             APT_Loss_dB=Satellite_Link_Model.APT_Loss_dB;
@@ -225,6 +274,45 @@ classdef Satellite_Link_Model < Link_Model
             xlabel('Time (s)')
             ylabel('Losses (dB)')
 
+=======
+            sz=size(Satellite_Downlink_Model);
+            APT_Loss_dB=zeros(sz);
+
+            %iterate over all elements
+            for i=1:sz(1)
+                for j=1:sz(2)
+                    APT_Loss_dB(i,j)=Satellite_Downlink_Model(i,j).APT_Loss_dB;
+                end
+            end
+        end
+
+        function Plot(Satellite_Downlink_Model,X_Axis)
+            %%PLOT plot the link loss over time of the satellite link
+
+            %must use column vector of losses for area
+            if isrow(Satellite_Downlink_Model)
+                Satellite_Downlink_Model=Satellite_Downlink_Model';
+            end
+            area(X_Axis,[GetGeometricLossdB(Satellite_Downlink_Model),GetAtmosphericLossdB(Satellite_Downlink_Model),GetOpticalEfficiencyLossdB(Satellite_Downlink_Model),GetAPTLossdB(Satellite_Downlink_Model)]);
+            xlabel('Time (s)')
+            ylabel('Losses (dB)')
+
+            %% display shadowed time
+            GeoLossdB=GetGeometricLossdB(Satellite_Downlink_Model);
+            Shadowing_Indices=(GeoLossdB==inf);
+            if any(Shadowing_Indices)
+                Max_Geo_Loss=max(GeoLossdB(~Shadowing_Indices));
+                hold on
+                scatter(X_Axis(Shadowing_Indices),Max_Geo_Loss*ones(1,sum(Shadowing_Indices)),'k.');
+                if ~isempty(Max_Geo_Loss)
+                    text(X_Axis(end),Max_Geo_Loss,'Link shadowed by earth','VerticalAlignment','bottom','HorizontalAlignment','right')
+                else
+                    text(X_Axis(end),0,'Link constantly shadowed by earth','VerticalAlignment','bottom','HorizontalAlignment','right')
+                end
+                hold off
+            end
+
+>>>>>>> Stashed changes:basic classes/Satellite_Downlink_Model.m
             %% adjust legend to represent what is plotted
             %atmospheric loss is non zero
             legend('Geometric loss','Atmospheric loss','Efficiency loss','APT loss','Orientation','horizontal');
@@ -240,8 +328,9 @@ classdef Satellite_Link_Model < Link_Model
 
         end
 
-        function Satellite_Link_Model = SetVisibility(Satellite_Link_Model,Visibility)
+        function Satellite_Downlink_Model = SetVisibility(Satellite_Downlink_Model,Visibility)
             %%SETVISIBILITY set the visibility tag of this link model
+<<<<<<< Updated upstream:basic classes/Satellite_Link_Model.m
 
             Satellite_Link_Model.Visibility = Visibility;
         end
@@ -259,6 +348,16 @@ classdef Satellite_Link_Model < Link_Model
         Satellite_Link_Model.Atmospheric_Loss=zeros(1,N);                                              %atmospheric loss in absolute terms
         Satellite_Link_Model.Atmospheric_Loss_dB=zeros(1,N);                                           %atmospheric loss in dB
         Satellite_Link_Model.Length=zeros(1,N);                                                        %link distance in m
+=======
+            
+            %iterate over array
+            sz=size(Satellite_Downlink_Model);
+            for i=1:sz(1)
+                for j=1:sz(2)
+            Satellite_Downlink_Model(i,j).Visibility = Visibility;
+                end
+            end
+>>>>>>> Stashed changes:basic classes/Satellite_Downlink_Model.m
         end
     end
 end

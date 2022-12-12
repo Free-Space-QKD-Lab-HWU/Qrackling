@@ -57,7 +57,11 @@ SMARTS_Config = solar_background_errol_fast('executable_path','C:\Git\SMARTS\','
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
+<<<<<<< Updated upstream
 Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station);%'SMARTS',SMARTS_Config,'Visibility','50km');
+=======
+Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'SMARTS',SMARTS_Config,'Visibility','20km');
+>>>>>>> Stashed changes
 
 %3.2 run simulation
 Pass=Simulate(Pass);

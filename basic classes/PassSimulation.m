@@ -131,12 +131,28 @@ classdef PassSimulation
 
         function PassSimulation = Simulate(PassSimulation)
             %SIMULATE Peform the simulation with the components of PassSimulation
+<<<<<<< Updated upstream
                 PassSimulation.Downlink_Beacon_Power,...
             end
+=======
+            
+            %perform correct one of up or down link. DOWNLINK is given
+            %preference. Both cannot be performed (yet)
+            if ~isempty(PassSimulation.Satellite.Source)&&~isempty(PassSimulation.Ground_Station.Detector)
+                PassSimulation.Link_Direction = 'Down';
+               
+                %perform downlink sim
+                PassSimulation=SimulateDownlink(PassSimulation);
 
-            if ~isempty(PassSimulation.Satellite.Detector)&&~isempty(PassSimulation.Ground_Station.Source)
+            elseif ~isempty(PassSimulation.Satellite.Detector)&&~isempty(PassSimulation.Ground_Station.Source)
+>>>>>>> Stashed changes
+
+                %perform uplink sim
                 PassSimulation.Link_Direction = 'Up';
                 PassSimulation=SimulateUplink(PassSimulation);
+            
+            else
+                error('must have satellite and ground station support either uplink or downlink')
             end
 
             plot(PassSimulation);
@@ -318,37 +334,13 @@ classdef PassSimulation
             SKR = PassSimulation.Secret_Key_Rates;
         end
 
-        function [Times,...
-            Headings,...
-            Elevations,...
-            Link_Losses_dB,...
-            Link_Model,...
-            Ground_Station,...
-            Background_Count_Rates,...
-            Any_Communication_Flag,...
-            Elevation_Viability_Flag,...
-            Secret_Key_Rates,...
-            QBERs,...
-            Communicating_Flags,...
-            Elevation_Limit_Flags,...
-            Line_Of_Sight_Flags,...
-            Rates_In,...
-            Rates_Det,...
-            Total_Sifted_Key,...
-            Downlink_Beacon_Flag,...
-            Downlink_Beacon_Power,...
-            Downlink_Beacon_SNR_dB,...
-            Downlink_Beacon_Link_Model] = SimulateDownlink(PassSimulation)
+        function PassSimulation = SimulateDownlink(PassSimulation)
             %%SIMULATEDOWNLINK simulate a pass assuming a downlink configuration
 
             %% break out components
-            Satellite = PassSimulation.Satellite; %#ok<*PROP> 
-            Protocol = PassSimulation.Protocol;
-            Ground_Station = PassSimulation.Ground_Station;
-            Background_Sources = PassSimulation.Background_Sources;
-            smarts_configuration = PassSimulation.smarts_configuration;
-            Visibility = PassSimulation.Visibility;
-
+             [Satellite, Protocol, Ground_Station,...
+                Background_Sources, smarts_configuration,...
+                Visibility] = Unpack(PassSimulation); %#ok<*PROP> 
 
             %% check that correct hardware is in place
             assert(~isempty(Satellite.Source),'For downlink, satellite must have a source');
@@ -359,15 +351,11 @@ classdef PassSimulation
             N_Steps = Satellite.N_Steps;
             Times = Satellite.Times;
             %% set number of steps in simulation
-            Link_Model = Satellite_Link_Model(N_Steps, Visibility);
+            Downlink_Model = Satellite_Downlink_Model(N_Steps, Visibility);
 
             %% Compute background count rate and link heading and elevation
             [Headings,Elevations,Ranges]=RelativeHeadingAndElevation(Satellite, Ground_Station);
-            [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate(Ground_Station, Background_Sources, Satellite, Headings, Elevations,smarts_configuration);
-
-%             if ~isempty(extra_counts)
-%                 Background_Count_Rates = Background_Count_Rates + extra_counts;
-%             end
+            [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate(Ground_Station, Background_Sources, Satellite, Headings, Elevations, smarts_configuration);
 
             %% Check elevation limit
             Line_Of_Sight_Flags = Elevations>0;
@@ -415,8 +403,7 @@ classdef PassSimulation
 
 
             %% Compute Link loss
-            Computed_Link_Models = Compute_Link_Loss(Link_Model, Satellite, Ground_Station);
-            Link_Model = Computed_Link_Models;
+            Downlink_Model= Compute_Link_Loss(Downlink_Model, Satellite, Ground_Station);
 
             %% compute SKR and QBER for links inside the elevation window
             %[Computed_Sifted_Key_Rates, Computed_QBERs] = EvaluateQKDLink(...
@@ -432,7 +419,7 @@ classdef PassSimulation
             Communicating_Flags = ~(isnan(Secret_Key_Rates)|Secret_Key_Rates <= 0);
 
             %% post-processing
-            Link_Losses_dB = [Link_Model.Link_Loss_dB];
+            Link_Losses_dB = [Downlink_Model.Link_Loss_dB];
             Any_Communication_Flag = any(Communicating_Flags);
             Elevation_Viability_Flag = any(Elevation_Limit_Flags);
             %compute total data downlink
@@ -448,7 +435,192 @@ classdef PassSimulation
             else
                 Total_Sifted_Key = 0;
             end
+
+
+            %% return components
+            PassSimulation=Pack(PassSimulation,Satellite,Protocol,Ground_Station,...
+                                    Background_Sources,smarts_configuration,Visibility);
+            %store data
+            PassSimulation.Times=Times;
+            PassSimulation.Headings=Headings;
+            PassSimulation.Elevations=Elevations;
+            PassSimulation.Link_Losses_dB=Link_Losses_dB;
+            PassSimulation.Link_Model=Downlink_Model;
+            PassSimulation.Background_Count_Rates=Background_Count_Rates;
+            PassSimulation.Any_Communication_Flag=Any_Communication_Flag;
+            PassSimulation.Elevation_Viability_Flag=Elevation_Viability_Flag;
+            PassSimulation.Secret_Key_Rates=Secret_Key_Rates;
+            PassSimulation.QBERs=QBERs;
+            PassSimulation.Communicating_Flags=Communicating_Flags;
+            PassSimulation.Elevation_Limit_Flags=Elevation_Limit_Flags;
+            PassSimulation.Line_Of_Sight_Flags=Line_Of_Sight_Flags;
+            PassSimulation.Rates_In=Rates_In;
+            PassSimulation.Rates_Det=Rates_Det;
+            PassSimulation.Total_Sifted_Key=Total_Sifted_Key;
+            PassSimulation.Downlink_Beacon_Flag=Downlink_Beacon_Flag;
+            PassSimulation.Downlink_Beacon_Power=Downlink_Beacon_Power;
+            PassSimulation.Downlink_Beacon_SNR_dB=Downlink_Beacon_SNR_dB;
+            PassSimulation.Downlink_Beacon_Link_Model=Downlink_Beacon_Link_Model;
+        end
+        
+        function PassSimulation = SimulateUplink(PassSimulation)
+            %%SIMULATEUPLINK simulate a pass assuming an uplink configuration
+
+            %% break out components
+             [Satellite, Protocol, Ground_Station,...
+                Background_Sources, smarts_configuration,...
+                Visibility] = Unpack(PassSimulation); %#ok<*PROP> 
+
+            %% check that correct hardware is in place
+            assert(~isempty(Satellite.Detector),'For uplink, satellite must have a detector');
+            assert(~isempty(Ground_Station.Source),'For uplink, ground station must have a source');
+
+            %% load in data
+            %satellite data
+            N_Steps = Satellite.N_Steps;
+            Times = Satellite.Times;
+            %% set number of steps in simulation
+            Uplink_Model = Satellite_Uplink_Model(N_Steps, Visibility);
+
+            %% Compute background count rate and link heading and elevation
+            [Headings,Elevations,Ranges]=RelativeHeadingAndElevation(Satellite, Ground_Station);
+            [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate(Satellite, Background_Sources, Ground_Station, Headings, Elevations, smarts_configuration);
+
+            %% Check elevation limit
+            Line_Of_Sight_Flags = Elevations>0;
+            %Check that satellite rises above horizon at some point
+            assert(any(Line_Of_Sight_Flags), ...
+                'satellite is never visible from ground station');
+
+            Elevation_Limit_Flags = Elevations>Ground_Station.Elevation_Limit;
+            %Check that satellite rises above elevation limit at some point
+            assert(any(Elevation_Limit_Flags), ...
+                'satellite does not enter elevation window of ground station');
+
+            %% Beaconing
+            %does the satellite have a beacon present?
+            Downlink_Beacon_Flag = ~isempty(Satellite.Beacon)&&~isempty(Ground_Station.Camera);
+            if Downlink_Beacon_Flag
+                % if a beacon is present, simulate the beacon channel
+                [Beacon_Downlink_model,DownlinkBeaconLossdB] =...
+                    Compute_Link_Loss(Beacon_Downlink_Model(N_Steps,Visibility),...
+                    Satellite,...
+                    Ground_Station);
+                %compute beacon received power
+                Downlink_Beacon_Power = Satellite.Beacon.Power*10.^(-DownlinkBeaconLossdB/10);
+                
+                if ~isempty(smarts_configuration)
+                %computed beacon channel noise
+                Beacon_Sky_Radiance = interp1(Ground_Station.Wavelengths,...
+                    Ground_Station.Sky_Radiance',...
+                    Satellite.Beacon.Wavelength);
+                Downlink_Beacon_Noise = Ground_Station.Camera.Noise +...
+                    Beacon_Sky_Radiance * Ground_Station.Camera.FOV;
+                else
+                    Downlink_Beacon_Noise = Ground_Station.Camera.Noise;
+                end
+
+                %compute SNR
+                Downlink_Beacon_SNR_dB = 10*log10(Downlink_Beacon_Power./Downlink_Beacon_Noise);
+                Downlink_Beacon_Link_Model = Beacon_Downlink_model;
+            else
+                %if no downlink beacon, return empty data
+                Downlink_Beacon_SNR_dB=[];
+                Downlink_Beacon_Power=[];
+                Downlink_Beacon_Link_Model=[];
+            end
+
+
+            %% Compute Link loss
+            Uplink_Model = Compute_Link_Loss(Uplink_Model, Satellite, Ground_Station);
+
+            %% compute SKR and QBER for links inside the elevation window
+            %[Computed_Sifted_Key_Rates, Computed_QBERs] = EvaluateQKDLink(...
+            [Computed_Sifted_Key_Rates, Computed_QBERs, Rates_In, Rates_Det] = EvaluateQKDLink(...
+                Protocol, Satellite.Source, ...
+                Ground_Station.Detector, ...
+                [Uplink_Model(Elevation_Limit_Flags).Link_Loss_dB], ...
+                [Background_Count_Rates(Elevation_Limit_Flags)]);
+
+            %store this step's data
+            Secret_Key_Rates(Elevation_Limit_Flags) = Computed_Sifted_Key_Rates;
+            QBERs(Elevation_Limit_Flags) = Computed_QBERs;
+            Communicating_Flags = ~(isnan(Secret_Key_Rates)|Secret_Key_Rates <= 0);
+
+            %% post-processing
+            Link_Losses_dB = [Uplink_Model.Link_Loss_dB];
+            Any_Communication_Flag = any(Communicating_Flags);
+            Elevation_Viability_Flag = any(Elevation_Limit_Flags);
+            %compute total data downlink
+            %first produce a vector of time bin widths
+            Downlink_Time_Windows = Times(Communicating_Flags)-Times([Communicating_Flags(2:end), false]);
+
+            %the dot with sifted data rate
+            if ~isempty(Downlink_Time_Windows)&&isnumeric(Downlink_Time_Windows)
+                Total_Sifted_Key = dot(Downlink_Time_Windows, Secret_Key_Rates(Communicating_Flags));
+
+            elseif ~isempty(Downlink_Time_Windows)&&isduration(Downlink_Time_Windows)
+                Total_Sifted_Key = dot(seconds(Downlink_Time_Windows), Secret_Key_Rates(Communicating_Flags));
+            else
+                Total_Sifted_Key = 0;
+            end
+
+
+            %% return components
+            PassSimulation=Pack(PassSimulation,Satellite,Protocol,Ground_Station,...
+                                    Background_Sources,smarts_configuration,Visibility);
+            %store data
+            PassSimulation.Times=Times;
+            PassSimulation.Headings=Headings;
+            PassSimulation.Elevations=Elevations;
+            PassSimulation.Link_Losses_dB=Link_Losses_dB;
+            PassSimulation.Link_Model=Uplink_Model;
+            PassSimulation.Background_Count_Rates=Background_Count_Rates;
+            PassSimulation.Any_Communication_Flag=Any_Communication_Flag;
+            PassSimulation.Elevation_Viability_Flag=Elevation_Viability_Flag;
+            PassSimulation.Secret_Key_Rates=Secret_Key_Rates;
+            PassSimulation.QBERs=QBERs;
+            PassSimulation.Communicating_Flags=Communicating_Flags;
+            PassSimulation.Elevation_Limit_Flags=Elevation_Limit_Flags;
+            PassSimulation.Line_Of_Sight_Flags=Line_Of_Sight_Flags;
+            PassSimulation.Rates_In=Rates_In;
+            PassSimulation.Rates_Det=Rates_Det;
+            PassSimulation.Total_Sifted_Key=Total_Sifted_Key;
+            PassSimulation.Downlink_Beacon_Flag=Downlink_Beacon_Flag;
+            PassSimulation.Downlink_Beacon_Power=Downlink_Beacon_Power;
+            PassSimulation.Downlink_Beacon_SNR_dB=Downlink_Beacon_SNR_dB;
+            PassSimulation.Downlink_Beacon_Link_Model=Downlink_Beacon_Link_Model;
+
+        
+        function [Satellite, Protocol, Ground_Station,...
+                Background_Sources, smarts_configuration,...
+                Visibility] = Unpack(PassSimulation)
+                %%UNPACK return the component objects of a pass simulation
+
+                Satellite = PassSimulation.Satellite;
+                Protocol = PassSimulation.Protocol;
+                Ground_Station = PassSimulation.Ground_Station;
+                Background_Sources = PassSimulation.Background_Sources;
+                smarts_configuration = PassSimulation.smarts_configuration;
+                Visibility = PassSimulation.Visibility;
         end
 
+        function PassSimulation = Pack(PassSimulation,...
+                                        Satellite,...
+                                        Protocol,...
+                                        Ground_Station,...
+                                        Background_Sources,...
+                                        smarts_configuration,...
+                                        Visibility)
+            %%PACK return all of the component objects to a PassSimulation
+            
+            PassSimulation.Satellite=Satellite;
+            PassSimulation.Protocol=Protocol;
+            PassSimulation.Ground_Station=Ground_Station;
+            PassSimulation.Background_Sources=Background_Sources;
+            PassSimulation.smarts_configuration=smarts_configuration;
+            PassSimulation.Visibility=Visibility;
+        end
+        
     end
 end
