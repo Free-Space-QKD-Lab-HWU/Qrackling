@@ -17,6 +17,9 @@ classdef (Abstract=true) Link_Model
         [Link_Model,Total_Loss_dB]=SetTotalLoss(Link_Model)
         %%SETTOTALLOSSupdate total loss to reflect internal stored computations
 
+        [Link_Model] = SetNumSteps(Link_Model,N)
+        %set the number of time steps a link model computes for
+
         Plot(Link_Model,X_Axis)
         %%PLOT plot link loss over a given x axis
     end

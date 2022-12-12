@@ -225,21 +225,6 @@ classdef Satellite_Link_Model < Link_Model
             xlabel('Time (s)')
             ylabel('Losses (dB)')
 
-%             %% display shadowed time
-%             GeoLossdB=GetGeometricLossdB(Satellite_Link_Model);
-%             Shadowing_Indices=(GeoLossdB==inf);
-%             if any(Shadowing_Indices)
-%                 Max_Geo_Loss=max(GeoLossdB(~Shadowing_Indices));
-%                 hold on
-%                 scatter(X_Axis(Shadowing_Indices),Max_Geo_Loss*ones(1,sum(Shadowing_Indices)),'k.');
-%                 if ~isempty(Max_Geo_Loss)
-%                     text(X_Axis(end),Max_Geo_Loss,'Link shadowed by earth','VerticalAlignment','bottom','HorizontalAlignment','right')
-%                 else
-%                     text(X_Axis(end),0,'Link constantly shadowed by earth','VerticalAlignment','bottom','HorizontalAlignment','right')
-%                 end
-%                 hold off
-%             end
-
             %% adjust legend to represent what is plotted
             %atmospheric loss is non zero
             legend('Geometric loss','Atmospheric loss','Efficiency loss','APT loss','Orientation','horizontal');
@@ -257,14 +242,8 @@ classdef Satellite_Link_Model < Link_Model
 
         function Satellite_Link_Model = SetVisibility(Satellite_Link_Model,Visibility)
             %%SETVISIBILITY set the visibility tag of this link model
-            
-            %iterate over array
-            sz=size(Satellite_Link_Model);
-            for i=1:sz(1)
-                for j=1:sz(2)
-            Satellite_Link_Model(i,j).Visibility = Visibility;
-                end
-            end
+
+            Satellite_Link_Model.Visibility = Visibility;
         end
     
         function Satellite_Link_Model = SetNumSteps(Satellite_Link_Model,N)

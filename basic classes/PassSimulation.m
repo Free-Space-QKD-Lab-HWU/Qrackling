@@ -65,7 +65,7 @@ classdef PassSimulation
         %signal to noise ratio (in dB) of the downlink beacon
         Downlink_Beacon_SNR_dB = [];
         %link model describing loss from beacon on satellite to intensity at the ground
-        Downlink_Beacon_Link_Model;
+        Downlink_Beacon_Link_Model (1,1);
         %flag describing whether the link from satellite to ground station is above the horizon
         Line_Of_Sight_Flags = false(0,0);
 
@@ -374,7 +374,7 @@ classdef PassSimulation
 
                 %then, plot link loss
                 subplot(3,1,2)
-                Plot(PassSimulation.Downlink_Beacon_Link_Model(PassSimulation.Line_Of_Sight_Flags),PassSimulation.Times(PassSimulation.Line_Of_Sight_Flags));
+                Plot(PassSimulation.Downlink_Beacon_Link_Model,PassSimulation.Times,PassSimulation.Line_Of_Sight_Flags);
                 NameTimeAxis(PassSimulation.Times);
 
                 %finally, plot SNR
