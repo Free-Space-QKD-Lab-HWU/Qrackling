@@ -30,6 +30,9 @@ classdef Ground_Station < Located_Object
 
         %the camera which receives beacon light, if beaconing is simulated
         Camera=[];
+
+        %% source for uplink
+        Source;
     end
 
     properties (Abstract = false, SetAccess = protected, Hidden = true)
@@ -101,6 +104,7 @@ classdef Ground_Station < Located_Object
             addParameter(p, 'name', 'Bob');
             addParameter(p, 'Background_Count_Rate_File_Location', 'none');
             addParameter(p, 'Camera', []);
+            addParameter(p, 'Source', []);
 
             parse(p, Detector, Telescope, varargin{:});
 
@@ -124,6 +128,9 @@ classdef Ground_Station < Located_Object
             else
                 LLA = p.Results.LLA;
             end
+
+            %set source for uplink
+            Ground_Station.Source = p.Results.Source;
 
             if any(arrayfun(@isnan, LLA))
                 error(['No location supplied for ground station, require:', ...

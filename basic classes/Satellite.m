@@ -39,6 +39,9 @@ classdef Satellite < Located_Object
 
         %% beacon on satellite
         Beacon =[];
+
+        %% detector on satellite (for uplink)
+        Detector
     end
 
     methods
@@ -79,6 +82,9 @@ classdef Satellite < Located_Object
 
             % downlink beacon, if wanted
             addParameter(p, 'Beacon', [])
+
+            %detector, for uplink
+            addParameter(p,'Detector',[]);
 
             parse(p, Source, Telescope, varargin{:});
 
@@ -195,6 +201,9 @@ classdef Satellite < Located_Object
 
             %% set beacon on satellite
             Satellite.Beacon = p.Results.Beacon;
+
+            %% add detector if wanted
+            Satellite.Detector = p.Results.Detector;
         end
 
 
