@@ -1,7 +1,7 @@
 %Author: Cameron Simmons, Peter Barrow
 %Date: 24/1/22
 
-classdef Satellite < Located_Object
+classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
     %SATELLITE abstract class containing the satellite properties for simulation
 
     %hide large or uninteresting properties, not abstract for this reason
@@ -23,10 +23,6 @@ classdef Satellite < Located_Object
         %File location for Latitude, Longitude, Altitude and Time data
         Orbit_Data_File_Location{mustBeText} = '';
 
-        %object containing transmitter details
-        Source =[]
-        Telescope Telescope
-
         %% information about protocol
         % protocol used (BB84,BBN92,...)
         Protocol Protocol = BB84_Protocol();
@@ -39,9 +35,6 @@ classdef Satellite < Located_Object
 
         %% beacon on satellite
         Beacon =[];
-
-        %% detector on satellite (for uplink)
-        Detector =[];
     end
 
     methods
@@ -183,6 +176,8 @@ classdef Satellite < Located_Object
 
             Satellite.N_Steps = Satellite.N_Position;
             Satellite.Times = t;
+
+            %% currently, both transmit and receive scopes are the same
             Satellite.Telescope = p.Results.Telescope;
 
             %infer correct wavelength from source or detector
@@ -370,6 +365,22 @@ classdef Satellite < Located_Object
             %%SETFRONTALAREA set the frontal area property
             Satellite.Reflectivity = reflectivity;
             warning('this behaviour is legacy and may no longer be support. Instead access the "Surface" class of the satellite')
+        end
+
+        function [Background_Count_Rates, Satellite] = ComputeTotalBackgroundCountRate(Satellite, Background_Sources, Ground_Station, Headings, Elevations, smarts_configuration)
+            %%COMPUTETOTALBACKGROUNDCOUNTRATE consider background light at the
+            %%satellite to produce BCR
+                Background_Count_Rates = Satellite.Detector.Dark_Count_Rate;
+        end
+
+
+        function PlotBackgroundCountRates(Satellite, Plotting_Indices, X_Axis)
+            %%PLOTBACKGROUNDCOUNTRATES plot the background count rate at the
+            %%satellite
+
+                Background_Count_Rate = Satellite.Detector.Dark_Count_Rate*ones(1,sum(Plotting_Indices));
+
+                plot(Background_Count_Rate,X_Axis(Plotting_Indices));
         end
 
     end

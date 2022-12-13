@@ -65,7 +65,7 @@ classdef PassSimulation
         %signal to noise ratio (in dB) of the downlink beacon
         Downlink_Beacon_SNR_dB = [];
         %link model describing loss from beacon on satellite to intensity at the ground
-        Downlink_Beacon_Link_Model (1,1);
+        Downlink_Beacon_Link_Model {mustBeScalarOrEmpty};
         %flag describing whether the link from satellite to ground station is above the horizon
         Line_Of_Sight_Flags = false(0,0);
 
@@ -172,9 +172,6 @@ classdef PassSimulation
                 otherwise
                 error('must have satellite and ground station support either uplink or downlink')
             end
-
-            plot(PassSimulation);
-
         end
 
 
@@ -428,7 +425,7 @@ classdef PassSimulation
             [Computed_Sifted_Key_Rates, Computed_QBERs, Rates_In, Rates_Det] = EvaluateQKDLink(...
                 Protocol, Satellite.Source, ...
                 Ground_Station.Detector, ...
-                [Computed_Link_Models(Elevation_Limit_Flags).Link_Loss_dB], ...
+                [Downlink_Model.Link_Loss_dB(Elevation_Limit_Flags)], ...
                 [Background_Count_Rates(Elevation_Limit_Flags)]);
 
             %store this step's data
@@ -639,6 +636,5 @@ classdef PassSimulation
             PassSimulation.smarts_configuration=smarts_configuration;
             PassSimulation.Visibility=Visibility;
         end
-        
     end
 end

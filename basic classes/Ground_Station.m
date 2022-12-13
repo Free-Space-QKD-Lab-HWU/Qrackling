@@ -1,16 +1,10 @@
 %Author: Cameron Simmons, Peter Barrow
 %Date: 24/1/22
 
-classdef Ground_Station < Located_Object
+classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
     % GROUND_STATION an object containing all of the simulation parameters of the ground station
 
     properties (Abstract = false, SetAccess = protected)
-        % name of protocol to be used
-        %Protocol{mustBeText} = '';
-
-        % a detector object, validated individually in subclasses
-        Detector =[];
-        Telescope Telescope
 
         % is is possible to replace this with a hash or index to get the object
         % from the toolbox scenario? Maybe the name is enough?
@@ -20,19 +14,8 @@ classdef Ground_Station < Located_Object
         % ground station (stored in counts/ s steradian nm)
         Background_Count_Rate_File_Location{mustBeText} = 'none';
 
-        % background count rate (in counts/s) as a function of heading and 
-        % elevation, stored as a structure with fields 'Count_Rate', 'Heading' 
-        % and 'Elevation'
-        Background_Rates{isstruct, ...
-                         isfield(Background_Rates, 'Heading'), ...
-                         isfield(Background_Rates, 'Elevation'), ...
-                         isfield(Background_Rates, 'Count_Rate')};
-
         %the camera which receives beacon light, if beaconing is simulated
         Camera=[];
-
-        %% source for uplink
-        Source =[];
     end
 
     properties (Abstract = false, SetAccess = protected, Hidden = true)
@@ -108,8 +91,8 @@ classdef Ground_Station < Located_Object
 
             parse(p, Telescope, varargin{:});
 
-            % set Telescope parameters
-            Ground_Station.Telescope = Telescope;
+            %% currently, both transmit and receive scopes are the same
+            Ground_Station.Telescope = p.Results.Telescope;
 
             %infer correct wavelength from source or detector
             if ~isempty(p.Results.Source)
