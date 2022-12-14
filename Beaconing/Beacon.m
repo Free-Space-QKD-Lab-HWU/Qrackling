@@ -28,7 +28,7 @@ classdef(Abstract) Beacon
            addRequired(p,'Telescope')
            addRequired(p,'Power');
            addRequired(p,'Wavelength');
-           addParameter(p,'Efficiency',1);
+           addParameter(p,'Power_Efficiency',1);
            addParameter(p,'Pointing_Jitter',1E-3)
            parse(p,Telescope,Power,Wavelength,varargin{:});
            %required
@@ -38,7 +38,7 @@ classdef(Abstract) Beacon
            %make sure wavelength is set correctly
            Beacon.Telescope = SetWavelength(Beacon.Telescope,Beacon.Wavelength);
            %optional
-           Beacon.Power_Efficiency=p.Results.Efficiency;
+           Beacon.Power_Efficiency=p.Results.Power_Efficiency;
            Beacon.Pointing_Jitter = p.Results.Pointing_Jitter;
         end
     end

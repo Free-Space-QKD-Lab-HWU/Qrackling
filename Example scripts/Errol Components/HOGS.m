@@ -21,19 +21,29 @@ HOGS_Detector = MPD_Detector(Wavelength,Repetition_Rate,...
     Time_Gate,Spectral_Filter_Width);
 
 %beacon camera
-Beacon_Telescope_Diameter = 0.1;                                   %beacon telescope diameter in m, used to calculate collecting area
+Beacon_Telescope_Diameter = 0.25;                                   %beacon telescope diameter in m, used to calculate collecting area
 Beacon_Telescope_Efficiency = 0.9;                                 %efficiency of beacon telescope optical path
 Beacon_Camera_Efficiency = 0.9;                                     %optical efficiency of beacon camera and imaging system
 Beacon_Camera_Noise = 1E-9;                                         %rms noise power floor in camera, in W
-Beacon_Wavelength = 850;                                            %beacon wavelength in nm
 Camera_Scope = Telescope(Beacon_Telescope_Diameter,...
-    'Wavelength',Beacon_Wavelength,...
     'Optical_Efficiency',Beacon_Telescope_Efficiency);
 HOGS_Camera = Camera(Camera_Scope,...
     'Detection_Efficiency',Beacon_Camera_Efficiency,...
     'Noise',Beacon_Camera_Noise);
 
+%uplink beacon
+Beacon_Power = 2;                                                               %power of uplink beacon in W
+Beacon_Wavelength = 850;                                                        %uplink beacon wavelength in nm
+BeaconPointingPrecision = 1E-3;                                                 %beacon pointing precision (coarse pointing precision) in rads
+BeaconEfficiency = 1;                                                           %beacon optical efficiency (unitless)
+HOGSBeacon = Gaussian_Beacon(HOGS_Telescope,Beacon_Power,Beacon_Wavelength,...
+                   'Pointing_Jitter',BeaconPointingPrecision,...
+                    'Power_Efficiency',BeaconEfficiency);
+
 %% construct OGS at Errol
-HOGS=Errol_OGS(HOGS_Detector,HOGS_Telescope,'Camera',HOGS_Camera);
+HOGS=Errol_OGS(HOGS_Telescope,...
+                'Detector',HOGS_Detector,...
+                'Camera',HOGS_Camera,...
+                'Beacon',HOGSBeacon);
 end
 

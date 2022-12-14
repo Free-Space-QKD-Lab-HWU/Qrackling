@@ -396,7 +396,7 @@ classdef PassSimulation
             %% Compute background count rate and link heading and elevation
             [Headings,Elevations,Ranges]=RelativeHeadingAndElevation(Satellite, Ground_Station);
             [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate(Ground_Station, Background_Sources, Satellite, Headings, Elevations, smarts_configuration);
-
+            PassSimulation.QKD_Receiver = Ground_Station; %need to store OGS details for beacon modelling
             %% Check elevation limit
             Line_Of_Sight_Flags = Elevations>0;
             %Check that satellite rises above horizon at some point
@@ -491,7 +491,7 @@ classdef PassSimulation
             %% Compute background count rate and link heading and elevation
             [Headings,Elevations,Ranges]=RelativeHeadingAndElevation(Satellite, Ground_Station);
             [Background_Count_Rates, Satellite] = ComputeTotalBackgroundCountRate(Satellite, Background_Sources, Ground_Station, Headings, Elevations, smarts_configuration);
-
+            PassSimulation.QKD_Receiver = Satellite; %need to store satellite details for beacon modelling
             %% Check elevation limit
             Line_Of_Sight_Flags = Elevations>0;
             %Check that satellite rises above horizon at some point
