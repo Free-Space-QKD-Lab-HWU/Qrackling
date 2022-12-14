@@ -16,6 +16,8 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
 
         %the camera which receives beacon light, if beaconing is simulated
         Camera=[];
+        %uplink beacon, if simulated
+        Beacon = [];
     end
 
     properties (Abstract = false, SetAccess = protected, Hidden = true)
@@ -80,6 +82,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             addParameter(p, 'name', 'Bob');
             addParameter(p, 'Background_Count_Rate_File_Location', 'none');
             addParameter(p, 'Camera', []);
+            addParameter(p, 'Beacon', []);
             addParameter(p, 'Source', []);
 
             parse(p, Telescope, varargin{:});
@@ -106,9 +109,10 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             Ground_Station = ReadBackgroundCountRateData(Ground_Station, ...
                                 p.Results.Background_Count_Rate_File_Location);
 
-            % set camera
+            % set camera and beacon
             Ground_Station.Camera = p.Results.Camera;
-            
+            Ground_Station.Beacon = p.Results.Beacon;
+
             if isnan(p.Results.LLA)
                 LLA = [p.Results.latitude, p.Results.longitude, p.Results.altitude];
             else

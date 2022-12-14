@@ -28,7 +28,7 @@ classdef PassSimulation
         %flag describing whether the satellite passes through the elevation window of the receiver
         Elevation_Viability_Flag = false;
 
-        %how much sifted data is downlinked over the whole pass
+        %how much sifted data is communicated over the whole pass
         Total_Sifted_Key = 0;
 
         %heading of satellite relative to OGS in deg
@@ -66,6 +66,16 @@ classdef PassSimulation
         Downlink_Beacon_SNR_dB = [];
         %link model describing loss from beacon on satellite to intensity at the ground
         Downlink_Beacon_Link_Model {mustBeScalarOrEmpty};
+
+        %flag describing whether a downlink beacon is being simulated
+        Uplink_Beacon_Flag=false;
+        %power of the downlink beacon which is received
+        Uplink_Beacon_Power = [];
+        %signal to noise ratio (in dB) of the downlink beacon
+        Uplink_Beacon_SNR_dB = [];
+        %link model describing loss from beacon on satellite to intensity at the ground
+        Uplink_Beacon_Link_Model {mustBeScalarOrEmpty};
+
         %flag describing whether the link from satellite to ground station is above the horizon
         Line_Of_Sight_Flags = false(0,0);
 
@@ -255,10 +265,10 @@ classdef PassSimulation
             ax.YAxisLocation = 'right';
             clear ax;
 
-            %% if present, plot beacon performance as a function of time.
+            %% if present, plot downlink beacon performance as a function of time.
             if PassSimulation.Downlink_Beacon_Flag
                 % expand a new figure
-                BeaconFig = figure('name','Dowlink Beacon'); %#ok<NASGU>
+                BeaconFig = figure('name','Downlink Beacon'); %#ok<NASGU>
                 %first, plot intensity as a function of time
                 subplot(3,1,1)
                 plot(PassSimulation.Times(PassSimulation.Line_Of_Sight_Flags),PassSimulation.Downlink_Beacon_Power(PassSimulation.Line_Of_Sight_Flags));
@@ -273,6 +283,28 @@ classdef PassSimulation
                 %finally, plot SNR
                 subplot(3,1,3)
                 plot(PassSimulation.Times(PassSimulation.Line_Of_Sight_Flags),PassSimulation.Downlink_Beacon_SNR_dB(PassSimulation.Line_Of_Sight_Flags));
+                NameTimeAxis(PassSimulation.Times);
+                ylabel('SNR (dB)');
+            end
+
+            %% if present, plot uplink beacon performance as a function of time.
+            if PassSimulation.Uplink_Beacon_Flag
+                % expand a new figure
+                BeaconFig = figure('name','Uplink Beacon'); %#ok<NASGU>
+                %first, plot intensity as a function of time
+                subplot(3,1,1)
+                plot(PassSimulation.Times(PassSimulation.Line_Of_Sight_Flags),PassSimulation.Uplink_Beacon_Power(PassSimulation.Line_Of_Sight_Flags));
+                ylabel('Beacon Power (W)')
+                NameTimeAxis(GetTimes(PassSimulation));
+
+                %then, plot link loss
+                subplot(3,1,2)
+                Plot(PassSimulation.Uplink_Beacon_Link_Model,PassSimulation.Times,PassSimulation.Line_Of_Sight_Flags);
+                NameTimeAxis(PassSimulation.Times);
+
+                %finally, plot SNR
+                subplot(3,1,3)
+                plot(PassSimulation.Times(PassSimulation.Line_Of_Sight_Flags),PassSimulation.Uplink_Beacon_SNR_dB(PassSimulation.Line_Of_Sight_Flags));
                 NameTimeAxis(PassSimulation.Times);
                 ylabel('SNR (dB)');
             end
@@ -377,37 +409,7 @@ classdef PassSimulation
                 'satellite does not enter elevation window of ground station');
 
             %% Beaconing
-            %does the satellite have a beacon present?
-            Downlink_Beacon_Flag = ~isempty(Satellite.Beacon)&&~isempty(Ground_Station.Camera);
-            if Downlink_Beacon_Flag
-                % if a beacon is present, simulate the beacon channel
-                [Beacon_Downlink_model,DownlinkBeaconLossdB] =...
-                    Compute_Link_Loss(Beacon_Downlink_Model(N_Steps,Visibility),...
-                    Satellite,...
-                    Ground_Station);
-                %compute beacon received power
-                Downlink_Beacon_Power = Satellite.Beacon.Power*10.^(-DownlinkBeaconLossdB/10);
-                
-                if ~isempty(smarts_configuration)
-                %computed beacon channel noise
-                Beacon_Sky_Radiance = interp1(Ground_Station.Wavelengths,...
-                    Ground_Station.Sky_Radiance',...
-                    Satellite.Beacon.Wavelength);
-                Downlink_Beacon_Noise = Ground_Station.Camera.Noise +...
-                    Beacon_Sky_Radiance * Ground_Station.Camera.FOV;
-                else
-                    Downlink_Beacon_Noise = Ground_Station.Camera.Noise;
-                end
-
-                %compute SNR
-                Downlink_Beacon_SNR_dB = 10*log10(Downlink_Beacon_Power./Downlink_Beacon_Noise);
-                Downlink_Beacon_Link_Model = Beacon_Downlink_model;
-            else
-                %if no downlink beacon, return empty data
-                Downlink_Beacon_SNR_dB=[];
-                Downlink_Beacon_Power=[];
-                Downlink_Beacon_Link_Model=[];
-            end
+            PassSimulation=SimulateBeaconing(PassSimulation);
 
 
             %% Compute Link loss
@@ -465,10 +467,6 @@ classdef PassSimulation
             PassSimulation.Rates_In=Rates_In;
             PassSimulation.Rates_Det=Rates_Det;
             PassSimulation.Total_Sifted_Key=Total_Sifted_Key;
-            PassSimulation.Downlink_Beacon_Flag=Downlink_Beacon_Flag;
-            PassSimulation.Downlink_Beacon_Power=Downlink_Beacon_Power;
-            PassSimulation.Downlink_Beacon_SNR_dB=Downlink_Beacon_SNR_dB;
-            PassSimulation.Downlink_Beacon_Link_Model=Downlink_Beacon_Link_Model;
         end
         
         function PassSimulation = SimulateUplink(PassSimulation)
@@ -506,41 +504,10 @@ classdef PassSimulation
                 'satellite does not enter elevation window of ground station');
 
             %% Beaconing
-            %does the satellite have a beacon present?
-            Downlink_Beacon_Flag = ~isempty(Satellite.Beacon)&&~isempty(Ground_Station.Camera);
-            if Downlink_Beacon_Flag
-                % if a beacon is present, simulate the beacon channel
-                [Beacon_Downlink_model,DownlinkBeaconLossdB] =...
-                    Compute_Link_Loss(Beacon_Downlink_Model(N_Steps,Visibility),...
-                    Satellite,...
-                    Satellite);
-                %compute beacon received power
-                Downlink_Beacon_Power = Satellite.Beacon.Power*10.^(-DownlinkBeaconLossdB/10);
-                
-                if ~isempty(smarts_configuration)
-                %computed beacon channel noise
-                Beacon_Sky_Radiance = interp1(Satellite.Wavelengths,...
-                    Satellite.Sky_Radiance',...
-                    Satellite.Beacon.Wavelength);
-                Downlink_Beacon_Noise = Ground_Station.Camera.Noise +...
-                    Beacon_Sky_Radiance * Ground_Station.Camera.FOV;
-                else
-                    Downlink_Beacon_Noise = Ground_Station.Camera.Noise;
-                end
-
-                %compute SNR
-                Downlink_Beacon_SNR_dB = 10*log10(Downlink_Beacon_Power./Downlink_Beacon_Noise);
-                Downlink_Beacon_Link_Model = Beacon_Downlink_model;
-            else
-                %if no downlink beacon, return empty data
-                Downlink_Beacon_SNR_dB=[];
-                Downlink_Beacon_Power=[];
-                Downlink_Beacon_Link_Model=[];
-            end
-
+            PassSimulation=SimulateBeaconing(PassSimulation);
 
             %% Compute Link loss
-            Uplink_Model = Compute_Link_Loss(Uplink_Model, Satellite, Ground_Station);
+            Uplink_Model= Compute_Link_Loss(Uplink_Model, Satellite, Ground_Station);
 
             %% compute SKR and QBER for links inside the elevation window
             %[Computed_Sifted_Key_Rates, Computed_QBERs] = EvaluateQKDLink(...
@@ -573,7 +540,8 @@ classdef PassSimulation
                 Total_Sifted_Key = 0;
             end
 
-
+            %% Compute Link loss
+            Uplink_Model = Compute_Link_Loss(Uplink_Model, Satellite, Ground_Station);
             %% return components
             PassSimulation=Pack(PassSimulation,Ground_Station,Protocol,Satellite,...
                                     Background_Sources,smarts_configuration,Visibility);
@@ -594,10 +562,6 @@ classdef PassSimulation
             PassSimulation.Rates_In=Rates_In;
             PassSimulation.Rates_Det=Rates_Det;
             PassSimulation.Total_Sifted_Key=Total_Sifted_Key;
-            PassSimulation.Downlink_Beacon_Flag=Downlink_Beacon_Flag;
-            PassSimulation.Downlink_Beacon_Power=Downlink_Beacon_Power;
-            PassSimulation.Downlink_Beacon_SNR_dB=Downlink_Beacon_SNR_dB;
-            PassSimulation.Downlink_Beacon_Link_Model=Downlink_Beacon_Link_Model;
         end
         
         function [QKD_Transmitter, Protocol, QKD_Receiver,...
@@ -628,6 +592,92 @@ classdef PassSimulation
             PassSimulation.Background_Sources=Background_Sources;
             PassSimulation.smarts_configuration=smarts_configuration;
             PassSimulation.Visibility=Visibility;
+        end
+
+        function PassSimulation = SimulateBeaconing(PassSimulation)
+
+            %% unpack components, dependent on link direction
+            switch PassSimulation.Link_Direction
+                case 'Down'
+            [Satellite, ~, Ground_Station,...
+                Background_Sources, smarts_configuration,...
+                Visibility] = Unpack(PassSimulation);
+                case 'Up'
+            [Ground_Station, ~, Satellite,...
+                Background_Sources, smarts_configuration,...
+                Visibility] = Unpack(PassSimulation);
+            end
+            N_Steps = Satellite.N_Steps;
+
+            %does the hardware support a downlink beacon?
+            Downlink_Beacon_Flag = ~isempty(Satellite.Beacon)&&~isempty(Ground_Station.Camera);
+            PassSimulation.Downlink_Beacon_Flag=Downlink_Beacon_Flag;
+
+            %% Downlink beacon modelling
+            if Downlink_Beacon_Flag
+                % if a beacon is present, simulate the beacon channel
+                [Beacon_Downlink_model,DownlinkBeaconLossdB] =...
+                    Compute_Link_Loss(Beacon_Downlink_Model(N_Steps,Visibility),...
+                    Satellite,...
+                    Ground_Station);
+                %compute beacon received power
+                Downlink_Beacon_Power = Satellite.Beacon.Power*10.^(-DownlinkBeaconLossdB/10);
+                PassSimulation.Downlink_Beacon_Power=Downlink_Beacon_Power;
+
+                if ~isempty(smarts_configuration)
+                %computed beacon channel noise
+                Beacon_Sky_Radiance = interp1(Ground_Station.Wavelengths,...
+                    Ground_Station.Sky_Radiance',...
+                    Satellite.Beacon.Wavelength);
+                Downlink_Beacon_Noise = Ground_Station.Camera.Noise +...
+                    Beacon_Sky_Radiance * Ground_Station.Camera.FOV;
+                else
+                    Downlink_Beacon_Noise = Ground_Station.Camera.Noise;
+                end
+
+                %compute SNR
+                PassSimulation.Downlink_Beacon_SNR_dB = 10*log10(Downlink_Beacon_Power./Downlink_Beacon_Noise);
+                PassSimulation.Downlink_Beacon_Link_Model = Beacon_Downlink_model;
+            else
+                %if no downlink beacon, return empty data
+                PassSimulation.Downlink_Beacon_SNR_dB=[];
+                PassSimulation.Downlink_Beacon_Power=[];
+                PassSimulation.Downlink_Beacon_Link_Model=[];
+            end
+
+
+            %does the hardware support an uplink beacon?
+            Uplink_Beacon_Flag = ~isempty(Ground_Station.Beacon)&&~isempty(Satellite.Camera);
+            PassSimulation.Uplink_Beacon_Flag=Uplink_Beacon_Flag;
+
+            %% Uplink beacon modelling
+            if Uplink_Beacon_Flag
+                % if a beacon is present, simulate the beacon channel
+                [Beacon_Uplink_model,UplinkBeaconLossdB] =...
+                    Compute_Link_Loss(Beacon_Uplink_Model(N_Steps,Visibility),...
+                    Satellite,...
+                    Ground_Station);
+                %compute beacon received power
+                Uplink_Beacon_Power = Ground_Station.Beacon.Power*10.^(-UplinkBeaconLossdB/10);
+                PassSimulation.Uplink_Beacon_Power=Uplink_Beacon_Power;
+
+                if ~isempty(smarts_configuration)
+                %computed beacon channel noise
+                %% need some smarts involvement here
+                Uplink_Beacon_Noise = Satellite.Camera.Noise;
+                else
+                    Uplink_Beacon_Noise = Ground_Station.Camera.Noise;
+                end
+
+                %compute SNR
+                PassSimulation.Uplink_Beacon_SNR_dB = 10*log10(Uplink_Beacon_Power./Uplink_Beacon_Noise);
+                PassSimulation.Uplink_Beacon_Link_Model = Beacon_Uplink_model;
+            else
+                %if no uplink beacon, return empty data
+                PassSimulation.Uplink_Beacon_SNR_dB=[];
+                PassSimulation.Uplink_Beacon_Power=[];
+                PassSimulation.Uplink_Beacon_Link_Model=[];
+            end
         end
     end
 end

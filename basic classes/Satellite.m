@@ -35,6 +35,8 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
 
         %% beacon on satellite
         Beacon =[];
+        %% beacon camera on satellite
+        Camera = [];
     end
 
     methods
@@ -80,6 +82,8 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
 
             % downlink beacon, if wanted
             addParameter(p, 'Beacon', [])
+            %up link beacon camera, if wanted
+            addParameter(p, 'Camera', []);
 
             %detector, for uplink
             addParameter(p,'Detector',[]);
@@ -208,8 +212,9 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             end
 
 
-            %% set beacon on satellite
+            %% set beacon and beaconing camera
             Satellite.Beacon = p.Results.Beacon;
+            Satellite.Camera = p.Results.Camera;
 
             %% add detector if wanted
             Satellite.Detector = p.Results.Detector;

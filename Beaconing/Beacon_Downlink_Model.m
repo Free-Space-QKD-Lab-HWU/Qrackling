@@ -53,7 +53,7 @@ classdef Beacon_Downlink_Model < Link_Model
         Geo_Loss(Shadowing)=0;
 
         %% efficiency loss
-        Eff_Loss=Satellite.Beacon.Efficiency*Ground_Station.Camera.Total_Efficiency;
+        Eff_Loss=Satellite.Beacon.Total_Efficiency*Ground_Station.Camera.Total_Efficiency;
 
         %% atmospheric loss
         %compute elevation angles
@@ -62,6 +62,7 @@ classdef Beacon_Downlink_Model < Link_Model
         Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles,Satellite.Beacon.Wavelength,{Beacon_Downlink_Model.Visibility});
         Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Beacon.Wavelength);
         
+        %% APT loss
         APTracking_Loss=GetAPTLoss(Satellite.Beacon,Ground_Station.Camera);
 
         %record loss values
