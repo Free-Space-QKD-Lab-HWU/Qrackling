@@ -5,13 +5,13 @@ classdef PassSimulation
 
     properties (SetAccess = protected,  Hidden = false)
         %satellite simulation object
-        Satellite Satellite;
+        QKD_Transmitter QKD_Transmitter = Satellite.empty;
 
         %protocol to be used for QKD
         Protocol;
 
         %receiver simulation object
-        Ground_Station Ground_Station;
+        QKD_Receiver QKD_Receiver = Ground_Station.empty;
 
         %object which holds link properties over the pass
         Link_Model (1,1);   %must be singular
@@ -85,65 +85,49 @@ classdef PassSimulation
 
 
     methods
-        function PassSimulation = PassSimulation(Satellite, Protocol, Ground_Station, varargin)
+        function PassSimulation = PassSimulation(QKD_Transmitter, Protocol, QKD_Receiver, varargin)
             %PASSSIMULATION Construct an instance of a PassSimulation
 
 
             %% create and use an input parser
             P = inputParser();
             %required inputs
-            addRequired(P, 'Satellite');
+            addRequired(P, 'QKD_Transmitter');
             addRequired(P, 'Protocol');
-            addRequired(P, 'Ground_Station');
+            addRequired(P, 'QKD_Receiver');
             %optional inputs
             addParameter(P, 'SMARTS', []);
             addParameter(P, 'Background_Sources', []);
             addParameter(P, 'Visibility', 'clear');
 
             %parse inputs
-            parse(P, Satellite, Protocol, Ground_Station, varargin{:});
+            parse(P, QKD_Transmitter, Protocol, QKD_Receiver, varargin{:});
 
-            PassSimulation.Satellite = P.Results.Satellite;
-            PassSimulation.Ground_Station = P.Results.Ground_Station;
+            PassSimulation.QKD_Transmitter = P.Results.QKD_Transmitter;
+            PassSimulation.QKD_Receiver = P.Results.QKD_Receiver;
             PassSimulation.Protocol = P.Results.Protocol;
             PassSimulation.Visibility = P.Results.Visibility;
 
 
-            %perform correct one of up or down link. UPLINK is given
-            %preference. Both cannot be performed (yet)
-            if ~isempty(PassSimulation.Satellite.Detector)&&~isempty(PassSimulation.Ground_Station.Source)
-
-                %flag uplink sim
-                PassSimulation.Link_Direction = 'Up';
                 %verify compatibility
-                if ~IsSourceCompatible(Protocol, Ground_Station.Source)
+                if ~IsSourceCompatible(Protocol, QKD_Transmitter.Source)
                 error('ground station source is not compatible with %s protocol', Protocol.Name);
                 end
-                if ~IsDetectorCompatible(Protocol, Satellite.Detector)
+                if ~IsDetectorCompatible(Protocol, QKD_Receiver.Detector)
                     error('Satellite detector is not compatible with %s protocol', Protocol.Name);
                 end
-                if ~isequal(Ground_Station.Source.Wavelength, Satellite.Detector.Wavelength)
+                if ~isequal(QKD_Transmitter.Source.Wavelength, QKD_Receiver.Detector.Wavelength)
                 error('satellite and ground station must use the same wavelength')
                 end
 
-            elseif ~isempty(PassSimulation.Satellite.Source)&&~isempty(PassSimulation.Ground_Station.Detector)
-               
-                %flag downlink sim
-                PassSimulation.Link_Direction = 'Down';
-                %verify compatability            
-                if ~IsSourceCompatible(Protocol, Satellite.Source)
-                    error('satellite source is not compatible with %s protocol', Protocol.Name);
+                %decide on direction
+                if isa(QKD_Transmitter,'Satellite')&&isa(QKD_Receiver,'Ground_Station')
+                    PassSimulation.Link_Direction='Down';
+                elseif isa(QKD_Transmitter,'Ground_Station')&&isa(QKD_Receiver,'Satellite')
+                    PassSimulation.Link_Direction='Up';
+                else
+                    error('must have transmitter and receiver cover both of Satellite and Ground_Station')
                 end
-                if ~IsDetectorCompatible(Protocol, Ground_Station.Detector)
-                    error('Ground station detector is not compatible with %s protocol', Protocol.Name);
-                end
-                if ~isequal(Satellite.Source.Wavelength, Ground_Station.Detector.Wavelength)
-                error('satellite and ground station must use the same wavelength')
-                end
-
-            else
-                error('must have satellite and ground station support either uplink or downlink')
-            end
 
             %if background sources are provided,  add them
             PassSimulation.Background_Sources = P.Results.Background_Sources;
@@ -204,21 +188,30 @@ classdef PassSimulation
             end
 
             %% plot ground path of satellite
-            Fig = figure('name', ['Pass Simulation using ', PassSimulation.Protocol.Name, ' protocol at ', num2str(PassSimulation.Satellite.Source.Wavelength), 'nm'], 'WindowState', 'maximized');
+            switch PassSimulation.Link_Direction
+                case 'Up'
+                    Satellite=PassSimulation.QKD_Receiver;
+                    Ground_Station=PassSimulation.QKD_Transmitter;
+                case 'Down'
+                    Satellite=PassSimulation.QKD_Transmitter;
+                    Ground_Station=PassSimulation.QKD_Receiver;
+            end
+
+            Fig = figure('name', ['Pass Simulation using ', PassSimulation.Protocol.Name, ' protocol at ', num2str(PassSimulation.QKD_Transmitter.Source.Wavelength), 'nm'], 'WindowState', 'maximized');
             subplot(3, 3, [3, 6])
 
             title('Satellite Ground Path')
             %plot non-flagged path (no comms or out of elevation range)
-            geoplot(PassSimulation.Satellite.Latitude(~Plot_Select_Flags), PassSimulation.Satellite.Longitude(~Plot_Select_Flags), 'b-', 'LineWidth', 0.5)
+            geoplot(Satellite.Latitude, Satellite.Longitude, 'b-', 'LineWidth', 0.5)
             hold('on');
             %then plot flagged path
-            geoplot(PassSimulation.Satellite.Latitude(Plot_Select_Flags), PassSimulation.Satellite.Longitude(Plot_Select_Flags), 'g-', 'LineWidth', 1)
+            geoplot(Satellite.Latitude(Plot_Select_Flags), Satellite.Longitude(Plot_Select_Flags), 'g-', 'LineWidth', 1)
             legend('Satellite Path', [Range, ' window'], 'Location', 'southwest')
             %determine satellite altitude for plotting lines of sight
-            Satellite_Altitude = mean(PassSimulation.Satellite.Altitude);
+            Satellite_Altitude = mean(Satellite.Altitude);
 
             %plot ground station
-            PlotLOS(PassSimulation.Ground_Station, Satellite_Altitude);
+            PlotLOS(Ground_Station, Satellite_Altitude);
 
             %then plot sources of interference
             if ~isempty(PassSimulation.Background_Sources)
@@ -243,12 +236,12 @@ classdef PassSimulation
             % plot background counts
             subplot(3, 3, [7, 8])
             title('background count rate')
-            PlotBackgroundCountRates(PassSimulation.Ground_Station, Plot_Select_Flags, PassSimulation.Times(Plot_Select_Flags));
+            PlotBackgroundCountRates(PassSimulation.QKD_Receiver, Plot_Select_Flags, PassSimulation.Times);
             NameTimeAxis(PassSimulation.Times);
             % plot link loss
             subplot(3, 3, [4, 5])
             title('Link Loss')
-            Plot(PassSimulation.Link_Model, PassSimulation.Times,Plot_Select_Flags);
+            Plot(PassSimulation.Link_Model, PassSimulation.Times, Plot_Select_Flags);
             NameTimeAxis(PassSimulation.Times);
 
             %% plot key rate as a function of link loss
@@ -482,7 +475,7 @@ classdef PassSimulation
             %%SIMULATEUPLINK simulate a pass assuming an uplink configuration
 
             %% break out components
-             [Satellite, Protocol, Ground_Station,...
+             [Ground_Station, Protocol, Satellite,...
                 Background_Sources, smarts_configuration,...
                 Visibility] = Unpack(PassSimulation); %#ok<*PROP> 
 
@@ -499,7 +492,7 @@ classdef PassSimulation
 
             %% Compute background count rate and link heading and elevation
             [Headings,Elevations,Ranges]=RelativeHeadingAndElevation(Satellite, Ground_Station);
-            [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate(Satellite, Background_Sources, Ground_Station, Headings, Elevations, smarts_configuration);
+            [Background_Count_Rates, Satellite] = ComputeTotalBackgroundCountRate(Satellite, Background_Sources, Ground_Station, Headings, Elevations, smarts_configuration);
 
             %% Check elevation limit
             Line_Of_Sight_Flags = Elevations>0;
@@ -520,14 +513,14 @@ classdef PassSimulation
                 [Beacon_Downlink_model,DownlinkBeaconLossdB] =...
                     Compute_Link_Loss(Beacon_Downlink_Model(N_Steps,Visibility),...
                     Satellite,...
-                    Ground_Station);
+                    Satellite);
                 %compute beacon received power
                 Downlink_Beacon_Power = Satellite.Beacon.Power*10.^(-DownlinkBeaconLossdB/10);
                 
                 if ~isempty(smarts_configuration)
                 %computed beacon channel noise
-                Beacon_Sky_Radiance = interp1(Ground_Station.Wavelengths,...
-                    Ground_Station.Sky_Radiance',...
+                Beacon_Sky_Radiance = interp1(Satellite.Wavelengths,...
+                    Satellite.Sky_Radiance',...
                     Satellite.Beacon.Wavelength);
                 Downlink_Beacon_Noise = Ground_Station.Camera.Noise +...
                     Beacon_Sky_Radiance * Ground_Station.Camera.FOV;
@@ -552,9 +545,9 @@ classdef PassSimulation
             %% compute SKR and QBER for links inside the elevation window
             %[Computed_Sifted_Key_Rates, Computed_QBERs] = EvaluateQKDLink(...
             [Computed_Sifted_Key_Rates, Computed_QBERs, Rates_In, Rates_Det] = EvaluateQKDLink(...
-                Protocol, Satellite.Source, ...
-                Ground_Station.Detector, ...
-                [Uplink_Model(Elevation_Limit_Flags).Link_Loss_dB], ...
+                Protocol, Ground_Station.Source, ...
+                Satellite.Detector, ...
+                [Uplink_Model.Link_Loss_dB(Elevation_Limit_Flags)], ...
                 [Background_Count_Rates(Elevation_Limit_Flags)]);
 
             %store this step's data
@@ -582,7 +575,7 @@ classdef PassSimulation
 
 
             %% return components
-            PassSimulation=Pack(PassSimulation,Satellite,Protocol,Ground_Station,...
+            PassSimulation=Pack(PassSimulation,Ground_Station,Protocol,Satellite,...
                                     Background_Sources,smarts_configuration,Visibility);
             %store data
             PassSimulation.Times=Times;
@@ -607,31 +600,31 @@ classdef PassSimulation
             PassSimulation.Downlink_Beacon_Link_Model=Downlink_Beacon_Link_Model;
         end
         
-        function [Satellite, Protocol, Ground_Station,...
+        function [QKD_Transmitter, Protocol, QKD_Receiver,...
                 Background_Sources, smarts_configuration,...
                 Visibility] = Unpack(PassSimulation)
                 %%UNPACK return the component objects of a pass simulation
 
-                Satellite = PassSimulation.Satellite;
+                QKD_Transmitter = PassSimulation.QKD_Transmitter;
                 Protocol = PassSimulation.Protocol;
-                Ground_Station = PassSimulation.Ground_Station;
+                QKD_Receiver = PassSimulation.QKD_Receiver;
                 Background_Sources = PassSimulation.Background_Sources;
                 smarts_configuration = PassSimulation.smarts_configuration;
                 Visibility = PassSimulation.Visibility;
         end
 
         function PassSimulation = Pack(PassSimulation,...
-                                        Satellite,...
+                                        QKD_Transmitter,...
                                         Protocol,...
-                                        Ground_Station,...
+                                        QKD_Receiver,...
                                         Background_Sources,...
                                         smarts_configuration,...
                                         Visibility)
             %%PACK return all of the component objects to a PassSimulation
             
-            PassSimulation.Satellite=Satellite;
+            PassSimulation.QKD_Transmitter=QKD_Transmitter;
             PassSimulation.Protocol=Protocol;
-            PassSimulation.Ground_Station=Ground_Station;
+            PassSimulation.QKD_Receiver=QKD_Receiver;
             PassSimulation.Background_Sources=Background_Sources;
             PassSimulation.smarts_configuration=smarts_configuration;
             PassSimulation.Visibility=Visibility;

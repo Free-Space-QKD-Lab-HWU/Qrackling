@@ -49,6 +49,11 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             % If TLE information or KeplerElements are supplied then a startTime,
             %     stopTime and sampleTime must also be supplied.
 
+            %% satellite should support an empty constructor
+            if nargin==0
+                return
+            end
+
             p = inputParser();
 
             addRequired(p, 'Telescope');
@@ -370,7 +375,8 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
         function [Background_Count_Rates, Satellite] = ComputeTotalBackgroundCountRate(Satellite, Background_Sources, Ground_Station, Headings, Elevations, smarts_configuration)
             %%COMPUTETOTALBACKGROUNDCOUNTRATE consider background light at the
             %%satellite to produce BCR
-                Background_Count_Rates = Satellite.Detector.Dark_Count_Rate;
+                Background_Count_Rates = ones(size(Headings))*Satellite.Detector.Dark_Count_Rate;
+                Satellite.Dark_Count_Rates = Background_Count_Rates;
         end
 
 
@@ -378,10 +384,8 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             %%PLOTBACKGROUNDCOUNTRATES plot the background count rate at the
             %%satellite
 
-                Background_Count_Rate = Satellite.Detector.Dark_Count_Rate*ones(1,sum(Plotting_Indices));
-
-                plot(Background_Count_Rate,X_Axis(Plotting_Indices));
+                area(X_Axis(Plotting_Indices),Satellite.Dark_Count_Rates(Plotting_Indices));
+                legend('Dark Counts')
         end
-
     end
 end

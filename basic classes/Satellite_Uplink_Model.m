@@ -138,8 +138,8 @@ classdef Satellite_Uplink_Model < Link_Model
                 error('Array must be a vector or scalar');
             end
 
-            Link_Models.APT_Loss=Turbulence_Loss;
-            Link_Models.APT_Loss_dB=-10*log10(Turbulence_Loss);
+            Link_Models.Turbulence_Loss=Turbulence_Loss;
+            Link_Models.Turbulence_Loss_dB=-10*log10(Turbulence_Loss);
         end
     end
     methods (Access=public)
@@ -178,7 +178,7 @@ classdef Satellite_Uplink_Model < Link_Model
             %compute elevation angles
             [~,Elevation_Angles]=RelativeHeadingAndElevation(Satellite,Ground_Station);
             %format spectral filters which correspond to these elevation angles
-            Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles,Satellite.Source.Wavelength,{Link_Model.Visibility});
+            Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles,Ground_Station.Source.Wavelength,{Link_Model.Visibility});
             Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Ground_Station.Source.Wavelength);
 
             %% turbulence loss
@@ -186,8 +186,10 @@ classdef Satellite_Uplink_Model < Link_Model
             %parameters
             Wavelength = Ground_Station.Source.Wavelength*10^-9;
             Wavenumber = 2*pi/Wavelength;
-            Zenith = 90-Elevation_Angles;
-            Satellite_Altitude = Satellite.Altitude;
+            %can only compute for positive elevation
+            Elevation_Flags = Elevation_Angles'>0;
+            Zenith = 90-Elevation_Angles(Elevation_Flags)';
+            Satellite_Altitude = Satellite.Altitude(Elevation_Flags);
             Beam_Waist = Ground_Station.Telescope.Diameter;
             Rayleigh_Range = rayleigh_range(Beam_Waist, Wavelength, 1);
             Atmospheric_Turbulence_Coherence_Length = ...
@@ -195,13 +197,16 @@ classdef Satellite_Uplink_Model < Link_Model
                                              Zenith, ...
                                              Satellite_Altitude, ghv_defaults);
             %output variables
-            spot_tl = long_term_gaussian_beam_width(Beam_Waist, Link_Lengths ,...
-                                        Rayleigh_Range, 2*pi/Ground_Station.Source.Wavelength, Atmospheric_Turbulence_Coherence_Length);
+            spot_tl = long_term_gaussian_beam_width(Beam_Waist, Link_Lengths(Elevation_Flags) ,...
+                                        Rayleigh_Range, 2*pi/(Ground_Station.Source.Wavelength*10^-9), Atmospheric_Turbulence_Coherence_Length);
             %residual beam wander is not needed here as this is dealt with in
             %APT loss
             %wander_tl = residual_beam_wander(error_snr, error_delay, error_centroid, ...
             %                                   error_tilt, spot_tl, L);
-            Turb_Loss = (Geo_Spot_Size./spot_tl).^2;
+
+            %turbulence loss is the ratio of geometric and turbulent spot areas
+            Turb_Loss(~Elevation_Flags)=0;
+            Turb_Loss(Elevation_Flags) = (Geo_Spot_Size(Elevation_Flags)./spot_tl).^2;
 
             %% Acquisition, pointing and tracking loss
             APTracking_Loss=...
@@ -252,42 +257,39 @@ classdef Satellite_Uplink_Model < Link_Model
             Turbulence_Loss_dB=Satellite_Uplink_Model.Turbulence_Loss_dB;
         end
 
-        function Plot(Satellite_Uplink_Model,X_Axis)
+        function Plot(Satellite_Uplink_Model,X_Axis, Plot_Select_Flags)
             %%PLOT plot the link loss over time of the satellite link
 
-            %must use column vector of losses for area
-            if isrow(Satellite_Uplink_Model)
-                Satellite_Uplink_Model=Satellite_Uplink_Model';
-            end
-            area(X_Axis,[GetGeometricLossdB(Satellite_Uplink_Model),GetAtmosphericLossdB(Satellite_Uplink_Model),GetOpticalEfficiencyLossdB(Satellite_Uplink_Model),GetAPTLossdB(Satellite_Uplink_Model)]);
+
+            Geo = GetGeometricLossdB(Satellite_Uplink_Model);
+            Eff = GetOpticalEfficiencyLossdB(Satellite_Uplink_Model);
+            APT = GetAPTLossdB(Satellite_Uplink_Model);
+            Turb = GetTurbulenceLossdB(Satellite_Uplink_Model);
+            Atmos = GetAtmosphericLossdB(Satellite_Uplink_Model);
+
+            Geo=Geo(Plot_Select_Flags)';
+            Eff=Eff(Plot_Select_Flags)';
+            APT=APT(Plot_Select_Flags)';
+            Turb=Turb(Plot_Select_Flags)';
+            Atmos=Atmos(Plot_Select_Flags)';
+
+            area(X_Axis(Plot_Select_Flags),[Geo,Eff,APT,Turb,Atmos]);
             xlabel('Time (s)')
             ylabel('Losses (dB)')
 
-            %% display shadowed time
-            GeoLossdB=GetGeometricLossdB(Satellite_Uplink_Model);
-            Shadowing_Indices=(GeoLossdB==inf);
-            if any(Shadowing_Indices)
-                Max_Geo_Loss=max(GeoLossdB(~Shadowing_Indices));
-                hold on
-                scatter(X_Axis(Shadowing_Indices),Max_Geo_Loss*ones(1,sum(Shadowing_Indices)),'k.');
-                if ~isempty(Max_Geo_Loss)
-                    text(X_Axis(end),Max_Geo_Loss,'Link shadowed by earth','VerticalAlignment','bottom','HorizontalAlignment','right')
-                else
-                    text(X_Axis(end),0,'Link constantly shadowed by earth','VerticalAlignment','bottom','HorizontalAlignment','right')
-                end
-                hold off
-            end
-
             %% adjust legend to represent what is plotted
             %atmospheric loss is non zero
-            legend('Geometric loss','Atmospheric loss','Efficiency loss','APT loss','Orientation','horizontal');
+            legend('Geometric loss','Efficiency loss','APT loss','Turbulence loss','Atmospheric loss','Orientation','horizontal');
             legend('Location','south')
         end
 
         function [Link_Model,Total_Loss_dB]=SetTotalLoss(Link_Model)
             %%SETTOTALLOSS update total loss to reflect stored loss values
 
-            Total_Loss_dB=Link_Model.Geometric_Loss_dB+Link_Model.Optical_Efficiency_Loss_dB+Link_Model.APT_Loss_dB;
+            Total_Loss_dB=Link_Model.Geometric_Loss_dB+Link_Model.Optical_Efficiency_Loss_dB+Link_Model.APT_Loss_dB+Link_Model.Turbulence_Loss_dB;
+            Total_Loss= 10.^(Total_Loss_dB/10);
+            Link_Model.Link_Loss_dB=Total_Loss_dB;
+            Link_Model.Link_Loss=Total_Loss;
         end
 
         function Satellite_Uplink_Model = SetVisibility(Satellite_Uplink_Model,Visibility)

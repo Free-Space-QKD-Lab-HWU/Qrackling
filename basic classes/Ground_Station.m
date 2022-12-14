@@ -35,18 +35,6 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
         % minimum elevation to establish a link in deg
         Elevation_Limit{mustBeScalarOrEmpty} = 30;
 
-        % count rates at the Ground station due to light pollution
-        Light_Pollution_Count_Rates{mustBeVector, mustBeNonnegative} = 0;
-
-        % count rates at the Ground station due to dark counts
-        Dark_Count_Rates{mustBeVector, mustBeNonnegative} = 0;
-
-        % count rates at the Ground station due to reflected light off satellite
-        Reflection_Count_Rates{mustBeVector, mustBeNonnegative} = 0;
-
-        % count rates at the Ground station due to reflected light off satellite
-        Directed_Count_Rates{mustBeVector, mustBeNonnegative} = 0;
-
         % SMARTS data paths
         smarts_results = {};
 
@@ -69,6 +57,11 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             % GROUND_STATION instantiate a ground station using either its
             % component classes and requiring a name and location (LLA = lat
             % lon alt)
+
+            %% Ground_Station should support an empty constructor
+            if nargin==0
+                return
+            end
 
             p = inputParser;
             % required inputs
@@ -337,7 +330,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             %disp(size(Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)'));
             %disp(size(Ground_Station.Directed_Count_Rates(Plotting_Indices)'));
             
-            area(X_Axis, ...
+            area(X_Axis(Plotting_Indices), ...
                  [Ground_Station.Dark_Count_Rates(Plotting_Indices)', ...
                  Ground_Station.Reflection_Count_Rates(Plotting_Indices)', ...
                  Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)', ...
