@@ -60,12 +60,16 @@ classdef PassSimulation
 
         %flag describing whether a downlink beacon is being simulated
         Downlink_Beacon_Flag=false;
+
         %power of the downlink beacon which is received
         Downlink_Beacon_Power = [];
+
         %signal to noise ratio (in dB) of the downlink beacon
         Downlink_Beacon_SNR_dB = [];
+
         %link model describing loss from beacon on satellite to intensity at the ground
         Downlink_Beacon_Link_Model (1,1);
+
         %flag describing whether the link from satellite to ground station is above the horizon
         Line_Of_Sight_Flags = false(0,0);
 
@@ -84,7 +88,6 @@ classdef PassSimulation
     methods
         function PassSimulation = PassSimulation(Satellite, Protocol, Ground_Station, varargin)
             %PASSSIMULATION Construct an instance of a PassSimulation
-
 
             %% create and use an input parser
             P = inputParser();
@@ -105,15 +108,21 @@ classdef PassSimulation
             PassSimulation.Protocol = P.Results.Protocol;
             PassSimulation.Visibility = P.Results.Visibility;
 
-            if ~IsSourceCompatible(Protocol, Satellite.Source)
-                error('satellite source is not compatible with %s protocol', Protocol.Name);
-            end
-            if ~IsDetectorCompatible(Protocol, Ground_Station.Detector)
-                error('Ground station detector is not compatible with %s protocol', Protocol.Name);
-            end
-            if ~isequal(Satellite.Source.Wavelength, Ground_Station.Detector.Wavelength)
-                error('satellite and ground station must use the same wavelength')
-            end
+            assert(IsSourceCompatible(Protocol, Satellite.Source), ...
+                'satellite source is not compatible with %s protocol', Protocol.Name);
+            %if ~IsSourceCompatible(Protocol, Satellite.Source)
+            %    error('satellite source is not compatible with %s protocol', Protocol.Name);
+            %end
+            assert(IsDetectorCompatible(Protocol, Ground_Station.Detector), ...
+                'Ground station detector is not compatible with %s protocol', Protocol.Name);
+            %%if ~IsDetectorCompatible(Protocol, Ground_Station.Detector)
+            %%    error('Ground station detector is not compatible with %s protocol', Protocol.Name);
+            %%end
+            assert(isequal(Satellite.Source.Wavelength, Ground_Station.Detector.Wavelength), ...
+                'satellite and ground station must use the same wavelength');
+            %%if ~isequal(Satellite.Source.Wavelength, Ground_Station.Detector.Wavelength)
+            %%    error('satellite and ground station must use the same wavelength')
+            %%end
             %if background sources are provided,  add them
             PassSimulation.Background_Sources = P.Results.Background_Sources;
 
@@ -137,11 +146,21 @@ classdef PassSimulation
             PassSimulation.Times = PassSimulation.Satellite.Times;
             %% set number of steps in simulation
             PassSimulation = Set_N_Steps(PassSimulation, N_Steps);
+
             PassSimulation.Link_Model = Satellite_Link_Model(N_Steps,PassSimulation.Visibility);
 
             %% Compute background count rate and link heading and elevation
-            [Headings,Elevations,Ranges]=RelativeHeadingAndElevation(PassSimulation.Satellite, PassSimulation.Ground_Station);
-            [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate(PassSimulation.Ground_Station, PassSimulation.Background_Sources, PassSimulation.Satellite, Headings, Elevations,PassSimulation.smarts_configuration);
+            [Headings,Elevations, Ranges] = ...
+                    RelativeHeadingAndElevation(PassSimulation.Satellite, ...
+                                                PassSimulation.Ground_Station);
+            [Background_Count_Rates, Ground_Station] = ...
+                    ComputeTotalBackgroundCountRate(PassSimulation.Ground_Station, ...
+                                                    PassSimulation.Background_Sources, ...
+                                                    PassSimulation.Satellite, ...
+                                                    Headings, ...
+                                                    Elevations, ...
+                                                    PassSimulation.smarts_configuration);
+
             PassSimulation.Ground_Station = Ground_Station;
 
             if ~isempty(PassSimulation.extra_counts)
@@ -186,10 +205,15 @@ classdef PassSimulation
                 %calculate total backrgound count rate
                 Background_Count_Rates = Background_Count_Rates ...
                                          + PassSimulation.Sky_Photon_Rate;
-                %add sky photons to OGS background count rate sum
-                PassSimulation.Ground_Station.Light_Pollution_Count_Rates = sky_photon_rate;
-                end
-            %}
+% <<<<<<< HEAD
+%             end
+% 
+% =======
+%                 %add sky photons to OGS background count rate sum
+%                 PassSimulation.Ground_Station.Light_Pollution_Count_Rates = sky_photon_rate;
+%                 end
+%             %}
+
             %% Beaconing
             %does the satellite have a beacon present?
             DownlinkBeaconFlag = ~isempty(PassSimulation.Satellite.Beacon);
@@ -212,6 +236,15 @@ classdef PassSimulation
                 else
                     Downlink_Beacon_Noise = PassSimulation.Ground_Station.Camera.Noise;
                 end
+
+% <<<<<<< HEAD
+%             %% Check elevation limit
+%             Elevation_Limit_Flags = ...
+%                 Elevations > PassSimulation.Ground_Station.Elevation_Limit;
+% 
+%             %Check that satellite rises above elevation limit at some point
+%             if ~any(Elevation_Limit_Flags)
+%                 warning('satellite does not enter elevation window of ground station');
 
                 %compute SNR
                 Downlink_Beacon_SNR_dB = 10*log10(Downlink_Beacon_Power./Downlink_Beacon_Noise);
@@ -249,19 +282,29 @@ classdef PassSimulation
             PassSimulation.Headings = Headings;
             PassSimulation.Elevations = Elevations;
             PassSimulation.Link_Losses_dB = [PassSimulation.Link_Model.Link_Loss_dB];
-            PassSimulation.Background_Count_Rates = Background_Count_Rates; %#ok<*PROP>
+            PassSimulation.Background_Count_Rates = Background_Count_Rates;
             PassSimulation.Any_Communication_Flag = any(PassSimulation.Communicating_Flags);
             PassSimulation.Elevation_Viability_Flag = any(PassSimulation.Elevation_Limit_Flags);
+
             %compute total data downlink
             %first produce a vector of time bin widths
-            Downlink_Time_Windows = PassSimulation.Times(PassSimulation.Communicating_Flags)-PassSimulation.Times([PassSimulation.Communicating_Flags(2:end), false]);
+            Downlink_Time_Windows = ...
+                    PassSimulation.Times(PassSimulation.Communicating_Flags) ...
+                  - PassSimulation.Times( [...
+                                        PassSimulation.Communicating_Flags(2:end), ...
+                                        false ...
+                                          ]);
 
             %the dot with sifted data rate
-            if ~isempty(Downlink_Time_Windows)&&isnumeric(Downlink_Time_Windows)
-                PassSimulation.Total_Sifted_Key = dot(Downlink_Time_Windows, PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags));
+            if ~isempty(Downlink_Time_Windows) && isnumeric(Downlink_Time_Windows)
+                PassSimulation.Total_Sifted_Key = dot( ...
+                    Downlink_Time_Windows, ...
+                    PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags) );
 
-            elseif ~isempty(Downlink_Time_Windows)&&isduration(Downlink_Time_Windows)
-                PassSimulation.Total_Sifted_Key = dot(seconds(Downlink_Time_Windows), PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags));
+            elseif ~isempty(Downlink_Time_Windows) && isduration(Downlink_Time_Windows)
+                PassSimulation.Total_Sifted_Key = dot( ...
+                    seconds(Downlink_Time_Windows), ...
+                    PassSimulation.Secret_Key_Rates(PassSimulation.Communicating_Flags) );
             else
                 PassSimulation.Total_Sifted_Key = 0;
             end
@@ -272,7 +315,6 @@ classdef PassSimulation
             %                           PassSimulation.Secret_Key_Rates ~= 0));
             % this only works when the simulation time interval =1s
         end
-
 
         function plot(PassSimulation, Range)
             %% PLOT plot data from this PassSimulation, according to the keyword Range:
