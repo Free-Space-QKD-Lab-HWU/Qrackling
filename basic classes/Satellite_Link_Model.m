@@ -189,20 +189,17 @@ classdef Satellite_Link_Model < Link_Model
         function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Link_Model)
             %%GETATMOSPHERICLOSSDB return an array of atmospheric losses in dB the
             %same dimensions as the satellite link model
-<<<<<<< HEAD
-            sz=size(Satellite_Link_Model);
-            Atmospheric_Loss_dB=zeros(sz);
-
-            %iterate over all elements
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Atmospheric_Loss_dB(i,j)=Satellite_Link_Model(i,j).Atmospheric_Loss_dB;
-                end
-            end
-=======
+%            sz=size(Satellite_Link_Model);
+%            Atmospheric_Loss_dB=zeros(sz);
+%
+%            %iterate over all elements
+%            for i=1:sz(1)
+%                for j=1:sz(2)
+%                    Atmospheric_Loss_dB(i,j)=Satellite_Link_Model(i,j).Atmospheric_Loss_dB;
+%                end
+%            end
             
             Atmospheric_Loss_dB=Satellite_Link_Model.Atmospheric_Loss_dB;
->>>>>>> 2af21b30e3d789c040716b34e1a2deed2fe4667b
         end
 
         function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Satellite_Link_Model)

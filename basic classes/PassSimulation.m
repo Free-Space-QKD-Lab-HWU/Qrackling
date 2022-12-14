@@ -60,25 +60,16 @@ classdef PassSimulation
 
         %flag describing whether a downlink beacon is being simulated
         Downlink_Beacon_Flag=false;
-<<<<<<< HEAD
 
-        %power of the downlink beacon which is received 
-        Downlink_Beacon_Power = [];  
-
-=======
         %power of the downlink beacon which is received
         Downlink_Beacon_Power = [];
->>>>>>> 2af21b30e3d789c040716b34e1a2deed2fe4667b
+
         %signal to noise ratio (in dB) of the downlink beacon
         Downlink_Beacon_SNR_dB = [];
 
         %link model describing loss from beacon on satellite to intensity at the ground
-<<<<<<< HEAD
-        Downlink_Beacon_Link_Model;
-
-=======
         Downlink_Beacon_Link_Model (1,1);
->>>>>>> 2af21b30e3d789c040716b34e1a2deed2fe4667b
+
         %flag describing whether the link from satellite to ground station is above the horizon
         Line_Of_Sight_Flags = false(0,0);
 
@@ -155,24 +146,21 @@ classdef PassSimulation
             PassSimulation.Times = PassSimulation.Satellite.Times;
             %% set number of steps in simulation
             PassSimulation = Set_N_Steps(PassSimulation, N_Steps);
-<<<<<<< HEAD
-            PassSimulation.Link_Model = Satellite_Link_Model( ...
-                                            N_Steps, ...
-                                            PassSimulation.Visibility );
 
-
-            %% Compute background count rate and link heading and elevation
-            [Background_Count_Rates, Ground_Station, Headings, Elevations] = ...
-                    ComputeTotalBackgroundCountRate(PassSimulation.Ground_Station, ...
-                                                    PassSimulation.Background_Sources, ...
-                                                    PassSimulation.Satellite);
-=======
             PassSimulation.Link_Model = Satellite_Link_Model(N_Steps,PassSimulation.Visibility);
 
             %% Compute background count rate and link heading and elevation
-            [Headings,Elevations,Ranges]=RelativeHeadingAndElevation(PassSimulation.Satellite, PassSimulation.Ground_Station);
-            [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate(PassSimulation.Ground_Station, PassSimulation.Background_Sources, PassSimulation.Satellite, Headings, Elevations,PassSimulation.smarts_configuration);
->>>>>>> 2af21b30e3d789c040716b34e1a2deed2fe4667b
+            [Headings,Elevations, Ranges] = ...
+                    RelativeHeadingAndElevation(PassSimulation.Satellite, ...
+                                                PassSimulation.Ground_Station);
+            [Background_Count_Rates, Ground_Station] = ...
+                    ComputeTotalBackgroundCountRate(PassSimulation.Ground_Station, ...
+                                                    PassSimulation.Background_Sources, ...
+                                                    PassSimulation.Satellite, ...
+                                                    Headings, ...
+                                                    Elevations, ...
+                                                    PassSimulation.smarts_configuration);
+
             PassSimulation.Ground_Station = Ground_Station;
 
             if ~isempty(PassSimulation.extra_counts)
@@ -217,15 +205,15 @@ classdef PassSimulation
                 %calculate total backrgound count rate
                 Background_Count_Rates = Background_Count_Rates ...
                                          + PassSimulation.Sky_Photon_Rate;
-<<<<<<< HEAD
-            end
+% <<<<<<< HEAD
+%             end
+% 
+% =======
+%                 %add sky photons to OGS background count rate sum
+%                 PassSimulation.Ground_Station.Light_Pollution_Count_Rates = sky_photon_rate;
+%                 end
+%             %}
 
-=======
-                %add sky photons to OGS background count rate sum
-                PassSimulation.Ground_Station.Light_Pollution_Count_Rates = sky_photon_rate;
-                end
-            %}
->>>>>>> 2af21b30e3d789c040716b34e1a2deed2fe4667b
             %% Beaconing
             %does the satellite have a beacon present?
             DownlinkBeaconFlag = ~isempty(PassSimulation.Satellite.Beacon);
@@ -249,18 +237,17 @@ classdef PassSimulation
                     Downlink_Beacon_Noise = PassSimulation.Ground_Station.Camera.Noise;
                 end
 
-<<<<<<< HEAD
-            %% Check elevation limit
-            Elevation_Limit_Flags = ...
-                Elevations > PassSimulation.Ground_Station.Elevation_Limit;
+% <<<<<<< HEAD
+%             %% Check elevation limit
+%             Elevation_Limit_Flags = ...
+%                 Elevations > PassSimulation.Ground_Station.Elevation_Limit;
+% 
+%             %Check that satellite rises above elevation limit at some point
+%             if ~any(Elevation_Limit_Flags)
+%                 warning('satellite does not enter elevation window of ground station');
 
-            %Check that satellite rises above elevation limit at some point
-            if ~any(Elevation_Limit_Flags)
-                warning('satellite does not enter elevation window of ground station');
-=======
                 %compute SNR
                 Downlink_Beacon_SNR_dB = 10*log10(Downlink_Beacon_Power./Downlink_Beacon_Noise);
->>>>>>> 2af21b30e3d789c040716b34e1a2deed2fe4667b
 
                 PassSimulation.Downlink_Beacon_Flag = DownlinkBeaconFlag;
                 PassSimulation.Downlink_Beacon_Power = Downlink_Beacon_Power;

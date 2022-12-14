@@ -20,11 +20,6 @@
 %                                                    file_name='new_result');
 % assert(success, 'SMARTS Simulation failed...');
 
-<<<<<<< HEAD:solar_background_errol.m
-function configuration = solar_background_errol(varargin)
-
-    % card_types = solar_background_errol.card_types;
-=======
 function configuration = solar_background_errol_fast(varargin)
 
 
@@ -32,8 +27,6 @@ function configuration = solar_background_errol_fast(varargin)
     Wavelength_Min=600;
     Wavelength_Max=900;
     Step=10;
-    %card_types = solar_background_errol.card_types;
->>>>>>> 2af21b30e3d789c040716b34e1a2deed2fe4667b:SMARTS_connection/solar_background_errol_fast.m
 
     p = inputParser;
     addParameter(p, 'executable_path', '');
@@ -62,11 +55,8 @@ function configuration = solar_background_errol_fast(varargin)
         step=Step);
     illum = illuminance(value=0);
     iuv =  broadband_uv(value=0);
-<<<<<<< HEAD:solar_background_errol.m
+
     imass = solar_position_and_airmass(dateAndTime=datetime(2022, 8, 15, 12, 0, 0), ...
-=======
-    imass = solar_position_and_airmass(dateAndTime=p.Results.dateAndTime, ...
->>>>>>> 2af21b30e3d789c040716b34e1a2deed2fe4667b:SMARTS_connection/solar_background_errol_fast.m
             latitude=56.405, longitude=-3.183);
 
     defaults = {ispr, iatmos, ih20, i03, igas, ico2, iaeros, ...
