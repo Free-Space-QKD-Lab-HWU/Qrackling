@@ -1,4 +1,5 @@
-% Default SMARTS cards for Errol Airstrip.
+% Default SMARTS cards for Errol Airstrip, with reduced granularity for faster
+% ops
 % ### USAGE ###
 % errol_smarts = solar_background_errol(...
 %                           executable_path='path/to/smarts.exe', ...
@@ -19,13 +20,25 @@
 %                                                    file_name='new_result');
 % assert(success, 'SMARTS Simulation failed...');
 
+<<<<<<< HEAD:solar_background_errol.m
 function configuration = solar_background_errol(varargin)
 
     % card_types = solar_background_errol.card_types;
+=======
+function configuration = solar_background_errol_fast(varargin)
+
+
+    %% specify the reduced wavelength range simulated
+    Wavelength_Min=600;
+    Wavelength_Max=900;
+    Step=10;
+    %card_types = solar_background_errol.card_types;
+>>>>>>> 2af21b30e3d789c040716b34e1a2deed2fe4667b:SMARTS_connection/solar_background_errol_fast.m
 
     p = inputParser;
     addParameter(p, 'executable_path', '');
     addParameter(p, 'stub', '');
+    addParameter(p, 'dateAndTime', datetime("now"))
     parse(p, varargin{:});
 
     ispr = sitePressure(spr=1013.25, altit=0, height=0);
@@ -38,15 +51,22 @@ function configuration = solar_background_errol(varargin)
     iturb = turbidity(visi=50);
     ialbdx = far_field_albedo(spectral_reflectance=38, ...
                               tilt=45, wazim=90, ialbdg=38);
-    isolar = extra_spectral(wlmin=280, wlmax=4000, ....
+    isolar = extra_spectral(wlmin=Wavelength_Min, wlmax=Wavelength_Max, ....
                             suncor=1, solarc=1367);
     iprt = printing(output_options=linspace(1, 43, 43), ....
-                    wpmn=280, wpmx=4000, intvl=0.5);
+                    wpmn=Wavelength_Min, wpmx=Wavelength_Max, intvl=Step);
     icirc = circum_solar(slope=0, apert=2.9, limit=0);
-    iscan = scanning(filtering=0);
+    iscan = scanning(filtering=0,...
+        wavelength_min=Wavelength_Min,...
+        wavelength_max=Wavelength_Max,...
+        step=Step);
     illum = illuminance(value=0);
     iuv =  broadband_uv(value=0);
+<<<<<<< HEAD:solar_background_errol.m
     imass = solar_position_and_airmass(dateAndTime=datetime(2022, 8, 15, 12, 0, 0), ...
+=======
+    imass = solar_position_and_airmass(dateAndTime=p.Results.dateAndTime, ...
+>>>>>>> 2af21b30e3d789c040716b34e1a2deed2fe4667b:SMARTS_connection/solar_background_errol_fast.m
             latitude=56.405, longitude=-3.183);
 
     defaults = {ispr, iatmos, ih20, i03, igas, ico2, iaeros, ...

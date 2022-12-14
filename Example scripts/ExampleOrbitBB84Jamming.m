@@ -4,7 +4,7 @@
 %% Then we simulate the pass and plot the results.
 
 %% 1. Choose parameters
-Wavelength=780;                                                            %wavelength is measured in nm
+Wavelength=600;                                                            %wavelength is measured in nm
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
 OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                                %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
 Receiver_Telescope_Diameter=1;                                           
@@ -12,9 +12,9 @@ Time_Gate_Width=1E-9;                                                      %time
 Spectral_Filter_Width=10;                                                  %consistemt with wavelength, spectral width is measured in nm
 
 % extra parameters for jamming
-Jamming_Diameter=1;
-Jamming_Coordinates=[55.946466,-3.162452, 250];                            %coordintes of arthur's seat (lat, lon, alt)
-Jamming_Power=1000;                                                        %power in W
+Jamming_Diameter=0.1;
+Jamming_Coordinates=[38,-6, 100];                          %coordintes of Jersey (lat lon alt)
+Jamming_Power=10;                                                        %power in W
 Jamming_Spectral_Width=10;
 %% 2. Construct components
 
@@ -37,8 +37,8 @@ MPD_BB84_Detector=MPD_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Tim
 %2.2.2 Receiver telescope
 Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);
 
-%2.2.3 construct ground station, use Chilbolton as an example
-SimGround_Station=Chilbolton_OGS(MPD_BB84_Detector,Receiver_Telescope);
+%2.2.3 construct ground station, use Errol as an example
+SimGround_Station=Errol_OGS(MPD_BB84_Detector,Receiver_Telescope);
 
 %2.3 protocol
 BB84_protocol=BB84_Protocol;

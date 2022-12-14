@@ -6,6 +6,9 @@ classdef (Abstract=true) Link_Model
     %%LINK_MODEL Class for computing and storing link loss
 
     properties (SetAccess=protected,Abstract=true)
+        N                                                                  %number of timestamps modelled. Equal to the number of columns and number of elements of each loss vector
+
+        %all losses are recorded in a row vector with N elements
         Link_Loss;                                                         %link loss in absolute terms
         Link_Loss_dB;                                                      %link loss measured in dB
     end
@@ -18,41 +21,26 @@ classdef (Abstract=true) Link_Model
         [Link_Model,Total_Loss_dB]=SetTotalLoss(Link_Model)
         %%SETTOTALLOSSupdate total loss to reflect internal stored computations
 
+        [Link_Model] = SetNumSteps(Link_Model,N)
+        %set the number of time steps a link model computes for
+
         Plot(Link_Model,X_Axis)
         %%PLOT plot link loss over a given x axis
     end
 
     methods (Access=public,Abstract=false)
         function Link_Loss_dB=GetLinkLossdB(Link_Model)
-            %%GETLINKLOSSDB return an array of link losses the same
-            %%dimensions as the link model array
+            %%GETLINKLOSSDB return an array of link losses in dB
 
-            %% measure size of link model and prepare memory
-            sz=size(Link_Model);
-            Link_Loss_dB=nan(sz);
-
-            %% iterate over the link model
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Link_Loss_dB(i,j)=Link_Model(i,j).Link_Loss_dB;
-                end
-            end
+            %% output Link loss db array
+            Link_Loss_dB = Link_Model.Link_Loss_dB;
         end
 
         function Link_Loss=GetLinkLoss(Link_Model)
-            %%GETLINKLOSS return an array of link losses the same
-            %%dimensions as the link model array
-
-            %% measure size of link model and prepare memory
-            sz=size(Link_Model);
-            Link_Loss=nan(sz);
-
-            %% iterate over the link model
-            for i=1:sz(1)
-                for j=1:sz(2)
-                    Link_Loss(i,j)=Link_Model(i,j).Link_Loss;
-                end
-            end
+            %%GETLINKLOSS return an array of link losses
+            
+            %% output Link loss db array
+            Link_Loss = Link_Model.Link_Loss;
         end
     end
 

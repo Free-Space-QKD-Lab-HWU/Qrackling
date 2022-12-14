@@ -19,13 +19,16 @@ classdef Flat_Top_Beacon < Beacon
             Flat_Top_Beacon.Limit_Half_Angle = Limit_Half_Angle;
         end
 
-        function Loss = GetAPTLoss(Flat_Top_Beacon, Angle)
+        function Loss = GetAPTLoss(Flat_Top_Beacon, Camera)
         %Get the loss (absolute, i.e. the fraction of transmitted power)
         % at an angle off the optical axis of the beacon
 
 
             %% compute intensity distribution function at this angle
-            Loss = double(Angle <= Flat_Top_Beacon.Limit_Half_Angle);
+            Downlink_APT_Loss = 1-exp(-(Flat_Top_Beacon.Limit_Half_Angle).^2./(8*Flat_Top_Beacon.Pointing_Jitter.^2));
+            Uplooking_APT_Loss= 1-exp(-(Camera.FOV).^2./(8*Camera.Telescope.Pointing_Jitter.^2));
+            %take product
+            Loss = Downlink_APT_Loss.*Uplooking_APT_Loss;
 
         end
 

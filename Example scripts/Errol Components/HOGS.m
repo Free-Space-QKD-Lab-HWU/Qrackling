@@ -13,19 +13,24 @@ HOGS_Telescope = Telescope(Telescope_Diameter,...
     'Optical_Efficiency',Optical_Efficiency);
 
 %Detector
-Wavelength = 780;                                                   %signal wavelength in nm
+Wavelength = 785;                                                   %signal wavelength in nm
 Repetition_Rate = 1E8;                                              %signal rep rate in Hz
-Time_Gate = 1E-9;                                                   %time gate width in s
-Spectral_Filter_Width = 1;                                          %spectral filter width in nm
+Time_Gate = 2E-9;                                                   %time gate width in s
+Spectral_Filter_Width = 2;                                          %spectral filter width in nm
 HOGS_Detector = MPD_Detector(Wavelength,Repetition_Rate,...
     Time_Gate,Spectral_Filter_Width);
 
 %beacon camera
-Beacon_Telescope_Diameter = 0.25;                                   %beacon telescope diameter in m, used to calculate collecting area
+Beacon_Telescope_Diameter = 0.1;                                   %beacon telescope diameter in m, used to calculate collecting area
+Beacon_Telescope_Efficiency = 0.9;                                 %efficiency of beacon telescope optical path
 Beacon_Camera_Efficiency = 0.9;                                     %optical efficiency of beacon camera and imaging system
 Beacon_Camera_Noise = 1E-9;                                         %rms noise power floor in camera, in W
-HOGS_Camera = Camera((pi/4)*Beacon_Telescope_Diameter^2,...
-    'Efficiency',Beacon_Camera_Efficiency,...
+Beacon_Wavelength = 850;                                            %beacon wavelength in nm
+Camera_Scope = Telescope(Beacon_Telescope_Diameter,...
+    'Wavelength',Beacon_Wavelength,...
+    'Optical_Efficiency',Beacon_Telescope_Efficiency);
+HOGS_Camera = Camera(Camera_Scope,...
+    'Detection_Efficiency',Beacon_Camera_Efficiency,...
     'Noise',Beacon_Camera_Noise);
 
 %% construct OGS at Errol

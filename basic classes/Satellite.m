@@ -256,8 +256,8 @@ classdef Satellite < Located_Object
             % of {latitiude, longitude, altitude}, velocities in a 'North-East-
             % Down' format and time in matlab datetime
 
-            if ~isempty(p.Results.scenario) & isnan(p.Results.TLE) ...
-                    & isempty(p.Results.KeplerElements)
+            if ~isempty(p.Results.scenario) && isnan(p.Results.TLE) ...
+                    && isempty(p.Results.KeplerElements)
 
                 % First case: we have been supplied with only a satCommsToolbox
                 % satellite object, get its position, velocity and time 
@@ -281,9 +281,8 @@ classdef Satellite < Located_Object
                                     sc_sat, 'CoordinateFrame', 'geographic');
                 Satellite.Name = sc_sat.satellite(1).Name;
 
-            elseif isa(p.Results.satCommsSatellite, ...
-                       'matlabshared.satelliteScenario.Satellite') ...
-                   & ~isempty(p.Results.KeplerElements)
+            elseif ~isempty(p.Results.scenario) ...
+                   && ~isempty(p.Results.KeplerElements)
 
                 % Third case: same as above except we have received an array of
                 % kepler elements rather than TLE data
