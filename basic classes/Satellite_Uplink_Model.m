@@ -159,8 +159,8 @@ classdef Satellite_Uplink_Model < Link_Model
         end
 
         function [Link_Model,Link_Loss_dB] = Compute_Link_Loss(Link_Model,Satellite,Ground_Station)
-            %%COMPUTE_LINK_LOSS compute loss between satellite and ground
-            %station
+            %%COMPUTE_LINK_LOSS compute loss between ground station and
+            %%satellite
 
             %% compute link lengths
             Link_Lengths=ComputeDistanceBetween(Satellite,Ground_Station);
@@ -175,6 +175,9 @@ classdef Satellite_Uplink_Model < Link_Model
             Eff_Loss=Ground_Station.Source.Efficiency*Ground_Station.Telescope.Optical_Efficiency*Satellite.Detector.Detection_Efficiency*Satellite.Detector.Jitter_Loss*Satellite.Telescope.Optical_Efficiency;
 
             %% atmospheric loss
+            %computed using MODTRAN and cached in .mat files in this
+            %package
+
             %compute elevation angles
             [~,Elevation_Angles]=RelativeHeadingAndElevation(Satellite,Ground_Station);
             %format spectral filters which correspond to these elevation angles
@@ -182,7 +185,12 @@ classdef Satellite_Uplink_Model < Link_Model
             Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Ground_Station.Source.Wavelength);
 
             %% turbulence loss
-            %we assume turbulence limited behaviour
+            %see Point ahead angle prediction based on Kalman filtering of
+            % optical axis pointing angle in satellite laser communication
+            % Zhang Furui · Ruan Ping · Han Junfeng
+
+            %we assume turbulence limited behaviour (with no adaptive
+            %optics)
             %parameters
             Wavelength = Ground_Station.Source.Wavelength*10^-9;
             Wavenumber = 2*pi/Wavelength;

@@ -10,7 +10,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
         % from the toolbox scenario? Maybe the name is enough?
         toolbox_groundStation
 
-        % pointer to a file containing the background count rate data for this 
+        % path to a file containing the background count rate data for this 
         % ground station (stored in counts/ s steradian nm)
         Background_Count_Rate_File_Location{mustBeText} = 'none';
 
@@ -60,11 +60,14 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             % component classes and requiring a name and location (LLA = lat
             % lon alt)
 
-            %% Ground_Station should support an empty constructor
+            % Ground_Station should support an empty constructor to be default
+            % instantiated correctly
+   
             if nargin==0
                 return
             end
-
+            
+            %% construct from inputs
             p = inputParser;
             % required inputs
             addRequired(p, 'Telescope');
@@ -87,16 +90,21 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
 
             parse(p, Telescope, varargin{:});
 
-            %% currently, both transmit and receive scopes are the same
+            % telescope is a required input
             Ground_Station.Telescope = p.Results.Telescope;
 
             %infer correct wavelength from source or detector
             if ~isempty(p.Results.Source)
-
+            %if source is present, use this
             Ground_Station.Source = p.Results.Source;
             Ground_Station.Telescope = SetWavelength(Ground_Station.Telescope, ...
                 Ground_Station.Source.Wavelength);
+
+            assert(isempty(p.Results.Detector),...
+                'Currently, only a Ground_Station object may only have a detector OR a source');
+
             elseif ~isempty(p.Results.Detector)
+            %if detector is present, use this
             Ground_Station.Detector = p.Results.Detector;
             Ground_Station.Telescope = SetWavelength(Ground_Station.Telescope, ...
                 Ground_Station.Detector.Wavelength);
@@ -113,14 +121,12 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             Ground_Station.Camera = p.Results.Camera;
             Ground_Station.Beacon = p.Results.Beacon;
 
+            %parse location (lat, lon, alt)
             if isnan(p.Results.LLA)
                 LLA = [p.Results.latitude, p.Results.longitude, p.Results.altitude];
             else
                 LLA = p.Results.LLA;
             end
-
-            %set source for uplink
-            Ground_Station.Source = p.Results.Source;
 
             if any(arrayfun(@isnan, LLA))
                 error(['No location supplied for ground station, require:', ...
@@ -220,9 +226,8 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
 
         function Ground_Station = ReadBackgroundCountRateData(Ground_Station, Background_Count_Rate_File_Location)
             % input validation
-            if ~nargin == 2
-                error('ReadBackgroundCountRateData takes only a Ground_Station object and .mat file location as arguments');
-            end
+            assert(nargin == 2,...
+                'ReadBackgroundCountRateData takes only a Ground_Station object and .mat file location as arguments');
 
             % if 'none' is provided
             if isequal(Background_Count_Rate_File_Location, 'none')
@@ -247,7 +252,8 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
 
 
         function Ground_Station = SetWavelength(Ground_Station, Wavelength)
-            % SETWAVELENGTH set the wavelength (in nm) of the receiver
+            % SETWAVELENGTH set the wavelength (in nm) of the receiver and
+            % the detector it contains
             Ground_Station.Detector = SetWavelength(Ground_Station.Detector, Wavelength);
         end
 
@@ -329,10 +335,6 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
         function PlotBackgroundCountRates(Ground_Station, Plotting_Indices, X_Axis)
             % PLOTBACKGROUNDCOUNTRATES plot the background count rates
             % affecting the ground station
-            %disp(size(Ground_Station.Dark_Count_Rates(Plotting_Indices)'));
-            %disp(size(Ground_Station.Reflection_Count_Rates(Plotting_Indices)'));
-            %disp(size(Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)'));
-            %disp(size(Ground_Station.Directed_Count_Rates(Plotting_Indices)'));
             
             area(X_Axis(Plotting_Indices), ...
                  [Ground_Station.Dark_Count_Rates(Plotting_Indices)', ...
@@ -391,8 +393,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
         function [Total_Background_Count_Rate,Ground_Station] = ComputeTotalBeaconNoisePower(Ground_Station, Background_Sources, Satellite, Headings, Elevations)
             % COMPUTETOTALBEACONNOISE return the total noise present in the
             % beacon system, from camera, sky and background sources
-            
-
+            %% this is a LEGACY function and will not be maintained
 
             %% sky noise goes here. Needs SMARTS integration
             %run SMARTS

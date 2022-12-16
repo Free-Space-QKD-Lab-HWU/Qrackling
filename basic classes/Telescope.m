@@ -128,12 +128,22 @@ classdef Telescope
             %%FOV return the FOV of the telescope in radians, computed by
             %%scaling the divergence limited FOV
 
-            %check that wavelength is known
+            %if no wavelength is set then return empty FOV
             if isempty(Telescope.Wavelength)
                 FOV=[];
                 return
             end
     
+            %compute the diffraction-limited FOV at a particular wavelength
+            %with a modification 
+            %see 
+            % Chunmei Zhang, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller,
+            % and Ross J. Donaldson "Link loss analysis for a satellite quantum
+            % communication down-link", Proc. SPIE 11540, Emerging Imaging and
+            % Sensing Technologies for Security and Defence V; and Advanced
+            % Manufacturing Technologies for Micro- and Nanosystems in Security
+            % and Defence III, 1154007 (20 September 2020);
+            % https://doi.org/10.1117/12.2573489
             FOV = 2.44 ...
                     * Telescope.Far_Field_Divergence_Coefficient ...
                     *( Telescope.Wavelength * 10^-9 ) ...

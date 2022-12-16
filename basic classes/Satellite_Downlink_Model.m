@@ -146,7 +146,8 @@ classdef Satellite_Downlink_Model < Link_Model
             Link_Lengths=ComputeDistanceBetween(Satellite,Ground_Station);
             Link_Model=SetLinkLength(Link_Model,Link_Lengths);
 
-            %% see Link loss analysis for a satellite quantum communication down-link Chunmei Zhang*, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller, Ross J. Donaldson
+            %% geometric loss
+            %Link loss analysis for a satellite quantum communication down-link Chunmei Zhang*, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller, Ross J. Donaldson
             Geo_Loss=(sqrt(pi)/8)*(Ground_Station.Telescope.Diameter./(ones(size(Link_Lengths))*Satellite.Telescope.Diameter+Link_Lengths*Satellite.Telescope.FOV)).^2;
             %compute when earth shadowing of link is present
             Shadowing=IsEarthShadowed(Satellite,Ground_Station);
@@ -154,6 +155,9 @@ classdef Satellite_Downlink_Model < Link_Model
             Eff_Loss=Satellite.Source.Efficiency*Satellite.Telescope.Optical_Efficiency*Ground_Station.Detector.Detection_Efficiency*Ground_Station.Detector.Jitter_Loss*Ground_Station.Telescope.Optical_Efficiency;
 
             %% atmospheric loss
+            %computed using MODTRAN software package and cached in .mat
+            %files in this package
+
             %compute elevation angles
             [~,Elevation_Angles]=RelativeHeadingAndElevation(Satellite,Ground_Station);
             %format spectral filters which correspond to these elevation angles
@@ -161,6 +165,8 @@ classdef Satellite_Downlink_Model < Link_Model
             Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Source.Wavelength);
             
             %% Acquisition, pointing and tracking loss
+            %see Wiki for calculation details. QKD signal is assumed to be
+            %a gaussian beam.
             APTracking_Loss=...
                 Satellite.Telescope.FOV^2/(Satellite.Telescope.Pointing_Jitter^2+Satellite.Telescope.FOV^2)*...%satellite pointing loss, assumes gaussian beam
                 (1-exp(-(Ground_Station.Telescope.FOV^2/(8*Ground_Station.Telescope.Pointing_Jitter^2))));%ground station pointing loss, assumes flat-top FOV
