@@ -23,7 +23,7 @@ classdef SMARTS_input
         smarts_path = '';
         current_ext_file_path = '';
         file_path_stub = '';
-    
+
     end
 
     properties(SetAccess=protected, Hidden=true)
@@ -73,7 +73,7 @@ classdef SMARTS_input
             'Dirct_normal_photon_flux', ...
             'Dif_horizntl_photon_flux', ...
             'Global_tiltd_photon_flux'}
-    
+
     end
 
     methods
@@ -154,10 +154,10 @@ classdef SMARTS_input
                     end
                 end
             end
-            
+
         end
 
-        
+
         function input_string = compose(SMARTS_input)
 
             valid = validate_cards(SMARTS_input);
@@ -290,17 +290,14 @@ classdef SMARTS_input
         end
 
         function [SMARTS_input, success, destination] = run_smarts(SMARTS_input, varargin)
-            %%RUNSMARTS execute SMARTS with defined input, then move the input
-            %%and output files to a specified location (stub).
+            % run_smarts execute SMARTS with defined input, then move the input
+            % and output files to a specified location (stub).
 
-            %% Input validation
-            %ensure that the SMARTS directory is valid
-            %disp(SMARTS_input.smarts_path);
-             assert((~isempty(SMARTS_input.smarts_path)) ...
-                 & isfolder(SMARTS_input.smarts_path), 'No valid path to SMARTS directory');
+            assert((~isempty(SMARTS_input.smarts_path)) ...
+                & isdir(SMARTS_input.smarts_path), 'No valid path for SMARTS');
 
             success = false;
-            
+
             %% parse inputs and create input file for SMARTS
             p = inputParser;
             addParameter(p, 'file_path', '');%where to write input file
@@ -308,47 +305,44 @@ classdef SMARTS_input
             parse(p, varargin{:});
 
             %if the system in use is windows, need to turn CRLF newlines into UNIX newlines
-            %if true == ispc
-            %    SMARTS_input.input_string = replace(SMARTS_input.input_string, newline, [char(13), char(10)]);
-            %end
-            
+            if true == ispc
+                SMARTS_input.input_string = replace(SMARTS_input.input_string, ...
+                                                    newline, ...
+                                                    [char(13), char(10)]);
+            end
+
             [write_success, destination] = SMARTS_input.write_file(...
                                             file_path=p.Results.file_path, ...
                                             file_name=p.Results.file_name);
-            %check writing was a success
-            assert(write_success, 'Writing SMARTS input failed');
-            assert(isfile(destination), 'Input file has been lost')
 
-            %broken down path to input file
+            assert(write_success, 'Writing SMARTS input failed');
+            assert(isfile(destination), 'Input file has been lost');
+
             parts = strsplit(destination, filesep);
-            %input file which SMARTS runs, must be copied to
             target = [SMARTS_input.smarts_path, 'smarts295.inp.txt'];
-            %path of original input file
             data_path = strrep(destination, parts{end}, '');
 
-            %% copy input file to SMARTS input and run
-            %copy input file to SMARTS input file
-
             status = copyfile(destination, target);
-            %check copying was successful
             assert(isfile(target), 'Input file has been lost during copy');
-            %path to SMARTS exe
-            exe = [SMARTS_input.smarts_path, 'smarts295bat.exe'];
-            %move to SMARTS exe directory
+
             cur_dir = pwd;
             cd(SMARTS_input.smarts_path);
-            %run SMARTS- (suppress output to command window)
-            evalc('system("smarts295bat.exe")');
-            %system("smarts295bat.exe")
+
+            movefile('./smarts295.ext.txt', strrep(destination, 'inp', 'ext'));
+            movefile('./smarts295.out.txt', strrep(destination, 'inp', 'out'));
+
+            if isunix
+                [~, ~] = system('./smarts295bat');
+            else
+                evalc('system("smarts295bat.exe")');
+            end
 
             assert(isfile('smarts295.ext.txt'),' smarts295.ext.txt not created by SMARTS')
             movefile('smarts295.ext.txt', strrep(destination, 'inp', 'ext'));
             assert(isfile('smarts295.out.txt'),' smarts295.out.txt not created by SMARTS')
             movefile('smarts295.out.txt', strrep(destination, 'inp', 'out'));
-            SMARTS_input.current_ext_file_path = strrep(destination, 'inp', 'ext');
-            % disp(SMARTS_input.current_ext_file_path)
 
-            %% move back to original directory and signal success
+            SMARTS_input.current_ext_file_path = strrep(destination, 'inp', 'ext');
             cd(cur_dir);
             success = true;
         end

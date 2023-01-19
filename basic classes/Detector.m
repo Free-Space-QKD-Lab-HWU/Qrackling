@@ -53,6 +53,7 @@ classdef (Abstract) Detector
 
         %Data for wavelength dependant detector efficiency
         Efficiency_Data_Location;
+        Dead_Time;
     end
 
 
@@ -94,10 +95,12 @@ classdef (Abstract) Detector
             %set rise time, fall time and dead time as appropriate
             if isnan(p.Results.Dead_Time)
                 Detector.dead_time = Detector.rise_time + Detector.fall_time;
+                Detector = SetDeadTime(Detector, p.Results.Dead_Time);
             else
                 Detector.dead_time = p.Results.Dead_Time;
-                Detector.rise_time = P.Results.Dead_Time / 2;
-                Detector.fall_time = P.Results.Dead_Time / 2;
+                Detector = SetDeadTime(Detector, p.Results.Dead_Time);
+                detector.rise_time = p.Results.Dead_Time / 2;
+                detector.fall_time = p.Results.Dead_Time / 2;
             end
 
             %if available, load in detection efficiency data
@@ -134,6 +137,10 @@ classdef (Abstract) Detector
         function Detector = SetProtocol(Detector, Protocol)
             %%SETPROTOCOL
             Detector.Protocol = Protocol;
+        end
+
+        function Detector = SetDeadTime(Detector, Dead_Time)
+            Detector.Dead_Time = Dead_Time;
         end
 
         % Jitter calculations...
@@ -270,9 +277,6 @@ classdef (Abstract) Detector
             Detector.rise_time = rise_time;
             Detector.fall_time = fall_time;
 
-            % TODO
-            % - Detector dead time behaviour needs to be over riden in the case
-            %   of artificial dead times (hold times, temporal filtering, etc)
         end
 
         function [stretched_histogram] = StretchDetectorHistogram(Detector, dead_time)

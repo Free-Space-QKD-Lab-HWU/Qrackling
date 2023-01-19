@@ -152,7 +152,11 @@ classdef Satellite_Downlink_Model < Link_Model
             %compute when earth shadowing of link is present
             Shadowing=IsEarthShadowed(Satellite,Ground_Station);
             Geo_Loss(Shadowing)=0;
-            Eff_Loss=Satellite.Source.Efficiency*Satellite.Telescope.Optical_Efficiency*Ground_Station.Detector.Detection_Efficiency*Ground_Station.Detector.Jitter_Loss*Ground_Station.Telescope.Optical_Efficiency;
+            Eff_Loss = Satellite.Source.Efficiency ...
+                        * Satellite.Telescope.Optical_Efficiency ...
+                        * Ground_Station.Detector.Detection_Efficiency ...
+                        * Ground_Station.Detector.Jitter_Loss ...
+                        * Ground_Station.Telescope.Optical_Efficiency;
 
             %% atmospheric loss
             %computed using MODTRAN software package and cached in .mat
@@ -161,7 +165,7 @@ classdef Satellite_Downlink_Model < Link_Model
             %compute elevation angles
             [~,Elevation_Angles]=RelativeHeadingAndElevation(Satellite,Ground_Station);
             %format spectral filters which correspond to these elevation angles
-            Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles,Satellite.Source.Wavelength,{Link_Model.Visibility});
+            Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles, Satellite.Source.Wavelength, {Link_Model.Visibility});
             Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Source.Wavelength);
             
             %% Acquisition, pointing and tracking loss

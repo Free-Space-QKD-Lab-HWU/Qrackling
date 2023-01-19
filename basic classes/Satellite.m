@@ -96,7 +96,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             raan = p.Results.rightAscensionOfAscendingNode;
             aop = p.Results.argumentOfPeriapsis;
             ta = p.Results.trueAnomaly;
-            
+
             hasVelocity = false;
 
             if (~any(isnan(arrayfun(@isnan, [sma, ecc, inc, raan, aop, ta]))) ...

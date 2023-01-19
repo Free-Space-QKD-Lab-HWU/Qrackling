@@ -60,12 +60,16 @@ classdef PassSimulation
 
         %flag describing whether a downlink beacon is being simulated
         Downlink_Beacon_Flag=false;
+
         %power of the downlink beacon which is received
         Downlink_Beacon_Power = [];
+
         %signal to noise ratio (in dB) of the downlink beacon
         Downlink_Beacon_SNR_dB = [];
+
         %link model describing loss from beacon on satellite to intensity at the ground
         Downlink_Beacon_Link_Model {mustBeScalarOrEmpty};
+
 
         %flag describing whether a downlink beacon is being simulated
         Uplink_Beacon_Flag=false;
@@ -75,7 +79,6 @@ classdef PassSimulation
         Uplink_Beacon_SNR_dB = [];
         %link model describing loss from beacon on satellite to intensity at the ground
         Uplink_Beacon_Link_Model {mustBeScalarOrEmpty};
-
         %flag describing whether the link from satellite to ground station is above the horizon
         Line_Of_Sight_Flags = false(0,0);
 
@@ -98,7 +101,6 @@ classdef PassSimulation
         function PassSimulation = PassSimulation(QKD_Transmitter, Protocol, QKD_Receiver, varargin)
             %PASSSIMULATION Construct an instance of a PassSimulation
 
-
             %% create and use an input parser
             P = inputParser();
             %required inputs
@@ -118,18 +120,12 @@ classdef PassSimulation
             PassSimulation.Protocol = P.Results.Protocol;
             PassSimulation.Visibility = P.Results.Visibility;
 
-
-                %verify compatibility
-                if ~IsSourceCompatible(Protocol, QKD_Transmitter.Source)
-                error('ground station source is not compatible with %s protocol', Protocol.Name);
-                end
-                if ~IsDetectorCompatible(Protocol, QKD_Receiver.Detector)
-                    error('Satellite detector is not compatible with %s protocol', Protocol.Name);
-                end
-                if ~isequal(QKD_Transmitter.Source.Wavelength, QKD_Receiver.Detector.Wavelength)
-                error('satellite and ground station must use the same wavelength')
-                end
-
+            assert(IsSourceCompatible(Protocol, Satellite.Source), ...
+                'satellite source is not compatible with %s protocol', Protocol.Name);
+            assert(IsDetectorCompatible(Protocol, Ground_Station.Detector), ...
+                'Ground station detector is not compatible with %s protocol', Protocol.Name);
+            assert(isequal(Satellite.Source.Wavelength, Ground_Station.Detector.Wavelength), ...
+                'satellite and ground station must use the same wavelength');
                 %decide on direction
                 if isa(QKD_Transmitter,'Satellite')&&isa(QKD_Receiver,'Ground_Station')
                     PassSimulation.Link_Direction='Down';
@@ -138,7 +134,6 @@ classdef PassSimulation
                 else
                     error('must have transmitter and receiver cover both of Satellite and Ground_Station')
                 end
-
             %if background sources are provided,  add them
             PassSimulation.Background_Sources = P.Results.Background_Sources;
 
@@ -167,7 +162,6 @@ classdef PassSimulation
                 error('must have satellite and ground station support either uplink or downlink')
             end
         end
-
 
         function plot(PassSimulation, Range)
             %% PLOT plot data from this PassSimulation, according to the keyword Range:
