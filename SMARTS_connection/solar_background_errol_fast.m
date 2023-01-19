@@ -25,7 +25,7 @@ function configuration = solar_background_errol_fast(varargin)
 
     %% specify the reduced wavelength range simulated
     Wavelength_Min=600;
-    Wavelength_Max=900;
+    Wavelength_Max=950;
     Step=10;
     %card_types = solar_background_errol.card_types;
 
