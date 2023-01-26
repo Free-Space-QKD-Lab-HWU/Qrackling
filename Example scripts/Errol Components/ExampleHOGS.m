@@ -7,9 +7,9 @@ HOGS=HOGS();%current HOGS model
 %can run using default times
 %Sat=NOTQUARC();
 % or using custom start, stop and interval times
-StartTime = datetime(2022,12,25,6,40,0);%0610 to 0655 christmas day 2022, with 1 second simulation interval
-StopTime = datetime(2022,12,25,7,20,0);
-SampleTime = seconds(1);
+StartTime = datetime(2022,12,25,16,0,0);%0610 to 0655 christmas day 2022, with 1 second simulation interval
+StopTime = datetime(2022,12,26,18,00,0);
+SampleTime = minutes(1);
 Sat=NOTQUARC(StartTime,StopTime,SampleTime);
 %use decoy BB84
 Protocol=decoyBB84_Protocol();

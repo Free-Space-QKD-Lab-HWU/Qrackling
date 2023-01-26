@@ -283,7 +283,6 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
 
             %% first, specify which time stamps must be simulated- these are timestamps for which elevation>0
             Simulate_Flags = Elevations>0;
-            Num_Simulation_Flags = sum(Simulate_Flags);
             All_Time_Indices = 1:numel(Elevations);
             Simulation_Headings = Headings(Simulate_Flags);
             Simulation_Elevations = Elevations(Simulate_Flags);
@@ -295,7 +294,53 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             %atmosphere
             
             %read in data
-                Atm = Atmosphere(Ground_Station.Atmosphere_File_Location);
+            % EITHER the file path points to a .mat containing a structure which
+            % can be used to form an atmosphere object, or it contains a
+            % structure with fields Hours (numeric array) and Atmospheres (cell array of structures), which contains many
+            % such structures. If the latter, we need to choose the one which
+            % has the correct hour
+                
+                %first, we scan the .mat file to see what's in it
+                matObj = matfile(Ground_Station.Atmosphere_File_Location);
+                %check the included variables
+                Variables = who(matObj);
+                if isequal(Variables{1}, "Atmospheres") && isequal(Variables{2}, "Hours")
+                    %this is the tricker option, we need to pick the right Hour
+                    %and use this index to pick the right element of Atmospheres
+                    Atmospheres = matObj.Atmospheres;
+                    Hours = matObj.Hours;
+
+
+                    %get the time centre of this pass as a double
+                    LocalTime = mean(Satellite.Times(Simulate_Flags));
+                    LocalHourNum = hour(LocalTime);
+                    
+                    %compute the difference between this value and the 'hours'
+                    %on offer
+                    HourError = abs(Hours - LocalHourNum);
+                    %find A (not necessarily unique) minimum for this difference
+                    [~,CorrectIndex] = min(HourError);
+                    CorrectIndex = CorrectIndex(1);
+                    
+                    %use this index to pick the right atmosphere file
+                    AtmosphereFile = Atmospheres(CorrectIndex);
+                    
+                    %load this atmosphere
+                    Atm=Atmosphere(AtmosphereFile{1}.atmosphere);
+
+                elseif isequal(Variables{1}, "atmosphere")
+                    %just pass in the data
+                Atm = Atmosphere(matObj.atmosphere);
+
+                else
+                    error('Atmosphere file does not conform to containing either a single struct names "atmosphere", or a cell-array matric pair named "Atmospheres" and "Hours"')
+                end
+
+                    
+
+
+            
+                    
             %% required format: atmospheric data corresponds to headings which vary in cell rows and elevations which vary in table columns
 
                 %iterate through timestamps, interpolating atmosphere data and

@@ -25,16 +25,20 @@ classdef Atmosphere
             
         end
 
-        function Atmosphere = LoadAtmosphere(Atmosphere, file_path)
-            assert(2 == exist(file_path), 'File does not exist');
-
-            data = load(file_path);
+        function Atmosphere = LoadAtmosphere(Atmosphere, Input)
+            %support loading from an already loaded file or a path
+            if isstring(Input)||ischar(Input)
+            assert(2 == exist(Input), 'File does not exist');
+            data = load(Input);
 
             fields = fieldnames(data);
             assert(convertCharsToStrings(fields{1}) == "atmosphere", ...
                    'Not an atmosphere');
+            atmosphere = load(Input).atmosphere;
+           elseif isstruct(Input)
+                atmosphere = Input;
+            end
 
-            atmosphere = load(file_path).atmosphere;
             Atmosphere.data = atmosphere.values;
 
             Atmosphere.wavelengths = atmosphere.wavelengths;
