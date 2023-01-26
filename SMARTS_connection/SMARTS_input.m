@@ -2,7 +2,7 @@ classdef SMARTS_input
     properties
 
         ispr sitePressure;
-        iatmos atmosphere;
+        iatmos atmospherecard;
         ih20 water_vapour;
         i03 ozone;
         igas gas_atmospheric_absorption; 
@@ -96,7 +96,6 @@ classdef SMARTS_input
             assert(~isempty(p.Results.stub), ...
                 'Must set a base path to store results at');
             SMARTS_input.file_path_stub = p.Results.stub;
-
             SMARTS_input.comment = [SMARTS_input.comment, '''', ...
                             strrep(p.Results.comment, ' ', '_'), '''', ...
                             char(9), '!Card 1 Comment'];
@@ -298,6 +297,7 @@ classdef SMARTS_input
 
             success = false;
 
+
             %% parse inputs and create input file for SMARTS
             p = inputParser;
             addParameter(p, 'file_path', '');%where to write input file
@@ -305,12 +305,13 @@ classdef SMARTS_input
             parse(p, varargin{:});
 
             %if the system in use is windows, need to turn CRLF newlines into UNIX newlines
+            %{
             if true == ispc
                 SMARTS_input.input_string = replace(SMARTS_input.input_string, ...
                                                     newline, ...
                                                     [char(13), char(10)]);
             end
-
+            %}
             [write_success, destination] = SMARTS_input.write_file(...
                                             file_path=p.Results.file_path, ...
                                             file_name=p.Results.file_name);
@@ -328,8 +329,8 @@ classdef SMARTS_input
             cur_dir = pwd;
             cd(SMARTS_input.smarts_path);
 
-            movefile('./smarts295.ext.txt', strrep(destination, 'inp', 'ext'));
-            movefile('./smarts295.out.txt', strrep(destination, 'inp', 'out'));
+            %movefile(strrep(destination, 'inp', 'ext'),'.\smarts295.ext.txt');
+            %movefile(strrep(destination, 'inp', 'out'), '.\smarts295.out.txt');
 
             if isunix
                 [~, ~] = system('./smarts295bat');

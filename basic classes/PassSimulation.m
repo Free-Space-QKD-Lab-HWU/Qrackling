@@ -120,11 +120,11 @@ classdef PassSimulation
             PassSimulation.Protocol = P.Results.Protocol;
             PassSimulation.Visibility = P.Results.Visibility;
 
-            assert(IsSourceCompatible(Protocol, Satellite.Source), ...
+            assert(IsSourceCompatible(Protocol, QKD_Transmitter.Source), ...
                 'satellite source is not compatible with %s protocol', Protocol.Name);
-            assert(IsDetectorCompatible(Protocol, Ground_Station.Detector), ...
+            assert(IsDetectorCompatible(Protocol, QKD_Receiver.Detector), ...
                 'Ground station detector is not compatible with %s protocol', Protocol.Name);
-            assert(isequal(Satellite.Source.Wavelength, Ground_Station.Detector.Wavelength), ...
+            assert(isequal(QKD_Transmitter.Source.Wavelength, QKD_Receiver.Detector.Wavelength), ...
                 'satellite and ground station must use the same wavelength');
                 %decide on direction
                 if isa(QKD_Transmitter,'Satellite')&&isa(QKD_Receiver,'Ground_Station')
@@ -230,7 +230,7 @@ classdef PassSimulation
             yyaxis left
             plot(PassSimulation.Times(Plot_Select_Flags), PassSimulation.Secret_Key_Rates(Plot_Select_Flags));
             NameTimeAxis(PassSimulation.Times);
-            ylabel('Secret Key Rate (bits/s)')
+            ylabel('SKR (bits/s)')
             text(0.5, 0.5, sprintf('total secret key\ntransfered = %3.2g', PassSimulation.Total_Sifted_Key), 'Units', 'Normalized', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center')
             % plot QBER
             yyaxis right
@@ -239,7 +239,7 @@ classdef PassSimulation
             ylabel('QBER (%)')
             % plot background counts
             subplot(3, 3, [7, 8])
-            title('background count rate')
+            title('BCR (counts/s)')
             PlotBackgroundCountRates(PassSimulation.QKD_Receiver, Plot_Select_Flags, PassSimulation.Times);
             NameTimeAxis(PassSimulation.Times);
             % plot link loss

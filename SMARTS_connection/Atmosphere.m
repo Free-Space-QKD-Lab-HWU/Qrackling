@@ -7,7 +7,7 @@ classdef Atmosphere
         sky_dome;
         fields;
 
-        Aziumth;
+        Azimuth;
         Elevation;
 
         current_conditions;
@@ -17,7 +17,12 @@ classdef Atmosphere
     methods
 
         function Atmosphere = Atmosphere(file_path)
+            %MATLAB requires that all objects have empty constructor
+            if nargin == 0
+                return
+            end
             Atmosphere = Atmosphere.LoadAtmosphere(file_path);
+            
         end
 
         function Atmosphere = LoadAtmosphere(Atmosphere, file_path)
@@ -36,12 +41,12 @@ classdef Atmosphere
             Atmosphere.sky_dome = atmosphere.values;
 
             [N_a, N_e] = size(atmosphere.values);
-            Atmosphere.Aziumth = zeros(size(atmosphere.values));
+            Atmosphere.Azimuth = zeros(size(atmosphere.values));
             Atmosphere.Elevation = zeros(size(atmosphere.values));
 
             for i = 1 : N_e
                 for j = 1 : N_a
-                    Atmosphere.Aziumth(j, i) = atmosphere.values{j, i}.azimuth;
+                    Atmosphere.Azimuth(j, i) = atmosphere.values{j, i}.azimuth;
                     Atmosphere.Elevation(j, i) = atmosphere.values{j, i}.elevation;
                 end
             end
