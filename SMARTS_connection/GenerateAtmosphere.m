@@ -42,6 +42,12 @@ classdef GenerateAtmosphere
 
         function GenerateAtmosphere = GenerateAtmosphere(SMARTS_conf, varargin)
 
+
+            %MATLAB requires that objects provide an empty constructor
+            if nargin==0
+                return
+            end
+
             p = inputParser;
             addParameter(p, 'step_size_aziumth', 5);
             addParameter(p, 'step_size_elevation', 5);
@@ -163,10 +169,62 @@ classdef GenerateAtmosphere
                 for e = 1 : numel(GenerateAtmosphere.elevation)
                     file_path = [GenerateAtmosphere.result_files{a, e}, '.ext.txt'];
                     data = readtable(file_path, VariableNamingRule = 'preserve');
+
+                    %edit: CJS: SMARTS will only run during sunlight hours. during
+                    %nighttime, it returns an empty file, resulting in an empty
+                    %table. We will need to detect and replace this with zeros.
+                    if isempty(data)
+                            %get old SMARTS config and its time
+                            Daytime_SMARTS_Config = GenerateAtmosphere.SMARTS_conf;
+                            Daytime_Solar_Position_and_Airmass = GenerateAtmosphere.SMARTS_conf.imass;
+
+                            %shift to midday
+                            %and implement this in the new config
+                            Daytime_Solar_Position_and_Airmass.Hour=12;
+                            Daytime_SMARTS_Config.imass = Daytime_Solar_Position_and_Airmass;
+
+                            %run SMARTS for this time
+                            ialbdx = far_field_albedo( ...
+                                        spectral_reflectance=Daytime_SMARTS_Config.ialbdx.spectral_reflectance, ...
+                                        tilt=GenerateAtmosphere.azimuth(a), ...
+                                        wazim=GenerateAtmosphere.elevation(e), ...
+                                        ialbdg=Daytime_SMARTS_Config.ialbdx.local_foreground_albedo );
+                             Daytime_SMARTS_Config = Daytime_SMARTS_Config.update_card(ialbdx);
+                             
+                             %delete old file
+                                delete([GenerateAtmosphere.result_files{a, e}, '.ext.txt'])
+                                delete([GenerateAtmosphere.result_files{a, e}, '.inp.txt'])
+                                delete([GenerateAtmosphere.result_files{a, e}, '.out.txt'])
+                             %write a new name for this daytime file
+                             [Filepath, filename]=fileparts(GenerateAtmosphere.result_files{a,e});
+                              GenerateAtmosphere.result_files{a,e}=[Filepath,filesep, filename,'_midday'];
+
+                            [Daytime_SMARTS_Config, success, destination] = ...
+                            Daytime_SMARTS_Config.run_smarts(...
+                                   file_path = [Filepath,filesep], ...
+                                   file_name = [filename,'_midday' ]);
+
+                            %check that run was a success
+                            assert(success,'time-shifting to daytime to simulate transmission data failed.')
+
+                            %extract new data
+                            data = readtable([GenerateAtmosphere.result_files{a,e},'.ext.txt'], VariableNamingRule = 'preserve');
+                            NumWavelengths = numel(data.Wvlgth);
+                            %set all results which are not transmission data or wavelength markers to
+                            %zero to simulate no sunlight
+                            TableColumnNames = data.Properties.VariableNames;
+                            TableSkyNames=TableColumnNames(~(contains(TableColumnNames,'transmittance')|contains(TableColumnNames,'Wvlgth')));
+                            data(:,TableSkyNames) = {0};
+                    end
+
                     temp.azimuth = GenerateAtmosphere.azimuth(a);
                     temp.elevation = GenerateAtmosphere.elevation(e);
                     temp.data = GenerateAtmosphere.extractVariables(data);
                     GenerateAtmosphere.atmosphere{a, e} = temp;
+                    %delete the results file (and other files) to allow a new ones to be written
+                        delete([GenerateAtmosphere.result_files{a, e}, '.ext.txt'])
+                        delete([GenerateAtmosphere.result_files{a, e}, '.inp.txt'])
+                        delete([GenerateAtmosphere.result_files{a, e}, '.out.txt'])
                     waitbar(i / N, progress, sprintf('Collecting %d/%d SMARTS Simulation', i, N));
                     pause(0);
                     i = i + 1;
@@ -203,7 +261,7 @@ classdef GenerateAtmosphere
             atmosphere.values = GenerateAtmosphere.atmosphere;
             save(result_path, 'atmosphere');
         end
-
+        
         function atmosphere = LoadAtmosphere(Atmosphere, file_path)
             assert(2 == exist(file_path), 'File does not exist');
 

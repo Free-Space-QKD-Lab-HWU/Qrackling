@@ -30,7 +30,7 @@ function configuration = solar_background_errol(varargin)
     parse(p, varargin{:});
 
     ispr = sitePressure(spr=1013.25, altit=0, height=0);
-    iatmos = atmosphere(atmos='STS');
+    iatmos = atmospherecard(atmos='STS');
     ih20 = water_vapour(w=1);
     i03 = ozone();
     igas = gas_atmospheric_absorption(iload=0); 

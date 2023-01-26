@@ -1,5 +1,5 @@
-classdef Satellite_Link_Model < Link_Model
-    %SATELLITE_LINK_MODEL a link model specific to satellite to OGS downlink
+classdef Satellite_Downlink_Model < Link_Model
+    %SATELLITE_DOWNLINK_MODEL a link model specific to satellite to OGS downlink
 
     properties (SetAccess=protected,Abstract=false)
         N                                                                  %number of timestamps simulated, equal to the dimension of all loss vectors
@@ -124,16 +124,15 @@ classdef Satellite_Link_Model < Link_Model
 
     end
     methods (Access=public)
-
-        function Satellite_Link_Model=Satellite_Link_Model(N,Visibility)
-            %%SATELLITE_LINK_MODEL construct an instance of Satellite_Link_Model with the indicated number of modelled points
+        function Satellite_Downlink_Model=Satellite_Downlink_Model(N,Visibility)
+            %%Satellite_Downlink_Model construct an instance of Satellite_Downlink_Model with the indicated number of modelled points
             if nargin==0
                 return
             elseif nargin==1
-                Satellite_Link_Model=SetNumSteps(Satellite_Link_Model,N);
+                Satellite_Downlink_Model=SetNumSteps(Satellite_Downlink_Model,N);
             elseif nargin==2
-                Satellite_Link_Model=SetNumSteps(Satellite_Link_Model,N);
-                Satellite_Link_Model=SetVisibility(Satellite_Link_Model,Visibility);
+                Satellite_Downlink_Model=SetNumSteps(Satellite_Downlink_Model,N);
+                Satellite_Downlink_Model=SetVisibility(Satellite_Downlink_Model,Visibility);
             else
                 error('To instantiate link model, provide a number of steps and, optionally, a visibility string')
             end
@@ -147,7 +146,8 @@ classdef Satellite_Link_Model < Link_Model
             Link_Lengths=ComputeDistanceBetween(Satellite,Ground_Station);
             Link_Model=SetLinkLength(Link_Model,Link_Lengths);
 
-            %% see Link loss analysis for a satellite quantum communication down-link Chunmei Zhang*, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller, Ross J. Donaldson
+            %% geometric loss
+            %Link loss analysis for a satellite quantum communication down-link Chunmei Zhang*, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller, Ross J. Donaldson
             Geo_Loss=(sqrt(pi)/8)*(Ground_Station.Telescope.Diameter./(ones(size(Link_Lengths))*Satellite.Telescope.Diameter+Link_Lengths*Satellite.Telescope.FOV)).^2;
             %compute when earth shadowing of link is present
             Shadowing=IsEarthShadowed(Satellite,Ground_Station);
@@ -159,6 +159,9 @@ classdef Satellite_Link_Model < Link_Model
                         * Ground_Station.Telescope.Optical_Efficiency;
 
             %% atmospheric loss
+            %computed using MODTRAN software package and cached in .mat
+            %files in this package
+
             %compute elevation angles
             [~,Elevation_Angles]=RelativeHeadingAndElevation(Satellite,Ground_Station);
             %format spectral filters which correspond to these elevation angles
@@ -166,6 +169,8 @@ classdef Satellite_Link_Model < Link_Model
             Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Source.Wavelength);
             
             %% Acquisition, pointing and tracking loss
+            %see Wiki for calculation details. QKD signal is assumed to be
+            %a gaussian beam.
             APTracking_Loss=...
                 Satellite.Telescope.FOV^2/(Satellite.Telescope.Pointing_Jitter^2+Satellite.Telescope.FOV^2)*...%satellite pointing loss, assumes gaussian beam
                 (1-exp(-(Ground_Station.Telescope.FOV^2/(8*Ground_Station.Telescope.Pointing_Jitter^2))));%ground station pointing loss, assumes flat-top FOV
@@ -180,51 +185,40 @@ classdef Satellite_Link_Model < Link_Model
             [Link_Model,Link_Loss_dB]=SetTotalLoss(Link_Model);
         end
 
-        function Geometric_Loss_dB=GetGeometricLossdB(Satellite_Link_Model)
+        function Geometric_Loss_dB=GetGeometricLossdB(Satellite_Downlink_Model)
             %%GETGEOMETRICLOSSDB return an array of geometric losses in dB the same dimensions as the satellite link model
             
-            Geometric_Loss_dB=Satellite_Link_Model.Geometric_Loss_dB;
+            Geometric_Loss_dB=Satellite_Downlink_Model.Geometric_Loss_dB;
         end
 
-        function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Link_Model)
+        function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Downlink_Model)
             %%GETATMOSPHERICLOSSDB return an array of atmospheric losses in dB the
             %same dimensions as the satellite link model
-%            sz=size(Satellite_Link_Model);
-%            Atmospheric_Loss_dB=zeros(sz);
-%
-%            %iterate over all elements
-%            for i=1:sz(1)
-%                for j=1:sz(2)
-%                    Atmospheric_Loss_dB(i,j)=Satellite_Link_Model(i,j).Atmospheric_Loss_dB;
-%                end
-%            end
-            
-            Atmospheric_Loss_dB=Satellite_Link_Model.Atmospheric_Loss_dB;
+            Atmospheric_Loss_dB=Satellite_Downlink_Model.Atmospheric_Loss_dB;
         end
 
-        function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Satellite_Link_Model)
+        function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Satellite_Downlink_Model)
             %%GETEFFICIENCYLOSSDB return an array of efficiency losses in dB the
             % same dimensions as the satellite link model
 
-            OpticalEfficiency_Loss_dB = Satellite_Link_Model.Optical_Efficiency_Loss_dB;
+            OpticalEfficiency_Loss_dB = Satellite_Downlink_Model.Optical_Efficiency_Loss_dB;
         end
 
-        function APT_Loss_dB=GetAPTLossdB(Satellite_Link_Model)
+        function APT_Loss_dB=GetAPTLossdB(Satellite_Downlink_Model)
             %%GETAPTLOSSDB return an array of acquistition, pointing and tracking
             % losses in dB the same dimensions as the satellite link model
-            
 
-            APT_Loss_dB=Satellite_Link_Model.APT_Loss_dB;
+            APT_Loss_dB=Satellite_Downlink_Model.APT_Loss_dB;
         end
 
-        function Plot(Satellite_Link_Model,X_Axis,Plot_Select_Flags)
+        function Plot(Satellite_Downlink_Model,X_Axis,Plot_Select_Flags)
             %%PLOT plot the link loss over time of the satellite link
 
             %get losses
-            Geo=GetGeometricLossdB(Satellite_Link_Model);
-            Atmos=GetAtmosphericLossdB(Satellite_Link_Model);
-            Eff=GetOpticalEfficiencyLossdB(Satellite_Link_Model);
-            APT=GetAPTLossdB(Satellite_Link_Model);
+            Geo=GetGeometricLossdB(Satellite_Downlink_Model);
+            Atmos=GetAtmosphericLossdB(Satellite_Downlink_Model);
+            Eff=GetOpticalEfficiencyLossdB(Satellite_Downlink_Model);
+            APT=GetAPTLossdB(Satellite_Downlink_Model);
 
             if nargin==3
             %if flags provided, select what to plot
@@ -253,25 +247,25 @@ classdef Satellite_Link_Model < Link_Model
 
         end
 
-        function Satellite_Link_Model = SetVisibility(Satellite_Link_Model,Visibility)
+        function Satellite_Downlink_Model = SetVisibility(Satellite_Downlink_Model,Visibility)
             %%SETVISIBILITY set the visibility tag of this link model
 
-            Satellite_Link_Model.Visibility = Visibility;
+            Satellite_Downlink_Model.Visibility = Visibility;
         end
     
-        function Satellite_Link_Model = SetNumSteps(Satellite_Link_Model,N)
+        function Satellite_Downlink_Model = SetNumSteps(Satellite_Downlink_Model,N)
             %%SETNUMSTEPS set the number of points in the simulated link model
 
-        Satellite_Link_Model.N=N;
-        Satellite_Link_Model.Geometric_Loss=zeros(1,N);                                              %geometric loss in absolute terms
-        Satellite_Link_Model.Geometric_Loss_dB=zeros(1,N);                                             %geometric loss in dB
-        Satellite_Link_Model.Optical_Efficiency_Loss=zeros(1,N);                                       %Optical Efficiency loss in absolute terms
-        Satellite_Link_Model.Optical_Efficiency_Loss_dB=zeros(1,N);                                    %Optical Efficiency loss in dB
-        Satellite_Link_Model.APT_Loss=zeros(1,N);                                                      %tracking loss in absolute term s
-        Satellite_Link_Model.APT_Loss_dB=zeros(1,N);                                                   %tracking loss in dB
-        Satellite_Link_Model.Atmospheric_Loss=zeros(1,N);                                              %atmospheric loss in absolute terms
-        Satellite_Link_Model.Atmospheric_Loss_dB=zeros(1,N);                                           %atmospheric loss in dB
-        Satellite_Link_Model.Length=zeros(1,N);                                                        %link distance in m
+        Satellite_Downlink_Model.N=N;
+        Satellite_Downlink_Model.Geometric_Loss=zeros(1,N);                                              %geometric loss in absolute terms
+        Satellite_Downlink_Model.Geometric_Loss_dB=zeros(1,N);                                             %geometric loss in dB
+        Satellite_Downlink_Model.Optical_Efficiency_Loss=zeros(1,N);                                       %Optical Efficiency loss in absolute terms
+        Satellite_Downlink_Model.Optical_Efficiency_Loss_dB=zeros(1,N);                                    %Optical Efficiency loss in dB
+        Satellite_Downlink_Model.APT_Loss=zeros(1,N);                                                      %tracking loss in absolute term s
+        Satellite_Downlink_Model.APT_Loss_dB=zeros(1,N);                                                   %tracking loss in dB
+        Satellite_Downlink_Model.Atmospheric_Loss=zeros(1,N);                                              %atmospheric loss in absolute terms
+        Satellite_Downlink_Model.Atmospheric_Loss_dB=zeros(1,N);                                           %atmospheric loss in dB
+        Satellite_Downlink_Model.Length=zeros(1,N);                                                        %link distance in m
         end
     end
 end

@@ -4,29 +4,34 @@
 %% Then we simulate the pass and plot the results.
 
 %% 1. Choose parameters
-Wavelength=600;                                                            %wavelength is measured in nm
-Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
-OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                                %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
+Wavelength=600;                                                                 %wavelength is measured in nm
+Transmitter_Telescope_Diameter=0.1;                                             %diameters are measured in m
+OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                                   %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
 Receiver_Telescope_Diameter=1;                                           
-Time_Gate_Width=1E-9;                                                      %times are measured in s
-Spectral_Filter_Width=10;                                                  %consistemt with wavelength, spectral width is measured in nm
+Time_Gate_Width=1E-10;                                                           %times are measured in s
+Spectral_Filter_Width=1;                                                       %consistemt with wavelength, spectral width is measured in nm
+Repetition_Rate = 1E8;                                                          %repetition rate in Hz
 
 % extra parameters for jamming
 Jamming_Diameter=0.1;
-Jamming_Coordinates=[38,-6, 100];                          %coordintes of Jersey (lat lon alt)
-Jamming_Power=10;                                                        %power in W
+Jamming_Coordinates=[33,-6, 100];                                               %coordintes of jammer (lat lon alt)
+Jamming_Power=1;                                                                %power in W
 Jamming_Spectral_Width=10;
 %% 2. Construct components
 
 %2.1 Satellite
 %2.1.1 Source
-Transmitter_Source=Source(Wavelength);                                %we use default values to simplify this example
+Transmitter_Source=Source(Wavelength,...
+                          'Repetition_Rate',Repetition_Rate);                   %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
 Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
 
 %2.1.3 Construct satellite
-SimSatellite=Satellite(Transmitter_Source,Transmitter_Telescope,'OrbitDataFileLocation',OrbitDataFileLocation,'Surface',Black_Anodised_Aluminium(4));
+SimSatellite=Satellite(Transmitter_Telescope,...
+    'OrbitDataFileLocation',OrbitDataFileLocation,...
+    'Surface',Black_Anodised_Aluminium(4),...
+    'Source',Transmitter_Source);
 
 %2.2 Ground station
 %2.2.1 Detector
@@ -38,7 +43,7 @@ MPD_BB84_Detector=MPD_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Tim
 Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);
 
 %2.2.3 construct ground station, use Errol as an example
-SimGround_Station=Errol_OGS(MPD_BB84_Detector,Receiver_Telescope);
+SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',MPD_BB84_Detector);
 
 %2.3 protocol
 BB84_protocol=BB84_Protocol;

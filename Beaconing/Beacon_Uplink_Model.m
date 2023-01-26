@@ -1,5 +1,5 @@
-classdef Beacon_Downlink_Model < Link_Model
-        %Beacon_Downlink_Model a link model specific to satellite to OGS downlink
+classdef Beacon_Uplink_Model < Link_Model
+        %Beacon_Uplink_Model a link model specific to satellite to OGS downlink
 
     properties (SetAccess=protected,Abstract=false)
         N                                                                  %number of timestamps simulated, equal to the dimension of all loss vectors
@@ -17,6 +17,8 @@ classdef Beacon_Downlink_Model < Link_Model
         Optical_Efficiency_Loss_dB(1,:)=nan;                                    %Optical Efficiency loss in dB
         APT_Loss(1,:)=nan;                                                      %tracking loss in absolute term s
         APT_Loss_dB(1,:)=nan;                                                   %tracking loss in dB
+        Turbulence_Loss(1,:)=nan;                                               %turbulence loss in absolute term s
+        Turbulence_Loss_dB(1,:)=nan;                                            %turbulence loss in dB
         Atmospheric_Loss(1,:)=nan;                                              %atmospheric loss in absolute terms
         Atmospheric_Loss_dB(1,:)=nan;                                           %atmospheric loss in dB
         Length(1,:)=nan;                                                        %link distance in m
@@ -24,93 +26,128 @@ classdef Beacon_Downlink_Model < Link_Model
 
     methods (Access=public)
 
-    function Beacon_Downlink_Model=Beacon_Downlink_Model(N,Visibility)
-            %%BEACON_DOWNLINK_MODEL construct an instance of Beacon_Downlink_Model with the indicated number of modelled points
+        function Beacon_Uplink_Model=Beacon_Uplink_Model(N,Visibility)
+            %%BEACON_UPLINK_MODEL construct an instance of Beacon_Uplink_Model with the indicated number of modelled points
             if nargin==0
                 return
             elseif nargin==1
-                Beacon_Downlink_Model=SetNumSteps(Beacon_Downlink_Model,N);
+                Beacon_Uplink_Model=SetNumSteps(Beacon_Uplink_Model,N);
             elseif nargin==2
-                Beacon_Downlink_Model=SetNumSteps(Beacon_Downlink_Model,N);
-                Beacon_Downlink_Model=SetVisibility(Beacon_Downlink_Model,Visibility);
+                Beacon_Uplink_Model=SetNumSteps(Beacon_Uplink_Model,N);
+                Beacon_Uplink_Model=SetVisibility(Beacon_Uplink_Model,Visibility);
             else
                 error('To instantiate link model, provide a number of steps and, optionally, a visibility string')
             end
         end
 
-    function [Beacon_Downlink_Model,Link_Loss_dB] = Compute_Link_Loss(Beacon_Downlink_Model,Satellite,Ground_Station)
+    function [Beacon_Uplink_Model,Link_Loss_dB] = Compute_Link_Loss(Beacon_Uplink_Model,Satellite,Ground_Station)
         %%COMPUTE_LINK_LOSS compute loss between satellite and ground
         %station
 
         %% compute link lengths
         Link_Lengths=ComputeDistanceBetween(Satellite,Ground_Station);
-        Beacon_Downlink_Model=SetLinkLength(Beacon_Downlink_Model,Link_Lengths);
+        Beacon_Uplink_Model=SetLinkLength(Beacon_Uplink_Model,Link_Lengths);
 
         %% see Link loss analysis for a satellite quantum communication down-link Chunmei Zhang*, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller, Ross J. Donaldson
-        Geo_Loss = GetGeoLoss(Satellite.Beacon,Link_Lengths,Ground_Station.Camera);
+        [Geo_Loss,GeoSpotDiameter] = GetGeoLoss(Ground_Station.Beacon,Link_Lengths,Satellite.Camera);
         %compute when earth shadowing of link is present
         Shadowing=IsEarthShadowed(Satellite,Ground_Station);
         Geo_Loss(Shadowing)=0;
 
         %% efficiency loss
-        Eff_Loss=Satellite.Beacon.Total_Efficiency*Ground_Station.Camera.Total_Efficiency;
+        Eff_Loss=Ground_Station.Beacon.Total_Efficiency*Satellite.Camera.Total_Efficiency;
 
         %% atmospheric loss
         %compute elevation angles
         [~,Elevation_Angles]=RelativeHeadingAndElevation(Satellite,Ground_Station);
         %format spectral filters which correspond to these elevation angles
-        Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles,Satellite.Beacon.Wavelength,{Beacon_Downlink_Model.Visibility});
-        Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Beacon.Wavelength);
+        Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles,Ground_Station.Beacon.Wavelength,{Beacon_Uplink_Model.Visibility});
+        Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Ground_Station.Beacon.Wavelength);
         
         %% APT loss
-        APTracking_Loss=GetAPTLoss(Satellite.Beacon,Ground_Station.Camera);
+        APTracking_Loss=GetAPTLoss(Ground_Station.Beacon,Satellite.Camera);
+
+        %% Turbulence loss
+        %we assume turbulence limited behaviour
+        %parameters
+        Wavelength = Ground_Station.Beacon.Wavelength*10^-9;
+        Wavenumber = 2*pi/Wavelength;
+        %can only compute for positive elevation
+        Elevation_Flags = Elevation_Angles'>0;
+        Zenith = 90-Elevation_Angles(Elevation_Flags)';
+        Satellite_Altitude = Satellite.Altitude(Elevation_Flags);
+        Beam_Waist = Ground_Station.Beacon.Telescope.Diameter;
+        Rayleigh_Range = rayleigh_range(Beam_Waist, Wavelength, 1);
+        Atmospheric_Turbulence_Coherence_Length = ...
+            atmospheric_turbulence_coherence_length(Wavenumber,...
+                                         Zenith, ...
+                                         Satellite_Altitude, ghv_defaults);
+        %output variables
+        spot_tl = long_term_gaussian_beam_width(Beam_Waist, Link_Lengths(Elevation_Flags) ,...
+                                    Rayleigh_Range, 2*pi/(Ground_Station.Beacon.Wavelength*10^-9), Atmospheric_Turbulence_Coherence_Length);
+        %residual beam wander is not needed here as this is dealt with in
+        %APT loss
+        %wander_tl = residual_beam_wander(error_snr, error_delay, error_centroid, ...
+        %                                   error_tilt, spot_tl, L);
+
+        %turbulence loss is the ratio of geometric and turbulent spot areas
+        Turb_Loss(~Elevation_Flags)=0;
+        Turb_Loss(Elevation_Flags) = (GeoSpotDiameter(Elevation_Flags)./spot_tl).^2;
 
         %record loss values
-        Beacon_Downlink_Model=SetGeometricLoss(Beacon_Downlink_Model,Geo_Loss);
-        Beacon_Downlink_Model=SetOpticalEfficiencyLoss(Beacon_Downlink_Model,Eff_Loss);
-        Beacon_Downlink_Model=SetAtmosphericLoss(Beacon_Downlink_Model,Atmos_Loss);
-        Beacon_Downlink_Model=SetAPTLoss(Beacon_Downlink_Model,APTracking_Loss);
+        Beacon_Uplink_Model=SetGeometricLoss(Beacon_Uplink_Model,Geo_Loss);
+        Beacon_Uplink_Model=SetOpticalEfficiencyLoss(Beacon_Uplink_Model,Eff_Loss);
+        Beacon_Uplink_Model=SetAtmosphericLoss(Beacon_Uplink_Model,Atmos_Loss);
+        Beacon_Uplink_Model=SetAPTLoss(Beacon_Uplink_Model,APTracking_Loss);
+        Beacon_Uplink_Model=SetTurbulenceLoss(Beacon_Uplink_Model,Turb_Loss);
 
         %compute total loss
-        [Beacon_Downlink_Model,Link_Loss_dB]=SetTotalLoss(Beacon_Downlink_Model);
+        [Beacon_Uplink_Model,Link_Loss_dB]=SetTotalLoss(Beacon_Uplink_Model);
     end
 
-    function Geometric_Loss_dB=GetGeometricLossdB(Beacon_Downlink_Model)
+    function Geometric_Loss_dB=GetGeometricLossdB(Beacon_Uplink_Model)
             %%GETGEOMETRICLOSSDB return an array of geometric losses in dB the same dimensions as the satellite link model
             
-            Geometric_Loss_dB=Beacon_Downlink_Model.Geometric_Loss_dB;
+            Geometric_Loss_dB=Beacon_Uplink_Model.Geometric_Loss_dB;
         end
 
-    function Atmospheric_Loss_dB=GetAtmosphericLossdB(Beacon_Downlink_Model)
+    function Atmospheric_Loss_dB=GetAtmosphericLossdB(Beacon_Uplink_Model)
         %%GETATMOSPHERICLOSSDB return an array of atmospheric losses in dB the
         %same dimensions as the satellite link model
         
-        Atmospheric_Loss_dB=Beacon_Downlink_Model.Atmospheric_Loss_dB;
+        Atmospheric_Loss_dB=Beacon_Uplink_Model.Atmospheric_Loss_dB;
     end
 
-    function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Beacon_Downlink_Model)
+    function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Beacon_Uplink_Model)
         %%GETEFFICIENCYLOSSDB return an array of efficiency losses in dB the
         % same dimensions as the satellite link model
 
-        OpticalEfficiency_Loss_dB = Beacon_Downlink_Model.Optical_Efficiency_Loss_dB;
+        OpticalEfficiency_Loss_dB = Beacon_Uplink_Model.Optical_Efficiency_Loss_dB;
     end
 
-    function APT_Loss_dB=GetAPTLossdB(Beacon_Downlink_Model)
+    function APT_Loss_dB=GetAPTLossdB(Beacon_Uplink_Model)
         %%GETAPTLOSSDB return an array of acquistition, pointing and tracking
         % losses in dB the same dimensions as the satellite link model
         
+        APT_Loss_dB=Beacon_Uplink_Model.APT_Loss_dB;
+    end
 
-        APT_Loss_dB=Beacon_Downlink_Model.APT_Loss_dB;
+    function Turbulence_Loss_dB=GetTurbulenceLossdB(Satellite_Uplink_Model)
+            %%GETTURBULENCELOSSDB return an array of acquistition, pointing and tracking
+            % losses in dB the same dimensions as the satellite link model
+
+            Turbulence_Loss_dB=Satellite_Uplink_Model.Turbulence_Loss_dB;
     end
     
-    function Plot(Beacon_Downlink_Model,X_Axis,Plot_Select_Flags)
+    function Plot(Beacon_Uplink_Model,X_Axis,Plot_Select_Flags)
             %%PLOT plot the link loss over time of the satellite link
 
             %get losses
-            Geo=GetGeometricLossdB(Beacon_Downlink_Model);
-            Atmos=GetAtmosphericLossdB(Beacon_Downlink_Model);
-            Eff=GetOpticalEfficiencyLossdB(Beacon_Downlink_Model);
-            APT=GetAPTLossdB(Beacon_Downlink_Model);
+            Geo=GetGeometricLossdB(Beacon_Uplink_Model);
+            Atmos=GetAtmosphericLossdB(Beacon_Uplink_Model);
+            Eff=GetOpticalEfficiencyLossdB(Beacon_Uplink_Model);
+            APT=GetAPTLossdB(Beacon_Uplink_Model);
+            Turb=GetTurbulenceLossdB(Beacon_Uplink_Model);
 
             if nargin==3
             %if flags provided, select what to plot
@@ -118,15 +155,16 @@ classdef Beacon_Downlink_Model < Link_Model
             Atmos=Atmos(Plot_Select_Flags);
             Eff=Eff(Plot_Select_Flags);
             APT=APT(Plot_Select_Flags);
+            Turb=Turb(Plot_Select_Flags);
             end
 
-            area(X_Axis(Plot_Select_Flags),[Geo',Atmos',Eff',APT']);
+            area(X_Axis(Plot_Select_Flags),[Geo',Atmos',Eff',APT',Turb']);
             xlabel('Time (s)')
             ylabel('Losses (dB)')
 
             %% adjust legend to represent what is plotted
             %atmospheric loss is non zero
-            legend('Geometric loss','Atmospheric loss','Efficiency loss','APT loss','Orientation','horizontal');
+            legend('Geometric loss','Atmospheric loss','Efficiency loss','APT loss','Turbulence loss','Orientation','horizontal');
             legend('Location','south')
         end
 
@@ -145,19 +183,21 @@ classdef Beacon_Downlink_Model < Link_Model
         Downlink_Beacon_Model.Visibility = Visibility;
     end
 
-    function Beacon_Downlink_Model = SetNumSteps(Beacon_Downlink_Model,N)
+    function Beacon_Uplink_Model = SetNumSteps(Beacon_Uplink_Model,N)
             %%SETNUMSTEPS set the number of points in the simulated link model
 
-        Beacon_Downlink_Model.N=N;
-        Beacon_Downlink_Model.Geometric_Loss=zeros(1,N);                                              %geometric loss in absolute terms
-        Beacon_Downlink_Model.Geometric_Loss_dB=zeros(1,N);                                             %geometric loss in dB
-        Beacon_Downlink_Model.Optical_Efficiency_Loss=zeros(1,N);                                       %Optical Efficiency loss in absolute terms
-        Beacon_Downlink_Model.Optical_Efficiency_Loss_dB=zeros(1,N);                                    %Optical Efficiency loss in dB
-        Beacon_Downlink_Model.APT_Loss=zeros(1,N);                                                      %tracking loss in absolute term s
-        Beacon_Downlink_Model.APT_Loss_dB=zeros(1,N);                                                   %tracking loss in dB
-        Beacon_Downlink_Model.Atmospheric_Loss=zeros(1,N);                                              %atmospheric loss in absolute terms
-        Beacon_Downlink_Model.Atmospheric_Loss_dB=zeros(1,N);                                           %atmospheric loss in dB
-        Beacon_Downlink_Model.Length=zeros(1,N);                                                        %link distance in m
+        Beacon_Uplink_Model.N=N;
+        Beacon_Uplink_Model.Geometric_Loss=zeros(1,N);                                              %geometric loss in absolute terms
+        Beacon_Uplink_Model.Geometric_Loss_dB=zeros(1,N);                                             %geometric loss in dB
+        Beacon_Uplink_Model.Optical_Efficiency_Loss=zeros(1,N);                                       %Optical Efficiency loss in absolute terms
+        Beacon_Uplink_Model.Optical_Efficiency_Loss_dB=zeros(1,N);                                    %Optical Efficiency loss in dB
+        Beacon_Uplink_Model.APT_Loss=zeros(1,N);                                                      %tracking loss in absolute term s
+        Beacon_Uplink_Model.APT_Loss_dB=zeros(1,N);                                                   %tracking loss in dB
+        Beacon_Uplink_Model.Turbulence_Loss=zeros(1,N);                                               %turbulence loss in absolute term s
+        Beacon_Uplink_Model.Turbulence_Loss_dB=zeros(1,N);                                            %turbulence loss in dB
+        Beacon_Uplink_Model.Atmospheric_Loss=zeros(1,N);                                              %atmospheric loss in absolute terms
+        Beacon_Uplink_Model.Atmospheric_Loss_dB=zeros(1,N);                                           %atmospheric loss in dB
+        Beacon_Uplink_Model.Length=zeros(1,N);                                                        %link distance in m
         end
     end
 
@@ -242,6 +282,26 @@ classdef Beacon_Downlink_Model < Link_Model
         Link_Models.APT_Loss=APT_Loss;
         Link_Models.APT_Loss_dB=-10*log10(APT_Loss);
     end
+
+    function Link_Models = SetTurbulenceLoss(Link_Models,Turbulence_Loss)
+            %%SETTURBULENCELOSS set the turbulence loss of the link
+
+            %% input validation
+            if ~all(isreal(Turbulence_Loss)&Turbulence_Loss>=0)
+                error('tracking loss must be a real, nonnegative array of numeric values')
+            end
+            if isscalar(Turbulence_Loss)
+                Turbulence_Loss=Turbulence_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
+            elseif isrow(Turbulence_Loss)
+            elseif iscolumn(Turbulence_Loss)
+                Turbulence_Loss=Turbulence_Loss'; %can transpose lengths to match dimensions of Link_Models
+            else
+                error('Array must be a vector or scalar');
+            end
+
+            Link_Models.Turbulence_Loss=Turbulence_Loss;
+            Link_Models.Turbulence_Loss_dB=-10*log10(Turbulence_Loss);
+        end
 
     function Link_Models=SetLinkLength(Link_Models,Lengths)
         %%SETLINKLENGTH set the length of the links in the input array

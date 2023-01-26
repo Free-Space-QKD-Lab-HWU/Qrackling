@@ -7,7 +7,7 @@ classdef Chilbolton_OGS < Ground_Station
     end
 
     methods
-        function Chilbolton_OGS = Chilbolton_OGS(Detector,Telescope)
+        function Chilbolton_OGS = Chilbolton_OGS(Telescope,varargin)
             %Chilbolton_OGS Construct an instance of a OGS at chilbolton site at the
             %input wavelength
 
@@ -23,11 +23,12 @@ classdef Chilbolton_OGS < Ground_Station
                     error('no background light data for Chilbolton at that wavelength')
             end
 
-            Chilbolton_OGS=Chilbolton_OGS@Ground_Station(Detector,...
+            Chilbolton_OGS=Chilbolton_OGS@Ground_Station(...
                 Telescope,...
                 'LLA',[51.142680,-1.436580,86],... %COORDS
                 'Background_Count_Rate_File_Location',Background_Light_Data_Location,... 
-                'name','Chilbolton');%location name
+                'name','Chilbolton',...
+                varargin{:});%location name
 
         end
 

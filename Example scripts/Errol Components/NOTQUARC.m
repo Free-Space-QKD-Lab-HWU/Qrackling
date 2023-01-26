@@ -1,5 +1,5 @@
-function HubSat = QUARC(StartTime,StopTime,SampleTime)
-            %QUARC Construct a model of the Quantum Comms hub satellite
+function HubSat = NOTQUARC(StartTime,StopTime,SampleTime)
+            %NOTQUARC Construct a model of the Quantum Comms hub satellite
             
             %% allow variable start and stop time of simulations
             switch nargin
@@ -62,16 +62,29 @@ function HubSat = QUARC(StartTime,StopTime,SampleTime)
 
             %beacon
             BeaconPower = 2;                                                    %beacon optical power in w
-            BeaconWavelength = 850;                                             %beacon wavelength in nm
+            BeaconWavelength = 910;                                             %beacon wavelength in nm
             BeaconEfficiency = 1;                                               %beacon optical efficiency (unitless)
-            BeaconHalfAngle = 1E-4;                                             %beacon flat top half angle in rads
             BeaconPointingPrecision = 1E-3;                                     %beacon pointing precision (coarse pointing precision) in rads
-            HubSatBeacon = Flat_Top_Beacon(BeaconPower,BeaconWavelength,...
-                                BeaconHalfAngle,'Efficiency',BeaconEfficiency,...
+            BeaconTelescope = HubSatScope;                                      %downlink beacon comes through main scope
+            HubSatBeacon = Flat_Top_Beacon(BeaconTelescope,BeaconPower,BeaconWavelength,...
+                                'Power_Efficiency',BeaconEfficiency,...
                                 'Pointing_Jitter',BeaconPointingPrecision);
 
+            %camera
+            CameraNoiseFloor = 1E-9;                                            %camera noise in W
+            CameraDetectorDiameter = 0.001;                                     %camera sensor length scale in m
+            CameraFocalLength = 0.03;                                           %focal length of focussing lens on camera in m
+            CameraTelescopeDiameter = 0.1;                                      %diameter of satellite camera telescope
+            CameraScope = Telescope(CameraTelescopeDiameter);
+            HubSatCamera = Camera(CameraScope,'Noise',CameraNoiseFloor,...
+                                    'Detector_Diameter',CameraDetectorDiameter,...
+                                        'Focal_Length',CameraFocalLength);
+
             %% construct satellite with correct orbital parameters
-            HubSat=Satellite(HubSatSource,HubSatScope,'Beacon',HubSatBeacon,...
+            HubSat=Satellite(HubSatScope,...
+                            'Source',HubSatSource,...
+                            'Beacon',HubSatBeacon,...
+                            'Camera',HubSatCamera,...
                             'Surface',Satellite_Foil_Surface(0.01),...          %correctly set reflevctive surface proporties and area
                             'SemiMajorAxis',500E3 + earthRadius,...             %mean orbital radius = Altitude + Earth radius
                             'eccentricity',0,...                                %measure of ellipticity of the orbit, for circular, =0

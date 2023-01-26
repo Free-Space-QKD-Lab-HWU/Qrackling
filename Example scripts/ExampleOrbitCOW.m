@@ -19,7 +19,9 @@ Transmitter_Source=COW_Source(Wavelength);                                      
 Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
 
 %2.1.3 Construct satellite
-SimSatellite=Satellite(Transmitter_Source,Transmitter_Telescope,'OrbitDataFileLocation',OrbitDataFileLocation);
+SimSatellite=Satellite(Transmitter_Telescope,...
+                        'Source',Transmitter_Source,...
+                        OrbitDataFileLocation',OrbitDataFileLocation);
 
 %2.2 Ground station
 %2.2.1 Detector
@@ -32,7 +34,8 @@ Generic_COW_Detector=Generic_Detector(Wavelength,Transmitter_Source.Repetition_R
 Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);
 
 %2.2.3 construct ground station, use Chilbolton as an example
-SimGround_Station=Chilbolton_OGS(Generic_COW_Detector,Receiver_Telescope);
+SimGround_Station=Chilbolton_OGS(Receiver_Telescope,...
+                                    'Detector',Generic_COW_Detector);
 
 %2.3 protocol
 COW_protocol=COW_Protocol;

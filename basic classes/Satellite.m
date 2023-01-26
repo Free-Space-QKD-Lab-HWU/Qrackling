@@ -1,7 +1,7 @@
 %Author: Cameron Simmons, Peter Barrow
 %Date: 24/1/22
 
-classdef Satellite < Located_Object
+classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
     %SATELLITE abstract class containing the satellite properties for simulation
 
     %hide large or uninteresting properties, not abstract for this reason
@@ -23,10 +23,6 @@ classdef Satellite < Located_Object
         %File location for Latitude, Longitude, Altitude and Time data
         Orbit_Data_File_Location{mustBeText} = '';
 
-        %object containing transmitter details
-        Source Source = BB84_Source(1);
-        Telescope Telescope
-
         %% information about protocol
         % protocol used (BB84,BBN92,...)
         Protocol Protocol = BB84_Protocol();
@@ -39,10 +35,12 @@ classdef Satellite < Located_Object
 
         %% beacon on satellite
         Beacon =[];
+        %% beacon camera on satellite
+        Camera = [];
     end
 
     methods
-        function [Satellite, varargout] = Satellite(Source, Telescope, varargin)
+        function [Satellite, varargout] = Satellite(Telescope, varargin)
 
             % SATELLITE Construct an instance of satellite using an orbital
             % User must provide either an 'OrbitDataFileLocation' file, TLE
@@ -53,10 +51,15 @@ classdef Satellite < Located_Object
             % If TLE information or KeplerElements are supplied then a startTime,
             %     stopTime and sampleTime must also be supplied.
 
+            %% satellite should support an empty constructor
+            if nargin==0
+                return
+            end
+
             p = inputParser();
 
-            addRequired(p, 'Source');
             addRequired(p, 'Telescope');
+            addParameter(p, 'Source',[]);
             addParameter(p, 'OrbitDataFileLocation','');
             addParameter(p, 'ToolBoxSatellite', []);
             addParameter(p, 'scenario', nan);
@@ -79,8 +82,13 @@ classdef Satellite < Located_Object
 
             % downlink beacon, if wanted
             addParameter(p, 'Beacon', [])
+            %up link beacon camera, if wanted
+            addParameter(p, 'Camera', []);
 
-            parse(p, Source, Telescope, varargin{:});
+            %detector, for uplink
+            addParameter(p,'Detector',[]);
+
+            parse(p, Telescope, varargin{:});
 
             sma = p.Results.semiMajorAxis;
             ecc = p.Results.eccentricity;
@@ -178,12 +186,23 @@ classdef Satellite < Located_Object
             Satellite.N_Steps = Satellite.N_Position;
             Satellite.Times = t;
 
-            if isa(Source, 'Source')
-                Satellite.Source = p.Results.Source;
-            end
+            %% currently, both transmit and receive scopes are the same
             Satellite.Telescope = p.Results.Telescope;
+
+            %infer correct wavelength from source or detector
+            if ~isempty(p.Results.Source)
+
+            Satellite.Source = p.Results.Source;
             Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
                 Satellite.Source.Wavelength);
+            elseif ~isempty(p.Results.Detector)
+            Satellite.Detector = p.Results.Detector;
+            Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
+                Satellite.Detector.Wavelength);
+            else
+                error('must provide either a source or detector')
+            end
+
 
             %% set surface object of satellite
             Satellite.Surface = p.Results.Surface;
@@ -193,8 +212,12 @@ classdef Satellite < Located_Object
             end
 
 
-            %% set beacon on satellite
+            %% set beacon and beaconing camera
             Satellite.Beacon = p.Results.Beacon;
+            Satellite.Camera = p.Results.Camera;
+
+            %% add detector if wanted
+            Satellite.Detector = p.Results.Detector;
         end
 
 
@@ -354,5 +377,20 @@ classdef Satellite < Located_Object
             warning('this behaviour is legacy and may no longer be support. Instead access the "Surface" class of the satellite')
         end
 
+        function [Background_Count_Rates, Satellite] = ComputeTotalBackgroundCountRate(Satellite, Background_Sources, Ground_Station, Headings, Elevations, smarts_configuration)
+            %%COMPUTETOTALBACKGROUNDCOUNTRATE consider background light at the
+            %%satellite to produce BCR
+                Background_Count_Rates = ones(size(Headings))*Satellite.Detector.Dark_Count_Rate;
+                Satellite.Dark_Count_Rates = Background_Count_Rates;
+        end
+
+
+        function PlotBackgroundCountRates(Satellite, Plotting_Indices, X_Axis)
+            %%PLOTBACKGROUNDCOUNTRATES plot the background count rate at the
+            %%satellite
+
+                area(X_Axis(Plotting_Indices),Satellite.Dark_Count_Rates(Plotting_Indices));
+                legend('Dark Counts')
+        end
     end
 end
