@@ -47,7 +47,6 @@ classdef (Abstract=true)card
                       card.card_type];
 
             else
-                %TODO: ## FIX ## -> this is only required for extra_spectral
                 if card.no_flag
                     current = card.groups{1}{1};
                     comment = [current];

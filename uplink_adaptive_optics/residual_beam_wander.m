@@ -17,7 +17,7 @@ function beam_wander =  residual_beam_wander(sigma_snr, ...
 
     N = length(sigma_tfd);
     beam_wander = zeros(1, N);
-    for i = 1:N;
+    for i = 1:N
         betas = mean([beta_snr(i), beta_tfd(i), beta_ca(i), beta_ta(i)]);
         % beam_wander(i) = mean(betas ./ (betas + 1));
         beam_wander(i) = betas ./ (betas + 1);

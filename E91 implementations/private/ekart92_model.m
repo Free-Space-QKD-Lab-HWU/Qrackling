@@ -19,10 +19,10 @@
 % ########################################
 
 function [sifted_key_rate, qber, Rate_In, Rate_Det] = ekart92_model(...
-                                                rep_rate, det_eff, ...
+                                                rep_rate, ...
                                                 prob_dark_counts, loss, ...
-                                                prot_eff, qber_jitter, ...
-                                                dead_time, Detector)
+                                                prot_eff, ...
+                                                Detector)
 
     % Intermidiate step to compute key variables
     P_d = 0;
@@ -41,6 +41,7 @@ function [sifted_key_rate, qber, Rate_In, Rate_Det] = ekart92_model(...
     % prob of dark counts
     P_e = prob_dark_counts;
     % detection efficiency
+    det_eff = Detector.Detection_Efficiency;
     if det_eff > 1
         eta_e = det_eff / 100;
     else
@@ -74,7 +75,7 @@ function [sifted_key_rate, qber, Rate_In, Rate_Det] = ekart92_model(...
     Rate_Det = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
     
     % QBER
-    Detector = SetJitterPerformance(Detector, s1 * rep_rate); %?
+    %Detector = SetJitterPerformance(Detector, s1 * rep_rate); %?
     qber_jitter = Detector.QBER_Jitter;
     qber = 1/2 .* (1-t_d.*t_e);
     qber = qber + qber_jitter;

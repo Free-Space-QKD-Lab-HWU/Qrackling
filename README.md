@@ -1,27 +1,29 @@
 # QKD_Sat_Link
 
-Initial Commit 16/6/22
+## Description
+QKD_Sat_Link is a MATLAB simulator for satellite QKD written at Heriot-Watt University. It incorporates real-world data and simulations to produce results which are maximally verifiable. The MATLAB object-oriented paragdym allows traceability of results back to the expressions used to evaluate them. As the project expands, we endeavour to integrate and use more and more external sources, to increase the flexibility and realism extracted from a small development commitment.
 
-Commit 12/7/22
--Provide example scripts for simulating orbits
--Change detector construction behaviour to avoid factory pattern
--Change protocol compatibility so that detector are not specific to a protocol
--Replace DPS model with corrected version
+## Requirements
+### Mandatory
+MATLAB R2021a or newer, with:
+- Satellite Communications Toolbox
+- Navigation Toolbox
+- Mapping Toolbox
 
-Commit 29/7/22
--correct QBER determination in DPS and COW models
--vectorise COW model
--plot function correctly labels secret key rate (in place of sifted key rate, previously used)
--implement Dark count rate as an abstract detector property and include the SetDarkCountRate method
--include Xinglong ground station object and .mat file of Beijing as a background light source
--inputParsers added for ground station, Telescope, Jamming_Laser, Background_Source and pass simulation classes
--move Mean_Photon_Number, g2, State_Probabilities and State_Prep_Error properties from source concrete classes to source superclass as they are common. subclasses now act to implement default values necessary for each protocol
--change COW_Source to use State_Probabilities property instead of Decoy_Probability. Decoy probability is the second of a 2-element State_Probabilities probability vector
+### Optional
+| System | Description |
+| ----------- | ----------- |
+| SMARTS (Simple Model of the Atmospheric Radiative Transfer of Sunshine) available [here](https://www.nrel.gov/grid/solar-resource/smarts.html) | Allows the simulation of sunlight in the atmosphere to support daylight QKD background count modelling |
+| GMAT (General Mission Analysis tool) available [here](https://opensource.gsfc.nasa.gov/projects/GMAT/index.php#:~:text=The%20General%20Mission%20Analysis%20Tool%20%28GMAT%29%20is%20a,and%20is%20a%20testbed%20for%20future%20technology%20development.) | allows editting of orbit paths and the creation of new standardised orbit datasets external to MATLAB's satellite simulator |
 
-Commit 8/8/22
--change examples and internal behaviour to be consistent with Constellation (12/7/22) merge
--change 100km and 500km LLAT files to pass over Errol
--fixed failure to construct a located object from a 3-element LLA vector
--fixed misrepresentation of GetXYZ output in IsEarthShadowed (method of Located_Object)
--change inputparser behaviour in Satellite to make function hints clearer to user
--include an example for using the DPS protocol
+## Installation
+1. First ensure that your MATLAB installation is up to date, you have a valid MATLAB licence and have all of the mandatory toolboxes installed and enabled.
+2. Clone the `main` branch of this repository to your machine (for a guide to this, see [here](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)), or download and unzip the zip-file copy from GitHub.
+3. Ensure that the whole repository is on your MATLAB path by opening the file `QKD modelling.prj`. This can be done by double-clicking, or, if the file is on your MATLAB path, by using the command `open('QKD modelling.prj')`.
+4. You're good to go! Consider running one or more of the scripts in the *Example scripts* folder to familiarise yourself with the syntax needed to write and run a simulation.
+
+## Licensing
+We have not decided on a license for this repo, as it is currently private. If Heriot-Watt University didn't give you access, don't use it, and give us our stuff back.
+
+## Further reading
+For a guide on the object-oriented paragdym and how this is implemented in MATLAB, see [here](https://uk.mathworks.com/products/matlab/object-oriented-programming.html?s_tid=srchtitle_object%20oriented%20programming_1). The Wiki for this repo contains specifics on how various components of this model function.

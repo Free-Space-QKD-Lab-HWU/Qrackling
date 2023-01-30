@@ -1,8 +1,3 @@
-%{
-TODO: cards 10c and 10d are 'sub-cards' of 10b as a result we will have to
-alter the structure of the cardString function to take nested cell arrays to
-correctly build the structure that we need...
-%}
 classdef far_field_albedo < card
 
     properties

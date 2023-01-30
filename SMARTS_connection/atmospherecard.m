@@ -1,4 +1,4 @@
-classdef atmosphere < card
+classdef atmospherecard < card
     properties
 
         air_temperature{mustBeNumeric} = 0;
@@ -18,7 +18,7 @@ classdef atmosphere < card
 
     methods
 
-        function atmosphere = atmosphere(varargin)
+        function atmosphere = atmospherecard(varargin)
 
             atmosphere.card_type = 'IATMOS';
             atmosphere.card_num = 3;

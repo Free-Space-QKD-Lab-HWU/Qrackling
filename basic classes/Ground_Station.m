@@ -1,32 +1,27 @@
 %Author: Cameron Simmons, Peter Barrow
 %Date: 24/1/22
 
-classdef Ground_Station < Located_Object
+classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
     % GROUND_STATION an object containing all of the simulation parameters of the ground station
 
     properties (Abstract = false, SetAccess = protected)
-        % name of protocol to be used
-        Protocol{mustBeText} = '';
-
-        % a detector object, validated individually in subclasses
-        Detector
-        Telescope Telescope
 
         % is is possible to replace this with a hash or index to get the object
         % from the toolbox scenario? Maybe the name is enough?
         toolbox_groundStation
 
-        % pointer to a file containing the background count rate data for this 
-        % ground station (stored in counts/steradian)
+        % path to a file containing the background count rate data for this 
+        % ground station (stored in counts/ s steradian nm)
         Background_Count_Rate_File_Location{mustBeText} = 'none';
 
-        % background count rate (in counts/s) as a function of heading and 
-        % elevation, stored as a structure with fields 'Count_Rate', 'Heading' 
-        % and 'Elevation'
-        Background_Rates{isstruct, ...
-                         isfield(Background_Rates, 'Heading'), ...
-                         isfield(Background_Rates, 'Elevation'), ...
-                         isfield(Background_Rates, 'Count_Rate')};
+        %the camera which receives beacon light, if beaconing is simulated
+        Camera=[];
+
+        %uplink beacon, if simulated
+        Beacon = [];
+    
+        %atmosphere file location
+        Atmosphere_File_Location = [];
     end
 
     properties (Abstract = false, SetAccess = protected, Hidden = true)
@@ -46,30 +41,42 @@ classdef Ground_Station < Located_Object
         % minimum elevation to establish a link in deg
         Elevation_Limit{mustBeScalarOrEmpty} = 30;
 
-        % count rates at the Ground station due to light pollution
-        Light_Pollution_Count_Rates{mustBeVector, mustBeNonnegative} = 0;
+        % SMARTS data paths
+        smarts_results = {};
 
-        % count rates at the Ground station due to dark counts
-        Dark_Count_Rates{mustBeVector, mustBeNonnegative} = 0;
+        % SMARTS wavelengths
+        Wavelengths = [];
 
-        % count rates at the Ground station due to reflected light off satellite
-        Reflection_Count_Rates{mustBeVector, mustBeNonnegative} = 0;
+        % Spectra of atmosphere as received by the ground station in terms of
+        % photon number
+        Sky_Irradiance = [];
+        Sky_Radiance = [];
 
-        % count rates at the Ground station due to reflected light off satellite
-        Directed_Count_Rates{mustBeVector, mustBeNonnegative} = 0;
+        % Sky photons calculated from 'Sky_Spectra' via
+        % 'basic classes/sky_photons.m', see reference there for details.
+        Sky_Photons = [];
+        Sky_Photon_Rate = [];
     end
 
     methods
-        function [Ground_Station, varargout] = Ground_Station(Detector, Telescope, varargin)
+        function [Ground_Station, varargout] = Ground_Station(Telescope, varargin)
             % GROUND_STATION instantiate a ground station using either its
             % component classes and requiring a name and location (LLA = lat
             % lon alt)
 
+            % Ground_Station should support an empty constructor to be default
+            % instantiated correctly
+   
+            if nargin==0
+                return
+            end
+            
+            %% construct from inputs
             p = inputParser;
             % required inputs
-            addRequired(p, 'Detector');
             addRequired(p, 'Telescope');
             % optional inputs
+            addParameter(p,'Detector',[])
             addParameter(p, 'scenario', nan);
             addParameter(p, 'useSatCommsToolbox', false);
             addParameter(p, 'startTime', nan);
@@ -81,22 +88,45 @@ classdef Ground_Station < Located_Object
             addParameter(p, 'LLA', nan);
             addParameter(p, 'name', 'Bob');
             addParameter(p, 'Background_Count_Rate_File_Location', 'none');
+            addParameter(p, 'Camera', []);
+            addParameter(p, 'Beacon', []);
+            addParameter(p, 'Source', []);
+            addParameter(p, 'Atmosphere_File_Location',[]);
 
-            parse(p, Detector, Telescope, varargin{:});
+            parse(p, Telescope, varargin{:});
 
-            % set Telescope parameters
-            Ground_Station.Detector = Detector;
-            Ground_Station.Telescope = Telescope;
+            % telescope is a required input
+            Ground_Station.Telescope = p.Results.Telescope;
 
-            % set Telescope to be wavelength of detector
-            Ground_Station.Telescope = SetWavelength(Telescope, ...
-                                                     Detector.Wavelength);
+            %infer correct wavelength from source or detector
+            if ~isempty(p.Results.Source)
+            %if source is present, use this
+            Ground_Station.Source = p.Results.Source;
+            Ground_Station.Telescope = SetWavelength(Ground_Station.Telescope, ...
+                Ground_Station.Source.Wavelength);
+
+            assert(isempty(p.Results.Detector),...
+                'Currently, only a Ground_Station object may only have a detector OR a source');
+
+            elseif ~isempty(p.Results.Detector)
+            %if detector is present, use this
+            Ground_Station.Detector = p.Results.Detector;
+            Ground_Station.Telescope = SetWavelength(Ground_Station.Telescope, ...
+                Ground_Station.Detector.Wavelength);
+            else
+                error('must provide either a source or detector')
+            end
+
 
             % set Background count rate data
             Ground_Station = ReadBackgroundCountRateData(Ground_Station, ...
                                 p.Results.Background_Count_Rate_File_Location);
 
+            % set camera and beacon
+            Ground_Station.Camera = p.Results.Camera;
+            Ground_Station.Beacon = p.Results.Beacon;
 
+            %parse location (lat, lon, alt)
             if isnan(p.Results.LLA)
                 LLA = [p.Results.latitude, p.Results.longitude, p.Results.altitude];
             else
@@ -131,28 +161,32 @@ classdef Ground_Station < Located_Object
                 Ground_Station.useSatCommsToolbox = true;
                 scenario = p.Results.scenario;
             end
-            
+
             if Ground_Station.useSatCommsToolbox == true
-                Ground_Station.toolbox_groundStation = groundStation(scenario, ...
-                                                                     lat, ...
-                                                                     lon, ...
-                                                                     alt, ...
-                                                                     'Name', ...
-                                                                     p.Results.name);
+                Ground_Station.toolbox_groundStation = ...
+                                groundStation( scenario, ...
+                                               lat, ...
+                                               lon, ...
+                                               alt, ...
+                                               'Name', ...
+                                               p.Results.name );
             end
+
+
+            %store atmosphere file location
+            Ground_Station.Atmosphere_File_Location = p.Results.Atmosphere_File_Location;
         end
 
 
         function [Background_Rates, Background_Rates_sr_nm] = GetLightPollutionCountRate(Ground_Station, Headings, Elevations)
             % GETLIGHTPOLLUTIONCOUNTRATE return the background count rate
             % values closest to the input headings and elevations in an
-            % array of the same dimensions
+            % array of the same dimensions at the given wavelength
 
             % input validation
             % heading and elevation arrays must be same dimensions
-            if ~AreSameDimensions(Headings, Elevations)
-                error('heading and elevation arrays must be of same dimensions')
-            end
+            assert(AreSameDimensions(Headings, Elevations),...
+                'heading and elevation arrays must be of same dimensions')
 
             % assign memory for Background_Rates
             Background_Rates = zeros(size(Headings));
@@ -183,12 +217,18 @@ classdef Ground_Station < Located_Object
 
                     % get background counts per steradian
                     Background_Rates_sr_nm(i, j) = Ground_Station.Background_Rates.Count_Rate(Heading_Index, Elevation_Index);
+                    % if any values are negative, nan or inf set them to zero
+                    Background_Rates_sr_nm( Background_Rates_sr_nm < 0 ) = 0;
+                    Background_Rates_sr_nm( isnan(Background_Rates_sr_nm) ) = 0;
+                    Background_Rates_sr_nm( isinf(Background_Rates_sr_nm) ) = 0;
 
                     % convert to counts in this specific telescope
                     Background_Rates(i, j) = prod([detector_eff, ...
                                                    Background_Rates_sr_nm(i, j), ...
                                                    pi * (fov/2)^2, ...
                                                    filter_width]);
+
+
                 end
             end
         end
@@ -196,9 +236,8 @@ classdef Ground_Station < Located_Object
 
         function Ground_Station = ReadBackgroundCountRateData(Ground_Station, Background_Count_Rate_File_Location)
             % input validation
-            if ~nargin == 2
-                error('ReadBackgroundCountRateData takes only a Ground_Station object and .mat file location as arguments');
-            end
+            assert(nargin == 2,...
+                'ReadBackgroundCountRateData takes only a Ground_Station object and .mat file location as arguments');
 
             % if 'none' is provided
             if isequal(Background_Count_Rate_File_Location, 'none')
@@ -223,42 +262,143 @@ classdef Ground_Station < Located_Object
 
 
         function Ground_Station = SetWavelength(Ground_Station, Wavelength)
-            % SETWAVELENGTH set the wavelength (in nm) of the receiver
+            % SETWAVELENGTH set the wavelength (in nm) of the receiver and
+            % the detector it contains
             Ground_Station.Detector = SetWavelength(Ground_Station.Detector, Wavelength);
         end
 
 
-        function [Total_Background_Count_Rate, Ground_Station, Headings, Elevations] = ComputeTotalBackgroundCountRate(Ground_Station, Background_Sources, Satellite)
+        function [Total_Background_Count_Rate, Ground_Station, Headings, Elevations] = ...
+                        ComputeTotalBackgroundCountRate(Ground_Station, ...
+                                                        Background_Sources, ...
+                                                        Satellite, ...
+                                                        Headings, ...
+                                                        Elevations, ...
+                                                        SMARTS_Configuration)
             % COMPUTETOTALBACKGROUNDCOUNTRATE return the total count rate
             % at the given headings and elevations
 
-            % Background light pollution
-            % compute relative heading and elevation
-            [Headings, Elevations, ~] = RelativeHeadingAndElevation(Satellite, Ground_Station); % #ok<*PROP>
+            %% find light pollution count rate for given headings and elevations
+            %if a SMARTS config is provided, use SMARTS for this calculation
 
-            % find light pollution count rate for given headings and elevations
-            Light_Pollution_Count_Rate = GetLightPollutionCountRate(Ground_Station, Headings, Elevations);
-            % if any values are negative set them to zero
-            Light_Pollution_Count_Rate( Light_Pollution_Count_Rate < 0 ) = 0;
-            Light_Pollution_Count_Rate( isnan(Light_Pollution_Count_Rate) ) = 0;
-            Light_Pollution_Count_Rate( isinf(Light_Pollution_Count_Rate) ) = 0;
+            %% first, specify which time stamps must be simulated- these are timestamps for which elevation>0
+            Simulate_Flags = Elevations>0;
+            Num_Simulation_Flags = sum(Simulate_Flags);
+            All_Time_Indices = 1:numel(Elevations);
+            Simulation_Headings = Headings(Simulate_Flags);
+            Simulation_Elevations = Elevations(Simulate_Flags);
+
+
+            if ~isempty(Ground_Station.Atmosphere_File_Location)
+            %% import SMARTS cache
+            %if a SMARTS results cache is found, use this to model the
+            %atmosphere
+            
+            %read in data
+                Atm = Atmosphere(Ground_Station.Atmosphere_File_Location);
+            %% required format: atmospheric data corresponds to headings which vary in cell rows and elevations which vary in table columns
+
+                %iterate through timestamps, interpolating atmosphere data and
+                %processing it
+                Wavelengths = Atm.wavelengths; %#ok<*PROPLC> 
+                Sky_Irradiance = zeros(numel(Elevations), numel(Wavelengths));
+                Sky_Radiance = zeros(size(Sky_Irradiance));
+                Sky_Photons = zeros(size(Sky_Radiance));
+                Atmosphere_Sweep_Data=cell(numel(Elevations),1);
+                Simulated_Point_Index = 1;
+                for Time_Index = All_Time_Indices(Simulate_Flags)
+                    Atmosphere_Sweep_Datum=InterpolateAtmosphereData(Atm,Simulation_Headings(Simulated_Point_Index),Simulation_Elevations(Simulated_Point_Index));
+                    Atmosphere_Sweep_Data{Time_Index}=Atmosphere_Sweep_Datum;
+                    %also, process this data into useful results
+                    Sky_Irradiance(Time_Index, :) = Atmosphere_Sweep_Datum.Global_tilted_irradiance;
+
+                    Sky_Radiance(Time_Index, :) = irradiance2radiance(Sky_Irradiance(Time_Index, :), ...
+                                                 Wavelengths', 1e-9);
+
+                    Sky_Photons(Time_Index, :) = sky_photons(Sky_Radiance(Time_Index, :), ...
+                                                 Ground_Station.Telescope.FOV^2, ...
+                                                 Ground_Station.Telescope.Diameter, ...
+                                                 Wavelengths', 1, 1);
+
+
+
+
+                    Simulated_Point_Index=Simulated_Point_Index+1;
+                end
+
+
+                Ground_Station.smarts_results = Atmosphere_Sweep_Data;
+                Ground_Station.Wavelengths = Wavelengths;
+                Ground_Station.Sky_Irradiance = Sky_Irradiance;
+                Ground_Station.Sky_Radiance = Sky_Radiance;
+                Ground_Station.Sky_Photons = Sky_Photons;
+
+                    %sky photons has units of photons/nm.s, we need to apply
+                    %wavelength filter to get total sky photon rate
+                    Inside_Wavelength_Filter_Flag = Wavelengths>(Ground_Station.Telescope.Wavelength-Ground_Station.Detector.Spectral_Filter_Width/2)&...
+                        Wavelengths<(Ground_Station.Telescope.Wavelength+Ground_Station.Detector.Spectral_Filter_Width/2);
+
+                     sky_photon_rate = sum(Sky_Photons(:, Inside_Wavelength_Filter_Flag),2);
+                Ground_Station.Sky_Photon_Rate = sky_photon_rate;
+
+
+                %add sky photons to OGS background count rate sum
+                Light_Pollution_Count_Rate = sky_photon_rate';
+
+            elseif ~isempty(SMARTS_Configuration)
+            %% Run smarts
+            % If 'smarts_configuration' contains a 'SMARTS_input' object run a
+            % SMARTS simulation *ONLY* on the azimuth (heading) and elevation
+            % positions that correspond to where 'Line_Of_Sight_Flags' is set
+            % to true. (this is so that beaconing noise is simulated)
+                [smarts_results, Wavelengths, Sky_Irradiance, Sky_Radiance, ...
+                 Sky_Photons, sky_photon_rate] = ...
+                    smartsSimForPass(SMARTS_Configuration, ...
+                                     Headings, Elevations, ...
+                                     Satellite.Times, ...
+                                     Simulate_Flags, ...
+                                     Ground_Station);
+
+                Ground_Station.smarts_results = smarts_results;
+                Ground_Station.Wavelengths = Wavelengths;
+                Ground_Station.Sky_Irradiance = Sky_Irradiance;
+                Ground_Station.Sky_Radiance = Sky_Radiance;
+                Ground_Station.Sky_Photons = Sky_Photons;
+                Ground_Station.Sky_Photon_Rate = sky_photon_rate;
+                
+                %add sky photons to OGS background count rate sum
+                Light_Pollution_Count_Rate = sky_photon_rate';
+            else
+                %if no SMARTS config provided, use legacy system of lookup table
+                Light_Pollution_Count_Rate = GetLightPollutionCountRate(Ground_Station, Headings, Elevations);
+            end
+
 
             % Reflected light pollution
             Reflection_Count_Rate = zeros(size(Light_Pollution_Count_Rate));
-            for i = 1:length(Background_Sources)
+            for Simulated_Point_Index = 1:length(Background_Sources)
                 % limit reflected light pollution to line of sight between
                 % satellite and background source
-                [~, Background_Source_Elevations] = RelativeHeadingAndElevation(Satellite, Background_Sources(i));
-                Elevation_Limit = Background_Sources(i).Elevation_Limit; % #ok<*PROPLC>
-                Possible_Refleced_Counts = GetReflectedLightPollution(Background_Sources(i), Satellite, Ground_Station);
-                Reflection_Count_Rate(Background_Source_Elevations>Elevation_Limit) = Reflection_Count_Rate(Background_Source_Elevations>Elevation_Limit)+Possible_Refleced_Counts(Background_Source_Elevations>Elevation_Limit); % #ok<*AGROW>
+                [~, Background_Source_Elevations] = RelativeHeadingAndElevation(Satellite, Background_Sources(Simulated_Point_Index));
+                Elevation_Limit = Background_Sources(Simulated_Point_Index).Elevation_Limit;
+                Possible_Refleced_Counts = GetReflectedLightPollution(Background_Sources(Simulated_Point_Index), Satellite, Ground_Station);
+
+                Reflection_Count_Rate(Background_Source_Elevations ...
+                                      > Elevation_Limit) = ...
+                    Reflection_Count_Rate(Background_Source_Elevations ...
+                                          > Elevation_Limit) ...
+                    + Possible_Refleced_Counts(Background_Source_Elevations ...
+                                               > Elevation_Limit);
             end
 
-            Direct_Count_Rate = ones(size(Headings));
+            Direct_Count_Rate = zeros(size(Headings));
+            %%%%%%%%%%%%%This does not currently work
+            %{
             for i = 1:length(Background_Sources)
                 solar_counts = Background_Sources(i).GetDirectedLight(Ground_Station, 16.35) .* ones(size(Direct_Count_Rate));
                 Direct_Count_Rate = Direct_Count_Rate + solar_counts;
             end
+            %}
 
             % Dark_Counts
             Dark_Counts = ones(size(Headings))*Ground_Station.Detector.Dark_Count_Rate;
@@ -278,28 +418,24 @@ classdef Ground_Station < Located_Object
         function PlotBackgroundCountRates(Ground_Station, Plotting_Indices, X_Axis)
             % PLOTBACKGROUNDCOUNTRATES plot the background count rates
             % affecting the ground station
-            disp(size(Ground_Station.Dark_Count_Rates(Plotting_Indices)'));
-            disp(size(Ground_Station.Reflection_Count_Rates(Plotting_Indices)'));
-            disp(size(Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)'));
-            disp(size(Ground_Station.Directed_Count_Rates(Plotting_Indices)'));
             
-            area(X_Axis, ...
+            area(X_Axis(Plotting_Indices), ...
                  [Ground_Station.Dark_Count_Rates(Plotting_Indices)', ...
                  Ground_Station.Reflection_Count_Rates(Plotting_Indices)', ...
                  Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)', ...
                  Ground_Station.Directed_Count_Rates(Plotting_Indices)']);
-            ylabel('Background count rate (cps)')
+            ylabel('BCR (cps)')
 
             % adjust legend to represent what is plotted
             % reflection and light poluution are non zero
             if any(Ground_Station.Reflection_Count_Rates(Plotting_Indices))&&any(Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices))
-                legend('Dark counts', 'Reflection off satellite', 'Light pollution count rates');
+                legend('Dark counts', 'Reflection', 'Light pollution');
                 % no reflection
             elseif (~any(Ground_Station.Reflection_Count_Rates(Plotting_Indices)))&&any(Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices))
-                legend('Dark counts', '', 'Light pollution count rates');
+                legend('Dark counts', '', 'Light pollution','');
                 % no Light pollution
             elseif (any(Ground_Station.Reflection_Count_Rates(Plotting_Indices)))&&(~any(Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)))
-                legend('Dark counts', 'Reflection off satellite', '');
+                legend('Dark counts', 'Reflection', '');
             elseif (any(Ground_Station.Directed_Count_Rates(Plotting_Indices)))&&(~any(Ground_Station.Directed_Count_Rates(Plotting_Indices)))
                 legend('Dark counts', 'Directed count rates (Solar)', '');
             else
@@ -315,7 +451,6 @@ classdef Ground_Station < Located_Object
             % communication can occur
             Ground_Station.Elevation_Limit = Elevation_Limit;
         end
-
 
         function PlotLOS(Ground_Station, Satellite_Altitude)
             % PLOTLOS plot the ground station and its line of sight to a
@@ -336,6 +471,37 @@ classdef Ground_Station < Located_Object
             end
             geoplot(WindowLat, WindowLon, 'k--')
             AddToLegend('Ground Station orbit LOS', 'Ground Station')
+        end
+
+        function [Total_Background_Count_Rate,Ground_Station] = ComputeTotalBeaconNoisePower(Ground_Station, Background_Sources, Satellite, Headings, Elevations)
+            % COMPUTETOTALBEACONNOISE return the total noise present in the
+            % beacon system, from camera, sky and background sources
+            %% this is a LEGACY function and will not be maintained
+
+            %% sky noise goes here. Needs SMARTS integration
+            %run SMARTS
+            [smarts_results, Wavelengths, Sky_Irradiance, ...
+             Sky_Radiance, Sky_Photons, sky_photon_rate] = ...
+                smartsSimForPass(solar_background_errol, ...
+                                 Headings, ...
+                                 Elevations, ...
+                                 [], ...
+                                 Ground_Station);
+
+            %% Reflected light pollution
+            %reflected light pollution does not contribute to noise in this
+            %case. All downlinked light from the satellite at the beacon
+            %wavelength should be considered a valid beacon, even if it has high
+            %divergence
+
+            % camera noise power
+            Noise_Power = ones(size(Headings))*Ground_Station.Beacon.Noise;
+
+            % output value
+            Ground_Station.Light_Pollution_Count_Rates = Light_Pollution_Count_Rate;
+            Ground_Station.Reflection_Count_Rates = Reflection_Count_Rate;
+            Ground_Station.Dark_Count_Rates = Dark_Counts;
+            Total_Background_Count_Rate = Light_Pollution_Count_Rate+Reflection_Count_Rate+Dark_Counts;
         end
 
     end

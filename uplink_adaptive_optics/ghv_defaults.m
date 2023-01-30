@@ -7,7 +7,7 @@ function ghv_args = ghv_defaults(varargin)
     C = 3.59e-53;
     HA = 100;
     HB = 1500;
-    HC = 1000;
+    HC = 1000; %these H distances are in m
 
     addParameter(p, 'A', A, @isnumeric);
     addParameter(p, 'B', B, @isnumeric);
