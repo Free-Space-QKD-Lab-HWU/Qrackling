@@ -12,12 +12,6 @@ classdef options
                 options.opts = opts;
                 options.labeled = false;
             else
-                %if iscell(o(1))
-                %    disp(opts);
-                %    options.opts = cellfun(@(x) x{1}, opts, UniformOutput=false);
-                %    options.labels = cellfun(@(x) x{2}, opts, UniformOutput=false);
-                %else
-                %end
                 if contains(opts(1), ',')
                     halfs = split(opts, ', ');
                     options.opts = halfs(:, :, 1);
