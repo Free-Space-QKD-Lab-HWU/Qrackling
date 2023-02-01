@@ -19,7 +19,7 @@ classdef Flat_Top_Beacon < Beacon
             p=inputParser();
             p.KeepUnmatched=true;
             parse(p,varargin{:});
-            addParameter(p,'Limit_Half_Angle',Telescope.FOV/2);
+            addParameter(p,'Limit_Half_Angle',Flat_Top_Beacon.Telescope.FOV/2);
             parse(p);
             Flat_Top_Beacon.Limit_Half_Angle = p.Results.Limit_Half_Angle;
         end

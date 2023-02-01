@@ -65,7 +65,7 @@ function HubSat = NOTQUARC(StartTime,StopTime,SampleTime)
             BeaconWavelength = 910;                                             %beacon wavelength in nm
             BeaconEfficiency = 1;                                               %beacon optical efficiency (unitless)
             BeaconPointingPrecision = 1E-3;                                     %beacon pointing precision (coarse pointing precision) in rads
-            BeaconTelescope = Telescope(0.01,'FOV',0.4*180/pi);               %downlink beacon has 10mm diameter and 0.4 degrees cone angle
+            BeaconTelescope = SetFOV(HubSatScope,2*0.4*180/pi);                 %downlink beacon comes through main scope
             HubSatBeacon = Flat_Top_Beacon(BeaconTelescope,BeaconPower,BeaconWavelength,...
                                 'Power_Efficiency',BeaconEfficiency,...
                                 'Pointing_Jitter',BeaconPointingPrecision);

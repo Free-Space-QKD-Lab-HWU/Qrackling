@@ -21,15 +21,7 @@ HOGS_Detector = MPD_Detector(Wavelength,Repetition_Rate,...
     Time_Gate,Spectral_Filter_Width);
 
 %beacon camera
-Beacon_Telescope_Diameter = 0.25;                                   %beacon telescope diameter in m, used to calculate collecting area
-Beacon_Telescope_Efficiency = 0.9;                                 %efficiency of beacon telescope optical path
-Beacon_Camera_Efficiency = 0.9;                                     %optical efficiency of beacon camera and imaging system
-Beacon_Camera_Noise = 1E-9;                                         %rms noise power floor in camera, in W
-Camera_Scope = Telescope(Beacon_Telescope_Diameter,...
-    'Optical_Efficiency',Beacon_Telescope_Efficiency);
-HOGS_Camera = Camera(Camera_Scope,...
-    'Detection_Efficiency',Beacon_Camera_Efficiency,...
-    'Noise',Beacon_Camera_Noise);
+HOGS_Camera = ATIK();%this is a constructor for the ATIK camera we use
 
 %uplink beacon
 Beacon_Power = 2;                                                               %power of uplink beacon in W
