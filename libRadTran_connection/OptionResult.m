@@ -6,9 +6,9 @@ classdef OptionResult
         HasValue {mustBeNumericOrLogical} = false;
     end
 
-    % properties
-    %     Result;
-    % end
+    properties
+        Result;
+    end
 
     methods
         function OptionResult = OptionResult(Options, varargin)

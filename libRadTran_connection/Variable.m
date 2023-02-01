@@ -1,8 +1,5 @@
 classdef Variable
     properties(SetAccess=protected)
-        %IsFile {mustBeNumericOrLogical} = false;
-        %IsValue {mustBeNumericOrLogical} = false;
-        %IsOnOff {mustBeNumericOrLogical} = false;
         Tag;
     end
 

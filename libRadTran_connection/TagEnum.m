@@ -1,5 +1,5 @@
 classdef TagEnum
     enumeration
-        IsFile, IsValue, IsOnOff, IsOptionResult
+        IsFile, IsFileName, IsValue, IsOnOff, IsOptionResult, IsPosition, IsCondition
     end
 end
