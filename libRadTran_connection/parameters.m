@@ -41,137 +41,133 @@ function name = fnname2optname()
     name = strjoin(splits(1:end-1), '_');
 end
 
-function s = variableSlots(slots)
+function s = variableSlots(slots, tags)
     s = struct;
     for i = 1:numel(slots)
-        s.(slots{i}) = {};
+        s.(slots{i}) = Variable(tags(i));
     end
-end
-
-function s = OptionsResult(options, varargin)
-    p = inputParser;
-    addRequired(p, 'options');
-    addParameter(p, 'enumerate', false);
-    addParameter(p, 'labels', {});
-    addParameter(p, 'hasValue', false);
-    parse(p, options, varargin{:});
-
-    s = struct;
-    s.Options = options;
-    s.Result = {};
-    s.Enumerate = p.Results.enumerate;
-    s.Labels = options;
-    if ~isempty(p.Results.labels)
-        s.Labels = p.Results.labels;
-    end
-    s.hasValue = p.Results.hasValue;
 end
 
 function opt = aerosol_angstrom_func()
-    opt.(fnname2optname()) = variableSlots({'alpha', 'beta'});
+    name = fnname2optname();
+    opt.(name) = variableSlots( ...
+        {'alpha',         'beta'}, ...
+        [TagEnum.IsValue, TagEnum.IsValue] ...
+    );
 end
 
 function opt = aerosol_default_func()
-    name = fnname2optname();
-    opt.(name) = struct;
-    opt.(name).bool = false;
+    opt.(fnname2optname()) = Variable(TagEnum.IsOnOff);
 end
 
 function opt = aerosol_file_func()
     name = fnname2optname();
-    opt.(name) = variableSlots({'type', 'file'});
-    opt.(name).Type = OptionsResult({'gg', 'ssa', 'tau', 'moments', 'explicit'});
-    opt.(name).file = '';
+    opt.(name).Type = Variable( ...
+        TagEnum.IsOptionResult, ...
+        value=OptionResult({'gg', 'ssa', 'tau', 'moments', 'explicit'}));
+    opt.(name).File = Variable(TagEnum.IsFile);
 end
 
 function opt = aerosol_haze_func()
     name = fnname2optname();
-    opt.(name) = OptionsResult({ ...
-        'Rural type aerosols', 'Maritime type aerosols',     ...
-        'Urban type aerosols', 'Tropospheric type aerosols', ...
-        });
+    opt.(name) = Variable(TagEnum.IsOptionResult);
+    op.(name).Value = OptionResult({ ...
+        'Rural type aerosols', 'Maritime type aerosols',    ...
+        'Urban type aerosols', 'Tropospheric type aerosols' });
 end
 
 function opt = aerosol_king_byrne_func()
-    opt.(fnname2optname()) = variableSlots({'alpha_0', 'alpha_1', 'alpha_2'});
+    opt.(fnname2optname()) = variableSlots( ...
+        {'alpha_0',       'alpha_1',       'alpha_2'}, ...
+        [TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue]);
 end
 
 function opt = aerosol_profile_modtran_func()
-    opt.(fnname2optname()) = OptionsResult({'true', 'false'});
+    opt.(fnname2optname()) = Variable(TagEnum.IsOnOff);
 end
 
 function opt = aerosol_season_func()
-    opt.(fnname2optname()) = OptionsResult(...
+    opt.(fnname2optname()) = OptionResult(...
         {'Spring-summer profile', 'Fall-winter profile'}, ...
-        enumerate=true);
+        Enumerate=true);
 end
 
 function opt = aerosol_set_tau_at_wvl_func()
-    opt.(fnname2optname()) = variableSlots({'lambda', 'tau'});
+    opt.(fnname2optname()) = variableSlots( ...
+        {'lambda',        'tau'}, ...
+        [TagEnum.IsValue, TagEnum.IsValue]);
 end
 
 function opt = aerosol_species_file_func()
-    opt.(fnname2optname()) = OptionsResult({...
-        'continental_clean',    'continental_average', ...
-        'continental_polluted', 'urban',               ...
-        'maritime_clean',       'maritime_polluted',   ...
-        'maritime_tropical',    'desert',              ...
-        'antarctic'});
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        value=OptionResult({ ...
+            'continental_clean',    'continental_average', ...
+            'continental_polluted', 'urban',               ...
+            'maritime_clean',       'maritime_polluted',   ...
+            'maritime_tropical',    'desert',              ...
+            'antarctic'}));
 end
 
 function opt = aerosol_species_library_func()
-    name = fnname2optname();
-    opt.(name) = struct;
-    opt.(name).OPAC = OptionsResult({...
-        'INSO', 'WASO', 'SOOT', 'SSAM', 'SSCM', ...
-        'MINM', 'MIAM', 'MICM', 'MITR', 'SUSO'}, ...
-        labels={
-        'insoluble',                 'water_soluble',
-        'soot',                      'sea_salt_accumulation_mode',
-        'sea_salt_coarse_mode',      'mineral_nucleation_mode',
-        'mineral_accumulation_mode', 'mineral_coarse_mode',
-        'mineral_transported',       'sulfate_droplets'});
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        Value=OptionResult( ...
+            {'INSO', 'WASO', 'SOOT', 'SSAM', 'SSCM', ...
+             'MINM', 'MIAM', 'MICM', 'MITR', 'SUSO'}, ...
+            Labels={ ...
+            'insoluble',                 'water_soluble', ...
+            'soot',                      'sea_salt_accumulation_mode', ...
+            'sea_salt_coarse_mode',      'mineral_nucleation_mode', ...
+            'mineral_accumulation_mode', 'mineral_coarse_mode', ...
+            'mineral_transported',       'sulfate_droplets'}));
 end
 
 function opt = aerosol_visibility_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
 end
 
 function opt = aerosol_vulcan_func()
-    opt.(fnname2optname) = OptionsResult({...
-        'Background aerosols',    'Moderate volcanic aerosols', ...
-        'High volcanic aerosols', 'Extreme volcanic aerosols'}, ...
-        enumerate=true);
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        Value=OptionResult({...
+            'Background aerosols',    'Moderate volcanic aerosols', ...
+            'High volcanic aerosols', 'Extreme volcanic aerosols'}, ...
+            enumerate=true));
 end
 
 function opt = albedo_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
 end
 
 function opt = albedo_file_func()
-    opt.(fnname2optname) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
 end
 
 function opt = albedo_library_func()
-    opt.(fnname2optname()) = OptionsResult({...
-        'evergreen_needle_forest', 'evergreen_broad_forest', ...
-        'deciduous_needle_forest', 'deciduous_broad_forest', ...
-        'mixed_forest',            'closed_shrub', ...
-        'open_shrubs',             'woody_savanna', ...
-        'savanna',                 'grassland', ...
-        'wetland',                 'cropland', ...
-        'urban',                   'crop_mosaic', ...
-        'antarctic_snow',          'desert', ...
-        'ocean_water',             'tundra', ...
-        'fresh_snow'});
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        Value=OptionResult({...
+            'evergreen_needle_forest', 'evergreen_broad_forest', ...
+            'deciduous_needle_forest', 'deciduous_broad_forest', ...
+            'mixed_forest',            'closed_shrub', ...
+            'open_shrubs',             'woody_savanna', ...
+            'savanna',                 'grassland', ...
+            'wetland',                 'cropland', ...
+            'urban',                   'crop_mosaic', ...
+            'antarctic_snow',          'desert', ...
+            'ocean_water',             'tundra', ...
+            'fresh_snow'}));
 end
 
 function opt = altitude_func()
-    opt.(fnname2optname()) = variableSlots({'first', 'second'});
+    opt.(fnname2optname()) = variableSlots( ...
+        {'first',         'second'}, ...
+        [TagEnum.IsValue, TagEnum.IsValue]);
 end
 
 function opt = atm_z_grid_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
 end
 
 function opt = atmosphere_file_func()
@@ -184,147 +180,176 @@ function opt = atmosphere_file_func()
     %7, Water vapour density in cm −3,
     %8, CO2 density in cm −3,
     %9, NO2 density in cm −3,
-    opt.(fnname2optname()) = OptionsResult({...
-        'tropics',            'midlatitude_summer',
-        'midlatitude_winter', 'subarctic_summer',
-        'subarctic_winter',   'US-standard'}, ...
-        labels={
-        'Tropical',           'Midlatitude Summer',
-        'Midlatitude Winter', 'Subarctic Summer',
-        'Subarctic Winter',   'U.S. Standard'});
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        Value=OptionResult({...
+            'tropics',            'midlatitude_summer',
+            'midlatitude_winter', 'subarctic_summer',
+            'subarctic_winter',   'US-standard'}, ...
+            Labels={
+            'Tropical',           'Midlatitude Summer',
+            'Midlatitude Winter', 'Subarctic Summer',
+            'Subarctic Winter',   'U.S. Standard'}));
 end
 
 function opt = bpdf_tsant_u10_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
 end
 
 function opt = bdrf_ambrals_func()
-    name = fnname2optname();
-    opt.(name) = OptionsResult({'iso', 'vol', 'geo'}, hasValue=true);
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        Value=OptionResult({'iso', 'vol', 'geo'}, HasValue=true));
 end
 
 function opt = bdrf_ambrals_file_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
 end
 
 function opt = brdf_ambrals_hotspot_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
 end
 
 function opt = brdf_cam_func()
-    name = fnname2optname();
-    opt.(name) = OptionsResult({'pcl', 'sal', 'u10', 'uphi', }, hasValue=true);
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        Value=OptionResult({'pcl', 'sal', 'u10', 'uphi', }, HasValue=true));
 end
 
 function opt = brdf_cam_solar_wind_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
 end
 
 function opt = brdf_hapke_func()
-    name = fnname2optname();
-    opt.(name) = OptionsResult({'w', 'B0', 'h'}, hasValue=true);
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        Value=OptionResult({'w', 'B0', 'h'}, HasValue=true));
 end
 
 function opt = brdf_hapke_file_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
 end
 
 function opt = brdf_rpv_func()
     name = fnname2optname();
     opt.(name) = struct;
-    opt.(name) = OptionsResult({...
-        'k', 'rho0', 'theta', 'sigma', 't1', 't2', 'scale'}, hasValue=true);
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        Value=OptionResult( ...
+            {'k', 'rho0', 'theta', 'sigma', 't1', 't2', 'scale'}, ...
+            HasValue=true));
 end
 
 function opt = brdf_rpv_file_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);;
 end
 
 function opt = brdf_rpv_library_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
 end
 
 function opt = brdf_rpv_type_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
 end
 
 function opt = ck_lowtran_absorption_func()
-    opt.(fnname2optname()) = OptionsResult({...
-        'O4', 'N2','CO','SO2','NH3','NO','HNO3'});
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        Value=OptionResult({'O4', 'N2','CO','SO2','NH3','NO','HNO3'}));
 end
 
 function opt = cloud_fraction_file_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
 end
 
 function opt = cloud_overlap_func()
-    opt.(fnname2optname()) = OptionsResult({'rand', 'maxrand', 'max', 'off'});
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        Value=OptionResult({'rand', 'maxrand', 'max', 'off'}));
 end
 
 function opt = cloudcover_func()
-    opt.(fnname2optname()) = OptionsResult({'ic', 'wc'}, hasValue=true);
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        Value=OptionResult({'ic', 'wc'}, HasValue=true));
 end
 
 function opt = crs_file_func()
-    opt.(fnname2optname()) = OptionsResult({...
-        'O3',   'O2', 'H2O', 'CO2', 'NO2', 'BRO', 'OCLO', ...
-        'HCHO', 'O4', 'SO2', 'CH4', 'N2O', 'CO',  'N2'});
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        Value=OptionResult({...
+            'O3',   'O2', 'H2O', 'CO2', 'NO2', 'BRO', 'OCLO', ...
+            'HCHO', 'O4', 'SO2', 'CH4', 'N2O', 'CO',  'N2'}));
 end
 
 function opt = crs_model_func()
     name = fnname2optname();
-    opt.(name) = variableSlots({'rayleigh', 'o3', 'no2', 'o4'});
-    opt.(name).rayleigh = OptionsResult({ ...
+    opt.(name) = variableSlots( ...
+        {'rayleigh', 'o3', 'no2', 'o4'}, ...
+        [TagEnum.IsOptionResult, TagEnum.IsOptionResult, ...
+        TagEnum.IsOptionResult,  TagEnum.IsOptionResult ]);
+
+    opt.(name).rayleigh.Value = OptionResult({ ...
         'Bodhaine', 'Bodhaine29', 'Nicolet', 'Penndorf'});
-    opt.(name).o3 = OptionsResult({ ...
+
+    opt.(name).o3.Value = OptionResult({ ...
         'Bass_and_Paur', 'Molina', 'Daumont', 'Bogumil', 'Serdyuchenko'});
-    opt.(name).no2 = OptionsResult({'Burrows', 'Bogumil', 'Vandaele'});
-    opt.(name).o4 = OptionsResult({'Greenblatt', 'Thalman'});
+
+    opt.(name).no2.Value = OptionResult({'Burrows', 'Bogumil', 'Vandaele'});
+
+    opt.(name).o4.Value = OptionResult({'Greenblatt', 'Thalman'});
 end
 
 function opt = data_files_path_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
 end
 
 function opt = day_of_year_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
 end
 
 function opt = deltam_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsOnOff);
 end
 
 function opt = disort_intcor_func()
-    opt.(fnname2optname()) = OptionsResult({'phase', 'moments', 'off'});
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        Value=OptionResult({'phase', 'moments', 'off'}));
 end
 
 function opt = earth_radius_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
 end
 
 function opt = filter_function_file_func()
-    opt.(fnname2optname()) = variableSlots({'file', 'normalise'});;
+    opt.(fnname2optname()) = variableSlots( ...
+        {'file', 'normalise'}, ...
+        [TagEnum.IsValue, TagEnum.IsValue]);
 end
 
 function opt = flourescence_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
 end
 
 function opt = flourescence_file_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
 end
 
 function opt = heating_rate_func()
-    opt.(fnname2optname()) = OptionsResult({'layer_cd', 'local', 'layer_fd'});
+    opt.(fnname2optname()) = Variable( ...
+        TagEnum.IsOptionResult, ...
+        Value=OptionResult({'layer_cd', 'local', 'layer_fd'}));
 end
 
 function opt = ic_file_func()
-    opt.(fnname2optname()) = {};
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
 end
 
 function opt = ic_fu_file()
-    name = fnname2optname();
-    opt.(name) = variableSlots({'reff_def', 'deltascaling'});
+    opt.(fnname2optname()) = variableSlots( ...
+        {'reff_def', 'deltascaling'}, ...
+        [TagEnum.IsOnOff, TagEnum.IsOnOff]);
 end
 
 function options = alloptions()
