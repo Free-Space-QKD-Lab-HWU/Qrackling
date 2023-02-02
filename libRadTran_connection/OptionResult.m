@@ -8,9 +8,12 @@ classdef OptionResult
 
     properties
         Result;
+        Value;
     end
 
     methods
+        % this should have a setResult function that returns a new Variable 
+        % with a TagEnum that isnt IsOptionResult that can be used for scripting
         function OptionResult = OptionResult(Options, varargin)
             p = inputParser;
             addRequired(p, 'Options');
