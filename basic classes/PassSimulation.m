@@ -618,20 +618,24 @@ classdef PassSimulation
                 Downlink_Beacon_Power = Satellite.Beacon.Power*10.^(-DownlinkBeaconLossdB/10);
                 PassSimulation.Downlink_Beacon_Power=Downlink_Beacon_Power;
 
-                if ~isempty(smarts_configuration)
+                if ~isempty(Ground_Station.Atmosphere_File_Location)||~isempty(smarts_configuration)
                 %computed beacon channel noise
                 Beacon_Sky_Radiance = interp1(Ground_Station.Wavelengths,...
                     Ground_Station.Sky_Radiance',...
                     Satellite.Beacon.Wavelength);
-                Downlink_Beacon_Noise = Ground_Station.Camera.Noise +...
-                    Beacon_Sky_Radiance * Ground_Station.Camera.FOV;
+                Downlink_Beacon_External_Noise = Beacon_Sky_Radiance * Ground_Station.Camera.FOV;
+
+                [Downlink_Beacon_SNR,Downlink_Beacon_SNR_dB] = SNR(Ground_Station.Camera,...
+                                                                Downlink_Beacon_Power,...
+                                                                Downlink_Beacon_External_Noise);
                 else
-                    Downlink_Beacon_Noise = Ground_Station.Camera.Noise;
+                [Downlink_Beacon_SNR,Downlink_Beacon_SNR_dB] = SNR(Ground_Station.Camera,...
+                                                                Downlink_Beacon_Power);
                 end
 
-                %compute SNR
-                PassSimulation.Downlink_Beacon_SNR_dB = 10*log10(Downlink_Beacon_Power./Downlink_Beacon_Noise);
+                PassSimulation.Downlink_Beacon_SNR_dB = Downlink_Beacon_SNR_dB;
                 PassSimulation.Downlink_Beacon_Link_Model = Beacon_Downlink_model;
+
             else
                 %if no downlink beacon, return empty data
                 PassSimulation.Downlink_Beacon_SNR_dB=[];

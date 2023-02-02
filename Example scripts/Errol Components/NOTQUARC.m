@@ -65,20 +65,13 @@ function HubSat = NOTQUARC(StartTime,StopTime,SampleTime)
             BeaconWavelength = 910;                                             %beacon wavelength in nm
             BeaconEfficiency = 1;                                               %beacon optical efficiency (unitless)
             BeaconPointingPrecision = 1E-3;                                     %beacon pointing precision (coarse pointing precision) in rads
-            BeaconTelescope = HubSatScope;                                      %downlink beacon comes through main scope
+            BeaconTelescope = Telescope(0.01,'FOV',0.4*180/pi);               %downlink beacon has 10mm diameter and 0.4 degrees cone angle
             HubSatBeacon = Flat_Top_Beacon(BeaconTelescope,BeaconPower,BeaconWavelength,...
                                 'Power_Efficiency',BeaconEfficiency,...
                                 'Pointing_Jitter',BeaconPointingPrecision);
 
             %camera
-            CameraNoiseFloor = 1E-9;                                            %camera noise in W
-            CameraDetectorDiameter = 0.001;                                     %camera sensor length scale in m
-            CameraFocalLength = 0.03;                                           %focal length of focussing lens on camera in m
-            CameraTelescopeDiameter = 0.1;                                      %diameter of satellite camera telescope
-            CameraScope = Telescope(CameraTelescopeDiameter);
-            HubSatCamera = Camera(CameraScope,'Noise',CameraNoiseFloor,...
-                                    'Detector_Diameter',CameraDetectorDiameter,...
-                                        'Focal_Length',CameraFocalLength);
+            HubSatCamera = ATIK(); %until we have a better idea, this will have to do for the uplink camera
 
             %% construct satellite with correct orbital parameters
             HubSat=Satellite(HubSatScope,...

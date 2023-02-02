@@ -31,15 +31,19 @@ classdef(Abstract) Beacon
            addParameter(p,'Power_Efficiency',1);
            addParameter(p,'Pointing_Jitter',1E-3)
            parse(p,Telescope,Power,Wavelength,varargin{:});
+
+           %optional
+           Beacon.Power_Efficiency=p.Results.Power_Efficiency;
+           %we need not set pointing jitter, as this is stored in the telescope
+           %object
+
            %required
            Beacon.Power = p.Results.Power;
            Beacon.Wavelength = p.Results.Wavelength;
-           Beacon.Telescope = p.Results.Telescope;
-           %make sure wavelength is set correctly
-           Beacon.Telescope = SetWavelength(Beacon.Telescope,Beacon.Wavelength);
-           %optional
-           Beacon.Power_Efficiency=p.Results.Power_Efficiency;
-           Beacon.Pointing_Jitter = p.Results.Pointing_Jitter;
+           %store pointing jitter
+           Telescope = SetWavelength(p.Results.Telescope,p.Results.Wavelength);
+           Telescope = SetPointingJitter(Telescope,p.Results.Pointing_Jitter);
+           Beacon.Telescope = Telescope;
         end
     end
     methods (Abstract = true)
