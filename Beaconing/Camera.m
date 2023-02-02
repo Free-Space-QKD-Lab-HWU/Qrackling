@@ -15,14 +15,15 @@ classdef Camera
         Detector_Diameter (1,1) double {mustBeNonnegative}=0.001                %the physical size of the camera's detector area
         Focal_Length (1,1) double {mustBeNonnegative}=0.0125;                   %focal length (in m) of the lens focussing onto the camera's sensor
         Quantum_Efficiency (1,1) double {mustBeNonnegative,mustBeLessThanOrEqual(Quantum_Efficiency,1)}=1; %the efficiency of the camera at collecting beacon light which arrives on a pixel
-        Exposure_Time (1,1) double {mustBePositive} = 0.001;                    %exposure time for operation of the camera in s
+        Exposure_Time (1,1) double {mustBePositive} = 1;                    %exposure time for operation of the camera in s
 
 
         Spectral_Filter_Width (1,1) double {mustBeNonnegative}=10;              %the spectral width of the (assumed brick-wall) filter on the camera
 
-        Readout_Noise (1,1) double = 2.4;                                       %noise (in electron charges, e-) incurred by reading out a pixel (rms)
-        Dark_Current (1,1) double = 0.027;                                      %noise (in electron charges per second e-/s) incurred by exposing the camera per second
-        Full_Well_Capacity (1,1) double = 11E3;                                 %the maximum number of electrons a single pixel well can hold (a limit on SNR in bright systems)
+        Readout_Noise (1,1) double = 1.3E-11;                                   %noise equivalent power (in J per exposure) incurred by reading out a whole image
+        Dark_Current_Noise (1,1) double = 0;                                    %noise equivalent power (in J per exposure per s) incurred by exposing the camera per second
+        Full_Well_Capacity (1,1) double = 2E-9;                                 %the maximum signal power the camera can tolerate per pixel (in J) before saturating
+        %% TODO rescale this full well capacity to account for the test data being over several pixels
     end
 
     methods
@@ -35,11 +36,11 @@ classdef Camera
             addParameter(p,'Quantum_Efficiency',1);
             addParameter(p,'Exposure_Time', 0.001);
             addParameter(p,'Spectral_Filter_Width',10);
-            addParameter(p,'Detector_Diameter',0.001);
+            addParameter(p,'Detector_Diameter',1);
             addParameter(p,'Focal_Length',0.03);
-            addParameter(p,'Readout_Noise', 2.4);
-            addParameter(p,'Dark_Current', 0.027);
-            addParameter(p,'Full_Well_Capacity',11E3);
+            addParameter(p,'Readout_Noise', 1.3E-11);
+            addParameter(p,'Dark_Current', 0);
+            addParameter(p,'Full_Well_Capacity',2E-9);
             parse(p,Telescope,varargin{:})
             %get outputs
             C.Telescope = p.Results.Telescope;
@@ -49,7 +50,7 @@ classdef Camera
             C.Detector_Diameter = p.Results.Detector_Diameter;
             C.Focal_Length = p.Results.Focal_Length;
             C.Readout_Noise = p.Results.Readout_Noise;
-            C.Dark_Current = p.Results.Dark_Current;
+            C.Dark_Current_Noise = p.Results.Dark_Current;
         end
 
         function Collecting_Area = get.Collecting_Area(Camera)
@@ -75,43 +76,34 @@ classdef Camera
         end
 
         function Noise = Noise(Camera)
-            %the intrinsic noise (in electron charges, e-) in an exposure which affects SNR
-            Noise = Camera.Readout_Noise + Camera.Exposure_Time*Camera.Dark_Current;
+            %the intrinsic noise (in J) in an exposure which affects SNR
+            Noise = Camera.Readout_Noise + Camera.Exposure_Time*Camera.Dark_Current_Noise;
         end
 
-        function [SNR,SNR_dB] = SNR(Camera, InputPower, Wavelength, ExternalNoisePower)
+        function [SNR,SNR_dB] = SNR(Camera, InputPower, ExternalNoisePower)
             %% calculate the SNR of a single pixel tracking image, where all power from a beacon is incident on a single pixel.
             
             % Int his function, to conform to standard practice for CMOS
             % cameras, we convert all sources of energy to photon count rates and
             % electron counts and count rates
             
-            %planck's constant (in J*s)
-            h=6.626E-34;        
-            %speed of light (in m/s)
-            c=3E8;         
-            %convert Wavelength from nm to m
-            Wavelength = Wavelength * 1E-9;
 
             %% Signal energy
             Signal_Energy = InputPower * Camera.Exposure_Time * Camera.Quantum_Efficiency;
-            Signal_Photons_Per_Exposure = Signal_Energy  / (h*c/Wavelength);
             %simulate saturation of the well (pixel saturation)
-            Signal_Photons_Per_Exposure = min(Signal_Photons_Per_Exposure,Camera.Full_Well_Capacity);
+            Signal_Photons_Per_Exposure = min(Signal_Energy,Camera.Full_Well_Capacity);
 
             %% Internal noise
-            Noise_Electrons_Per_Exposure = Camera.Noise;
+            Internal_Noise_Energy = Camera.Noise;
 
             %% external noise (optional)
-            if nargin == 4
+            if nargin == 3
                 ExternalNoiseEnergy = ExternalNoisePower * Camera.Exposure_Time;
-                ExternalNoise_Photons_Per_Exposure = ExternalNoiseEnergy / (h*c/Wavelength);
-                Noise_Electrons_Per_Exposure = Noise_Electrons_Per_Exposure + ExternalNoise_Photons_Per_Exposure;
             end
 
 
             %% compute SNR
-            SNR = Signal_Photons_Per_Exposure ./ Noise_Electrons_Per_Exposure;
+            SNR = Signal_Photons_Per_Exposure ./ (ExternalNoiseEnergy + Internal_Noise_Energy);
             SNR_dB = 10*log10(SNR);
 
         end
