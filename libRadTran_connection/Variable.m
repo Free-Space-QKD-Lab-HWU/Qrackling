@@ -1,6 +1,6 @@
 classdef Variable
     properties(SetAccess=protected)
-        Tag;
+        Tag TagEnum;
     end
 
     properties
