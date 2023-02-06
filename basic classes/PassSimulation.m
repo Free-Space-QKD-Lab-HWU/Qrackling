@@ -704,7 +704,7 @@ classdef PassSimulation
             end
         end
 
-        function SatelliteScenario = Scenario(PassSimulation)
+        function [SatelliteScenario,Access] = Scenario(PassSimulation)
             %% output a SatelliteScenario which can be simulated and viewed by MATLAB
 %the structure of transmitter and receiver doesn't matter here. The link is just a visual indicator of the pass duration
 
@@ -722,23 +722,16 @@ classdef PassSimulation
             SatDetails = GetOrbitDetails(PassSimulation.Satellite);
             %include satellite
             SatSimObj = satellite(SatelliteScenario,SatDetails{:});
-            %add transmitter
-            SatTransmitter = transmitter(SatSimObj);
+
 
             %% get details of OGS
             OGSDetails = GetOGSDetails(PassSimulation.Ground_Station);
             %include OGS
             OGSSimObj = groundStation(SatelliteScenario,OGSDetails{:});
-            %add receiver
-            OGSgimbal = gimbal(OGSSimObj);
-            OGSreceiver = receiver(OGSgimbal);
 
-            %point both at one another
-            pointAt(SatSimObj,OGSSimObj);
-            pointAt(OGSgimbal,SatSimObj);
 
-            %% produce link object- 
-            Link = link(SatTransmitter,OGSreceiver);
+            %% produce access object for analysis
+            Access = access(OGSSimObj,SatSimObj);
         end
     end
 end
