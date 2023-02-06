@@ -704,14 +704,14 @@ classdef PassSimulation
             end
         end
 
-        function [SatelliteScenario,Access] = Scenario(PassSimulation)
+        function [SatelliteScenario,AccessIntervals] = Scenario(PassSimulation)
             %% output a SatelliteScenario which can be simulated and viewed by MATLAB
 %the structure of transmitter and receiver doesn't matter here. The link is just a visual indicator of the pass duration
 
             %% initialise scenario
-            StartTime = PassSimulation.Times(1);
-            StopTime = PassSimulation.Times(end);
-            SampleTime = seconds(PassSimulation.Times(2)-PassSimulation.Times(1));
+            StartTime = PassSimulation.Satellite.Times(1);
+            StopTime = PassSimulation.Satellite.Times(end);
+            SampleTime = seconds(PassSimulation.Satellite.Times(2)-PassSimulation.Satellite.Times(1));
             %ensure these are datetime, datetime, double respectively.
             assert(isdatetime(StartTime), 'can only simulate passes using datetime format');
             %initialise
@@ -732,6 +732,22 @@ classdef PassSimulation
 
             %% produce access object for analysis
             Access = access(OGSSimObj,SatSimObj);
+            AccessIntervals = accessIntervals(Access);
+        end
+    
+        function Play(PassSimulation)
+            %% show this pass in the MATLAB satellite simulator
+
+            %note- this does not require simulating the pass
+            SatelliteScenario = Scenario(PassSimulation);
+            play(SatelliteScenario);
+        end
+
+        function Access = Access(PassSimulation)
+            %% return the access table for this passsimulation
+
+            %note- this does not require simulating the pass
+            [~,Access] = Scenario(PassSimulation);
         end
     end
 end

@@ -7,9 +7,11 @@ HOGS=HOGS();%current HOGS model
 %can run using default times
 %Sat=NOTQUARC();
 % or using custom start, stop and interval times
-StartTime = datetime(2022,12,25,6,10,0);%0610 to 0655 christmas day 2022, with 1 second simulation interval
-StopTime = datetime(2022,12,25,7,00,0);
-SampleTime = minutes(1);
+%poor pass: 0610 to 0655 christmas day 2022
+%good pass: 0423 to 0426 31 jan 2023
+StartTime = datetime(2023,1,31,4,0,0);
+StopTime = datetime(2023,1,31,5,0,0);
+SampleTime = seconds(1);
 Sat=NOTQUARC(StartTime,StopTime,SampleTime);
 %use decoy BB84
 Protocol=decoyBB84_Protocol();
@@ -26,3 +28,4 @@ Protocol=decoyBB84_Protocol();
 Pass=PassSimulation(Sat,Protocol,HOGS);
 Pass=Simulate(Pass);
 plot(Pass);
+Play(Pass);
