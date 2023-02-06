@@ -26,7 +26,9 @@ HOGS_Camera = ATIK();%this is a constructor for the ATIK camera we use
 %uplink beacon
 Beacon_Power = 2;                                                               %power of uplink beacon in W
 Beacon_Wavelength = 850;                                                        %uplink beacon wavelength in nm
-BeaconPointingPrecision = 1E-3;                                                 %beacon pointing precision (coarse pointing precision) in rads
+BeaconPointingPrecision = 5E-3;                                                 %beacon pointing precision (coarse pointing precision) in rads
+%initially, uncertainty in satellite position is 5km and range is roughly
+%500km/sin(30), so pointing precision is on the order 5mrads.
 BeaconEfficiency = 1;                                                           %beacon optical efficiency (unitless)
 HOGSBeacon = Gaussian_Beacon(HOGS_Telescope,Beacon_Power,Beacon_Wavelength,...
                    'Pointing_Jitter',BeaconPointingPrecision,...
