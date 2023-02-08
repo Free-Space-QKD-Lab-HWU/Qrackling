@@ -720,6 +720,283 @@ function opt = output_user_func()
         'total cloud cover [0-1]'}));
 end
 
+function opt = ozone_column_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsObsolete);
+end
+
+function opt = phi_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = phi0_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = polradtran_func()
+    name = fnname2optname();
+    opt.(name) = variableSlots( ...
+        {'aziorder', 'nstokes', 'src_code'}, ...
+        [TagEnum.IsValue, TagEnum.IsOptionResult, TagEnum.IsOptionResult]);
+    opt.(name).nstokes.Value = OptionResult( ...
+        {'I', 'IQU', 'IQUV'}, ...
+        Enumerate=true);
+    opt.(name).src_code.Value = OptionResult( ...
+        {'0', '1', '2', '3'}, Labels={'None', 'Solar', 'Thermal', 'Both'}, ...
+        Enumerate=true);
+end
+
+function opt = polradtran_max_delta_tau_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = polradtran_quad_type_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsOptionResult, ...
+        Value=OptionResult({'G', 'D', 'L', 'E'}, ...
+            Labels={...
+                'Gaussian', 'Double Gaussian', 'Lobatto', 'extra-angle(s)'} ...
+        ));
+end
+
+function opt = pressure_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = pressure_out_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = print_disort_info_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = profile_file_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+end
+
+function opt = profile_modify_func()
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue);
+end
+
+function opt = psuedospherical_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = quiet_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = radiosonde_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+end
+
+function opt = radiosonde_levels_only_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = raman_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsOptionResult, ...
+        Value=OptionResult({'original'}));
+end
+
+function opt = rayleigh_depol_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = refractive_index_pv_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = reptran_file_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+end
+
+function opt = reverse_atmosphere_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = rte_solver_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsOptionResult, ...
+        Value=OptionResult({ ...
+        'disort',               'twostr',    'fdisort1',    'fdisort2',   ...
+        'sdisort',              'spsdisort', 'polradtran',  'ftwostr',    ...
+        'rodents',              'twomaxrnd', 'twomaxrnd3C', ...
+        'twomaxrnd3C_scale_cf', 'sslidar',   'sos',         'montecarlo', ...
+        'mystic',               'tzs',       'sss'}));
+
+% C-version of the disort algorithm, translated from Fortran by Tim Dowling. This is the recommended discrete ordinate code in libRadtran. For documentation see src_f/DISORT2.doc as well as the papers and the DISORT report at ftp://climate1.gsfc.nasa.gov/wiscombe/Multiple_Scatt/. The intensity correction can be performed according to Nakajima and Tanaka (1988) using disort_intcor moments (like in the original code), or with the improvements described in (Buras, Dowling, Emde, in preparation; default). Can be run in plane-parallel geometry (default) or in pseudo-spherical geometry (using pseudospherical).
+% 
+% C-version of the two–stream radiative transfer solver described by Kylling et al. (1995). Can be run in plane-parallel geometry (default) or in pseudo-spherical geometry (using pseudospherical ).
+% 
+% The standard plane–parallel disort algorithm by Stamnes et al. (1988), version 1.3 – provided for compatibility reasons. Use only if you have troubles with the default disort or for historical reasons. For documentation see src_f/DISORT.doc as well as the papers and the DISORT report at ftp://climate1.gsfc.nasa.gov/wiscombe/Multiple_Scatt/. To optimize for computational time and memory, please adjust the parameters in src_f/DISORT.MXD for your application and re-compile. For your application please use rte_solver fdisort2 which is the advanced version, unless you e.g. want to explore how a specific feature of fdisort2 (e.g. the Nakajima and Tanaka (1988) intensity correction) improves the fdisort1 result.
+% 
+% Version 2 of the Fortran algorithm disort – provided for compatibility reasons. Use only if you have troubles with the default disort or for historical reasons. For documentation see src_f/DISORT2.doc as well as the papers and the DISORT report at ftp://climate1.gsfc.nasa.gov/wiscombe/Multiple_Scatt/fdisort2 has several improvements compared to its ’ancestor’ fdisort1 (version 1.3). To optimize for computational time and memory, please adjust the parameters in src_f/DISORT.MXD for your application and re-compile. Note! fdisort2 is a new version of the original disort code which was implemented in summer 2009. It uses phase functions to calculate the intensity corrections by Nakajima and Tanaka (1988) instead of Legendre moments. Hence it needs cloud properties files which contain the phase functions. It is still possible to use the old version of disort, you need to specify disort_intcor moments.
+% 
+% Pseudospherical disort as described by Dahlback and Stamnes (1991). Double precision version. To optimize for computational time and memory, please adjust the parameters in src_f/DISORT.MXD for your application and recompile.
+% 
+% Pseudospherical disort as described by Dahlback and Stamnes (1991), single precision version. Warning: it is not recommended to use spsdisort for really large solar zenith angles nor for cloudy conditions. For large optical thickness it is numerically unstable and may produce wrong results. To optimize for computational time and memory, please adjust the parameters in src_f/DISORT.MXD for your application and re-compile.
+% 
+% The plane-parallel radiative transfer solver of Evans and Stephens (1991). Includes polarization. The full implementation of the polRadtran solver in uvspec is quite new (version 1.4). If you find unusual behaviour, please contact the libRadtran authors.
+% 
+% Original Fortran-version of the two–stream radiative transfer solver described by Kylling et al. (1995), in pseudo-spherical geometry.
+% 
+% Delta-Eddington two–stream code (RObert’s Delta-EddingtoN Two-Stream), plane-parallel.
+% 
+% Delta-Eddington two–stream solver with Maximum-Random-Overlap according to Zdunkowski et al. (2007) by Nina Crnivec. As inputs, a wc_file 1D and/or a ic_file 1D are required, plus a cloud_fraction_file. The same cloud fraction is used for water and ice clouds. zout_interpolate is activated automatically. See Črnivec and Mayer (2019) for more details.
+% 
+% Delta-Eddington two–stream solver with Maximum-Random-Overlap according to Zdunkowski et al. by Nina Crnivec. In addition to twomaxrnd "tripleclouds" by Shonk and Hogan (2008) is considered. A cloud_fraction_file has to be specified as well as two cloudy columns, defined as profiles wcn (optically thiN) and wck (optically thicK clouds), e.g. profile_file wcn 1D ./wcn.dat. zout_interpolate is activated automatically.See Črnivec and Mayer (2020), in particular appendix A.
+% 
+% Scaling factor for cloud fraction split.
+% 
+% A simple single scattering lidar simulator by Robert Buras.
+% 
+% A scalar pseudospherical succesive orders of scattering code. Works for solar zenith angles smaller than 90 degrees. Can calculate azimuthally averaged radiances. Set sos_nscat to specify the order of scattering.
+% 
+% The MYSTIC Monte Carlo code. Monte Carlo is the method of choice (1) for horizontally inhomogeneous problems; (2) whenever polarization is involved; (3) for applications where spherical geometry plays a role; and (4) whenever sharp features of the scattering phase function play a role, like for the calculation of the backscatter glory or the aureole.
+% 
+% Same as montecarlo.
+% 
+% TZS stands for "thermal, zero scattering" and is a very fast analytical solution for the special case of thermal emission in a non-scattering atmosphere. Please note that TZS does only radiance calculations at top of the atmosphere. "Black-body clouds" may be included using the option tzs_cloud_top_height.
+% 
+% SSS stands for "solar, single scattering" and is an analytical single scattering approximation which might be reasonable for an optically thin atmosphere. Please note that SSS does only radiance calculations at top of the atmosphere. This is an experimental solver - be careful!
+% 
+% null
+end
+
+function opt = sdisort_func()
+    name = fnname2optname();
+    opt.(name) = variableSlots({'nscat', 'nrefrac'}, ...
+        [TagEnum.IsOptionResult, TagEnum.IsOptionResult]);
+    opt.(name).nscat.Value = OptionResult({'single', 'full'}, Enumerate=true);
+    opt.(name).nrefrac.Value = OptionResult({'None', 'Harsh', 'Accurate'}, ...
+        Enumerate=true, Labels={'Default', ...
+                                'Refraction included using fast method', ...
+                                'Refraction included using slow method'});
+end
+
+function opt = slit_function_file_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+end
+
+function opt = source_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsOptionResult, ...
+        Value=OptionResult({'solar', 'thermal'}));
+end
+
+function opt = spline_func()
+    opt.(fnname2optname()) = variableSlots(...
+        {'lambda_0', 'lambda_1', 'lambda_2'}, ...
+        [TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue]);
+end
+
+function opt = spline_file_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+end
+
+function opt = sslidar_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsOptionResult, ...
+        Value=OptionResult({'area', 'E0', 'eff', 'position', 'range'}));
+end
+
+function opt = sslidar_nranges_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = sslidar_polarisation_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsCondition);
+end
+
+function opt = sur_temperature_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = surface_type_map_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+end
+
+function opt = sza_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = sza_file_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+end
+
+function opt = thermal_binds_file_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+end
+
+function opt = thermal_bandwidth_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = time_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = twomaxrnd3C_scale_cf_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = tzs_cloud_top_height_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+end
+
+function opt = umu_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsArray);
+end
+
+function opt = verbose_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsCondition);
+end
+
+function opt = wavelength_func()
+    opt.(fnname2optname()) = variableSlots({'lambda_0', 'lambda_1'}, ...
+        [TagEnum.IsValue, TagEnum.IsValue]);
+end
+
+function opt = wavelength_grid_file_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+end
+
+function opt = wavelength_index_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsArray);
+end
+
+function opt = wc_file_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsOptionResult, ...
+        value=OptionResult({'1D', 'ipa_files', 'moments'}));
+end
+
+function opt = wc_modify_func()
+    opt.(fnname2optname()) = variableSlots({'gg', 'ssa', 'tau', 'tau550'}, ...
+        [TagEnum.IsSetScale, TagEnum.IsSetScale, ...
+         TagEnum.IsSetScale, TagEnum.IsSetScale]);
+end
+
+function opt = wc_properties_func()
+    opt.(fnname2optname()) = variableSlots(...
+        {'hu', 'echam4', 'mie', 'filename'}, ...
+        [TagEnum.IsCondition, TagEnum.IsCondition, ...
+         TagEnum.IsCondition, TagEnum.IsCondition]);
+end
+
+function opt = z_interpolate_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsCondition);
+end
+
+function opt = zout_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsArray);
+end
+
+function opt = zout_interpolate_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsCondition);
+end
+
+function opt = zout_sea_func()
+    opt.(fnname2optname()) = Variable(TagEnum.IsArray);
+end
+
 function options = alloptions()
     range = @(Start, Stop) linspace(Start, Stop, Stop);
     options = {...
@@ -815,5 +1092,57 @@ function options = alloptions()
         output_process_func(), ...
         output_quantity_func(), ...
         output_user_func(), ...
-    };
+        ozone_column_func(), ...
+        phi_func(), ...
+        phi0_func(), ...
+        polradtran_func(), ...
+        polradtran_max_delta_tau_func(), ...
+        polradtran_quad_type_func(), ...
+        pressure_func(), ...
+        pressure_out_func(), ... % this needs extra work...
+        print_disort_info_func(), ...
+        profile_file_func(), ...
+        profile_modify_func(), ... % also needs work...
+        psuedospherical_func(), ...
+        quiet_func(), ...
+        radiosonde_func(), ...
+        radiosonde_levels_only_func(), ...
+        raman_func(), ...
+        rayleigh_depol_func(), ...
+        refractive_index_pv_func(), ...
+        reptran_file_func(), ...
+        reverse_atmosphere_func(), ...
+        rte_solver_func(), ...
+        sdisort_func(), ...
+        slit_function_file_func(), ...
+        source_func(), ...
+        spline_func(), ...
+        spline_file_func(), ...
+        sslidar_func(), ...
+        sslidar_nranges_func(), ...
+        sslidar_polarisation_func(), ...
+        sur_temperature_func(), ...
+        surface_type_map_func(), ...
+        sza_func(), ...
+        sza_file_func(), ...
+        thermal_binds_file_func(), ...
+        thermal_bandwidth_func(), ...
+        time_func(), ...
+        twomaxrnd3C_scale_cf_func(), ...
+        tzs_cloud_top_height_func(), ...
+        umu_func(), ...
+        verbose_func(), ...
+        wavelength_func(), ...
+        wavelength_grid_file_func(), ...
+        wavelength_index_func(), ...
+        wc_file_func(), ...
+        wc_modify_func(), ...
+        wc_properties_func(), ...
+        z_interpolate_func(), ...
+        zout_func(), ...
+        zout_interpolate_func(), ...
+        zout_sea_func(), ...
+        };
 end
+
+
