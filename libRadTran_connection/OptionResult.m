@@ -32,5 +32,6 @@ classdef OptionResult
             end
             OptionResult.HasValue = p.Results.HasValue;
         end
+
     end
 end

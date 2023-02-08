@@ -31,10 +31,18 @@ function name = fnname2optname()
     name = strjoin(splits(1:end-1), '_');
 end
 
-function s = variableSlots(slots, tags)
+function s = variableSlots(slots, tags, varargin)
+    p = inputParser;
+    addRequired(p, 'slots');
+    addRequired(p, 'tags');
+    addParameter(p, 'parent', '');
+    parse(p, slots, tags, varargin{:});
+
     s = struct;
     for i = 1:numel(slots)
-        s.(slots{i}) = Variable(tags(i));
+        v = Variable(tags(i));
+        v = v.setParent(p.Results.parent);
+        s.(slots{i}) = v;
     end
 end
 
@@ -42,57 +50,71 @@ function opt = aerosol_angstrom_func()
     name = fnname2optname();
     opt.(name) = variableSlots( ...
         {'alpha',         'beta'}, ...
-        [TagEnum.IsValue, TagEnum.IsValue] ...
+        [TagEnum.IsValue, TagEnum.IsValue], ...
+        parent=name ...
     );
+    opt.alpha.setName = fnname2optname();
 end
 
 function opt = aerosol_default_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsOnOff);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsOnOff, parent=name);
 end
 
 function opt = aerosol_file_func()
     name = fnname2optname();
     opt.(name).Type = Variable( ...
         TagEnum.IsOptionResult, ...
+        parent=name, ...
         value=OptionResult({'gg', 'ssa', 'tau', 'moments', 'explicit'}));
-    opt.(name).File = Variable(TagEnum.IsFile);
+    opt.(name).File = Variable(TagEnum.IsFile, parent=name);
 end
 
 function opt = aerosol_haze_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        parent=name, ...
         Value=OptionResult({ ...
         'Rural type aerosols', 'Maritime type aerosols',    ...
         'Urban type aerosols', 'Tropospheric type aerosols' }));
 end
 
 function opt = aerosol_king_byrne_func()
-    opt.(fnname2optname()) = variableSlots( ...
-        {'alpha_0',       'alpha_1',       'alpha_2'}, ...
-        [TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue]);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsArray, ...
+        Parent=name, ...
+        Value=ArrayResult(Labels={'alpha_0', 'alpha_1', 'alpha_2'}));
 end
 
 function opt = aerosol_profile_modtran_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsOnOff);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsOnOff, Parent=name);
 end
 
 function opt = aerosol_season_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult(...
             {'Spring-summer profile', 'Fall-winter profile'}, ...
             Enumerate=true));
 end
 
 function opt = aerosol_set_tau_at_wvl_func()
-    opt.(fnname2optname()) = variableSlots( ...
+    name = fnname2optname();
+    opt.(name) = variableSlots( ...
         {'lambda',        'tau'}, ...
-        [TagEnum.IsValue, TagEnum.IsValue]);
+        [TagEnum.IsValue, TagEnum.IsValue], ...
+        Parent=name);
 end
 
 function opt = aerosol_species_file_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         value=OptionResult({ ...
             'continental_clean',    'continental_average', ...
             'continental_polluted', 'urban',               ...
@@ -102,8 +124,10 @@ function opt = aerosol_species_file_func()
 end
 
 function opt = aerosol_species_library_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult( ...
             {'INSO', 'WASO', 'SOOT', 'SSAM', 'SSCM', ...
              'MINM', 'MIAM', 'MICM', 'MITR', 'SUSO'}, ...
@@ -116,12 +140,15 @@ function opt = aerosol_species_library_func()
 end
 
 function opt = aerosol_visibility_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = aerosol_vulcan_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult({...
             'Background aerosols',    'Moderate volcanic aerosols', ...
             'High volcanic aerosols', 'Extreme volcanic aerosols'}, ...
@@ -129,16 +156,20 @@ function opt = aerosol_vulcan_func()
 end
 
 function opt = albedo_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = albedo_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = albedo_library_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult({...
             'evergreen_needle_forest', 'evergreen_broad_forest', ...
             'deciduous_needle_forest', 'deciduous_broad_forest', ...
@@ -153,13 +184,16 @@ function opt = albedo_library_func()
 end
 
 function opt = altitude_func()
-    opt.(fnname2optname()) = variableSlots( ...
+    name = fnname2optname();
+    opt.(name) = variableSlots( ...
         {'first',         'second'}, ...
-        [TagEnum.IsValue, TagEnum.IsValue]);
+        [TagEnum.IsValue, TagEnum.IsValue], ...
+        Parent=name);
 end
 
 function opt = atm_z_grid_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = atmosphere_file_func()
@@ -172,8 +206,10 @@ function opt = atmosphere_file_func()
     %7, Water vapour density in cm −3,
     %8, CO2 density in cm −3,
     %9, NO2 density in cm −3,
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult({...
             'tropics',            'midlatitude_summer',
             'midlatitude_winter', 'subarctic_summer',
@@ -185,41 +221,52 @@ function opt = atmosphere_file_func()
 end
 
 function opt = bpdf_tsant_u10_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = bdrf_ambrals_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult({'iso', 'vol', 'geo'}, HasValue=true));
 end
 
 function opt = bdrf_ambrals_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = brdf_ambrals_hotspot_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = brdf_cam_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult({'pcl', 'sal', 'u10', 'uphi', }, HasValue=true));
 end
 
 function opt = brdf_cam_solar_wind_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = brdf_hapke_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult({'w', 'B0', 'h'}, HasValue=true));
 end
 
 function opt = brdf_hapke_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = brdf_rpv_func()
@@ -227,48 +274,61 @@ function opt = brdf_rpv_func()
     opt.(name) = struct;
     opt.(fnname2optname()) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult( ...
             {'k', 'rho0', 'theta', 'sigma', 't1', 't2', 'scale'}, ...
             HasValue=true));
 end
 
 function opt = brdf_rpv_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);;
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = brdf_rpv_library_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = brdf_rpv_type_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = ck_lowtran_absorption_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult({'O4', 'N2','CO','SO2','NH3','NO','HNO3'}));
 end
 
 function opt = cloud_fraction_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = cloud_overlap_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult({'rand', 'maxrand', 'max', 'off'}));
 end
 
 function opt = cloudcover_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult({'ic', 'wc'}, HasValue=true));
 end
 
 function opt = crs_file_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult({...
             'O3',   'O2', 'H2O', 'CO2', 'NO2', 'BRO', 'OCLO', ...
             'HCHO', 'O4', 'SO2', 'CH4', 'N2O', 'CO',  'N2'}));
@@ -279,7 +339,8 @@ function opt = crs_model_func()
     opt.(name) = variableSlots( ...
         {'rayleigh', 'o3', 'no2', 'o4'}, ...
         [TagEnum.IsOptionResult, TagEnum.IsOptionResult, ...
-        TagEnum.IsOptionResult,  TagEnum.IsOptionResult ]);
+        TagEnum.IsOptionResult,  TagEnum.IsOptionResult ], ...
+        Parent=name);
 
     opt.(name).rayleigh.Value = OptionResult({ ...
         'Bodhaine', 'Bodhaine29', 'Nicolet', 'Penndorf'});
@@ -293,60 +354,77 @@ function opt = crs_model_func()
 end
 
 function opt = data_files_path_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = day_of_year_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = deltam_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsOnOff);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsOnOff, Parent=name);
 end
 
 function opt = disort_intcor_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult({'phase', 'moments', 'off'}));
 end
 
 function opt = earth_radius_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = filter_function_file_func()
-    opt.(fnname2optname()) = variableSlots( ...
+    name = fnname2optname();
+    opt.(name) = variableSlots( ...
         {'file', 'normalise'}, ...
-        [TagEnum.IsValue, TagEnum.IsValue]);
+        [TagEnum.IsValue, TagEnum.IsValue], ...
+        Parent=name);
 end
 
 function opt = flourescence_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = flourescence_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = heating_rate_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult({'layer_cd', 'local', 'layer_fd'}));
 end
 
 function opt = ic_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = ic_fu_func()
-    opt.(fnname2optname()) = variableSlots( ...
+    name = fnname2optname();
+    opt.(name) = variableSlots( ...
         {'reff_def', 'deltascaling'}, ...
-        [TagEnum.IsOnOff, TagEnum.IsOnOff]);
+        [TagEnum.IsOnOff, TagEnum.IsOnOff], ...
+        Parent=name);
 end
 
 function opt = ic_habit_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         value=OptionResult({...
             'solid-column', 'hollow-column', 'rough-aggregate', ...
             'rosette-4',    'rosette-6',     'plate', ...
@@ -357,7 +435,8 @@ function opt = ic_habit_yang2013_func()
     name = fnname2optname();
     opt.(name) = variableSlots( ...
         {'type', 'roughness'}, ...
-        [TagEnum.IsOptionResult, TagEnum.IsOptionResult]);
+        [TagEnum.IsOptionResult, TagEnum.IsOptionResult], ...
+        Parent=name);
     opt.(name).type = OptionResult({...
         'column_8elements', 'droxtal',              'hollow_bullet_rosette', ...
         'hollow_column',    'plate',                'plate_10elements',      ...
@@ -366,36 +445,44 @@ function opt = ic_habit_yang2013_func()
 end
 
 function opt = ic_properties_func()
-    opt.(fnname2optname()) = variableSlots({ ...
+    name = fnname2optname();
+    opt.(name) = variableSlots({ ...
         'fu',       'echam4', 'key',      'yang',      'baum', ...
         'baum_v36', 'hey',    'yang2013', 'filename'}, ...
         [TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue, ...
          TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue, ...
-         TagEnum.IsValue]);
+         TagEnum.IsValue], ...
+        Parent=name);
 end
 
 function opt = include_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = interpret_as_level_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = isotropic_source_toa_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsCondition);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsCondition, Parent=name);
 end
 
 function opt = latitude_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsPosition);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsPosition, Parent=name);
 end
 
 function opt = longitude_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsPosition);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsPosition, Parent=name);
 end
 
 function opt = mc_azimuth_old_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsCondition);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsCondition, Parent=name);
 end
 
 function opt = mc_backward_func()
@@ -405,18 +492,23 @@ function opt = mc_backward_func()
     name = fnname2optname();
     opt.(name) = variableSlots( ...
         {'a', 'b', 'c'}, ...
-        [TagEnum.IsCondition, TagEnum.IsValue, TagEnum.IsValue]);
+        [TagEnum.IsCondition, TagEnum.IsValue, TagEnum.IsValue], ...
+        Parent=name);
 end
 
 function opt = mc_backward_increment_func()
-    opt.(fnname2optname()) = variableSlots( ...
-        {'ix_step', 'iy_step'}, [TagEnum.IsValue, TagEnum.IsValue]);
+    name = fnname2optname();
+    opt.(name) = variableSlots( ...
+        {'ix_step', 'iy_step'}, [TagEnum.IsValue, TagEnum.IsValue], ...
+        Parent=name);
 end
 
 function opt = mc_backward_output_func()
     % extend parser to add units for abs, emis and heat
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        parent=name, ...
         value=OptionResult({ ...
             'edir', 'edn',  'eup',   'exp', 'exn', 'eyp', 'eyn', 'act', ...
             'abs',  'emis', 'heat'}, ...
@@ -435,54 +527,68 @@ function opt = mc_backward_output_func()
 end
 
 function opt = mc_backward_writeback_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsCondition);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsCondition, Parent=name);
 end
 
 function opt = mc_basename_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFileName);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFileName, Parent=name);
 end
 
 function opt = mc_boxairmass_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsCondition);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsCondition, Parent=name);
 end
 
 function opt = mc_escape_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsOnOff);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsOnOff, Parent=name);
 end
 
 function opt = mc_forward_output_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         value=OptionResult({'absorption', 'actinic', 'emission', 'heating'}));
 end
 
 function opt = mc_maxscatters_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = mc_minphotons_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = mc_minscatters_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = mc_nca_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsCondition);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsCondition, Parent=name);
 end
 
 function opt = mc_photons_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = mc_photons_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = mc_polarisation_func()
-    opt.(fnname2optname()) = Variable(...
+    name = fnname2optname();
+    opt.(name) = Variable(...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         value=OptionResult({0, 1, 2, 3, -1, -2, -3, 4}, ...
         labels={...
             '(1,0,0,0) (default)', '(1,1,0,0)', '(1,0,1,0)', '(1,0,0,1)', ...
@@ -490,47 +596,58 @@ function opt = mc_polarisation_func()
 end
 
 function opt = mc_rad_alpha_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = mc_randomseed_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = mc_sensordirection_func()
-    opt.(fnname2optname()) = variableSlots({...
+    name = fnname2optname();
+    opt.(name) = variableSlots({...
         'xvalue', 'yvalue', 'zvalue'}, ...
-        [TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue]);
+        [TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue], ...
+        Parent=name);
 end
 
 function opt = mc_spectral_is_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = mc_spherical_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = mc_surface_reflectalways_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsCondition);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsCondition, Parent=name);
 end
 
 function opt = mc_vroom_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsOnOff);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsOnOff, Parent=name);
 end
 
 function opt = mixing_ratio_func()
-    opt.(fnname2optname()) = variableSlots({...
+    name = fnname2optname();
+    opt.(name) = variableSlots({...
         'O2', 'H2O', 'CO2', 'NO2', 'CH4', 'N2O', 'F11', 'F12', 'F22'}, ...
         [TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue, ...
          TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue, ...
-         TagEnum.IsValue]);
+         TagEnum.IsValue], ...
+        Parent=name);
 end
 
 function opt = mol_abs_param_func()
     name = fnname2optname();
     opt.(name) = Variable(...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         value=OptionResult({...
             'reptran',     'reptran_channel', 'crs',      'kato', ...
             'kato2',       'kato2andwandji',  'kato2_96', 'fu',   ...
@@ -547,14 +664,16 @@ function opt = mol_abs_param_func()
 end
 
 function opt = mol_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = mol_modify_func()
     name = fnname2optname();
     opt.(name) = variableSlots( ...
         {'species', 'column', 'unit'}, ...
-        [TagEnum.IsOptionResult, TagEnum.IsValue, TagEnum.IsOptionResult]);
+        [TagEnum.IsOptionResult, TagEnum.IsValue, TagEnum.IsOptionResult], ...
+        Parent=name);
     opt.(name).species.Value = OptionResult({...
         'O3',  'O2',  'H2O', 'CO2', 'NO2', 'BRO', 'OCLO', 'HCHO', 'O4', ...
         'SO2', 'CH4', 'N2O', 'CO',  'N2'});
@@ -566,21 +685,26 @@ function opt = mol_tau_file_func()
     name = fnname2optname();
     opt.(name) = variableSlots( ...
         {'ScatteringOrAbsorption', 'filename'}, ...
-        [TagEnum.IsOptionResult, TagEnum.IsFile]);
+        [TagEnum.IsOptionResult, TagEnum.IsFile], ...
+        Parent=name);
     opt.(name).ScatteringOrAbsorption.Value = OptionResult({'sca', 'abs'});
 end
 
 function opt = n02_column_du_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsObsolete);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsObsolete, Parent=name);
 end
 
 function opt = n02_column_moleccm_2_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsObsolete);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsObsolete, Parent=name);
 end
 
 function opt = no_absorption_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult( ...
             {'mol', 'aer', 'wc', 'ic', 'profile'}, ...
             Labels={ ...
@@ -591,8 +715,10 @@ function opt = no_absorption_func()
 end
 
 function opt = no_scattering_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult( ...
             {'mol', 'aer', 'wc', 'ic', 'profile'}, ...
             Labels={ ...
@@ -603,16 +729,20 @@ function opt = no_scattering_func()
 end
 
 function opt = number_of_streams_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = output_format_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = output_process_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult( ...
             {'sum', 'integrate', 'per_nm', 'per_cm-1', 'per_band', 'none'}, ...
             labels = { ...
@@ -625,8 +755,10 @@ function opt = output_process_func()
 end
 
 function opt = output_quantity_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult( ...
             {'brightness', 'reflectivity', 'transmittance'}, ...
             labels={ ...
@@ -637,8 +769,10 @@ function opt = output_quantity_func()
 end
 
 function opt = output_user_func()
-    opt.(fnname2optname()) = Variable( ...
+    name = fnname2optname();
+    opt.(name) = Variable( ...
         TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult({ ...
     'lambda',   'wavenumber', 'sza',     'zout',      'edir',     'eglo',     ...
     'edn',      'eup',        'enet',    'esum',      'uu',       'fdir',     ...
@@ -721,22 +855,26 @@ function opt = output_user_func()
 end
 
 function opt = ozone_column_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsObsolete);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsObsolete, Parent=name);
 end
 
 function opt = phi_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = phi0_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = polradtran_func()
     name = fnname2optname();
     opt.(name) = variableSlots( ...
         {'aziorder', 'nstokes', 'src_code'}, ...
-        [TagEnum.IsValue, TagEnum.IsOptionResult, TagEnum.IsOptionResult]);
+        [TagEnum.IsValue, TagEnum.IsOptionResult, TagEnum.IsOptionResult], ...
+        Parent=name);
     opt.(name).nstokes.Value = OptionResult( ...
         {'I', 'IQU', 'IQUV'}, ...
         Enumerate=true);
@@ -746,11 +884,13 @@ function opt = polradtran_func()
 end
 
 function opt = polradtran_max_delta_tau_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = polradtran_quad_type_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsOptionResult, ...
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsOptionResult, Parent=name, ...
         Value=OptionResult({'G', 'D', 'L', 'E'}, ...
             Labels={...
                 'Gaussian', 'Double Gaussian', 'Lobatto', 'extra-angle(s)'} ...
@@ -758,65 +898,80 @@ function opt = polradtran_quad_type_func()
 end
 
 function opt = pressure_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = pressure_out_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = print_disort_info_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = profile_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = profile_modify_func()
     name = fnname2optname();
-    opt.(name) = Variable(TagEnum.IsValue);
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = psuedospherical_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = quiet_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = radiosonde_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = radiosonde_levels_only_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = raman_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsOptionResult, ...
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsOptionResult, Parent=name, ...
         Value=OptionResult({'original'}));
 end
 
 function opt = rayleigh_depol_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = refractive_index_pv_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = reptran_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = reverse_atmosphere_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = rte_solver_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsOptionResult, ...
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsOptionResult, ...
+        Parent=name, ...
         Value=OptionResult({ ...
         'disort',               'twostr',    'fdisort1',    'fdisort2',   ...
         'sdisort',              'spsdisort', 'polradtran',  'ftwostr',    ...
@@ -866,7 +1021,8 @@ end
 function opt = sdisort_func()
     name = fnname2optname();
     opt.(name) = variableSlots({'nscat', 'nrefrac'}, ...
-        [TagEnum.IsOptionResult, TagEnum.IsOptionResult]);
+        [TagEnum.IsOptionResult, TagEnum.IsOptionResult], ...
+        Parent=name);
     opt.(name).nscat.Value = OptionResult({'single', 'full'}, Enumerate=true);
     opt.(name).nrefrac.Value = OptionResult({'None', 'Harsh', 'Accurate'}, ...
         Enumerate=true, Labels={'Default', ...
@@ -875,126 +1031,158 @@ function opt = sdisort_func()
 end
 
 function opt = slit_function_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = source_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsOptionResult, ...
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsOptionResult, Parent=name, ...
         Value=OptionResult({'solar', 'thermal'}));
 end
 
 function opt = spline_func()
-    opt.(fnname2optname()) = variableSlots(...
+    name = fnname2optname();
+    opt.(name) = variableSlots(...
         {'lambda_0', 'lambda_1', 'lambda_2'}, ...
-        [TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue]);
+        [TagEnum.IsValue, TagEnum.IsValue, TagEnum.IsValue], ...
+        Parent=name);
 end
 
 function opt = spline_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = sslidar_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsOptionResult, ...
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsOptionResult, Parent=name, ...
         Value=OptionResult({'area', 'E0', 'eff', 'position', 'range'}));
 end
 
 function opt = sslidar_nranges_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = sslidar_polarisation_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsCondition);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsCondition, Parent=name);
 end
 
 function opt = sur_temperature_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = surface_type_map_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = sza_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = sza_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = thermal_binds_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = thermal_bandwidth_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = time_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = twomaxrnd3C_scale_cf_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = tzs_cloud_top_height_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsValue);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
 function opt = umu_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsArray);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsArray, Parent=name);
 end
 
 function opt = verbose_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsCondition);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsCondition, Parent=name);
 end
 
 function opt = wavelength_func()
-    opt.(fnname2optname()) = variableSlots({'lambda_0', 'lambda_1'}, ...
-        [TagEnum.IsValue, TagEnum.IsValue]);
+    name = fnname2optname();
+    opt.(name) = variableSlots({'lambda_0', 'lambda_1'}, ...
+        [TagEnum.IsValue, TagEnum.IsValue], Parent=name);
 end
 
 function opt = wavelength_grid_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsFile);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsFile, Parent=name);
 end
 
 function opt = wavelength_index_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsArray);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsArray, Parent=name);
 end
 
 function opt = wc_file_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsOptionResult, ...
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsOptionResult, ...
+        Parent=name, ...
         value=OptionResult({'1D', 'ipa_files', 'moments'}));
 end
 
 function opt = wc_modify_func()
-    opt.(fnname2optname()) = variableSlots({'gg', 'ssa', 'tau', 'tau550'}, ...
+    name = fnname2optname();
+    opt.(name) = variableSlots({'gg', 'ssa', 'tau', 'tau550'}, ...
         [TagEnum.IsSetScale, TagEnum.IsSetScale, ...
-         TagEnum.IsSetScale, TagEnum.IsSetScale]);
+         TagEnum.IsSetScale, TagEnum.IsSetScale], ...
+        Parent=name);
 end
 
 function opt = wc_properties_func()
-    opt.(fnname2optname()) = variableSlots(...
+    name = fnname2optname();
+    opt.(name) = variableSlots(...
         {'hu', 'echam4', 'mie', 'filename'}, ...
         [TagEnum.IsCondition, TagEnum.IsCondition, ...
-         TagEnum.IsCondition, TagEnum.IsCondition]);
+         TagEnum.IsCondition, TagEnum.IsCondition], ...
+        Parent=name);
 end
 
 function opt = z_interpolate_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsCondition);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsCondition, Parent=name);
 end
 
 function opt = zout_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsArray);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsArray, Parent=name);
 end
 
 function opt = zout_interpolate_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsCondition);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsCondition, Parent=name);
 end
 
 function opt = zout_sea_func()
-    opt.(fnname2optname()) = Variable(TagEnum.IsArray);
+    name = fnname2optname();
+    opt.(name) = Variable(TagEnum.IsArray, Parent=name);
 end
 
 function options = alloptions()
