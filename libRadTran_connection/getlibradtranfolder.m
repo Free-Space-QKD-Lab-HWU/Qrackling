@@ -1,7 +1,5 @@
 function location = getlibradtranfolder(path)
 
-    location = adduserpath(path=path);
-    disp(location);
 
     if isunix
         delim = '/';
@@ -9,24 +7,22 @@ function location = getlibradtranfolder(path)
         delim = '\';
     end
 
-    assert(...
-        isdir(location), ...
-        ['''', location, '''', ' is not a valid path'] ...
-    );
+    location = adduserpath(path, delim);
+    disp(location);
 
-    assert(...
-        isfile([location, delim, 'bin', delim, 'uvspec']), ...
-        ['LibRadTran not found at ', '''', location, ''''] ...
-    );
+    % assert(...
+    %     isdir(location), ...
+    %     ['''', location, '''', ' is not a valid path'] ...
+    % );
+
+    % assert(...
+    %     isfile([location, delim, 'bin', delim, 'uvspec']), ...
+    %     ['LibRadTran not found at ', '''', location, ''''] ...
+    % );
 
 end
 
-function in_path = adduserpath(varargin)
-    p = inputParser;
-    addParameter(p, 'path', '');
-    parse(p, varargin{:});
-
-    in_path = p.Results.path;
+function in_path = adduserpath(in_path, delimiter)
 
     if isunix
         home = getenv('HOME');
@@ -37,10 +33,12 @@ function in_path = adduserpath(varargin)
     if ~isempty(home)
         idx = startsWith(in_path, '~');
         n = numel(in_path);
-        in_path = [...
-            home, ...
-            extractAfter(in_path(idx:n), 1)...
-        ];
+        in_path = strjoin(...
+            {home, ...
+            extractAfter(in_path(idx:n), 1)}, ...
+            delimiter);
     end
+
+    in_path = in_path(1:end-1);
 
 end
