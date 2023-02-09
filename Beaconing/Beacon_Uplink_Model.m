@@ -1,4 +1,4 @@
-classdef Beacon_Uplink_Model < Satellite_Uplink_Model
+classdef Beacon_Uplink_Model < Satellite_Link_Model
         %Beacon_Uplink_Model a link model specific to satellite to OGS downlink
 
         %{
@@ -25,10 +25,10 @@ classdef Beacon_Uplink_Model < Satellite_Uplink_Model
         Length(1,:)=nan;                                                        %link distance in m
     end
         %}
-    methods (Access=protected)
-%{
-        function Beacon_Uplink_Model=Beacon_Uplink_Model(N,Visibility)
-            %%BEACON_UPLINK_MODEL construct an instance of Beacon_Uplink_Model with the indicated number of modelled points
+
+        methods (Access = public)
+            function Beacon_Uplink_Model=Beacon_Uplink_Model(N,Visibility)
+            %%BEACON_DOWNLINK_MODEL construct an instance of Beacon_Downlink_Model with the indicated number of modelled points
             if nargin==0
                 return
             elseif nargin==1
@@ -39,8 +39,11 @@ classdef Beacon_Uplink_Model < Satellite_Uplink_Model
             else
                 error('To instantiate link model, provide a number of steps and, optionally, a visibility string')
             end
+            end
         end
 
+    methods (Access=protected)
+%{
     function [Beacon_Uplink_Model,Link_Loss_dB] = Compute_Link_Loss(Beacon_Uplink_Model,Satellite,Ground_Station)
         %%COMPUTE_LINK_LOSS compute loss between satellite and ground
         %station
