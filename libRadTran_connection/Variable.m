@@ -2,6 +2,7 @@ classdef Variable
     properties(SetAccess=protected)
         Tag TagEnum;
         Parent = '';
+        Name = '';
     end
 
     properties
@@ -21,8 +22,14 @@ classdef Variable
             Variable.Value = p.Results.Value;
             Variable.Parent = p.Results.Parent;
         end
-        function Variable = setParent(Variable, Name)
-            Variable.Parent = Name;
+
+        function Variable = setParent(Variable, Parent)
+            Variable.Parent = Parent;
         end
+
+        function Variable = setName(Variable, Name)
+            Variable.Name = Name;
+        end
+
     end
 end

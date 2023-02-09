@@ -16,8 +16,25 @@ function obj = aerosol_angstrom(obj)
     for i = 1:n_opts
         opt = options{i};
         fields = fieldnames(opt);
-        obj.addprop(fields{1});
-        obj.(fields{1}) = opt.(fields{1});
+        name = fields{1};
+        obj.addprop(name);
+        opt = updateName(opt, name);
+        obj.(name) = opt.(name);
+    end
+end
+
+function option = updateName(option, name)
+    if isstruct(option.(name))
+        innerfields = fieldnames(option.(name));
+        isVariable = cellfun(...
+            @(f) isa(option.(name).(f), 'Variable'), ...
+            innerfields);
+        for j = 1:numel(innerfields)
+            inner = innerfields{j};
+            option.(name).(inner) = option.(name).(inner).setName(inner);
+        end
+    else
+        option.(name) = option.(name).setName(name);
     end
 end
 
@@ -437,11 +454,11 @@ function opt = ic_habit_yang2013_func()
         {'type', 'roughness'}, ...
         [TagEnum.IsOptionResult, TagEnum.IsOptionResult], ...
         Parent=name);
-    opt.(name).type = OptionResult({...
+    opt.(name).type.Value = OptionResult({...
         'column_8elements', 'droxtal',              'hollow_bullet_rosette', ...
         'hollow_column',    'plate',                'plate_10elements',      ...
         'plate_5elements',  'solid_bullet_rosette', 'solid_column'});
-    opt.(name).roughness = OptionResult({'smooth', 'moderate', 'severe'});
+    opt.(name).roughness.Value = OptionResult({'smooth', 'moderate', 'severe'});
 end
 
 function opt = ic_properties_func()
