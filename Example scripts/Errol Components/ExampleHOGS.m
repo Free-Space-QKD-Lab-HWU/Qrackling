@@ -28,4 +28,4 @@ Protocol=decoyBB84_Protocol();
 Pass=PassSimulation(Sat,Protocol,HOGS);
 Pass=Simulate(Pass);
 plot(Pass);
-Play(Pass);
+%Play(Pass);

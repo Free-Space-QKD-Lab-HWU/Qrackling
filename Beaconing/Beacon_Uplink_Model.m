@@ -83,8 +83,8 @@ classdef Beacon_Uplink_Model < Link_Model
                                          Zenith, ...
                                          Satellite_Altitude, ghv_defaults);
         %output variables
-        spot_tl = long_term_gaussian_beam_width(Beam_Waist, Link_Lengths(Elevation_Flags) ,...
-                                    Rayleigh_Range, 2*pi/(Ground_Station.Beacon.Wavelength*10^-9), Atmospheric_Turbulence_Coherence_Length);
+        Turbulence_Beam_Width_Increase = long_term_gaussian_beam_width(GeoSpotDiameter(Elevation_Flags), Link_Lengths(Elevation_Flags) ,...
+                                     2*pi/(Ground_Station.Beacon.Wavelength*10^-9), Atmospheric_Turbulence_Coherence_Length);
         %residual beam wander is not needed here as this is dealt with in
         %APT loss
         %wander_tl = residual_beam_wander(error_snr, error_delay, error_centroid, ...
@@ -92,7 +92,7 @@ classdef Beacon_Uplink_Model < Link_Model
 
         %turbulence loss is the ratio of geometric and turbulent spot areas
         Turb_Loss(~Elevation_Flags)=0;
-        Turb_Loss(Elevation_Flags) = (GeoSpotDiameter(Elevation_Flags)./spot_tl).^2;
+        Turb_Loss(Elevation_Flags) = Turbulence_Beam_Width_Increase.^(-2);
 
         %record loss values
         Beacon_Uplink_Model=SetGeometricLoss(Beacon_Uplink_Model,Geo_Loss);

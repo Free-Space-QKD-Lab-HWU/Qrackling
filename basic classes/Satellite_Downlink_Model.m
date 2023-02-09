@@ -19,6 +19,8 @@ classdef Satellite_Downlink_Model < Link_Model
         APT_Loss_dB(1,:)=nan;                                                   %tracking loss in dB
         Atmospheric_Loss(1,:)=nan;                                              %atmospheric loss in absolute terms
         Atmospheric_Loss_dB(1,:)=nan;                                           %atmospheric loss in dB
+        Turbulence_Loss=nan;                                               %turbulence loss in absolute terms
+        Turbulence_Loss_dB=nan;                                            %loss due to atmospheric turbulence
         Length(1,:)=nan;                                                        %link distance in m
     end
 
@@ -122,6 +124,26 @@ classdef Satellite_Downlink_Model < Link_Model
             Link_Models.Length=Lengths;
         end
 
+       function Link_Models = SetTurbulenceLoss(Link_Models,Turbulence_Loss)
+            %%SETTURBULENCELOSS set the turbulence loss of the link
+
+            %% input validation
+            if ~all(isreal(Turbulence_Loss)&Turbulence_Loss>=0)
+                error('tracking loss must be a real, nonnegative array of numeric values')
+            end
+            if isscalar(Turbulence_Loss)
+                Turbulence_Loss=Turbulence_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
+            elseif isrow(Turbulence_Loss)
+            elseif iscolumn(Turbulence_Loss)
+                Turbulence_Loss=Turbulence_Loss'; %can transpose lengths to match dimensions of Link_Models
+            else
+                error('Array must be a vector or scalar');
+            end
+
+            Link_Models.Turbulence_Loss=Turbulence_Loss;
+            Link_Models.Turbulence_Loss_dB=-10*log10(Turbulence_Loss);
+        end
+
     end
     methods (Access=public)
         function Satellite_Downlink_Model=Satellite_Downlink_Model(N,Visibility)
@@ -148,7 +170,8 @@ classdef Satellite_Downlink_Model < Link_Model
 
             %% geometric loss
             %Link loss analysis for a satellite quantum communication down-link Chunmei Zhang*, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller, Ross J. Donaldson
-            Geo_Loss=(sqrt(pi)/8)*(Ground_Station.Telescope.Diameter./(ones(size(Link_Lengths))*Satellite.Telescope.Diameter+Link_Lengths*Satellite.Telescope.FOV)).^2;
+            Geo_Spot_Size = (ones(size(Link_Lengths))*Satellite.Telescope.Diameter+Link_Lengths*Satellite.Telescope.FOV);
+            Geo_Loss=(sqrt(pi)/8)*(Ground_Station.Telescope.Diameter./Geo_Spot_Size).^2;
             %compute when earth shadowing of link is present
             Shadowing=IsEarthShadowed(Satellite,Ground_Station);
             Geo_Loss(Shadowing)=0;
@@ -168,6 +191,39 @@ classdef Satellite_Downlink_Model < Link_Model
             Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles, Satellite.Source.Wavelength, {Link_Model.Visibility});
             Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Source.Wavelength);
             
+
+            %% turbulence loss
+            %see Point ahead angle prediction based on Kalman filtering of
+            % optical axis pointing angle in satellite laser communication
+            % Zhang Furui · Ruan Ping · Han Junfeng
+
+            %we assume turbulence limited behaviour (with no adaptive
+            %optics)
+            %parameters
+            Wavelength = Satellite.Source.Wavelength*10^-9;
+            Wavenumber = 2*pi/Wavelength;
+            %can only compute for positive elevation
+            Elevation_Flags = Elevation_Angles'>0;
+            Zenith = 90-Elevation_Angles(Elevation_Flags)';
+            Satellite_Altitude = Satellite.Altitude(Elevation_Flags);
+            Atmospheric_Turbulence_Coherence_Length = ...
+                atmospheric_turbulence_coherence_length_downlink(Wavenumber,...
+                                             Zenith, ...
+                                             Satellite_Altitude, ghv_defaults);
+            %output variables
+            Turbulence_Beam_Width_Increase = long_term_gaussian_beam_width(Geo_Spot_Size(Elevation_Flags), Link_Lengths(Elevation_Flags) ,...
+                                        2*pi/(Satellite.Source.Wavelength*10^-9), Atmospheric_Turbulence_Coherence_Length);
+            %residual beam wander is not needed here as this is dealt with in
+            %APT loss
+            %wander_tl = residual_beam_wander(error_snr, error_delay, error_centroid, ...
+            %                                   error_tilt, spot_tl, L);
+
+            %turbulence loss is the ratio of geometric and turbulent spot areas
+            Turb_Loss(~Elevation_Flags)=0;
+            Turb_Loss(Elevation_Flags) = Turbulence_Beam_Width_Increase.^(-2);
+
+
+
             %% Acquisition, pointing and tracking loss
             %see Wiki for calculation details. QKD signal is assumed to be
             %a gaussian beam.
@@ -180,6 +236,7 @@ classdef Satellite_Downlink_Model < Link_Model
             Link_Model=SetOpticalEfficiencyLoss(Link_Model,Eff_Loss);
             Link_Model=SetAtmosphericLoss(Link_Model,Atmos_Loss);
             Link_Model=SetAPTLoss(Link_Model,APTracking_Loss);
+            Link_Model=SetTurbulenceLoss(Link_Model,Turb_Loss);
 
             %compute total loss
             [Link_Model,Link_Loss_dB]=SetTotalLoss(Link_Model);
@@ -219,6 +276,7 @@ classdef Satellite_Downlink_Model < Link_Model
             Atmos=GetAtmosphericLossdB(Satellite_Downlink_Model);
             Eff=GetOpticalEfficiencyLossdB(Satellite_Downlink_Model);
             APT=GetAPTLossdB(Satellite_Downlink_Model);
+            Turb=GetTurbulenceLossdB(Satellite_Downlink_Model);
 
             if nargin==3
             %if flags provided, select what to plot
@@ -226,22 +284,24 @@ classdef Satellite_Downlink_Model < Link_Model
             Atmos=Atmos(Plot_Select_Flags);
             Eff=Eff(Plot_Select_Flags);
             APT=APT(Plot_Select_Flags);
+            Turb=Turb(Plot_Select_Flags);
             end
 
-            area(X_Axis(Plot_Select_Flags),[Geo',Atmos',Eff',APT']);
+            area(X_Axis(Plot_Select_Flags),[Geo',Atmos',Eff',APT',Turb']);
             xlabel('Time (s)')
             ylabel('Losses (dB)')
 
             %% adjust legend to represent what is plotted
             %atmospheric loss is non zero
-            legend('Geometric loss','Atmospheric loss','Efficiency loss','APT loss','Orientation','horizontal');
+            legend('Geometric loss','Atmospheric loss','Efficiency loss','APT loss','Turbulence loss','Orientation','horizontal');
             legend('Location','south')
         end
 
         function [Link_Model,Total_Loss_dB]=SetTotalLoss(Link_Model)
             %%SETTOTALLOSS update total loss to reflect stored loss values
 
-            Total_Loss_dB=Link_Model.Geometric_Loss_dB+Link_Model.Optical_Efficiency_Loss_dB+Link_Model.APT_Loss_dB+Link_Model.Atmospheric_Loss_dB;
+            Total_Loss_dB=Link_Model.Geometric_Loss_dB+Link_Model.Optical_Efficiency_Loss_dB+...
+                Link_Model.APT_Loss_dB+Link_Model.Atmospheric_Loss_dB+Link_Model.Turbulence_Loss_dB;
             Link_Model.Link_Loss_dB=Total_Loss_dB;
             Link_Model.Link_Loss=10.^(-Total_Loss_dB/10);
 
@@ -251,6 +311,13 @@ classdef Satellite_Downlink_Model < Link_Model
             %%SETVISIBILITY set the visibility tag of this link model
 
             Satellite_Downlink_Model.Visibility = Visibility;
+        end
+
+        function Turbulence_Loss_dB=GetTurbulenceLossdB(Satellite_Uplink_Model)
+            %%GETTURBULENCELOSSDB return an array of acquistition, pointing and tracking
+            % losses in dB the same dimensions as the satellite link model
+
+            Turbulence_Loss_dB=Satellite_Uplink_Model.Turbulence_Loss_dB;
         end
     
         function Satellite_Downlink_Model = SetNumSteps(Satellite_Downlink_Model,N)
