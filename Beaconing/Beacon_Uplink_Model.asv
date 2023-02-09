@@ -320,18 +320,18 @@ classdef Beacon_Uplink_Model < Satellite_Uplink_Model
         Wavelength = Ground_Station.Beacon.Wavelength*10^-9;
         Wavenumber = 2*pi/Wavelength;
         %can only compute for positive elevation
-        Elevation_Flags = Link_Models.Elevation_Angles>0;
-        Zenith = 90-Link_Models.Elevation_Angles(Elevation_Flags);
-        Satellite_Altitude = Satellite.Altitude(Elevation_Flags)';
-        
-        
+        Elevation_Flags = Elevation_Angles'>0;
+        Zenith = 90-Elevation_Angles(Elevation_Flags)';
+        Satellite_Altitude = Satellite.Altitude(Elevation_Flags);
+        Beam_Waist = Ground_Station.Beacon.Telescope.Diameter;
+        Rayleigh_Range = rayleigh_range(Beam_Waist, Wavelength, 1);
         Atmospheric_Turbulence_Coherence_Length = ...
             atmospheric_turbulence_coherence_length_uplink(Wavenumber,...
                                          Zenith, ...
                                          Satellite_Altitude, ghv_defaults);
         %output variables
-        Turbulence_Beam_Width_Increase = long_term_gaussian_beam_width(GeoSpotDiameter(Elevation_Flags), Link_Models.Length(Elevation_Flags) ,...
-                                     Wavenumber, Atmospheric_Turbulence_Coherence_Length');
+        Turbulence_Beam_Width_Increase = long_term_gaussian_beam_width(GeoSpotDiameter(Elevation_Flags), Link_Lengths(Elevation_Flags) ,...
+                                     2*pi/(Ground_Station.Beacon.Wavelength*10^-9), Atmospheric_Turbulence_Coherence_Length);
         %residual beam wander is not needed here as this is dealt with in
         %APT loss
         %wander_tl = residual_beam_wander(error_snr, error_delay, error_centroid, ...
