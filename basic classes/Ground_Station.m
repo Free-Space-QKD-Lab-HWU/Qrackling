@@ -548,6 +548,16 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             Ground_Station.Dark_Count_Rates = Dark_Counts;
             Total_Background_Count_Rate = Light_Pollution_Count_Rate+Reflection_Count_Rate+Dark_Counts;
         end
+            
+        function OGSDetails = GetOGSDetails(Ground_Station)
+            %% return the details of a ground station necessary to make a MATLAB simulator object
+            %returned as a cell array, use OGSDetails{:} to give to function
 
+            OGSDetails = {'Latitude',Ground_Station.Latitude,...
+                'Longitude',Ground_Station.Longitude,...
+                'Altitude',Ground_Station.Altitude,...
+                'MinElevationAngle',Ground_Station.Elevation_Limit,...
+                'Name',Ground_Station.Location_Name};
+        end
     end
 end

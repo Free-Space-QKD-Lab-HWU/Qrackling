@@ -1,6 +1,7 @@
-classdef Beacon_Uplink_Model < Link_Model
+classdef Beacon_Uplink_Model < Satellite_Link_Model
         %Beacon_Uplink_Model a link model specific to satellite to OGS downlink
 
+        %{
     properties (SetAccess=protected,Abstract=false)
         N                                                                  %number of timestamps simulated, equal to the dimension of all loss vectors
         Link_Loss;                                                         %link loss in absolute terms
@@ -23,11 +24,11 @@ classdef Beacon_Uplink_Model < Link_Model
         Atmospheric_Loss_dB(1,:)=nan;                                           %atmospheric loss in dB
         Length(1,:)=nan;                                                        %link distance in m
     end
+        %}
 
-    methods (Access=public)
-
-        function Beacon_Uplink_Model=Beacon_Uplink_Model(N,Visibility)
-            %%BEACON_UPLINK_MODEL construct an instance of Beacon_Uplink_Model with the indicated number of modelled points
+        methods (Access = public)
+            function Beacon_Uplink_Model=Beacon_Uplink_Model(N,Visibility)
+            %%BEACON_DOWNLINK_MODEL construct an instance of Beacon_Downlink_Model with the indicated number of modelled points
             if nargin==0
                 return
             elseif nargin==1
@@ -38,8 +39,11 @@ classdef Beacon_Uplink_Model < Link_Model
             else
                 error('To instantiate link model, provide a number of steps and, optionally, a visibility string')
             end
+            end
         end
 
+    methods (Access=protected)
+%{
     function [Beacon_Uplink_Model,Link_Loss_dB] = Compute_Link_Loss(Beacon_Uplink_Model,Satellite,Ground_Station)
         %%COMPUTE_LINK_LOSS compute loss between satellite and ground
         %station
@@ -79,12 +83,12 @@ classdef Beacon_Uplink_Model < Link_Model
         Beam_Waist = Ground_Station.Beacon.Telescope.Diameter;
         Rayleigh_Range = rayleigh_range(Beam_Waist, Wavelength, 1);
         Atmospheric_Turbulence_Coherence_Length = ...
-            atmospheric_turbulence_coherence_length(Wavenumber,...
+            atmospheric_turbulence_coherence_length_uplink(Wavenumber,...
                                          Zenith, ...
                                          Satellite_Altitude, ghv_defaults);
         %output variables
-        spot_tl = long_term_gaussian_beam_width(Beam_Waist, Link_Lengths(Elevation_Flags) ,...
-                                    Rayleigh_Range, 2*pi/(Ground_Station.Beacon.Wavelength*10^-9), Atmospheric_Turbulence_Coherence_Length);
+        Turbulence_Beam_Width_Increase = long_term_gaussian_beam_width(GeoSpotDiameter(Elevation_Flags), Link_Lengths(Elevation_Flags) ,...
+                                     2*pi/(Ground_Station.Beacon.Wavelength*10^-9), Atmospheric_Turbulence_Coherence_Length);
         %residual beam wander is not needed here as this is dealt with in
         %APT loss
         %wander_tl = residual_beam_wander(error_snr, error_delay, error_centroid, ...
@@ -92,7 +96,7 @@ classdef Beacon_Uplink_Model < Link_Model
 
         %turbulence loss is the ratio of geometric and turbulent spot areas
         Turb_Loss(~Elevation_Flags)=0;
-        Turb_Loss(Elevation_Flags) = (GeoSpotDiameter(Elevation_Flags)./spot_tl).^2;
+        Turb_Loss(Elevation_Flags) = Turbulence_Beam_Width_Increase.^(-2);
 
         %record loss values
         Beacon_Uplink_Model=SetGeometricLoss(Beacon_Uplink_Model,Geo_Loss);
@@ -202,69 +206,94 @@ classdef Beacon_Uplink_Model < Link_Model
     end
 
     methods (Access=protected)
-
-    function Link_Models=SetGeometricLoss(Link_Models,Geometric_Loss)
+%}
+        function [Link_Models,GeoSpotDiameter]=SetGeometricLoss(Link_Models,Satellite,Ground_Station)
         %%SETGEOMETRICLOSS set the geometric loss in a link model array
+        
+
+  %% this is an overloaded method which changes the implementation of the parent class Satellite_Downlink_Model
+          %% see Link loss analysis for a satellite quantum communication down-link Chunmei Zhang*, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller, Ross J. Donaldson
+        [Geo_Loss,GeoSpotDiameter] = GetGeoLoss(Ground_Station.Beacon,Link_Models.Length,Satellite.Camera);
+        %compute when earth shadowing of link is present
+        Shadowing=IsEarthShadowed(Satellite,Ground_Station);
+        Geo_Loss(Shadowing)=0;
 
         %% input validation
-        if ~all(isreal(Geometric_Loss)&Geometric_Loss>=0)
+        if ~all(isreal(Geo_Loss)&Geo_Loss>=0)
             error('geometric loss must be a non-negative array of numeric values')
         end
-        if isscalar(Geometric_Loss)
-            Geometric_Loss=Geometric_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
-        elseif isrow(Geometric_Loss)
-        elseif iscolumn(Geometric_Loss)
-            Geometric_Loss=Geometric_Loss'; %can transpose lengths to match dimensions of Link_Models
+        if isscalar(Geo_Loss)
+            Geo_Loss=Geo_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
+        elseif isrow(Geo_Loss)
+        elseif iscolumn(Geo_Loss)
+            Geo_Loss=Geo_Loss'; %can transpose lengths to match dimensions of Link_Models
         else
             error('Array must be a vector or scalar');
         end
 
-        Link_Models.Geometric_Loss=Geometric_Loss;
-        Link_Models.Geometric_Loss_dB=-10*log10(Geometric_Loss);
+        Link_Models.Geometric_Loss=Geo_Loss;
+        Link_Models.Geometric_Loss_dB=-10*log10(Geo_Loss);
     end
 
-    function Link_Models=SetAtmosphericLoss(Link_Models,Atmospheric_Loss)
+    function Link_Models=SetAtmosphericLoss(Link_Models,~,Ground_Station)
         %%SETATMOSPHERICLOSS
 
+   %% this is an overloaded method which changes the behaviour of the superclass
+
+        %% atmospheric loss
+
+        %format spectral filters which correspond to these elevation angles
+        Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Link_Models.Elevation_Angles,Ground_Station.Beacon.Wavelength,{Link_Models.Visibility});
+        Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Ground_Station.Beacon.Wavelength);
+
         %% input validation
-        if ~all(isreal(Atmospheric_Loss)&Atmospheric_Loss>=0)
+        if ~all(isreal(Atmos_Loss)&Atmos_Loss>=0)
             error('atmospheric loss must be a real, nonnegative array of numeric values')
         end
-        if isscalar(Atmospheric_Loss)
-            Atmospheric_Loss=Atmospheric_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
-        elseif isrow(Atmospheric_Loss)
-        elseif iscolumn(Atmospheric_Loss)
-            Atmospheric_Loss=Atmospheric_Loss'; %can transpose lengths to match dimensions of Link_Models
+        if isscalar(Atmos_Loss)
+            Atmos_Loss=Atmos_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
+        elseif isrow(Atmos_Loss)
+        elseif iscolumn(Atmos_Loss)
+            Atmos_Loss=Atmos_Loss'; %can transpose lengths to match dimensions of Link_Models
         else
             error('Array must be a vector or scalar');
         end
         
-        Link_Models.Atmospheric_Loss=Atmospheric_Loss;
-        Link_Models.Atmospheric_Loss_dB=-10*log10(Atmospheric_Loss);
+        Link_Models.Atmospheric_Loss=Atmos_Loss;
+        Link_Models.Atmospheric_Loss_dB=-10*log10(Atmos_Loss);
     end
 
-    function Link_Models=SetOpticalEfficiencyLoss(Link_Models,Optical_Efficiency_Loss)
+    function Link_Models=SetOpticalEfficiencyLoss(Link_Models,Satellite,Ground_Station)
         %%SETOPTICALEFFICIENCYLOSS set the optical efficiency loss in the link
+%% this is an overloaded method which changes the superclass behaviour
+
+        %% efficiency loss
+        Eff_Loss=Ground_Station.Beacon.Total_Efficiency*Satellite.Camera.Total_Efficiency;
 
         %% input validation
-        if ~all(isreal(Optical_Efficiency_Loss)&Optical_Efficiency_Loss>=0)
+        if ~all(isreal(Eff_Loss)&Eff_Loss>=0)
             error('optical efficiency loss must be a real, positive array of numeric values')
         end
-        if isscalar(Optical_Efficiency_Loss)
-            Optical_Efficiency_Loss=Optical_Efficiency_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
-        elseif isrow(Optical_Efficiency_Loss)
-        elseif iscolumn(Optical_Efficiency_Loss)
-            Optical_Efficiency_Loss=Optical_Efficiency_Loss'; %can transpose lengths to match dimensions of Link_Models
+        if isscalar(Eff_Loss)
+            Eff_Loss=Eff_Loss*ones(1,Link_Models.N); %if provided a scalar, put this into everywhere in the array 
+        elseif isrow(Eff_Loss)
+        elseif iscolumn(Eff_Loss)
+            Eff_Loss=Eff_Loss'; %can transpose lengths to match dimensions of Link_Models
         else
             error('Array must be a vector or scalar');
         end
 
-        Link_Models.Optical_Efficiency_Loss=Optical_Efficiency_Loss;
-        Link_Models.Optical_Efficiency_Loss_dB=-10*log10(Optical_Efficiency_Loss);
+        Link_Models.Optical_Efficiency_Loss=Eff_Loss;
+        Link_Models.Optical_Efficiency_Loss_dB=-10*log10(Eff_Loss);
     end
 
-    function Link_Models=SetAPTLoss(Link_Models,APT_Loss)
+    function Link_Models=SetAPTLoss(Link_Models,Satellite,Ground_Station)
         %%SETAPTLOSS set the acquistion, pointing and tracking loss of the link
+
+    %% this is an overloaded method which changes the behaviour of the superclass
+
+        %% APT loss
+        APT_Loss=GetAPTLoss(Ground_Station.Beacon,Satellite.Camera);
 
         %% input validation
         if ~all(isreal(APT_Loss)&APT_Loss>=0)
@@ -283,8 +312,37 @@ classdef Beacon_Uplink_Model < Link_Model
         Link_Models.APT_Loss_dB=-10*log10(APT_Loss);
     end
 
-    function Link_Models = SetTurbulenceLoss(Link_Models,Turbulence_Loss)
+    function Link_Models = SetTurbulenceLoss(Link_Models,Satellite,Ground_Station,GeoSpotDiameter)
             %%SETTURBULENCELOSS set the turbulence loss of the link
+     
+    %% this is an overload method which changes the superclass behaviour
+            
+            %% Turbulence loss
+        %we assume turbulence limited behaviour
+        %parameters
+        Wavelength = Ground_Station.Beacon.Wavelength*10^-9;
+        Wavenumber = 2*pi/Wavelength;
+        %can only compute for positive elevation
+        Elevation_Flags = Link_Models.Elevation_Angles>0;
+        Zenith = 90-Link_Models.Elevation_Angles(Elevation_Flags);
+        Satellite_Altitude = Satellite.Altitude(Elevation_Flags)';
+        
+        
+        Atmospheric_Turbulence_Coherence_Length = ...
+            atmospheric_turbulence_coherence_length_uplink(Wavenumber,...
+                                         Zenith, ...
+                                         Satellite_Altitude, ghv_defaults);
+        %output variables
+        Turbulence_Beam_Width_Increase = long_term_gaussian_beam_width(GeoSpotDiameter(Elevation_Flags), Link_Models.Length(Elevation_Flags) ,...
+                                     Wavenumber, Atmospheric_Turbulence_Coherence_Length');
+        %residual beam wander is not needed here as this is dealt with in
+        %APT loss
+        %wander_tl = residual_beam_wander(error_snr, error_delay, error_centroid, ...
+        %                                   error_tilt, spot_tl, L);
+
+        %turbulence loss is the ratio of geometric and turbulent spot areas
+        Turbulence_Loss(~Elevation_Flags)=0;
+        Turbulence_Loss(Elevation_Flags) = Turbulence_Beam_Width_Increase.^(-2);
 
             %% input validation
             if ~all(isreal(Turbulence_Loss)&Turbulence_Loss>=0)
@@ -302,7 +360,7 @@ classdef Beacon_Uplink_Model < Link_Model
             Link_Models.Turbulence_Loss=Turbulence_Loss;
             Link_Models.Turbulence_Loss_dB=-10*log10(Turbulence_Loss);
         end
-
+%{
     function Link_Models=SetLinkLength(Link_Models,Lengths)
         %%SETLINKLENGTH set the length of the links in the input array
 
@@ -320,5 +378,6 @@ classdef Beacon_Uplink_Model < Link_Model
 
         Link_Models.Length=Lengths;
     end
+%}
     end
 end

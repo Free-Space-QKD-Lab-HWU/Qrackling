@@ -677,5 +677,77 @@ classdef PassSimulation
                 PassSimulation.Uplink_Beacon_Link_Model=[];
             end
         end
+
+        function Satellite = Satellite(PassSimulation)
+            %% return the satellite object in use, whether a transmitter or receiver
+            switch PassSimulation.Link_Direction
+                case 'Up'
+                    Satellite = PassSimulation.QKD_Receiver;
+                case 'Down'
+                    Satellite = PassSimulation.QKD_Transmitter;
+                otherwise
+                    Satellite = [];
+                    warning('simulation has not yet had satellite assigned');
+            end
+        end
+
+        function OGS = Ground_Station(PassSimulation)
+            %% return the satellite object in use, whether a transmitter or receiver
+            switch PassSimulation.Link_Direction
+                case 'Up'
+                    OGS = PassSimulation.QKD_Transmitter;
+                case 'Down'
+                    OGS = PassSimulation.QKD_Receiver;
+                otherwise
+                    OGS = [];
+                    warning('simulation has not yet had OGS assigned');
+            end
+        end
+
+        function [SatelliteScenario,AccessIntervals] = Scenario(PassSimulation)
+            %% output a SatelliteScenario which can be simulated and viewed by MATLAB
+%the structure of transmitter and receiver doesn't matter here. The link is just a visual indicator of the pass duration
+
+            %% initialise scenario
+            StartTime = PassSimulation.Satellite.Times(1);
+            StopTime = PassSimulation.Satellite.Times(end);
+            SampleTime = seconds(PassSimulation.Satellite.Times(2)-PassSimulation.Satellite.Times(1));
+            %ensure these are datetime, datetime, double respectively.
+            assert(isdatetime(StartTime), 'can only simulate passes using datetime format');
+            %initialise
+            SatelliteScenario = satelliteScenario(StartTime,StopTime,SampleTime);
+            
+
+            %% get details of satellite
+            SatDetails = GetOrbitDetails(PassSimulation.Satellite);
+            %include satellite
+            SatSimObj = satellite(SatelliteScenario,SatDetails{:});
+
+
+            %% get details of OGS
+            OGSDetails = GetOGSDetails(PassSimulation.Ground_Station);
+            %include OGS
+            OGSSimObj = groundStation(SatelliteScenario,OGSDetails{:});
+
+
+            %% produce access object for analysis
+            Access = access(OGSSimObj,SatSimObj);
+            AccessIntervals = accessIntervals(Access);
+        end
+    
+        function Play(PassSimulation)
+            %% show this pass in the MATLAB satellite simulator
+
+            %note- this does not require simulating the pass
+            SatelliteScenario = Scenario(PassSimulation);
+            play(SatelliteScenario);
+        end
+
+        function Access = Access(PassSimulation)
+            %% return the access table for this passsimulation
+
+            %note- this does not require simulating the pass
+            [~,Access] = Scenario(PassSimulation);
+        end
     end
 end

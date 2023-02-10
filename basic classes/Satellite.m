@@ -14,6 +14,13 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
         % satellite object
         satellite_scenario;
         sc_sat;
+        Kepler_Elements;    %the kepler elements of a satellite are:
+        %Semimajor axis (m)
+        %eccentricity (0-1)
+        %inclination (deg)
+        %right argument of the ascending node
+        %argument of periapsis
+        %true anomaly
     end
 
     %do not hide small properties
@@ -98,14 +105,17 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             ta = p.Results.trueAnomaly;
 
             hasVelocity = false;
-
+            
+            %store kepler elements
             if (~any(isnan(arrayfun(@isnan, [sma, ecc, inc, raan, aop, ta]))) ...
                     & isempty(p.Results.KeplerElements))
                 KeplerElements = [sma, ecc, inc, raan, aop, ta];
             else
                 KeplerElements = p.Results.KeplerElements;
             end
-
+            Satellite.Kepler_Elements = KeplerElements;
+            
+            %store name
             if ~isempty(p.Results.Name)
                 Satellite.Name = p.Results.Name;
             end
@@ -391,6 +401,15 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
 
                 area(X_Axis(Plotting_Indices),Satellite.Dark_Count_Rates(Plotting_Indices));
                 legend('Dark Counts')
+        end
+
+        function OrbitDetails = GetOrbitDetails(Satellite)
+            %% return the orbit details sufficient to create a MATLAB satellite object
+            %returned asa cell array of arguments (give to function using
+            %OrbitDetails{:})
+         
+            OrbitDetails = timetable(Satellite.Times',[Satellite.Latitude,Satellite.Longitude,Satellite.Altitude]);
+            OrbitDetails = {OrbitDetails,'CoordinateFrame','geographic','Name',Satellite.Name};
         end
     end
 end
