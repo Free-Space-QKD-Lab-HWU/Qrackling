@@ -13,7 +13,7 @@ classdef Telescope
         Optical_Efficiency{mustBeScalarOrEmpty,mustBePositive}=0.6;
         
         %rms error in pointing in radians
-        Pointing_Jitter{mustBeScalarOrEmpty,mustBePositive}=10^-6;
+        Pointing_Jitter{mustBeScalarOrEmpty,mustBeNonnegative}=10^-6;
 
         %focal length (in m_ of the telescope collecting optics
         Focal_Length {mustBeScalarOrEmpty,mustBeNonnegative}=[];

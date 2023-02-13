@@ -413,10 +413,12 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
                 
                 %add sky photons to OGS background count rate sum
                 Light_Pollution_Count_Rate = sky_photon_rate';
-            else
-                %if no SMARTS config provided, use legacy system of lookup table
-                Light_Pollution_Count_Rate = GetLightPollutionCountRate(Ground_Station, Headings, Elevations);
             end
+
+                %if provided, use light pollution measured data instead
+                if ~isequal(Ground_Station.Background_Count_Rate_File_Location,'none')
+                Light_Pollution_Count_Rate = GetLightPollutionCountRate(Ground_Station, Headings, Elevations);
+                end
 
 
             % Reflected light pollution
@@ -446,7 +448,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             %}
 
             % Dark_Counts
-            Dark_Counts = ones(size(Headings))*Ground_Station.Detector.Dark_Count_Rate;
+            Dark_Counts = ones(size(Headings))*4*Ground_Station.Detector.Dark_Count_Rate;
 
             % output value
             Ground_Station.Light_Pollution_Count_Rates = Light_Pollution_Count_Rate;

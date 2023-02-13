@@ -60,13 +60,10 @@ classdef PassSimulation
 
         %flag describing whether a downlink beacon is being simulated
         Downlink_Beacon_Flag=false;
-
         %power of the downlink beacon which is received
         Downlink_Beacon_Power = [];
-
         %signal to noise ratio (in dB) of the downlink beacon
         Downlink_Beacon_SNR_dB = [];
-
         %link model describing loss from beacon on satellite to intensity at the ground
         Downlink_Beacon_Link_Model {mustBeScalarOrEmpty};
 
@@ -79,6 +76,7 @@ classdef PassSimulation
         Uplink_Beacon_SNR_dB = [];
         %link model describing loss from beacon on satellite to intensity at the ground
         Uplink_Beacon_Link_Model {mustBeScalarOrEmpty};
+        
         %flag describing whether the link from satellite to ground station is above the horizon
         Line_Of_Sight_Flags = false(0,0);
 

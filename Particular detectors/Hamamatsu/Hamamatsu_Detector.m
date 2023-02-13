@@ -2,7 +2,7 @@ classdef Hamamatsu_Detector<Detector
     %Hamamatsu_Detector a detector with Hamamatsu properties
 
     properties (SetAccess=protected,Abstract=false)
-        Dark_Count_Rate=10;
+        Dark_Count_Rate=7;
         Dead_Time=0;
         Histogram_Data_Location='HamamatsuHistogram.mat';
         Histogram_Bin_Width=10^-12;

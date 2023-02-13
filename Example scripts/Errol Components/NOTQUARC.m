@@ -32,8 +32,8 @@ function HubSat = NOTQUARC(StartTime,StopTime,SampleTime)
             %Mazzarella, Luc, Lowe, Christopher, Lowndes, David, Joshi, Siddarth Koduru, Greenland, Steve
             %McNeil, Doug, Mercury, Cassandra, Macdonald, Malcolm, Rarity, John, Oi, Daniel Kuan Li
             Wavelength = 785;                                                   %wavelength of source in nm
-            HubSat_Scope_Diameter = 0.09;                                        %telescope diameter in m
-            HubSat_Scope_Efficiency = 0.6;                                      %telescope optical efficiency (unitless)
+            HubSat_Scope_Diameter = 0.08;                                        %telescope diameter in m
+            HubSat_Scope_Efficiency = 1;                                      %telescope optical efficiency (unitless)
             HubSat_Pointing_Jitter = 1E-6;                                      %telescope pointing error in rads
             HubSat_Scope_FOV = 22E-6;                                          %quantum signal FOV in rads
             HubSatScope = Telescope(HubSat_Scope_Diameter,...
@@ -64,7 +64,7 @@ function HubSat = NOTQUARC(StartTime,StopTime,SampleTime)
             BeaconPower = 2;                                                    %beacon optical power in w
             BeaconWavelength = 910;                                             %beacon wavelength in nm
             BeaconEfficiency = 1;                                               %beacon optical efficiency (unitless)
-            BeaconPointingPrecision = 5E-3;                                    %beacon pointing precision (coarse pointing precision) in rads
+            BeaconPointingPrecision = 0;                                    %beacon pointing precision (coarse pointing precision) in rads
 %initially, uncertainty in satellite position is 5km and range is roughly
             BeaconTelescope = Telescope(0.01,'FOV',0.4*180/pi);               %downlink beacon has 10mm diameter and 0.4 degrees cone angle
             HubSatBeacon = Flat_Top_Beacon(BeaconTelescope,BeaconPower,BeaconWavelength,...
