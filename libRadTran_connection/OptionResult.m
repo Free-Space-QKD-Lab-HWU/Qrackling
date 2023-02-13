@@ -33,5 +33,43 @@ classdef OptionResult
             OptionResult.HasValue = p.Results.HasValue;
         end
 
+        function variable = SetValue(OptionResult, option)
+
+            if isnumeric(option)
+                choice = OptionResult.Option{option};
+            elseif sum(contains(OptionResult.Option, option)) > 0
+                choice = option;
+            else
+                error('Chosen option not present in Options');
+            end
+
+            variable = Variable(TagEnum.IsCondition, Parent=OptionResult.Parent);
+            variable = variable.setName(option.Name);
+
+            if OptionResult.Enumerate == true
+                if ~isnumeric(choice)
+                    enumed = find(cellfun(@(o) strcmp(o, choice), OptionResult.Option) == true);
+                    OptionResult.Result = enumed;
+                    variable.Value = enumed;
+                    return
+                end
+                OptionResult.Result = choice;
+                variable.Value = choice;
+                return
+            else
+                if isnumeric(choice)
+                    enumed = find(cellfun(@(o) strcmp(o, choice), OptionResult.Option) == true);
+                    OptionResult.Result = OptionResult.Option{enumed};
+                    variable.Value = enumed;
+                    return
+                end
+                OptionResult.Result = choice;
+                variable.Value = choice;
+                return
+            end
+
+        end
+
+
     end
 end
