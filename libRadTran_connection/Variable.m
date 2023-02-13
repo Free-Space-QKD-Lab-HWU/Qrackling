@@ -10,6 +10,12 @@ classdef Variable
     end
 
     methods
+
+        % want a function in here that allows returning a new Variable if the 
+        % tag is TagEnum.OptionResult, with the choice set and the correct new
+        % tag set (probably Isvalue or IsCondition depending on if its numeric
+        % or a string).
+
         function Variable = Variable(Tag, varargin)
             p = inputParser;
             addRequired(p, 'Tag');
