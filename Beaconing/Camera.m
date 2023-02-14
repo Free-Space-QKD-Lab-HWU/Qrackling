@@ -91,7 +91,7 @@ classdef Camera
             %% Signal energy
             Signal_Energy = InputPower * Camera.Exposure_Time * Camera.Quantum_Efficiency;
             %simulate saturation of the well (pixel saturation)
-            Signal_Photons_Per_Exposure = min(Signal_Energy,Camera.Full_Well_Capacity);
+            Signal_Energy(Signal_Energy > Camera.Full_Well_Capacity) = Camera.Full_Well_Capacity;
 
             %% Internal noise
             Internal_Noise_Energy = Camera.Noise;
@@ -105,7 +105,7 @@ classdef Camera
 
 
             %% compute SNR
-            SNR = Signal_Photons_Per_Exposure ./ (ExternalNoiseEnergy + Internal_Noise_Energy);
+            SNR = Signal_Energy ./ Total_Noise_Energy;
             SNR_dB = 10*log10(SNR);
 
         end
