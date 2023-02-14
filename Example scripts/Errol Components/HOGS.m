@@ -7,7 +7,7 @@ function HOGS = HOGS()
 %Telescope
 Telescope_Diameter = 0.7;                                           %telescope diameter in m
 Pointing_Jitter = 1E-6;                                             %pointing error in rads
-Optical_Efficiency = 0.6;                                           %optical efficiency of telescope (dimensionless)
+Optical_Efficiency = 0.7*10^(-0.9/10);                              %optical efficiency of telescope (dimensionless), including obscuration and back-end losses
 HOGS_Telescope = Telescope(Telescope_Diameter,...
     'Pointing_Jitter',Pointing_Jitter,...
     'Optical_Efficiency',Optical_Efficiency);
@@ -16,17 +16,19 @@ HOGS_Telescope = Telescope(Telescope_Diameter,...
 Wavelength = 785;                                                   %signal wavelength in nm
 Repetition_Rate = 1E8;                                              %signal rep rate in Hz
 Time_Gate = 2E-9;                                                   %time gate width in s
-Spectral_Filter_Width = 2;                                          %spectral filter width in nm
+Spectral_Filter_Width = 10;                                          %spectral filter width in nm
 HOGS_Detector = Excelitas_Detector(Wavelength,Repetition_Rate,...
     Time_Gate,Spectral_Filter_Width);
 
 %beacon camera
-HOGS_Camera = ATIK();%this is a constructor for the ATIK camera we use
+Exposure_Time = 1;
+Spectral_Filter_Width = 10;
+HOGS_Camera = ATIK(Exposure_Time,Spectral_Filter_Width);%this is a constructor for the ATIK camera we use
 
 %uplink beacon
 Beacon_Power = 2;                                                               %power of uplink beacon in W
 Beacon_Wavelength = 850;                                                        %uplink beacon wavelength in nm
-BeaconPointingPrecision = 0;                                                 %beacon pointing precision (coarse pointing precision) in rads
+BeaconPointingPrecision = 1E-6;                                                %beacon pointing precision (coarse pointing precision) in rads
 %initially, uncertainty in satellite position is 5km and range is roughly
 %500km/sin(30), so pointing precision is on the order 5mrads.
 BeaconEfficiency = 1;                                                           %beacon optical efficiency (unitless)
@@ -40,6 +42,6 @@ HOGS=Errol_OGS(HOGS_Telescope,...
                 'Camera',HOGS_Camera,...
                 'Beacon',HOGSBeacon,...
                 'Background_Count_Rate_File_Location',['orbit modelling resources',filesep,'background count rate files',filesep,'ErrolWithMoon780nm.mat'],...
-                'Atmosphere_File_Location',['SMARTS_connection',filesep,'SMARTS cache',filesep,'Errol_Atmosphere_winter_times.mat']);%choose a midnight simulation so that time is night );
+                'Atmosphere_File_Location',['SMARTS_connection',filesep,'SMARTS cache',filesep,'Errol_Atmosphere_Visibility_50km_winter_times.mat']);%choose a midnight simulation so that time is night );
 end
 

@@ -133,7 +133,7 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
 
             %% adjust legend to represent what is plotted
             %atmospheric loss is non zero
-            legend('Geometric loss','Efficiency loss','APT loss','Turbulence loss','Atmospheric loss','Orientation','horizontal');
+            legend('Geometric','Efficiency','Pointing','Turbulence','Atmospheric','Orientation','horizontal');
             legend('Location','south')
         end
 

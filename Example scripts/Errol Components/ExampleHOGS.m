@@ -1,7 +1,7 @@
 %% an example script demonstrating how to simulate the current HOGS model and Quantum comms hub satellite
 
 %% model HOGS
-HOGS=HOGS();%current HOGS model
+OGS=HOGS();%current HOGS model
 
 %% model hub satellite
 %can run using default times
@@ -25,7 +25,7 @@ Protocol=decoyBB84_Protocol();
 
 
 %% simulate a pass
-Pass=PassSimulation(Sat,Protocol,HOGS);
+Pass=PassSimulation(Sat,Protocol,OGS);
 Pass=Simulate(Pass);
 plot(Pass);
 %Play(Pass);

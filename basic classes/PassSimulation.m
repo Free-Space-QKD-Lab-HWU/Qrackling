@@ -657,16 +657,12 @@ classdef PassSimulation
                 Uplink_Beacon_Power = Ground_Station.Beacon.Power*10.^(-UplinkBeaconLossdB/10);
                 PassSimulation.Uplink_Beacon_Power=Uplink_Beacon_Power;
 
-                if ~isempty(smarts_configuration)
-                %computed beacon channel noise
-                %% need some smarts involvement here
-                Uplink_Beacon_Noise = Satellite.Camera.Noise;
-                else
-                    Uplink_Beacon_Noise = Ground_Station.Camera.Noise;
-                end
+                %%%%%%%%% TODO: include some source of earthshine data here
+                [Uplink_Beacon_SNR,Uplink_Beacon_SNR_dB] = SNR(Ground_Station.Camera,...
+                                                                Uplink_Beacon_Power);
 
                 %compute SNR
-                PassSimulation.Uplink_Beacon_SNR_dB = 10*log10(Uplink_Beacon_Power./Uplink_Beacon_Noise);
+                PassSimulation.Uplink_Beacon_SNR_dB = Uplink_Beacon_SNR_dB;
                 PassSimulation.Uplink_Beacon_Link_Model = Beacon_Uplink_model;
             else
                 %if no uplink beacon, return empty data

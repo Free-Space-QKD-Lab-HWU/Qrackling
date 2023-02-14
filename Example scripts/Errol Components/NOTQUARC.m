@@ -64,15 +64,17 @@ function HubSat = NOTQUARC(StartTime,StopTime,SampleTime)
             BeaconPower = 2;                                                    %beacon optical power in w
             BeaconWavelength = 910;                                             %beacon wavelength in nm
             BeaconEfficiency = 1;                                               %beacon optical efficiency (unitless)
-            BeaconPointingPrecision = 0;                                    %beacon pointing precision (coarse pointing precision) in rads
-%initially, uncertainty in satellite position is 5km and range is roughly
-            BeaconTelescope = Telescope(0.01,'FOV',0.4*180/pi);               %downlink beacon has 10mm diameter and 0.4 degrees cone angle
+            BeaconPointingPrecision = 1E-6;                                    %beacon pointing precision (coarse pointing precision) in rads
+            %initially, uncertainty in satellite position is 5km and range is roughly
+            BeaconTelescope = Telescope(0.01,'FOV',0.4*pi/180,'Wavelength',BeaconWavelength); %downlink beacon has 10mm diameter and 0.4 degrees cone angle
             HubSatBeacon = Flat_Top_Beacon(BeaconTelescope,BeaconPower,BeaconWavelength,...
                                 'Power_Efficiency',BeaconEfficiency,...
                                 'Pointing_Jitter',BeaconPointingPrecision);
 
             %camera
-            HubSatCamera = ATIK(); %until we have a better idea, this will have to do for the uplink camera
+            Exposure_Time = 1;                                                  %camera exposure time in s
+            Spectral_Filter_Width = 10;                                         %spectral filter width in nm
+            HubSatCamera = ATIK(Exposure_Time,Spectral_Filter_Width); %until we have a better idea, this will have to do for the uplink camera
 
             %% construct satellite with correct orbital parameters
             HubSat=Satellite(HubSatScope,...
@@ -84,7 +86,7 @@ function HubSat = NOTQUARC(StartTime,StopTime,SampleTime)
                             'SemiMajorAxis',500E3 + earthRadius,...             %mean orbital radius = Altitude + Earth radius
                             'eccentricity',0,...                                %measure of ellipticity of the orbit, for circular, =0
                             'inclination',1.006316534636167e+02,...             %inclination of orbit in deg- set by sun synchronicity
-                            'rightAscensionOfAscendingNode',1.75,...            %measure of location of orbit in longitude
+                            'rightAscensionOfAscendingNode',-1.5,...            %measure of location of orbit in longitude
                             'argumentOfPeriapsis',0,...                         %measurement of location of ellipse nature of orbit in longitude, irrelevant for circular orbits
                             'trueAnomaly',0,...                                 %initial position through orbit of satellite
                             'StartTime',StartTime,...                           %start of simulation
