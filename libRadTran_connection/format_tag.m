@@ -1,44 +1,85 @@
-function result = format_tag(parameter)
-    result = cellfun(...
-        @(P) isa(parameter.(P), 'TagEnum'), ...
-        properties(parameter));
-    assert(sum(result) == 1, 'Not a parameter');
+function results = format_tag(parameter)
+    %if ~isstruct(parameter)
+    %    opt.('opt') = parameter;
+    %else
+    %    opt = parameter;
+    %end
 
-    switch parameter.Tag
+    %fields = fieldnames(opt);
+    %n_opts = numel(fields);
+
+    %results = {};
+
+    %for i = 1:n_opts
+    %    param = opt.(fields{i});
+    %    %result = cellfun(...
+    %    %    @(P) isa(parameter.(P), 'TagEnum'), ...
+    %    %    properties(parameter));
+    %    %assert(sum(result) == 1, 'Not a parameter');
+    %    results{i} = format(param);
+
+    %end
+
+    if isstruct(parameter)
+        results = resultFromStruct(parameter);
+        return
+    end
+
+    results = format(parameter);
+
+end
+
+function result = resultFromStruct(parameter)
+
+    fields = fieldnames(parameter);
+    n_fields = numel(fields);
+
+    result = parameter.(fields{1}).Parent;
+    for i = 1:n_fields
+        %disp(parameter.(fields{i}));
+        raw_result = strsplit(format(parameter.(fields{i})), ' ');
+        result = strjoin({result, raw_result{end}}, ' ');
+    end
+
+end
+
+function result = format(param)
+    switch param.Tag
         case TagEnum.IsFile
-            result = formatIsFile(parameter);
+            result = formatIsFile(param);
 
         case TagEnum.IsFileName
-            result = formatIsFileName(parameter);
+            result = formatIsFileName(param);
 
         case TagEnum.IsValue
-            result = formatIsValue(parameter);
+            result = formatIsValue(param);
 
         case TagEnum.IsOnOff
-            result = formatIsOnOff(parameter);
+            result = formatIsOnOff(param);
 
         case TagEnum.IsOptionResult
-            result = formatIsOptionResult(parameter);
+            result = formatIsOptionResult(param);
 
         case TagEnum.IsPosition
-            result = formatIsPosition(parameter);
+            result = formatIsPosition(param);
 
         case TagEnum.IsCondition
-            result = formatIsCondition(parameter);
+            result = formatIsCondition(param);
 
         case TagEnum.IsObsolete
-            result = formatIsCondition(parameter);
+            result = formatIsCondition(param);
 
         case TagEnum.IsArray
-            result = formatIsArray(parameter);
+            result = formatIsArray(param);
 
         case TagEnum.IsSetScale
-            result = formatIsSetScale(parameter);
+            result = formatIsSetScale(param);
 
         otherwise
             result = '';
     end
 end
+
 
 function result = parameterString(parameter)
     parent = parameter.Parent;
@@ -59,22 +100,33 @@ function result = walkParameter(parameter)
 end
 
 function result = formatIsFile(parameter)
-    disp('IsFile');
-    result = strjoin({parameterString(parameter), adduserpath(parameter.Value)}, ' ');
+    %result = strjoin({parameterString(parameter), adduserpath(parameter.Value)}, ' ');
+    parent = parameter.Parent;
+    name = parameter.Name;
+    value = adduserpath(parameter.Value);
+    if strcmp(parent, name)
+        result = strjoin({parent, value}, ' ');
+        return
+    end
+    result = strjoin({parent, name, value}, ' ');
 end
 
 function result = formatIsFileName(parameter)
-    disp('IsFileName');
     result = strjoin({parameterString(parameter), adduserpath(parameter.Value)}, ' ');
 end
 
 function result = formatIsValue(parameter)
-    disp('IsValue');
-    result = strjoin({parameterString(parameter), parameter.Value}, ' ');
+    %result = strjoin({parameterString(parameter), num2str(parameter.Value)}, ' ');
+    parent = parameter.Parent;
+    value = parameter.Value;
+    if isempty(value)
+        result = parent;
+        return
+    end
+    result = strjoin({parent, num2str(value)}, ' ');
 end
 
 function result = formatIsOnOff(parameter)
-    disp('IsOnOff');
     onoff = 'off';
     if parameter.Value == true
         onoff = 'on';
@@ -88,26 +140,21 @@ function result = formatIsOptionResult(parameter)
 end
 
 function result = formatIsPosition(parameter)
-    disp('IsPosition');
     result = strjoin({parameter.Parent, parameter.Name}, ' ');
 end
 
 function result = formatIsCondition(parameter)
-    disp('IsCondition');
     result = strjoin({parameter.Parent, parameter.Name}, ' ');
 end
 
 function result = formatIsObsolete(parameter)
-    disp('IsObsolete');
     result = strjoin({parameter.Parent, parameter.Name}, ' ');
 end
 
 function result = formatIsArray(parameter)
-    disp('IsArray');
-    result = strjoin({parameter.Parent, parameter.Name}, ' ');
+    result = strjoin({parameter.Parent, num2str(parameter.Value)}, ' ');
 end
 
 function result = formatIsSetScale(parameter)
-    disp('IsSetScale');
-    result = strjoin({parameter.Parent, parameter.Name}, ' ');
+    result = strjoin({parameter.Parent, num2str(parameter.Value)}, ' ');
 end
