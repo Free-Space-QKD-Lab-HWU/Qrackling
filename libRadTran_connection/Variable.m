@@ -37,5 +37,24 @@ classdef Variable
             Variable.Name = Name;
         end
 
+        function opts = Options(Variable)
+            if ~isa(Variable.Value, 'OptionResult')
+                error('No options for this variable');
+            end
+            opts = Variable.Value.Option;
+        end
+
+        function V = OptionResultToVariable(Variable, choice)
+            if ~isa(Variable.Value, 'OptionResult')
+                V = Variable;
+                return
+            end
+            V = Variable.Value.ToVariable(choice);
+            if isempty(V.Name)
+                V = V.setName(Variable.Name);
+            end
+            V = V.setParent(Variable.Parent);
+        end
+
     end
 end

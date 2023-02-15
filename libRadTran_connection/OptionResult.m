@@ -2,8 +2,10 @@ classdef OptionResult
     properties(SetAccess=protected)
         Option = {};
         Labels = {};
+        Tags = {};
         Enumerate {mustBeNumericOrLogical} = false;
         HasValue {mustBeNumericOrLogical} = false;
+        UseLabel {mustBeNumericOrLogical} = false;
     end
 
     properties
@@ -20,12 +22,16 @@ classdef OptionResult
             addParameter(p, 'Enumerate', false);
             addParameter(p, 'Labels', {});
             addParameter(p, 'HasValue', false);
+            addParameter(p, 'Tags', {});
+            addParameter(p, 'UseLabel', false);
             parse(p, Options, varargin{:});
 
             OptionResult.Option = Options;
             %OptionResult.Result = {};
             OptionResult.Enumerate = p.Results.Enumerate;
             OptionResult.Labels = Options;
+            OptionResult.UseLabel = p.Results.UseLabel;
+            OptionResult.Tags = p.Results.Tags;
 
             if ~isempty(p.Results.Labels)
                 OptionResult.Labels = p.Results.Labels;
@@ -66,6 +72,51 @@ classdef OptionResult
                 OptionResult.Result = choice;
                 variable.Value = choice;
                 return
+            end
+
+        end
+
+        function V = ToVariable(OptionResult, choice)
+            % Unpleasant control flow but it works
+
+            choiceInOptions = @(OR, C) cellfun(@(O) strcmp(O, C), OR.Option);
+            choiceArray = choiceInOptions(OptionResult, choice);
+            choiceIndex = find(choiceArray == true);
+
+            if isempty(OptionResult.Tags)
+                V = Variable(TagEnum.IsValue);
+            else
+                V = Variable(OptionResult.Tags{choiceIndex});
+                if OptionResult.UseLabel == true
+                    V = V.setName(choice);
+                end
+                return
+            end
+
+            if isnumeric(choice)
+                if OptionResult.Enumerate == true
+                    if numel(OptionResult.Option) <= choice
+                        V.Value = choice;
+                    else
+                        error('Choice out of enumerated range');
+                    end
+                else
+                    V.Value = OptionResult.Option{choice};
+                end
+            else
+                if sum(choiceArray) > 0
+                    choiceString = OptionResult.Option{choiceIndex};
+                else
+                    error([...
+                        'Choice not contained in Options, available:', ...
+                        newline, strjoin(OptionResult.Option, [newline, char(9)]) ...
+                        ]);
+                end
+                if OptionResult.Enumerate == true
+                    V.Value = choiceIndex;
+                else
+                    V.Value = OptionResult.Option{choiceIndex};
+                end
             end
 
         end
