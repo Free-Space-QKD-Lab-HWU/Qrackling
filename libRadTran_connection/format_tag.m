@@ -103,7 +103,10 @@ function result = formatIsFile(parameter)
     %result = strjoin({parameterString(parameter), adduserpath(parameter.Value)}, ' ');
     parent = parameter.Parent;
     name = parameter.Name;
-    value = adduserpath(parameter.Value);
+    value = parameter.Value;
+    if ~isempty(value)
+        value = adduserpath(value);
+    end
     if strcmp(parent, name)
         result = strjoin({parent, value}, ' ');
         return
@@ -135,8 +138,10 @@ function result = formatIsOnOff(parameter)
 end
 
 function result = formatIsOptionResult(parameter)
-    walked = walkParameter(parameter);
-    result = strjoin({parameter.Parent, parameter.Name, walked.Result}, ' ');
+    %walked = walkParameter(parameter);
+    walked = parameter;
+    %result = strjoin({parameter.Parent, parameter.Name, walked.Result}, ' ');
+    result = strjoin({parameter.Parent, parameter.Name, parameter.Value}, ' ');
 end
 
 function result = formatIsPosition(parameter)
@@ -144,6 +149,12 @@ function result = formatIsPosition(parameter)
 end
 
 function result = formatIsCondition(parameter)
+    parent = parameter.Parent;
+    name = parameter.Name;
+    if strcmp(parent, name)
+        result = name;
+        return
+    end
     result = strjoin({parameter.Parent, parameter.Name}, ' ');
 end
 
