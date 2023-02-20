@@ -98,9 +98,9 @@ classdef Camera
 
             %% external noise (optional)
             if nargin == 3
-                ExternalNoiseEnergy = ExternalNoisePower * Camera.Exposure_Time;
+                Total_Noise_Energy = Internal_Noise_Energy + ExternalNoisePower * Camera.Exposure_Time;
             else
-                ExternalNoiseEnergy = 0;
+                Total_Noise_Energy = Internal_Noise_Energy;
             end
 
 

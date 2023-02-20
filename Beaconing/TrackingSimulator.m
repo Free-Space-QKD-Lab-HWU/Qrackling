@@ -17,7 +17,7 @@ Saturation_Limit = PassSimulation.Ground_Station.Camera.Full_Well_Capacity;
 Camera_FOV_rad = PassSimulation.Ground_Station.Camera.FOV*[1;1];
 Camera_FOV_deg = rad2deg(Camera_FOV_rad);
 %camera pixels (not recorded)
-Camera_Pixels = [1080,1080];
+Camera_Pixels = [4096,4096];
 %number of different values each pixel can record
 Camera_Pixel_Range = 256;
 SNR_Limit = 5;

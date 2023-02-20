@@ -170,7 +170,7 @@ classdef Satellite_Downlink_Model < Satellite_Link_Model
             Link_Models.Length=Lengths;
         end
 %}
-        function Link_Models = SetTurbulenceLoss(Link_Models,Satellite,~,Geo_Spot_Size)
+        function [Link_Models,Turbulence_Beam_Width] = SetTurbulenceLoss(Link_Models,Satellite,~,Geo_Spot_Size)
             %%SETTURBULENCELOSS set the turbulence loss of the link
             %Geo_Spot_Size is the geometrically-limited spot size at the
             %receiver
@@ -194,7 +194,7 @@ classdef Satellite_Downlink_Model < Satellite_Link_Model
                                              Zenith, ...
                                              Satellite_Altitude, ghv_defaults);
             %output variables
-            Turbulence_Beam_Width_Increase = long_term_gaussian_beam_width(Geo_Spot_Size(Elevation_Flags), Link_Models.Length(Elevation_Flags) ,...
+            Turbulence_Beam_Width = long_term_gaussian_beam_width(Geo_Spot_Size(Elevation_Flags), Link_Models.Length(Elevation_Flags) ,...
                                         Wavenumber, Atmospheric_Turbulence_Coherence_Length');
             %residual beam wander is not needed here as this is dealt with in
             %APT loss
@@ -203,7 +203,7 @@ classdef Satellite_Downlink_Model < Satellite_Link_Model
 
             %turbulence loss is the ratio of geometric and turbulent spot areas
             Turb_Loss(~Elevation_Flags)=0;
-            Turb_Loss(Elevation_Flags) = Turbulence_Beam_Width_Increase.^(-2);
+            Turb_Loss(Elevation_Flags) = (Turbulence_Beam_Width./Geo_Spot_Size(Elevation_Flags)).^(-2);
 
 
 
@@ -222,6 +222,7 @@ classdef Satellite_Downlink_Model < Satellite_Link_Model
 
             Link_Models.Turbulence_Loss=Turb_Loss;
             Link_Models.Turbulence_Loss_dB=-10*log10(Turb_Loss);
+            Link_Models.Receiver_Spot_Size(Elevation_Flags) = Turbulence_Beam_Width;
         end
 %{
         function Link_Models = SetElevationAngle(Link_Models,Satellite,Ground_Station)

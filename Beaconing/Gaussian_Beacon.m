@@ -41,8 +41,8 @@ classdef Gaussian_Beacon < Beacon
         %%GETGEOLOSS Get the loss incurred by the spreading of the beacon beam
         %relative to the receiver camera area. Value is a unitless ratio <1
         
-        GeoSpotDiameter = Gaussian_Beacon.Divergence_Half_Angle*Range;
-        GeoLoss = (sqrt(pi)/8)*Camera.Collecting_Area./(GeoSpotDiameter.^2);
+        GeoSpotDiameter = 2*Gaussian_Beacon.Divergence_Half_Angle*Range;
+        GeoLoss = (sqrt(pi)/8)*Camera.Collecting_Area./((GeoSpotDiameter/2).^2);
         end
     end
 end

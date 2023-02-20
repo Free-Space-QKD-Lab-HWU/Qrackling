@@ -312,7 +312,7 @@ classdef Beacon_Uplink_Model < Satellite_Link_Model
         Link_Models.APT_Loss_dB=-10*log10(APT_Loss);
     end
 
-    function Link_Models = SetTurbulenceLoss(Link_Models,Satellite,Ground_Station,GeoSpotDiameter)
+    function [Link_Models,Turbulence_Beam_Width] = SetTurbulenceLoss(Link_Models,Satellite,Ground_Station,GeoSpotDiameter)
             %%SETTURBULENCELOSS set the turbulence loss of the link
      
     %% this is an overload method which changes the superclass behaviour
@@ -333,7 +333,7 @@ classdef Beacon_Uplink_Model < Satellite_Link_Model
                                          Zenith, ...
                                          Satellite_Altitude, ghv_defaults);
         %output variables
-        Turbulence_Beam_Width_Increase = long_term_gaussian_beam_width(GeoSpotDiameter(Elevation_Flags), Link_Models.Length(Elevation_Flags) ,...
+        Turbulence_Beam_Width = long_term_gaussian_beam_width(GeoSpotDiameter(Elevation_Flags), Link_Models.Length(Elevation_Flags) ,...
                                      Wavenumber, Atmospheric_Turbulence_Coherence_Length');
         %residual beam wander is not needed here as this is dealt with in
         %APT loss
@@ -342,7 +342,7 @@ classdef Beacon_Uplink_Model < Satellite_Link_Model
 
         %turbulence loss is the ratio of geometric and turbulent spot areas
         Turbulence_Loss(~Elevation_Flags)=0;
-        Turbulence_Loss(Elevation_Flags) = Turbulence_Beam_Width_Increase.^(-2);
+        Turbulence_Loss(Elevation_Flags) = (Turbulence_Beam_Width./GeoSpotDiameter(Elevation_Flags)).^(-2);
 
             %% input validation
             if ~all(isreal(Turbulence_Loss)&Turbulence_Loss>=0)
@@ -359,6 +359,7 @@ classdef Beacon_Uplink_Model < Satellite_Link_Model
 
             Link_Models.Turbulence_Loss=Turbulence_Loss;
             Link_Models.Turbulence_Loss_dB=-10*log10(Turbulence_Loss);
+            Link_Models.Receiver_Spot_Size(Elevation_Flags)=Turbulence_Beam_Width;
         end
 %{
     function Link_Models=SetLinkLength(Link_Models,Lengths)

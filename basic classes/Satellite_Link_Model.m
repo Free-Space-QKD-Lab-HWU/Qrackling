@@ -21,7 +21,8 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
         Atmospheric_Loss_dB=nan;                                           %atmospheric loss in dB
         Length=nan;                                                        %link distance in m
         Visibility {mustBeText} ='clear'                                   %tag identifying the visibility conditions of this link
-        Elevation_Angles(1,:)=nan;                                              %elevation of the satellite link
+        Elevation_Angles(1,:)=nan;                                         %elevation of the satellite link
+        Receiver_Spot_Size=nan;                                            %diameter of the spot at the receiver in m
     end
 
     methods (Abstract = false, Access = protected)
@@ -170,6 +171,8 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
             Satellite_Link_Model.Atmospheric_Loss=zeros(1,N);                                              %atmospheric loss in absolute terms
             Satellite_Link_Model.Atmospheric_Loss_dB=zeros(1,N);                                           %atmospheric loss in dB
             Satellite_Link_Model.Length=zeros(1,N);                                                        %link distance in m
+            Satellite_Link_Model.Elevation_Angles=zeros(1,N);
+            Satellite_Link_Model.Receiver_Spot_Size=zeros(1,N);
         end
     
         function [Link_Model,Total_Loss_dB]=SetTotalLoss(Link_Model)
@@ -193,7 +196,7 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
 
         Link_Models=SetAPTLoss(Link_Models,Satellite,Ground_Station)
 
-        Link_Models = SetTurbulenceLoss(Link_Models,Satellite,Ground_Station,Geo_Spot_Size)
+        [Link_Models,Total_Spot_Size] = SetTurbulenceLoss(Link_Models,Satellite,Ground_Station,Geo_Spot_Size)
 
     end
 end
