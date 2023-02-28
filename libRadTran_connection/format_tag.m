@@ -37,6 +37,7 @@ function result = resultFromStruct(parameter)
     result = parameter.(fields{1}).Parent;
     for i = 1:n_fields
         %disp(parameter.(fields{i}));
+        disp(i);
         raw_result = strsplit(format(parameter.(fields{i})), ' ');
         result = strjoin({result, raw_result{end}}, ' ');
     end
@@ -145,7 +146,7 @@ function result = formatIsOptionResult(parameter)
 end
 
 function result = formatIsPosition(parameter)
-    result = strjoin({parameter.Parent, parameter.Name}, ' ');
+    result = strjoin({parameter.Parent, parameter.Value}, ' ');
 end
 
 function result = formatIsCondition(parameter)

@@ -251,7 +251,9 @@ classdef SMARTS_input
             %% windows machines require CR/LF line return characters
             %these are not written by MATLAB as default. therefore we need to
             %introduce them by replacing the newline chatacter
-            SMARTS_input.input_string=replace(SMARTS_input.input_string, newline, [char(13), char(10)]);
+            if ispc
+                SMARTS_input.input_string=replace(SMARTS_input.input_string, newline, [char(13), char(10)]);
+            end
 
             if isempty(file_name)
                 file_name = 'smarts295.inp.txt';
@@ -333,7 +335,8 @@ classdef SMARTS_input
             %movefile(strrep(destination, 'inp', 'out'), '.\smarts295.out.txt');
 
             if isunix
-                [~, ~] = system('./smarts295bat');
+                %[~, ~] = system('./smarts295');
+                system('./smarts295bat');
             else
                 evalc('system("smarts295bat.exe")');
             end

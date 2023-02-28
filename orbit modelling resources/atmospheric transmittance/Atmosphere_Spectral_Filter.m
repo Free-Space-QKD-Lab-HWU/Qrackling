@@ -76,6 +76,7 @@ classdef Atmosphere_Spectral_Filter < SpectralFilter
                         % but only altering ones with this visibility tag
                         if numel(Visibilities)==1||isequal(Visibility,Visibilities{i})
                         ASF(i).wavelengths=Wavelength;
+                        % Transmittance != Transmission
                         ASF(i).transmission=Transmittance(:,i);
                         end
                     end
