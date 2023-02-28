@@ -75,7 +75,7 @@ end
 
 function opt = aerosol_default_func()
     name = fnname2optname();
-    opt.(name) = Variable(TagEnum.IsOnOff, parent=name);
+    opt.(name) = Variable(TagEnum.IsCondition, parent=name);
 end
 
 function opt = aerosol_file_func()
@@ -961,7 +961,7 @@ function opt = profile_modify_func()
     opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
 
-function opt = psuedospherical_func()
+function opt = pseudospherical_func()
     name = fnname2optname();
     opt.(name) = Variable(TagEnum.IsValue, Parent=name);
 end
@@ -1338,7 +1338,7 @@ function options = alloptions()
         print_disort_info_func(), ...
         profile_file_func(), ...
         profile_modify_func(), ... % also needs work...
-        psuedospherical_func(), ...
+        pseudospherical_func(), ...
         quiet_func(), ...
         radiosonde_func(), ...
         radiosonde_levels_only_func(), ...

@@ -50,9 +50,9 @@ function output = runlibRadtran(filename, parameters, quiet, output_path)
     if isunix
         curdir = cd([lrtdir, '/examples/']);
         if quiet == true
-            [~,~] = system(strjoin({'uvspec < ', filename}));
+            [~,~] = system(strjoin({'uvspec < ', filename, ' > ', output_path}));
         else
-            info = system(strjoin({'uvspec < ', filename}));
+            info = system(strjoin({'uvspec < ', filename, ' > ', output_path}));
         end
         curdir = cd(curdir);
     end
