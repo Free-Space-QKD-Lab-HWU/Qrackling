@@ -74,7 +74,7 @@ function configuration = solar_background_errol(varargin)
     %             ', not of type ', ...
     %             class( p.Results.(card_types{i}{1}) )...
     %             ]);
-    %         input_cards{end + 1} = p.Results.(card_types{i}{1});
+    %         input_cards{end + 1} = p.Results.(card_typesi}{1});
     %     end
     % end
 
