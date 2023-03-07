@@ -19,7 +19,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
 
         %uplink beacon, if simulated
         Beacon = [];
-    
+
         %atmosphere file location
         Atmosphere_File_Location = [];
     end
