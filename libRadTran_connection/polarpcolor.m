@@ -65,7 +65,7 @@ function annotateFigure(Theta, N_Spokes, N_Rings, R_Ticks, R_Tick_Labels, Contou
     for i = 2:N_Rings
         tick = num2str(i, 2);
         if ~isempty(R_Tick_Labels)
-            tick = num2str(R_Tick_Labels(i), 2)
+            tick = num2str(R_Tick_Labels(i), 2);
         end
 
         rtick = text( ...
@@ -210,11 +210,11 @@ function [ring_position, N] = defineRings( ...
 
     % Allow user to override number of rings by setting extra labels or ticks
     if (~isempty(ringTicks)) | (~isempty(ringTickLabels))
-        N = max(numel(ringTicks), numel(ringTickLabels))
+        N = max(numel(ringTicks), numel(ringTickLabels));
     end
 
     if ~isempty(ringPosition)
-        ring_position = unique([R_min, ringPosition, R_max])
+        ring_position = unique([R_min, ringPosition, R_max]);
     end
 
 end
