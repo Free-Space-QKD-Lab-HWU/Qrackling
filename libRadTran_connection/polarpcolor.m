@@ -1,9 +1,9 @@
-function varargout = polarpcolor(R, Theta, Z)
+function varargout = polarpcolor(Theta, R, Z)
     [r_min, r_max] = extrema(R);
     [t_min, t_max] = extrema(Theta);
 
     n_rings = 5;
-    n_spokes = 6;
+    n_spokes = 8;
     r_scale = 'linear';
 
     ring_ticks = {};
@@ -32,7 +32,7 @@ function varargout = polarpcolor(R, Theta, Z)
         RR.*sind(TT), ...
         Z);
 
-    shading flat;
+    shading interp;
     set(new_plot, 'dataaspectratio', [1, 1, 1]);
     axis off;
     hold(new_plot, 'on');
@@ -60,7 +60,8 @@ function annotateFigure(Theta, N_Spokes, N_Rings, R_Ticks, R_Tick_Labels, Contou
     %a = Spokes(min(N_Spokes, round(N_Rings / 2)));
     %b = Spokes(min(N_Spokes, 1 + round(N_Rings / 2)));
     %position = 0.51 .* (a + b);
-
+    
+    R_Tick_Labels = fliplr(R_Tick_Labels);
 
     for i = 2:N_Rings
         tick = num2str(i, 2);
@@ -141,7 +142,8 @@ function contours = drawSpokes( ...
     Theta_min, Theta_max, R_min,  R_max, R1, R_Range, ...
     N_Rings,   N_Spokes,  Origin, Ring_Positions)
 
-    spokes = round(linspace(Theta_min, Theta_max, N_Spokes+1));
+    spokes = fliplr(round(linspace(Theta_min, Theta_max, N_Spokes+1)));
+    spokes =spokes(2:end);
     contours = abs( ...
         (Ring_Positions - Ring_Positions(1)) / R_Range + R1 / R_Range);
 

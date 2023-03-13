@@ -42,7 +42,7 @@ classdef Atmosphere_Spectral_Filter < SpectralFilter
                 %get visibility tag out
                 Visibility = Visibility{:}; %#ok<FXSET> 
                 %% load data
-
+                Data = ASF.PickAtmosphericTransmittanceFile(Visibility);
                 %% interpolate to correct elevation
                 %if no wavelength provided, import value
                 if nargin<2 || isempty(Wavelength)
@@ -60,7 +60,7 @@ classdef Atmosphere_Spectral_Filter < SpectralFilter
                 for i=1:sz(2) %iterating over all elevation values,
                     % but only altering ones with this visibility tag
                     if ( ...
-                        numel(Visibilities) == 1
+                        numel(Visibilities) == 1 ...
                         || isequal(Visibility, Visibilities{i}) ...
                         )
                     ASF(i).wavelengths = Wavelength;

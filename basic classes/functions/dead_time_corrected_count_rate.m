@@ -65,6 +65,7 @@
 
 function mu = dead_time_corrected_count_rate(count_rate, tau1, tau2, ...
                                              integration_time)
+    error('DO NOT USE, MAKE SURE THIS IS NOT BEING CALCULATED');
     % tau = dead_time;
     T = 1; % / rep_rate;
     tau = tau1 + tau2;

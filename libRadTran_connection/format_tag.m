@@ -26,6 +26,7 @@ function results = format_tag(parameter)
     end
 
     results = format(parameter);
+    disp(results)
 
 end
 

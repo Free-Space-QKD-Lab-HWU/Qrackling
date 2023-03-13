@@ -117,6 +117,31 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
                 error('must provide either a source or detector')
             end
 
+            wvl_s = 0;
+            if ~isempty(p.Results.Source)
+                wvl_s = p.Results.Source.Wavelength;
+            end
+
+            wvl_d = 0;
+            if ~isempty(p.Results.Detector)
+                wvl_d = p.Results.Detector.Wavelength;
+            end
+
+            wvl_opts = [wvl_s, wvl_d];
+            for i = 1:numel(wvl_opts)
+                if wvl_opts(i) ~= 0;
+                    break
+                end
+            end
+
+            wvl = wvl_opts(i);
+
+            if isnan(Ground_Station.Telescope.FOV)
+                if isnan(Ground_Station.Telescope.Wavelength)
+                    Ground_Station.Telescope = Ground_Station.Telescope.SetWavelength(wvl);
+                end
+                Ground_Station.Telescope = Ground_Station.Telescope.SetFOV();
+            end
 
             % set Background count rate data
             Ground_Station = ReadBackgroundCountRateData(Ground_Station, ...

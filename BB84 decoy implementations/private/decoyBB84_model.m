@@ -48,10 +48,11 @@ function [SKR_decoyBB84, QBER, Rate_In, Rate_Det] = decoyBB84_model(MPN, ...
 
     pD = (MPN .* State_p)' * 10.^(-(loss) / 10) .* det_eff + prob_dark_counts;
     %disp(sum(pD) * rep_rate);
-    tau1 = Detector.fall_time;
-    tau2 = Detector.rise_time;
+    % tau1 = Detector.fall_time;
+    % tau2 = Detector.rise_time;
     Rate_In = sum(pD) .* rep_rate;
-    Rate_Det = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
+    Rate_Det = Rate_In;
+    % Rate_Det = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
     % Detector = Detector.SetJitterPerformance(rep_rate);
 
     QBER_cod = state_prep_error;
@@ -86,8 +87,9 @@ function [SKR_decoyBB84, QBER, Rate_In, Rate_Det] = decoyBB84_model(MPN, ...
     %disp([num2str(R), ' ', num2str(SKR_decoyBB84), ' ', num2str(test)]);
     %SKR_decoyBB84 = R_sifted;
 
-    SKR_decoyBB84 = dead_time_corrected_count_rate(rep_rate * R, tau1, tau2, 1);
-    %SKR_decoyBB84 = min(rep_rate * R, 1 / dead_time);
+    %SKR_decoyBB84 = dead_time_corrected_count_rate(rep_rate * R, tau1, tau2, 1);
+    % SKR_decoyBB84 = min(rep_rate * R, 1 / dead_time);
+    SKR_decoyBB84 = min(rep_rate * R, 1 / Detector.Dead_Time);
     %SKR_decoyBB84 = R;
     %disp(SKR_decoyBB84);
     %SKR_decoyBB84(isnan(R_sifted)) = NaN;

@@ -95,12 +95,12 @@ classdef (Abstract) Detector
             %set rise time, fall time and dead time as appropriate
             if isnan(p.Results.Dead_Time)
                 Detector.dead_time = Detector.rise_time + Detector.fall_time;
-                Detector = SetDeadTime(Detector, p.Results.Dead_Time);
+                %Detector = SetDeadTime(Detector, p.Results.Dead_Time);
             else
                 Detector.dead_time = p.Results.Dead_Time;
                 Detector = SetDeadTime(Detector, p.Results.Dead_Time);
-                detector.rise_time = p.Results.Dead_Time / 2;
-                detector.fall_time = p.Results.Dead_Time / 2;
+                % detector.rise_time = p.Results.Dead_Time / 2;
+                % detector.fall_time = p.Results.Dead_Time / 2;
             end
 
             %if available, load in detection efficiency data
@@ -117,9 +117,10 @@ classdef (Abstract) Detector
             %%histogram data provided for this detector
             Detector.Histogram_Bin_Width  =  Width;
             Histogram_Data = LoadHistogramData(Detector); %#ok<*PROPLC> 
-            Detector = SetJitterPerformance(Detector, Histogram_Data, ...
-                                            Width, Detector.Time_Gate_Width, ...
-                                            Detector.Repetition_Rate);
+            % Detector = SetJitterPerformance(Detector, Histogram_Data, ...
+            %                                 Width, Detector.Time_Gate_Width, ...
+            %                                 Detector.Repetition_Rate);
+            Detector = SetJitterPerformance(Detector, Detector.Repetition_Rate);
         end
 
         function Detector = SetWavelength(Detector,Wavelength)
@@ -156,7 +157,7 @@ classdef (Abstract) Detector
         % - Does the c.w. case mentioned above hold for heralded source in
         %   general? i.e. c.w. and pulsed sources of single-photons or 
         %   entangled photon pairs.
-        function Detector = SetJitterPerformance(Detector, Incident_Photon_Rate)
+        function Detector = SetJitterPerformance(Detector, Repetiton_Rate)
             % Repetition Rate: This is the rate of photons ARRIVING at the
             % detector, this will need to be recalculated for every value of
             % photons arriving at the detector.
@@ -168,7 +169,7 @@ classdef (Abstract) Detector
 
             %% turn time measures into index increments
             Time_Gate_Width_Index = 2 * round(Detector.Time_Gate_Width / (2 * Detector.Histogram_Bin_Width));
-            Repetition_Period_Index = round(1 ./ (Incident_Photon_Rate * Detector.Histogram_Bin_Width));
+            Repetition_Period_Index = round(1 ./ (Repetiton_Rate * Detector.Histogram_Bin_Width));
 
             %check that rounding results in reasonable precision
             if Time_Gate_Width_Index < 10
@@ -193,7 +194,7 @@ classdef (Abstract) Detector
             QBER = 0;
 
             % it should be possible to perform the below calculation with by getting the pairwise extrema if we have an array for the "current shifted mode"
-            
+
             %iterating over previous pulses (negative autocorrelation)
             Current_Shifted_Mode = Mode_Time_Index + Repetition_Period_Index;
             while Current_Shifted_Mode < N
@@ -248,7 +249,7 @@ classdef (Abstract) Detector
                 'Detector.Histogram_Data must contain real data');
             assert(all(Detector.Histogram_Data >= 0),...
                     'since Detector.Histogram_Data represents a histogram, it must contain nonnegative data');
-    
+
             %check that Detector.Histogram_Bin_Width is a real scalar  > 0
             assert(isscalar(Detector.Histogram_Bin_Width) && isreal(Detector.Histogram_Bin_Width) && Detector.Histogram_Bin_Width > 0,...
             'Detector.Histogram_Bin_Width must be a scalar real value  > 0')
@@ -274,9 +275,29 @@ classdef (Abstract) Detector
             end
 
             [rise_time, fall_time] = DetectorTimeConstants(Detector); %#ok<*PROP> 
-            Detector.rise_time = rise_time;
-            Detector.fall_time = fall_time;
+            % Detector.rise_time = rise_time;
+            % Detector.fall_time = fall_time;
+            Detector.dead_time = rise_time + fall_time;
 
+        end
+
+        function Detector = StretchToNewJitter(Detector, TargetJitter)
+            FWHM = Detector.CalculateJitter();
+            new_bin_width = (TargetJitter / FWHM) * Detector.Histogram_Bin_Width;
+            Detector = Detector.SetHistogramBinWidth(new_bin_width);
+            Detector = Detector.SetJitterPerformance(Detector.Repetition_Rate);
+        end
+
+        function FWHM = CalculateJitter(Detector)
+            N = numel(Detector.Histogram_Data);
+            index = linspace(1, N, N);
+            times = (index - N) ./ 2 * Detector.Histogram_Bin_Width;
+
+            FirstLast = @(array) abs([array(1), array(end)]);
+            Difference = @(Pair) max(Pair) - min(Pair);
+
+            FWHM = Difference(FirstLast(times( ...
+                Detector.Histogram_Data >= (max(Detector.Histogram_Data) / 2))));
         end
 
         function [stretched_histogram] = StretchDetectorHistogram(Detector, dead_time)
@@ -316,6 +337,30 @@ classdef (Abstract) Detector
             max_time = times(peak_loc) + additional_dead_time;
             waveform_mask = (times < max_time) & (times > times(peak_loc));
             stretched_histogram(waveform_mask) = max(Detector.Histogram_Data);
+        end
+
+        function p = PlotDetectorHistogram(Detector)
+
+            N = numel(Detector.Histogram_Data);
+            index = linspace(1, N, N);
+            times = (index - N) ./ 2 * Detector.Histogram_Bin_Width;
+
+            bins = unique(Detector.Histogram_Data);
+            n_bins = numel(bins);
+            counts = zeros(1, n_bins);
+            for i = 1:n_bins
+                counts(i) = sum(Detector.Histogram_Data == bins(i));
+            end
+
+            Take = @(arraylike, N) arraylike(N);
+            cut_on = Take(bins(log10(counts) < 1), 1);
+            mask = Detector.Histogram_Data > cut_on;
+
+            [max_val, max_idx] = max(Detector.Histogram_Data);
+            [i_val, i_idx] = max(index(mask))
+
+            p = plot(times(mask), Detector.Histogram_Data(mask));
+            xlim(times([max_idx-i_idx, max_idx+i_idx]))
 
         end
 

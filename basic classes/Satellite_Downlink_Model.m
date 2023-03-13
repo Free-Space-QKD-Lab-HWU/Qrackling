@@ -33,7 +33,16 @@ classdef Satellite_Downlink_Model < Satellite_Link_Model
 
             %% geometric loss
             %Link loss analysis for a satellite quantum communication down-link Chunmei Zhang*, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller, Ross J. Donaldson
-            Geo_Spot_Size = (ones(size(Link_Models.Length))*Satellite.Telescope.Diameter+Link_Models.Length*Satellite.Telescope.FOV);
+            disp(numel(Link_Models.Length));
+            disp(numel(Satellite.Telescope.Diameter))
+            disp(numel(Link_Models.Length))
+            disp(numel(Satellite.Telescope.FOV));
+            disp(Satellite.Telescope.FOV);
+
+            Geo_Spot_Size = (ones(size(Link_Models.Length)) ...
+                * Satellite.Telescope.Diameter ...
+                + Link_Models.Length ...
+                * Satellite.Telescope.FOV);
             Geo_Loss=(sqrt(pi)/8)*(Ground_Station.Telescope.Diameter./Geo_Spot_Size).^2;
             %compute when earth shadowing of link is present
             Shadowing=IsEarthShadowed(Satellite,Ground_Station);
