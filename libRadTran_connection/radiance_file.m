@@ -11,8 +11,44 @@ classdef radiance_file
     methods
         function radiance_file = radiance_file(in_file_path)
             radiance_file.in_file_path = adduserpath(in_file_path);
-            radiance_file = radiance_file.readInputFile();
-            radiance_file = radiance_file.readOutputFile();
+
+            if contains(radiance_file.in_file_path, '.inp')
+                radiance_file = radiance_file.readInputFile();
+                radiance_file = radiance_file.readOutputFile();
+            elseif contains(radiance_file.in_file_path, '.mat')
+                radiance_file = radiance_file.readMatFile();
+            else
+                error('Not a .mat file or libRadtran input file');
+            end
+        end
+
+        function radiance_file = readMatFile(radiance_file)
+            file_contents = load(radiance_file.in_file_path);
+            fields = fieldnames(file_contents);
+            temp = file_contents.(fields{1});
+            assert(numel(fields) == 1, '.mat file should only contain one field');
+            radiance_file.wavelengths = temp.wavelengths;
+            radiance_file.elevations = temp.elevations;
+            radiance_file.azimuths = temp.azimuths;
+            radiance_file.radiances = temp.radiances;
+        end
+
+        function output_path = writeMatFile(radiance_file, varargin)
+            p = inputParser;
+            p.addParameter('output_path', '');
+            parse(p, varargin{:});
+
+            output_path = p.Results.output_path;
+            if isempty(output_path)
+                output_path = replace(radiance_file.in_file_path, '.inp', '.mat');
+            end
+
+            out_data = struct();
+            out_data.wavelengths = radiance_file.wavelengths;
+            out_data.elevations  = radiance_file.elevations;
+            out_data.azimuths    = radiance_file.azimuths;
+            out_data.radiances   = radiance_file.radiances;
+            save(output_path, 'out_data');
         end
 
         function radiance_file = readInputFile(radiance_file)
@@ -76,10 +112,19 @@ classdef radiance_file
             radiance_file.wavelengths = str2num(strjoin([wavelengths{1:end}]));
             fclose(fd);
 
-            radiance_file.radiances = zeros(numel(str_radiances), n_radiances);
+            radiance_file.radiances = zeros( ...
+                numel(radiance_file.azimuths), ...
+                numel(radiance_file.elevations), ...
+                numel(radiance_file.wavelengths) ...
+                );
+
             for i = 1:numel(str_radiances)
-                radiance_file.radiances(i, :) = ...
-                    str2num(strjoin(str_radiances{i}));
+                radiance_mat = reshape( ...
+                    str2num(strjoin(str_radiances{i})), ...
+                    numel(radiance_file.elevations), ...
+                    numel(radiance_file.azimuths) ...
+                    );
+                radiance_file.radiances(:, :, i) = radiance_mat;
             end
 
         end
@@ -91,10 +136,7 @@ classdef radiance_file
 
         function radiance_mat = pickRadianceForWavelength(radiance_file, wavelength)
             [index, closest] = radiance_file.findClosestWavelength(wavelength);
-            radiance_mat = reshape( ...
-                radiance_file.radiances(index, :), ...
-                numel(radiance_file.elevations), ...
-                numel(radiance_file.azimuths));
+            radiance_mat = radiance_file.radiances(:, :, index);
         end
 
     end

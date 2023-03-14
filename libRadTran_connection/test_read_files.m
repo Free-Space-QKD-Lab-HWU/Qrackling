@@ -19,9 +19,12 @@ in_radianceFiles = FilterFiles( ...
 
 disp(in_radianceFiles')
 
-in_file = strjoin({in_target_path, in_radianceFiles{4}}, '')
+in_file = strjoin({in_target_path, in_radianceFiles{3}}, '')
 
 rf = radiance_file(in_file)
+
+rf_jan_0900 = radiance_file(strjoin({in_target_path, in_radianceFiles{3}}, ''));
+rf_aug_1500 = radiance_file(strjoin({in_target_path, in_radianceFiles{4}}, ''));
 
 figure
 wvl = 780;
@@ -31,13 +34,114 @@ wvl = 780;
     (fliplr(rf.pickRadianceForWavelength(wvl))) ...
 );
 %title(['Radiance at ', num2str(wvl), 'nm']);
-c.Label.String = 'mW/sr/nm'
+c.Label.String = '$mW/sr/m^2$'
 c.Label.Interpreter = 'latex';
 c.TickLabelInterpreter = 'latex';
-%exportgraphics(gcf, adduserpath(['~/Documents/tqi_review_march_2023/src/figures/radiance_jan_0900_', num2str(wvl), '.pdf']),'ContentType','vector')
+exportgraphics(gcf, adduserpath(['~/Documents/tqi_review_march_2023/src/figures/radiance_aug_1500_', num2str(wvl), '.pdf']),'ContentType','vector')
 
 extrema = @(arraylike) [min(arraylike(:)), max(arraylike(:))];
 extrema(radiance)
+
+%%
+
+wvl = 780e-9;
+Dr = 1;
+m = linspace(0, 2, 100);
+f = 2.44 .* m .* wvl ./ Dr;
+figure
+plot(m, f)
+
+pi .* (1.22 .* wvl ./ Dr) .^2
+f(1)
+
+%%
+planck = 6.626e-34;
+c = 299792458;
+
+f = 8410e-3;
+Dr = 0.7;
+
+% field stop diameter at the diffraction limit for a given wavelength
+fieldStopDiameter = @(FocalLength, RxDiameter, Wavelength) ...
+    2.44 .* FocalLength .* Wavelength ./ RxDiameter;
+fieldStopDiameter(f, Dr, 780e-9)
+
+solidAngleFOV = @(FocalLength, FSDiameter) pi ./ 4 .* ((FSDiameter ./ FocalLength).^2);
+solidAngleFOV(f, fieldStopDiameter(f, Dr, 780e-9))
+
+% since we have the radiance for a given wavelength already I'm not 100% sure 
+% that we need to include the wavelength in this function i.e. radiance = mW/sr/m^2
+% output settings in libRadTran config also doesn't specify per nm so I don't think
+% needed, also now not so sure about the spectral filter either....
+nSkyPhotons = @(Radiance, FOV, RxDiameter, Wavelength, Band, ExpTime) ...
+    (Radiance .* FOV .* pi .* (RxDiameter.^2) .* Band .* ExpTime) ...
+    ./ (planck * c);
+
+wvl = 1550;
+ns = nSkyPhotons( ...
+    rf.pickRadianceForWavelength(wvl) .* (1e-3), ...
+    solidAngleFOV(f, fieldStopDiameter(f, Dr, wvl * 1e-9)), ...
+    Dr, wvl, 1, 1e-9);
+
+figure
+[ff, cb] = polarpcolor( ...
+    rf.azimuths, ...
+    rad2deg(rf.elevations), ...
+    (fliplr(ns)) ...
+);
+%title(['Radiance at ', num2str(wvl), 'nm']);
+cb.Label.String = 'Counts'
+cb.Label.Interpreter = 'latex';
+cb.TickLabelInterpreter = 'latex';
+%exportgraphics(gcf, adduserpath(['~/Documents/tqi_review_march_2023/src/figures/counts_aug_1500_', num2str(wvl), '.pdf']),'ContentType','vector')
+
+fovs = linspace( ...
+    solidAngleFOV(f, fieldStopDiameter(f, Dr, wvl * 1e-9)), ...
+    100e-12, ...
+    10);
+
+elevs = 90 - pass_result.Elevations(pass_result.Communicating_Flags);
+azims = pass_result.Headings(pass_result.Communicating_Flags);
+numel(elevs) == numel(azims)
+disp(numel(elevs))
+wvl = 780;
+sky_counts_jan = zeros(1, numel(elevs));
+sky_counts_aug = zeros(1, numel(elevs));
+raw_jan = fliplr(rf_jan_0900.pickRadianceForWavelength(wvl));
+raw_aug = fliplr(rf_aug_1500.pickRadianceForWavelength(wvl));
+for i = 1:numel(azims)
+    [val, azim_idx] = min(abs(rf.azimuths - azims(i)));
+    [val, elev_idx] = min(abs(rad2deg(rf.elevations) - elevs(i)));
+    sky_counts_jan(i) = raw_jan(azim_idx, elev_idx);
+    sky_counts_aug(i) = raw_aug(azim_idx, elev_idx);
+end
+sky_counts_jan = fliplr(sky_counts_jan);
+sky_counts_aug = fliplr(sky_counts_aug);
+
+
+first_diameter = fieldStopDiameter(f, Dr, wvl * 1e-9)
+fstops = linspace(first_diameter, first_diameter*10, 50);
+fovs = solidAngleFOV(f, fstops)
+counts_for_pass_jan = zeros(1, numel(fovs));
+counts_for_pass_aug = zeros(1, numel(fovs));
+for i = 1:numel(fovs)
+    counts_for_pass_jan(i) = ...
+        sum(nSkyPhotons(sky_counts_jan .* (1e-3), fovs(i), Dr, wvl, 1, 1));
+    counts_for_pass_aug(i) = ...
+        sum(nSkyPhotons(sky_counts_aug .* (1e-3), fovs(i), Dr, wvl, 1, 1));
+end
+
+figure
+hold on
+semilogy(fstops.*(1e6), counts_for_pass_jan)
+semilogy(fstops.*(1e6), counts_for_pass_aug)
+legend({'January', 'August'}, Location='southeast')
+xlabel('Field Stop Diameter, $\mu$m')
+ylabel('Counts')
+set(gca, 'Yscale', 'log')
+%set(gca, 'DataAspectRatio', [1, 2])
+exportgraphics(gcf, adduserpath(['~/Documents/tqi_review_march_2023/src/figures/total_sky_counts_', num2str(wvl), '.pdf']),'ContentType','vector')
+
 
 %% 
 
@@ -73,8 +177,8 @@ radiance ./ 1000
 % title(['Radiance at ', num2str(wvl), 'nm']);
 
 %% 
-close all
-clear all
+% close all
+% clear all
 
 list_factory = fieldnames(get(groot,'factory'));
 index_interpreter = find(contains(list_factory,'Interpreter'));
@@ -128,9 +232,12 @@ pass_sim = PassSimulation( ...
 
 pass_result = Simulate(pass_sim);
 plot(pass_result);
-exportgraphics(gcf, ...
-    adduserpath('~/Documents/tqi_review_march_2023/src/figures/nominal_pass.pdf'), ...
-    ContentType = 'vector')
+% exportgraphics(gcf, ...
+%     adduserpath('~/Documents/tqi_review_march_2023/src/figures/nominal_pass.pdf'), ...
+%     ContentType = 'vector')
+
+%%
+
 
 %%
 
@@ -243,29 +350,65 @@ p = pcolor(XX, YY, results.qber_jitter);
 p.EdgeColor = 'none'
 xlabel('Detector Jitter')
 ylabel('System Clock Rate')
-title('Jitter and Clock Effects on QBER')
+%title('Jitter and Clock Effects on QBER')
 shading interp
 set(gca, 'Xscale', 'log')
 set(gca, 'Yscale', 'log')
 xlim([0.71, max(jitters)])
 ylim([0.70, max(clocks)])
-c = colorbar(location = 'WestOutside');
+c = colorbar(location = 'NorthOutside');
 caxis([quantile(results.qber_jitter(:), 0.01), ...
     quantile(results.qber_jitter(:), 0.99)])
+c.Title.String = 'QBER';
+c.Title.Interpreter = 'latex';
 ax = gca
 a = gca;
 x_tick_label_positions = a.XTick;
-x_tick_labels = strsplit('$1MHz$ $10MHz$ $100MHz$ $1GHz$')';
+x_tick_labels = strsplit('$1ps$ $10ps$ $100ps$ $1ns$ $10ns$')';
 a.XTickLabels = x_tick_labels;
 y_tick_label_positions = a.YTick
-y_tick_labels = strsplit('$1ps$ $10ps$ $100ps$ $1ns$ $10ns$')';
+y_tick_labels = strsplit('$1MHz$ $10MHz$ $100MHz$ $1GHz$ $10GHz$')';
 a.YTickLabels = y_tick_labels;
+ytickangle(45)
+exportgraphics(gcf, ...
+    adduserpath('~/Documents/tqi_review_march_2023/src/figures/jitter_qber.pdf'), ...
+    ContentType = 'vector')
 
 figure
-ax = axes;
 hold on
-p = pcolor(XX, YY, results.qber_jitter)
-offsetFigAxis(ax);
+p = pcolor(XX, YY, results.jitter_loss);
+p.EdgeColor = 'none'
+xlabel('Detector Jitter')
+ylabel('System Clock Rate')
+%title('Jitter and Clock Effects on QBER')
+shading interp
+set(gca, 'Xscale', 'log')
+set(gca, 'Yscale', 'log')
+xlim([0.71, max(jitters)])
+ylim([0.70, max(clocks)])
+c = colorbar(location = 'NorthOutside');
+caxis([quantile(results.jitter_loss(:), 0.01), ...
+    quantile(results.jitter_loss(:), 0.99)])
+c.Title.String = 'Efficiency';
+c.Title.Interpreter = 'latex';
+ax = gca
+a = gca;
+x_tick_label_positions = a.XTick;
+x_tick_labels = strsplit('$1ps$ $10ps$ $100ps$ $1ns$ $10ns$')';
+a.XTickLabels = x_tick_labels;
+y_tick_label_positions = a.YTick
+y_tick_labels = strsplit('$1MHz$ $10MHz$ $100MHz$ $1GHz$ $10GHz$')';
+a.YTickLabels = y_tick_labels;
+ytickangle(45)
+exportgraphics(gcf, ...
+    adduserpath('~/Documents/tqi_review_march_2023/src/figures/jitter_loss.pdf'), ...
+    ContentType = 'vector')
+
+% figure
+% ax = axes;
+% hold on
+% p = pcolor(XX, YY, results.qber_jitter)
+% offsetFigAxis(ax);
 
 
 %%
