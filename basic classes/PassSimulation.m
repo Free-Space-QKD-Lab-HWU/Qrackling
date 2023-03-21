@@ -89,6 +89,7 @@ classdef PassSimulation
         smarts_configuration SMARTS_input;
 
         %Link direction flag
+        % TODO Change this to make use of an enum and update other flags accordingly
         Link_Direction{mustBeMember(Link_Direction, {'Up', 'Down', ''})} = '';
     end
 
@@ -146,8 +147,13 @@ classdef PassSimulation
             PassSimulation.extra_counts = extra_counts;
         end
 
-        function PassSimulation = Simulate(PassSimulation)
+        function PassSimulation = Simulate(PassSimulation, Count_Map)
             %SIMULATE Peform the simulation with the components of PassSimulation
+
+
+            %p = inputParser();
+            %addParameter(p, 'Count_Map', []);
+            %parse(p, PassSimulation, varargin{:});
             
             %perform correct one of up or down link. UPLINK is given
             %preference. Both cannot be performed (yet)
@@ -157,7 +163,7 @@ classdef PassSimulation
                 PassSimulation = SimulateUplink(PassSimulation);
                 case 'Down'
 
-                PassSimulation = SimulateDownlink(PassSimulation);
+                PassSimulation = SimulateDownlink(PassSimulation, Count_Map);
                 otherwise
                 error('must have satellite and ground station support either uplink or downlink')
             end
@@ -384,7 +390,12 @@ classdef PassSimulation
             SKR = PassSimulation.Secret_Key_Rates;
         end
 
-        function PassSimulation = SimulateDownlink(PassSimulation)
+        function PassSimulation = SimulateDownlink(PassSimulation, Count_Map)
+
+            %p = inputParser();
+            %addParameter(p, 'Count_Map', []);
+            %parse(p, PassSimulation, varargin{:});
+
             %%SIMULATEDOWNLINK simulate a pass assuming a downlink configuration
 
             %% break out components
@@ -405,7 +416,7 @@ classdef PassSimulation
 
             %% Compute background count rate and link heading and elevation
             [Headings, Elevations, Ranges] = RelativeHeadingAndElevation(Satellite, Ground_Station);
-            [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate(Ground_Station, Background_Sources, Satellite, Headings, Elevations, smarts_configuration);
+            [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate(Ground_Station, Background_Sources, Satellite, Headings, Elevations, smarts_configuration, Count_Map);
             PassSimulation.QKD_Receiver = Ground_Station; %need to store OGS details for beacon modelling
             %% Check elevation limit
             Line_Of_Sight_Flags = Elevations>0;

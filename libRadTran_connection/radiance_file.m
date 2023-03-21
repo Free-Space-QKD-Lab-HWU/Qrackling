@@ -139,6 +139,25 @@ classdef radiance_file
             radiance_mat = radiance_file.radiances(:, :, index);
         end
 
+        function radiances = radianceFromPass(radiance_file, ...
+                wavelength, simulated_elevations, simulated_azimuths, ...
+                elevation_limit)
+            r_mat = fliplr(radiance_file.pickRadianceForWavelength(wavelength));
+            radiances = zeros(size(simulated_elevations));
+            for i = 1:numel(simulated_azimuths)
+                az = simulated_azimuths(i);
+                el = simulated_elevations(i);
+                % if we are below the elevation limit then skip to next pair of
+                % elevation and azimuth
+                if elevation_limit > el
+                    continue
+                end
+                [val, azim_idx] = min(abs(radiance_file.azimuths - az));
+                [val, elev_idx] = min(abs(rad2deg(radiance_file.elevations) - el));
+                radiances(i) = r_mat(azim_idx, elev_idx);
+            end
+        end
+
     end
 
 end

@@ -1,6 +1,6 @@
 %% Generate figure 1 of tqi report
-% close all
-% clear all
+close all
+clear all
 
 %% Ensure that latex mode is properly enabled
 list_factory = fieldnames(get(groot,'factory'));
@@ -17,7 +17,7 @@ orbit_data_root = adduserpath([ ...
 OrbitDataFileLocation = '500kmSSOrbitLLAT.txt';
 
 %% Configure
-wavelength = 780;
+wavelength = 850;
 
 transmitter_telescope_diameter = 0.1;
 receiver_telescope_diameter = 1;

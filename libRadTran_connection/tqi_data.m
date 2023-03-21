@@ -417,6 +417,7 @@ wl.Value = num2str([500, 1000])
 format_tag(wl)
 
 wl.Value = num2str([625, 675])
+wl.Value = num2str([800, 850])
 %wl.Value = num2str([500, 1000])
 umus = linspace(-0.999, -1e-3, 45)
 phis = linspace(0, 360, 90);
@@ -428,9 +429,9 @@ for i = 1:numel(umus)
         ph = phis(j);
         phi.Value = ph;
         label = ['umu_', num2str(u), '__phi_', num2str(ph)];
-        mcname.Value = ['~/Documents/MATLAB/DOP_Adam/', label];
+        mcname.Value = ['~/Documents/MATLAB/DOP_Adam_800/', label];
         inp = [ ...
-            '~/Documents/MATLAB/DOP/mystic_', ...
+            '~/Documents/MATLAB/DOP_800/mystic', ...
             label, ...
             '.inp'];
         outp = replace(inp, 'inp', 'out');
@@ -451,7 +452,7 @@ end
 
 %% Read data in
 
-data_path = adduserpath('~/Documents/MATLAB/DOP_Adam/');
+data_path = adduserpath('~/Documents/MATLAB/DOP_Adam_800/');
 directory_contents = dir(data_path);
 file_names = {directory_contents.name};
 mask = contains(file_names, '.rad.spc');
@@ -522,7 +523,7 @@ dopAtWvl = @(IM, QM, UM, VM, idx) ...
 
 figure
 %[XX, YY] = meshgrid(zeniths, azimuths);
-pcolor(dopAtWvl(I_Mat, Q_Mat, U_Mat, V_Mat, 1));
+%pcolor(dopAtWvl(I_Mat, Q_Mat, U_Mat, V_Mat, 1));
 
 dopAtWvl(I_Mat, Q_Mat, U_Mat, V_Mat, 1)
 
@@ -537,12 +538,12 @@ size(doptest')
 size(zeniths)
 size(azimuths)
 
-% DOP_Adam_M = struct()
-% DOP_Adam_M.Wavelengths = wvl;
-% DOP_Adam_M.Zeniths = zeniths;
-% DOP_Adam_M.Azimuths = azimuths;
-% DOP_Adam_M.Stokes_I = I_Mat;
-% DOP_Adam_M.Stokes_Q = Q_Mat;
-% DOP_Adam_M.Stokes_U = U_Mat;
-% DOP_Adam_M.Stokes_V = V_Mat;
-% save(adduserpath('~/Documents/MATLAB/DOP_Adam_Data.mat'), 'DOP_Adam_M')
+DOP_Adam_M = struct()
+DOP_Adam_M.Wavelengths = wvl;
+DOP_Adam_M.Zeniths = zeniths;
+DOP_Adam_M.Azimuths = azimuths;
+DOP_Adam_M.Stokes_I = I_Mat;
+DOP_Adam_M.Stokes_Q = Q_Mat;
+DOP_Adam_M.Stokes_U = U_Mat;
+DOP_Adam_M.Stokes_V = V_Mat;
+save(adduserpath('~/Documents/MATLAB/Mystic_DOP_Data_800-850.mat'), 'DOP_Adam_M')

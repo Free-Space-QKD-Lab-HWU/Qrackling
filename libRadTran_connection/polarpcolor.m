@@ -27,10 +27,7 @@ function varargout = polarpcolor(Theta, R, Z)
 
     [RR, TT] = meshgrid(r_norm, theta);
 
-    img = pcolor( ...
-        RR.*cosd(TT), ...
-        RR.*sind(TT), ...
-        Z);
+    img = pcolor(RR.*cosd(TT), RR.*sind(TT), Z);
 
     shading interp;
     set(new_plot, 'dataaspectratio', [1, 1, 1]);
