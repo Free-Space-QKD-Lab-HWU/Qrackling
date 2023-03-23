@@ -234,7 +234,7 @@ end
 
             Link_Models.Turbulence_Loss=Turb_Loss;
             Link_Models.Turbulence_Loss_dB=-10*log10(Turb_Loss);
-            Link_Models.Receiver_Spot_Size(Elevation_Flags) = Turbulence_Beam_Width;
+            Link_Models.Turbulent_Spot_Size = Turbulence_Beam_Width;
         end
 %{
         function Link_Models = SetElevationAngle(Link_Models,Satellite,Ground_Station)

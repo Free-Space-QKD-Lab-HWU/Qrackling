@@ -364,7 +364,7 @@ classdef Beacon_Uplink_Model < Satellite_Link_Model
 
             Link_Models.Turbulence_Loss=Turbulence_Loss;
             Link_Models.Turbulence_Loss_dB=-10*log10(Turbulence_Loss);
-            Link_Models.Receiver_Spot_Size(Elevation_Flags)=Turbulence_Beam_Width;
+            Link_Models.Turbulent_Spot_Size=Turbulence_Beam_Width;
         end
 %{
     function Link_Models=SetLinkLength(Link_Models,Lengths)
