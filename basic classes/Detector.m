@@ -14,12 +14,12 @@ classdef (Abstract) Detector
         Jitter_Loss{mustBeNonnegative};
 
         %spectral filter width in nm
-        Spectral_Filter_Width{mustBePositive, mustBeScalarOrEmpty};
+        Spectral_Filter_Width{mustBeNonnegative, mustBeScalarOrEmpty};
 
         %width of the time gate used in s
         Time_Gate_Width{mustBePositive, mustBeScalarOrEmpty};
 
-        Repetition_Rate{mustBePositive, mustBeScalarOrEmpty};
+        Repetition_Rate{mustBeNonnegative, mustBeScalarOrEmpty};
 
         Histogram_Data;
 

@@ -14,7 +14,7 @@ classdef decoyBB84_Protocol < Protocol
             %BB84 Construct an instance of this class
         end
 
-        function [Secret_Key_Rate, QBER, Photon_Rate_In, Photon_Rate_Det] = ...
+        function [Secret_Key_Rate, QBER, Sifted_Key_Rate, Photon_Rate_Det] = ...
                     EvaluateQKDLink(Protocol, ...
                                     Source, ...
                                     Detector, ...
@@ -34,7 +34,7 @@ classdef decoyBB84_Protocol < Protocol
             L=max(sz);
             Secret_Key_Rate=zeros(sz);
             QBER=nan(sz);
-            Photon_Rate_In=zeros(sz);
+            Sifted_Key_Rate=zeros(sz);
             Photon_Rate_Det=zeros(sz);
             
             %prepare input variables
@@ -48,15 +48,15 @@ classdef decoyBB84_Protocol < Protocol
             % serialise task
             for i=1:L
 
-            [Current_SKR, Current_QBER, R_In, R_Det] = decoyBB84_model(...
+            [Current_Secret_Key_Rate, Current_QBER, Current_Sifted_Key_Rate] = decoyBB84_model(...
                         MPN, SP, SPE, RR, BCR_Prob(i), Link_Loss_dB(i), ...
                         Eff, Detector);
 
-                Secret_Key_Rate(i)=Current_SKR;
+                Secret_Key_Rate(i)=Current_Secret_Key_Rate;
                 %use the first QBER as this is from the signal states
                 QBER(i)=Current_QBER(1);
-                Photon_Rate_In(i) = R_In;
-                Photon_Rate_Det(i) = R_Det;
+                Sifted_Key_Rate(i) = Current_Sifted_Key_Rate;
+                %Photon_Rate_Det(i) = R_Det;
             end
 
         end

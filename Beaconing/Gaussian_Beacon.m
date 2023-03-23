@@ -40,6 +40,11 @@ classdef Gaussian_Beacon < Beacon
         function [GeoLoss,GeoSpotDiameter] = GetGeoLoss(Gaussian_Beacon, Range, Camera)
         %%GETGEOLOSS Get the loss incurred by the spreading of the beacon beam
         %relative to the receiver camera area. Value is a unitless ratio <1
+
+        %output should always be row vector. convert range to row if column
+        if iscolumn(Range)
+            Range = Range';
+        end
         
         GeoSpotDiameter = 2*Gaussian_Beacon.Divergence_Half_Angle*Range;
         GeoLoss = (sqrt(pi)/8)*Camera.Collecting_Area./((GeoSpotDiameter/2).^2);

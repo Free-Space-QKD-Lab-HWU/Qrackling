@@ -11,4 +11,4 @@ rho=1.90096871*10^-7; %precession of the orbit in rads/s to achieve sun synchron
 Period_s=2*pi*(((R_earth_Array+Altitude_km).^3)./mu).^(1/2);
 Period_hr=Period_s./3600;
 
-Inclination_deg=acosd(-(2*rho*(R_earth_Array+Altitude_km).^(7/2))./(2*J_2*(R_earth^2)*(mu)^(1/2)));
+Inclination_deg=acosd(-(2*rho*(R_earth_Array+Altitude_km).^(7/2))./(3*J_2*(R_earth^2)*(mu)^(1/2)));

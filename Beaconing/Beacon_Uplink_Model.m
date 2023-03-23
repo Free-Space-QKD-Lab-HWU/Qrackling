@@ -27,7 +27,7 @@ classdef Beacon_Uplink_Model < Satellite_Link_Model
         %}
 
         methods (Access = public)
-            function Beacon_Uplink_Model=Beacon_Uplink_Model(N,Visibility)
+            function Beacon_Uplink_Model=Beacon_Uplink_Model(N,Visibility,Turbulence)
             %%BEACON_DOWNLINK_MODEL construct an instance of Beacon_Downlink_Model with the indicated number of modelled points
             if nargin==0
                 return
@@ -36,8 +36,12 @@ classdef Beacon_Uplink_Model < Satellite_Link_Model
             elseif nargin==2
                 Beacon_Uplink_Model=SetNumSteps(Beacon_Uplink_Model,N);
                 Beacon_Uplink_Model=SetVisibility(Beacon_Uplink_Model,Visibility);
+            elseif nargin==3
+                Beacon_Uplink_Model=SetNumSteps(Beacon_Uplink_Model,N);
+                Beacon_Uplink_Model=SetVisibility(Beacon_Uplink_Model,Visibility);
+                Beacon_Uplink_Model=SetTurbulence(Beacon_Uplink_Model,Turbulence);
             else
-                error('To instantiate link model, provide a number of steps and, optionally, a visibility string')
+                error('To instantiate link model, provide a number of steps and, optionally, a visibility string and a turbulence string')
             end
             end
         end
@@ -63,9 +67,9 @@ classdef Beacon_Uplink_Model < Satellite_Link_Model
 
         %% atmospheric loss
         %compute elevation angles
-        [~,Elevation_Angles]=RelativeHeadingAndElevation(Satellite,Ground_Station);
+        [~,Elevation]=RelativeHeadingAndElevation(Satellite,Ground_Station);
         %format spectral filters which correspond to these elevation angles
-        Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles,Ground_Station.Beacon.Wavelength,{Beacon_Uplink_Model.Visibility});
+        Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation,Ground_Station.Beacon.Wavelength,{Beacon_Uplink_Model.Visibility});
         Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Ground_Station.Beacon.Wavelength);
         
         %% APT loss
@@ -77,8 +81,8 @@ classdef Beacon_Uplink_Model < Satellite_Link_Model
         Wavelength = Ground_Station.Beacon.Wavelength*10^-9;
         Wavenumber = 2*pi/Wavelength;
         %can only compute for positive elevation
-        Elevation_Flags = Elevation_Angles'>0;
-        Zenith = 90-Elevation_Angles(Elevation_Flags)';
+        Elevation_Flags = Elevation'>0;
+        Zenith = 90-Elevation(Elevation_Flags)';
         Satellite_Altitude = Satellite.Altitude(Elevation_Flags);
         Beam_Waist = Ground_Station.Beacon.Telescope.Diameter;
         Rayleigh_Range = rayleigh_range(Beam_Waist, Wavelength, 1);
@@ -243,7 +247,7 @@ classdef Beacon_Uplink_Model < Satellite_Link_Model
         %% atmospheric loss
 
         %format spectral filters which correspond to these elevation angles
-        Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Link_Models.Elevation_Angles,Ground_Station.Beacon.Wavelength,{Link_Models.Visibility});
+        Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Link_Models.Elevation,Ground_Station.Beacon.Wavelength,{Link_Models.Visibility});
         Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Ground_Station.Beacon.Wavelength);
 
         %% input validation
@@ -323,18 +327,19 @@ classdef Beacon_Uplink_Model < Satellite_Link_Model
         Wavelength = Ground_Station.Beacon.Wavelength*10^-9;
         Wavenumber = 2*pi/Wavelength;
         %can only compute for positive elevation
-        Elevation_Flags = Link_Models.Elevation_Angles>0;
-        Zenith = 90-Link_Models.Elevation_Angles(Elevation_Flags);
+        Elevation_Flags = Link_Models.Elevation>0;
+        Zenith = 90-Link_Models.Elevation(Elevation_Flags);
         Satellite_Altitude = Satellite.Altitude(Elevation_Flags)';
         
         
         Atmospheric_Turbulence_Coherence_Length = ...
             atmospheric_turbulence_coherence_length_uplink(Wavenumber,...
                                          Zenith, ...
-                                         Satellite_Altitude, ghv_defaults);
+                                         Satellite_Altitude, ghv_defaults('Standard',Link_Models.Turbulence));
         %output variables
-        Turbulence_Beam_Width = long_term_gaussian_beam_width(GeoSpotDiameter(Elevation_Flags), Link_Models.Length(Elevation_Flags) ,...
-                                     Wavenumber, Atmospheric_Turbulence_Coherence_Length');
+            Turbulence_Beam_Width(~Elevation_Flags)=0;
+            Turbulence_Beam_Width(Elevation_Flags) = long_term_gaussian_beam_width(GeoSpotDiameter(Elevation_Flags), Link_Models.Length(Elevation_Flags) ,...
+                                     Wavenumber, Atmospheric_Turbulence_Coherence_Length);
         %residual beam wander is not needed here as this is dealt with in
         %APT loss
         %wander_tl = residual_beam_wander(error_snr, error_delay, error_centroid, ...
@@ -342,7 +347,7 @@ classdef Beacon_Uplink_Model < Satellite_Link_Model
 
         %turbulence loss is the ratio of geometric and turbulent spot areas
         Turbulence_Loss(~Elevation_Flags)=0;
-        Turbulence_Loss(Elevation_Flags) = (Turbulence_Beam_Width./GeoSpotDiameter(Elevation_Flags)).^(-2);
+        Turbulence_Loss(Elevation_Flags) = (Turbulence_Beam_Width(Elevation_Flags)./GeoSpotDiameter(Elevation_Flags)).^(-2);
 
             %% input validation
             if ~all(isreal(Turbulence_Loss)&Turbulence_Loss>=0)

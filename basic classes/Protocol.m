@@ -9,7 +9,7 @@ classdef (Abstract) Protocol
     end
 
     methods(Access=public,Abstract=true)
-        [Secret_Key_Rate,QBER] = EvaluateQKDLink(Protocol,Source,Detector,Link_Loss_dB,Background_Count_Rate)
+        [Secret_Key_Rate,QBER,Sifted_Key_Rate] = EvaluateQKDLink(Protocol,Source,Detector,Link_Loss_dB,Background_Count_Rate)
         %%EVALUATEQKDLINK enact the link performance simulation for the
         %%particular protocol
     end

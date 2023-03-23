@@ -67,6 +67,12 @@ classdef Atmosphere_Spectral_Filter < SpectralFilter
                     if nargin<2||isempty(Wavelength)
                     Wavelength = Data.Wavelength;
                     end
+
+                    %if elevation is below minimum simulated (nominally 10
+                    %degrees) then set to this limit
+                    Elevation(Elevation<min(Data.Elevation))=min(Data.Elevation);
+
+                    %interpolate
                     Transmittance = interp2(Data.Elevation,Data.Wavelength,Data.Transmittance,Elevation,Wavelength);
                     %deal with negative elevations- making them have zero transmittance
                     Transmittance(isnan(Transmittance))=0;

@@ -7,7 +7,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
     %hide large or uninteresting properties, not abstract for this reason
     properties (SetAccess=protected, Hidden=true)
         N_Steps{mustBeScalarOrEmpty, mustBePositive}
-        Times % {mustBeNumeric} not sure what this would need to be for datetimes
+        Times {mustBeA(Times,'datetime')} = datetime.empty  %not sure what this would need to be for datetimes
 
         % If using TLE or KeplerElements to define satellite path we will
         % store the satelliteScenario object as well as the corresponding
@@ -21,6 +21,8 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
         %right argument of the ascending node
         %argument of periapsis
         %true anomaly
+
+        TLE_Uncertainty {mustBeScalarOrEmpty,mustBeNonnegative} = 5E3;  %uncertainty in satellite orbital position (in lat and long) in m
     end
 
     %do not hide small properties
@@ -83,6 +85,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             addParameter(p, 'stopTime', []);
             addParameter(p, 'sampleTime', []);
             addParameter(p, 'Name', '');
+            addParameter(p, 'TLE_Uncertainty',5E3);
             % satellite surface reflection properties
             addParameter(p, 'Surface', Satellite_Foil_Surface(4))
             addParameter(p, 'Area', [])
@@ -195,6 +198,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
 
             Satellite.N_Steps = Satellite.N_Position;
             Satellite.Times = t;
+            Satellite.TLE_Uncertainty = p.Results.TLE_Uncertainty;
 
             %% currently, both transmit and receive scopes are the same
             Satellite.Telescope = p.Results.Telescope;

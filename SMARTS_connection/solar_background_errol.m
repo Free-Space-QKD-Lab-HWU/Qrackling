@@ -31,9 +31,10 @@ function configuration = solar_background_errol(varargin)
     addParameter(p, 'Wavelength_Min',500)    %define range of wavelengths (in nm)
     addParameter(p, 'Wavelength_Max', 1800)
     addParameter(p, 'Wavelength_Step', 10)
+    addParameter(p, 'ispr', sitePressure(spr=1013.25, altit=0, height=0));
     parse(p, varargin{:});
 
-    ispr = sitePressure(spr=1013.25, altit=0, height=0);
+    ispr = p.Results.ispr;
     iatmos = atmospherecard(atmos='STS');
     ih20 = water_vapour(w=1);
     i03 = ozone();

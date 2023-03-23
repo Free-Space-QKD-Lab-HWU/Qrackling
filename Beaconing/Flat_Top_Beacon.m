@@ -41,6 +41,11 @@ classdef Flat_Top_Beacon < Beacon
         %%GETGEOLOSS Get the loss incurred by the spreading of the beacon beam
         %value is returned as a value in m^-2
         
+                %output should always be row vector. convert range to row if column
+        if iscolumn(Range)
+            Range = Range';
+        end
+
         GeoSpotDiameter = (2*Flat_Top_Beacon.Limit_Half_Angle*Range);
         GeoLoss = Camera.Collecting_Area./((pi/4)*GeoSpotDiameter.^2);
         end
