@@ -267,7 +267,8 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             lat = LLATData(1,:);
             lon = LLATData(2,:);
             alt = LLATData(3,:) * 1000; %conversion to m from km
-            t = LLATData(4,:);
+            %time must now conform to being a datetime object
+            t = datetime(LLATData(4,:),'ConvertFrom','epochtime','Epoch',datetime(2023,1,1,0,0,0));
         end
 
 

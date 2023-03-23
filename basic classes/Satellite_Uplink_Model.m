@@ -193,7 +193,7 @@ classdef Satellite_Uplink_Model < Satellite_Link_Model
             %output variables
             Turbulence_Beam_Width(~Elevation_Flags)=0;
             Turbulence_Beam_Width(Elevation_Flags) = long_term_gaussian_beam_width(Geo_Spot_Size(Elevation_Flags), Link_Models.Length(Elevation_Flags) ,...
-                                        Wavenumber, Atmospheric_Turbulence_Coherence_Length');
+                                        Wavenumber, Atmospheric_Turbulence_Coherence_Length);
             %residual beam wander is not needed here as this is dealt with in
             %APT loss
             %wander_tl = residual_beam_wander(error_snr, error_delay, error_centroid, ...
