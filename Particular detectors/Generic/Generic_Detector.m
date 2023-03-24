@@ -2,7 +2,7 @@ classdef Generic_Detector<Detector
     %Generic_Detector a detector with excelitas properties
 
     properties (SetAccess=protected,Abstract=false)
-        Dark_Count_Rate=1000;
+        Dark_Count_Rate=100;
         Dead_Time=10^-10;
         Histogram_Data_Location='GenericHistogram.mat';
         Histogram_Bin_Width=10^-12;

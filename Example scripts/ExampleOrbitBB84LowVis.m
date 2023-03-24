@@ -9,7 +9,7 @@ OrbitDataFileLocation='100kmSSOrbitLLAT.txt';                                %or
 Receiver_Telescope_Diameter=1;                                           
 Time_Gate_Width=1E-9;                                                      %times are measured in s
 Spectral_Filter_Width=10;                                                  %consistemt with wavelength, spectral width is measured in nm
-Visibility = '1km';                                                       %we simulate low visibility here. Options are:
+Visibility = '2km';                                                       %we simulate low visibility here. Options are:
                                                                           %clear,
                                                                           %100m,
                                                                           %200m,
@@ -52,12 +52,9 @@ SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',MPD_BB84_Detector);
 %2.3 protocol
 BB84_protocol=BB84_Protocol;
 
-%2.4 SMARTS atmospheric modelling config
-SMARTS_Config = solar_background_errol_fast('executable_path','C:\Git\SMARTS\','stub','C:\Git\QKD_Sat_Link\SMARTS_connection\SMARTS cache\');
-
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'SMARTS',SMARTS_Config,'Visibility',Visibility);
+Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'Visibility',Visibility);
 %3.2 run simulation
 Pass=Simulate(Pass);
 %3.3 plot results

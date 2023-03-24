@@ -3,7 +3,7 @@
 %% Then we simulate the pass and plot the results.
 
 %% 1. Choose parameters
-Wavelength=650;                                                            %wavelength is measured in nm
+Wavelength=780;                                                            %wavelength is measured in nm
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
 OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                              %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
 Receiver_Telescope_Diameter=1;                                           

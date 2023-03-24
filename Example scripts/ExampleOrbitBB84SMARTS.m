@@ -2,6 +2,10 @@
 %% First, we must construct the components of a simulation. Then we form them all into a single PassSimulation object.
 %% Then we simulate the pass and plot the results.
 
+
+%% THIS EXAMPLE CURRENTLY DOES NOT WORK DUE TO SMARTS INTEGRATION PROBLEMS
+
+
 %% 1. Choose parameters
 Wavelength=600;                                                            %wavelength is measured in nm
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m

@@ -16,7 +16,7 @@ classdef Camera
         Focal_Length (1,1) double {mustBeNonnegative}=0.0125;                   %focal length (in m) of the lens focussing onto the camera's sensor
         Quantum_Efficiency (1,1) double {mustBeNonnegative,mustBeLessThanOrEqual(Quantum_Efficiency,1)}=1; %the efficiency of the camera at collecting beacon light which arrives on a pixel
         Exposure_Time (1,1) double {mustBePositive} = 1;                        %exposure time for operation of the camera in s
-
+        Wavelength (1,1) double {mustBeScalarOrEmpty}
 
         Spectral_Filter_Width (1,1) double {mustBeNonnegative}=10;              %the spectral width of the (assumed brick-wall) filter on the camera
 
@@ -79,7 +79,7 @@ classdef Camera
 
         end
         
-        function Wavelength = Wavelength(Camera)
+        function Wavelength = get.Wavelength(Camera)
             %% return the wavelength in nm that this camera is imaging
             Wavelength = Camera.Telescope.Wavelength;
         end

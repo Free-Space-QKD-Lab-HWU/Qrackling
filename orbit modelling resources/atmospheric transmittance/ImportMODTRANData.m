@@ -32,9 +32,14 @@ FileName = [FileNameStart,'_zen_',sprintf('%i',90-el),'deg_',atmosphere_tag,'_sc
 [Wavelength, Transmittance_at_el] = readvars(FileName,"NumHeaderLines",5);
 catch
 %if this fails, try a different file name
+try
 FileNameStart = 'Trans_Feb_2023';
 FileName = [FileNameStart,'_zen_',sprintf('%i',90-el),'deg_',atmosphere_tag,'_scan'];
 [Wavelength, Transmittance_at_el] = readvars(FileName,"NumHeaderLines",5);
+catch
+    %if THIS fails, skip the file
+    Transmittance_at_el=nan([size(Transmittance,1)+1,1]);
+end
 end
         %remove nans from both, these occur at file ends
         Wavelength=Wavelength(1:end-1);
