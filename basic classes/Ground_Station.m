@@ -413,14 +413,15 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
                 
                 %add sky photons to OGS background count rate sum
                 Light_Pollution_Count_Rate = sky_photon_rate';
-            end
 
+
+            elseif ~isequal(Ground_Station.Background_Count_Rate_File_Location,'none')
                 %if provided, use light pollution measured data instead
-                if ~isequal(Ground_Station.Background_Count_Rate_File_Location,'none')
                 Light_Pollution_Count_Rate = GetLightPollutionCountRate(Ground_Station, Headings, Elevations);
-                end
-
-
+            else
+                Light_Pollution_Count_Rate = zeros(size(Elevations));
+            end
+            
             % Reflected light pollution
             Reflection_Count_Rate = zeros(size(Light_Pollution_Count_Rate));
             for Simulated_Point_Index = 1:length(Background_Sources)

@@ -7,10 +7,10 @@ classdef Telescope
         Diameter{mustBeScalarOrEmpty,mustBePositive};
 
         %ratio between theoretical and acutal far field divergence angle
-        Far_Field_Divergence_Coefficient{mustBeScalarOrEmpty,mustBeGreaterThanOrEqual(Far_Field_Divergence_Coefficient,1)}=1
+        Far_Field_Divergence_Coefficient{mustBeScalarOrEmpty,mustBeGreaterThanOrEqual(Far_Field_Divergence_Coefficient,1)}=1;
 
         %optical efficiency- from cassegrain telescope obscuration (Link loss analysis for a satellite quantum communication downlink, Single photon group)
-        Optical_Efficiency{mustBeScalarOrEmpty,mustBePositive}=0.6;
+        Optical_Efficiency{mustBeScalarOrEmpty,mustBePositive}=1-0.3^2;
 
         %rms error in pointing in radians
         Pointing_Jitter{mustBeScalarOrEmpty,mustBeNonnegative}=10^-6;
@@ -93,6 +93,27 @@ classdef Telescope
             %%SETWAVELENGTH set the wavelength (nm) of the transmitter
             Telescope.Wavelength=Wavelength;
         end
+        
+        function Telescope=SetFarFieldDivergenceCoefficient(Telescope,FOV,Wavelength,Diameter)
+            %%SETFARFIELDDIVERGENCECOEFFICIENT set the FFDC required to
+            %%maintain a given FOV at a given wavelegngth
+
+            if isempty(FOV)||isempty(Wavelength)
+                Telescope.Far_Field_Divergence_Coefficient=1;
+                return
+            end
+            
+               
+            Far_Field_Divergence_Coefficient=FOV/(2.44 *( Wavelength * 10^-9 )/ Diameter);
+
+            %check that this farfield divergence coeff is not impossible
+                if Far_Field_Divergence_Coefficient <1
+                    warning('Requested FOV is narrower than diffraction limit. Reverting to diffraction limit');
+                    Telescope.Far_Field_Divergence_Coefficient = 1;
+                else
+                    Telescope.Far_Field_Divergence_Coefficient = Far_Field_Divergence_Coefficient;
+                end
+        end
 
         function Telescope=SetDiameter(Telescope,Diameter)
             %%SETWAVELENGTH set the diameter (in m) of the transmitter
@@ -108,22 +129,12 @@ classdef Telescope
             %%SETFOV set the FOV of a telescope by updating the far field
             %%divergence coefficient to suit
 
-            if ~isempty(Telescope.Wavelength)
-                Far_Field_Divergence_Coefficient = ...
-                    FOV * Telescope.Diameter / ...
-                    (2.44 *( Telescope.Wavelength * 10^-9 ));
-
-                %check that this farfield divergence coeff is not impossible
-                if Far_Field_Divergence_Coefficient <1
-                    warning('Requested FOV is narrower than diffraction limit. Reverting to diffraction limit');
-                    Telescope.Far_Field_Divergence_Coefficient = 1;
-                else
-                    Telescope.Far_Field_Divergence_Coefficient = Far_Field_Divergence_Coefficient;
-                end
-
-            else
-                Telescope.FOV = FOV;
+            if isempty(Telescope.Wavelength)
+                error('cannot set FOV without first setting wavelength')
             end
+
+            Telescope = SetFarFieldDivergenceCoefficient(Telescope,FOV,Telescope.Wavelength,Telescope.Diameter);
+
         end
 
         function Area = get.Collecting_Area(Telescope)
@@ -136,12 +147,6 @@ classdef Telescope
         function FOV = get.FOV(Telescope)
             %%FOV return the FOV of the telescope in radians, computed by
             %%scaling the divergence limited FOV
-
-            %if no wavelength is set then return empty FOV
-            if isempty(Telescope.Wavelength)
-                FOV=[];
-                return
-            end
 
             %compute the diffraction-limited FOV at a particular wavelength
             %with a modification
