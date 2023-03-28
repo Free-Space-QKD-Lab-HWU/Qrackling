@@ -150,9 +150,14 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
 
             else
                 if isdatetime(p.Results.startTime)
+                    if isduration(p.Results.sampleTime)
+                        sampleTime = seconds(p.Results.sampleTime);
+                    else
+                        sampleTime = p.Results.sampleTime;
+                    end
                     scenario = satelliteScenarioWrapper(p.Results.startTime, ...
                                                         p.Results.stopTime, ...
-                                                        'sampleTime', p.Results.sampleTime);
+                                                        'sampleTime',sampleTime);
                 else
                     scenario = p.Results.scenario;
 

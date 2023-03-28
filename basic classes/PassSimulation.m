@@ -224,10 +224,10 @@ classdef PassSimulation
 
             title('Satellite Ground Path')
             %plot non-flagged path (no comms or out of elevation range)
-            geoplot(Satellite.Latitude, Satellite.Longitude, 'b-', 'LineWidth', 0.5)
+            geoplot(Satellite.Latitude, Satellite.Longitude, 'b.', 'LineWidth', 0.5)
             hold('on');
             %then plot flagged path
-            geoplot(Satellite.Latitude(Plot_Select_Flags), Satellite.Longitude(Plot_Select_Flags), 'g-', 'LineWidth', 1)
+            geoplot(Satellite.Latitude(Plot_Select_Flags), Satellite.Longitude(Plot_Select_Flags), 'g.', 'LineWidth', 1)
             legend('Satellite Path', [Range, ' window'], 'Location', 'southwest')
             %determine satellite altitude for plotting lines of sight
             Satellite_Altitude = mean(Satellite.Altitude);
