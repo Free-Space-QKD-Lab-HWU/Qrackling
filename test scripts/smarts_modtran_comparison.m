@@ -5,7 +5,7 @@ close all
 %% run smarts
 
 ispr = sitePressure(spr=1013.25, altit=0, height=0);
-iatmos = atmosphere(tair=10, atmos='USSA');
+iatmos = atmospherecard(tair=10, atmos='USSA');
 ih20 = water_vapour(w=1);
 i03 = ozone();
 igas = gas_atmospheric_absorption(iload=4); 
@@ -61,7 +61,7 @@ disp(data.Properties.VariableNames')
 % %% plot irradiance and radiance
 nm2um = @(nm) nm ./ (1e3);
 
-close all
+%close all
 
 figure
 hold on
@@ -116,3 +116,26 @@ xlim([0.4, 1])
 
 % so is the takeaway here that W / cm^2 / um / sr is equivalent to W / m^2 / nm / sr?
 % if that is the case then we can get the same results as MODTRAN...
+
+%figure
+%plot(data.Trace_gas__transmittance)
+%xlim([500, 950])
+figure
+%plot(data.Trace_gas__optical_depth)
+hold on
+plot(data.Direct_tilted_irradiance .* exp(secd(100) .* data.Trace_gas__optical_depth))
+plot(data.Direct_tilted_irradiance .* exp(secd(140) .* data.Trace_gas__optical_depth))
+xlim([500, 950])
+%figure
+%plot(data.Aerosol_tot_transmittnce)
+%xlim([500, 950])
+%figure
+%plot(data.Direct_rad_transmittance)
+%xlim([500, 950])
+
+props = {data.Properties.VariableNames{contains(data.Properties.VariableNames, 'trans')}};
+figure
+hold on
+for i = 1:numel(props)
+    plot(secd(10) .* data.(props{i}));
+end

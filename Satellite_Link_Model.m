@@ -137,61 +137,88 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
             legend('Location','south')
         end
 
-        function [Link_Model,Link_Loss_dB] = Compute_Link_Loss(Link_Model,Satellite,Ground_Station)
+        function [Link_Model, Link_Loss_dB] = Compute_Link_Loss(Link_Model, Satellite, Ground_Station)
             %%COMPUTE_LINK_LOSS compute loss between satellite and ground
             %station
 
             %compute link geometry first
-            Link_Model = SetLinkGeometry(Link_Model,Satellite,Ground_Station);
+            Link_Model = SetLinkGeometry(Link_Model, Satellite, Ground_Station);
 
             %record loss values
-            [Link_Model,Geo_Spot_Size]=SetGeometricLoss(Link_Model,Satellite,Ground_Station);
-            Link_Model=SetOpticalEfficiencyLoss(Link_Model,Satellite,Ground_Station);
-            Link_Model=SetAtmosphericLoss(Link_Model,Satellite,Ground_Station);
-            Link_Model=SetAPTLoss(Link_Model,Satellite,Ground_Station);
-            Link_Model=SetTurbulenceLoss(Link_Model,Satellite,Ground_Station,Geo_Spot_Size);
+            [Link_Model,Geo_Spot_Size] = SetGeometricLoss(Link_Model, Satellite, Ground_Station);
+            Link_Model = SetOpticalEfficiencyLoss(Link_Model, Satellite, Ground_Station);
+            Link_Model = SetAtmosphericLoss(Link_Model, Satellite, Ground_Station);
+            Link_Model = SetAPTLoss(Link_Model, Satellite, Ground_Station);
+            Link_Model = SetTurbulenceLoss(Link_Model, Satellite, Ground_Station, Geo_Spot_Size);
 
             %compute total loss
             [Link_Model,Link_Loss_dB]=SetTotalLoss(Link_Model);
         end
     
-        function Satellite_Link_Model = SetNumSteps(Satellite_Link_Model,N)
+        function Satellite_Link_Model = SetNumSteps(Satellite_Link_Model, N)
             %%SETNUMSTEPS set the number of points in the simulated link model
 
-            Satellite_Link_Model.N=N;
-            Satellite_Link_Model.Geometric_Loss=zeros(1,N);                                                %geometric loss in absolute terms
-            Satellite_Link_Model.Geometric_Loss_dB=zeros(1,N);                                             %geometric loss in dB
-            Satellite_Link_Model.Turbulence_Loss=zeros(1,N);                                               %turbulence loss in absolute terms
-            Satellite_Link_Model.Turbulence_Loss_dB=zeros(1,N);                                            %turbulence loss in dB
-            Satellite_Link_Model.Optical_Efficiency_Loss=zeros(1,N);                                       %Optical Efficiency loss in absolute terms
-            Satellite_Link_Model.Optical_Efficiency_Loss_dB=zeros(1,N);                                    %Optical Efficiency loss in dB
-            Satellite_Link_Model.APT_Loss=zeros(1,N);                                                      %tracking loss in absolute term s
-            Satellite_Link_Model.APT_Loss_dB=zeros(1,N);                                                   %tracking loss in dB
-            Satellite_Link_Model.Atmospheric_Loss=zeros(1,N);                                              %atmospheric loss in absolute terms
-            Satellite_Link_Model.Atmospheric_Loss_dB=zeros(1,N);                                           %atmospheric loss in dB
-            Satellite_Link_Model.Length=zeros(1,N);                                                        %link distance in m
+            Satellite_Link_Model.N = N;
+            %geometric loss in absolute terms
+            Satellite_Link_Model.Geometric_Loss = zeros(1, N);
+
+            %geometric loss in dB
+            Satellite_Link_Model.Geometric_Loss_dB = zeros(1, N);
+
+            %turbulence loss in absolute terms
+            Satellite_Link_Model.Turbulence_Loss = zeros(1, N);
+
+            %turbulence loss in dB
+            Satellite_Link_Model.Turbulence_Loss_dB = zeros(1, N);
+
+            %Optical Efficiency loss in absolute terms
+            Satellite_Link_Model.Optical_Efficiency_Loss = zeros(1, N);
+
+            %Optical Efficiency loss in dB
+            Satellite_Link_Model.Optical_Efficiency_Loss_dB = zeros(1, N);
+
+            %tracking loss in absolute term s
+            Satellite_Link_Model.APT_Loss = zeros(1, N);
+
+            %tracking loss in dB
+            Satellite_Link_Model.APT_Loss_dB = zeros(1, N);
+
+            %atmospheric loss in absolute terms
+            Satellite_Link_Model.Atmospheric_Loss = zeros(1, N);
+
+            %atmospheric loss in dB
+            Satellite_Link_Model.Atmospheric_Loss_dB = zeros(1, N);
+
+            %link distance in m
+            Satellite_Link_Model.Length = zeros(1, N);
+
         end
-    
+
         function [Link_Model,Total_Loss_dB]=SetTotalLoss(Link_Model)
             %%SETTOTALLOSS update total loss to reflect stored loss values
 
-            Total_Loss_dB=Link_Model.Geometric_Loss_dB+Link_Model.Optical_Efficiency_Loss_dB+Link_Model.APT_Loss_dB+Link_Model.Turbulence_Loss_dB;
-            Total_Loss= 10.^(Total_Loss_dB/10);
-            Link_Model.Link_Loss_dB=Total_Loss_dB;
-            Link_Model.Link_Loss=Total_Loss;
+            Total_Loss_dB = ...
+                Link_Model.Geometric_Loss_dB ...
+                + Link_Model.Optical_Efficiency_Loss_dB ...
+                + Link_Model.APT_Loss_dB ...
+                + Link_Model.Turbulence_Loss_dB;
+
+            Total_Loss =  10 .^ (Total_Loss_dB / 10);
+            Link_Model.Link_Loss_dB = Total_Loss_dB;
+            Link_Model.Link_Loss = Total_Loss;
         end
     end
     
     methods (Abstract = true, Access = protected)
         %%%%%%%%%%%%%%%%%%%%% abstract methods which are implemented in
         %%%%%%%%%%%%%%%%%%%%% subclasses
-        [Link_Models,Geo_Spot_Size]=SetGeometricLoss(Link_Models,Satellite,Ground_Station)
+        [Link_Models,Geo_Spot_Size] = SetGeometricLoss(Link_Models,Satellite,Ground_Station)
 
-        Link_Models=SetAtmosphericLoss(Link_Models,~,Ground_Station)
+        Link_Models = SetAtmosphericLoss(Link_Models,~,Ground_Station)
 
-        Link_Models=SetOpticalEfficiencyLoss(Link_Models,Satellite,Ground_Station)
+        Link_Models = SetOpticalEfficiencyLoss(Link_Models,Satellite,Ground_Station)
 
-        Link_Models=SetAPTLoss(Link_Models,Satellite,Ground_Station)
+        Link_Models = SetAPTLoss(Link_Models,Satellite,Ground_Station)
 
         Link_Models = SetTurbulenceLoss(Link_Models,Satellite,Ground_Station,Geo_Spot_Size)
 

@@ -26,12 +26,16 @@ classdef Excelitas_Detector<Detector
             parse(p, Wavelength, Repetition_Rate, Time_Gate_Width, ...
                   Spectral_Filter_Width, varargin{:});
         %% constructor
-        disp(p.Results)
+        %disp(p.Results)
+            Dead_Time = 24e-9;
+            if ~isnan(p.Results.Dead_Time);
+                Dead_Time = p.Results.Dead_Time;
+            end
             Excelitas_Detector = Excelitas_Detector@Detector(Wavelength, ...
                                                              Repetition_Rate, ...
                                                              Time_Gate_Width, ...
                                                              Spectral_Filter_Width,...
-                                                             Dead_Time=p.Results.Dead_Time);
+                                                             Dead_Time=Dead_Time);
         end
     end
 end

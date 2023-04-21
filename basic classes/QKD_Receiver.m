@@ -31,6 +31,6 @@ classdef (Abstract) QKD_Receiver < Optical_Node
 
             PlotBackgroundCountRates(QKD_Receiver, Plotting_Indices, X_Axis)
 
-            [Total_Background_Count_Rate,QKD_Receiver] = ComputeTotalBackgroundCountRate(QKD_Receiver, Background_Sources, QKD_Transmitter, Headings, Elevations, SMARTS_Configuration)
+            [Total_Background_Count_Rate,QKD_Receiver] = ComputeTotalBackgroundCountRate(QKD_Receiver, Background_Sources, QKD_Transmitter, Headings, Elevations, SMARTS_Configuration, Count_Map)
     end
 end
