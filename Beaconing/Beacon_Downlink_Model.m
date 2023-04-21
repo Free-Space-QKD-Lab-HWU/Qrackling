@@ -218,7 +218,7 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
 
         %% see Link loss analysis for a satellite quantum communication down-link Chunmei Zhang*, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller, Ross J. Donaldson
         [Geo_Loss,Geo_Spot_Diameter] = GetGeoLoss(Satellite.Beacon,Link_Models.Length,Ground_Station.Camera);
-        %compute when earth shadowing of link is present
+        Geo_Loss=min(Geo_Loss,1);%make sure loss cannot be positive        %compute when earth shadowing of link is present
         Shadowing=IsEarthShadowed(Satellite,Ground_Station);
         Geo_Loss(Shadowing)=0;
         %% input validation

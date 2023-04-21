@@ -73,6 +73,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             addParameter(p, 'ToolBoxSatellite', []);
             addParameter(p, 'scenario', nan);
             addParameter(p, 'useSatCommsToolbox', false);
+            addParameter(p, 'LLAT',[]);
             addParameter(p, 'TLE', []);
             addParameter(p, 'KeplerElements', []);
             addParameter(p, 'semiMajorAxis', nan)
@@ -135,6 +136,20 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             if ~isempty(p.Results.OrbitDataFileLocation)
                 [Satellite, lat, lon, alt, t] = ReadOrbitLLATFile(Satellite,...
                     p.Results.OrbitDataFileLocation);
+            elseif ~isempty(p.Results.LLAT)
+                %if LLAT (latitude, longitude, altitude, time) is provided manually, use this
+                LLAT = p.Results.LLAT;
+                lat = LLAT(:,1);
+                lon = LLAT(:,2);
+                alt = LLAT(:,3);
+                time_seconds   = LLAT(:,4);
+                %either refer time in seconds to startTime, or use default
+                %startTime
+                if ~isempty(p.Results.startTime)
+                    t = startTime + seconds(time_seconds);
+                else
+                    t= datetime(2000,1,1,12,0,0) + seconds(time_seconds);
+                end
 
             elseif p.Results.useSatCommsToolbox == true
                 if isempty(p.Results.ToolBoxSatellite) | isempty(p.Results.scenario)

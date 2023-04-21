@@ -9,7 +9,7 @@ function Atmosphere_Sweep_Datum = InterpolateAtmosphereData(Atmosphere, Current_
 
    %% first, need interpolation constants
    %used in the form X=alpha*x_i + (1-alpha)*x_(i+1)
-   [Heading_Below,Heading_Below_Index] = max(Heading_Column(Heading_Column<Current_Heading));
+   [Heading_Below,Heading_Below_Index] = max(Heading_Column(Heading_Column<=Current_Heading));
    Heading_Above_Index = Heading_Below_Index+1;
                 %heading should be a complete circle from 0 to 360, therfore
                 %allow interpolation around the join

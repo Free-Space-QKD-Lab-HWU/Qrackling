@@ -60,6 +60,12 @@ classdef Satellite_Reflection_Link_Model < Link_Model
                 Uplink_Loss=Satellite.Surface.Area./(4*pi*(Distances.^2)); %#ok<*PROPLC>
             else
             Uplink_Loss=(sqrt(pi)/8)*((Satellite.Surface.Area)./(Distances.^2*(Background_Source.Pointing_Jitter^2+Background_Source.FOV^2)));
+            %if the beam size at the transmitter is less than the area of the
+            %transmitter, then set Uplink Loss to unity
+            if Uplink_Loss>1
+                Uplink_Loss=1;
+            end
+            
             end
             
             % atmospheric loss

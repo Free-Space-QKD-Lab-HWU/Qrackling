@@ -458,15 +458,15 @@ classdef PassSimulation
             Elevation_Viability_Flag = any(Elevation_Limit_Flags);
             %compute total data downlink
             %first produce a vector of time bin widths
-            Downlink_Time_Windows = Times(Communicating_Flags)-Times([Communicating_Flags(2:end), false]);
+            Downlink_Time_Windows = Times([false,Communicating_Flags(1:end-1)])-Times([Communicating_Flags(2:end), false]);
 
             %the dot with sifted data rate
             if ~isempty(Downlink_Time_Windows)&&isnumeric(Downlink_Time_Windows)
-                Total_Sifted_Key = dot(Downlink_Time_Windows, Sifted_Key_Rates(Communicating_Flags));
-                Total_Secret_Key = dot(Downlink_Time_Windows, Secret_Key_Rates(Communicating_Flags));
+                Total_Sifted_Key = dot(Downlink_Time_Windows, Sifted_Key_Rates(Communicating_Flags(1:end-1)));
+                Total_Secret_Key = dot(Downlink_Time_Windows, Secret_Key_Rates(Communicating_Flags(1:end-1)));
             elseif ~isempty(Downlink_Time_Windows)&&isduration(Downlink_Time_Windows)
-                Total_Sifted_Key = dot(seconds(Downlink_Time_Windows), Sifted_Key_Rates(Communicating_Flags));
-                Total_Secret_Key = dot(seconds(Downlink_Time_Windows), Secret_Key_Rates(Communicating_Flags));
+                Total_Sifted_Key = dot(seconds(Downlink_Time_Windows), Sifted_Key_Rates(Communicating_Flags(1:end-1)));
+                Total_Secret_Key = dot(seconds(Downlink_Time_Windows), Secret_Key_Rates(Communicating_Flags(1:end-1)));
             else
                 Total_Sifted_Key = 0;
                 Total_Secret_Key = 0;
