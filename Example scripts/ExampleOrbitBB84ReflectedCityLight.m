@@ -1,10 +1,10 @@
-%% implement a simulation of a satellite in a 500km orbit over a ground station using the decoy BB84 protocol
+%% implement a simulation of a satellite in a 100km orbit over a ground station using the decoy BB84 protocol
 %% First, we must construct the components of a simulation, this time including background light sources (which in this case are cities).
 %% Then we form them all into a single PassSimulation object.
 %% Then we simulate the pass and plot the results.
 
 %% 1. Choose parameters
-Wavelength=850;                                                            %wavelength is measured in nm
+Wavelength=780;                                                            %wavelength is measured in nm
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
 OrbitDataFileLocation='100kmOrbitLLAT.txt';                                %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
 Receiver_Telescope_Diameter=1;                                           
@@ -20,7 +20,9 @@ Transmitter_Source=Source(Wavelength);                                %we use de
 Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
 
 %2.1.3 Construct satellite
-SimSatellite=Satellite(Transmitter_Source,Transmitter_Telescope,'OrbitDataFileLocation',OrbitDataFileLocation);
+SimSatellite=Satellite(Transmitter_Telescope,...
+                        'Source',Transmitter_Source,...
+                        'OrbitDataFileLocation',OrbitDataFileLocation);
 
 %2.2 Ground station
 %2.2.1 Detector
@@ -32,7 +34,7 @@ MPD_BB84_Detector=MPD_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Tim
 Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);
 
 %2.2.3 construct ground station, use Errol as an example
-SimGround_Station=Errol_OGS(MPD_BB84_Detector,Receiver_Telescope);
+SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',MPD_BB84_Detector);
 
 %2.3 protocol
 BB84_protocol=BB84_Protocol;

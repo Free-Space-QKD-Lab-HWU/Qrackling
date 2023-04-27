@@ -14,12 +14,28 @@ classdef Excelitas_Detector<Detector
         function Excelitas_Detector=Excelitas_Detector(Wavelength, ...
                                                        Repetition_Rate, ...
                                                        Time_Gate_Width, ...
-                                                       Spectral_Filter_Width)
+                                                       Spectral_Filter_Width, ...
+                                                       varargin)
+
+            p  =  inputParser();
+            addRequired(p, 'Wavelength');
+            addRequired(p, 'Repetition_Rate');
+            addRequired(p, 'Time_Gate_Width');
+            addRequired(p, 'Spectral_Filter_Width');
+            addParameter(p, 'Dead_Time', nan);
+            parse(p, Wavelength, Repetition_Rate, Time_Gate_Width, ...
+                  Spectral_Filter_Width, varargin{:});
         %% constructor
+        %disp(p.Results)
+            Dead_Time = 24e-9;
+            if ~isnan(p.Results.Dead_Time);
+                Dead_Time = p.Results.Dead_Time;
+            end
             Excelitas_Detector = Excelitas_Detector@Detector(Wavelength, ...
                                                              Repetition_Rate, ...
                                                              Time_Gate_Width, ...
-                                                             Spectral_Filter_Width);
+                                                             Spectral_Filter_Width,...
+                                                             Dead_Time=Dead_Time);
         end
     end
 end

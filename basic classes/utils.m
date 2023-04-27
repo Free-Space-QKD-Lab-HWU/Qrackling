@@ -104,7 +104,6 @@ classdef utils
         end
 
         function semimajor_axis = meanmotion2semimajoraxis(self, mean_motion)
-            % TODO is this correct
             M = 5.97237e24;
             G = 6.67430e-11;
             mu = G * M;
@@ -114,8 +113,14 @@ classdef utils
 
         function [name, kepler_elements] = TLE2Kepler(Utils, ...
                 varargin)
-            % TODO -> expand this out to accept multi TLE settings, currently
-            % only works for a single TLE
+
+            % Derive the names and kepler elements from TLE sets.
+            % EXAMPLE
+            % fpath = 'threeSatelliteConstellation.tle';
+            % if strcmp('.tle', lower(fpath(numel(fpath)-3 : end)))
+            %     tledata = readlines(fpath);
+            % end
+            % [names, k_e] = utils().TLE2Kepler(TLE=tledata)
 
             p = inputParser;
 
@@ -128,7 +133,14 @@ classdef utils
             parse(p, Utils, varargin{:});
 
             if ~isempty(p.Results.TLE)
-                lines = strsplit(p.Results.TLE, "\n");
+                if strcmp('', p.Results.TLE(end))
+                    
+                    % lines = strsplit(sprintf(...
+                    %             '%s', p.Results.TLE(1:end-1)), "\n");
+                    lines = p.Results.TLE(1:end-1);
+                else
+                    lines = strsplit(p.Results.TLE, "\n");
+                end
             end
 
             if isempty(p.Results.name)
@@ -145,6 +157,9 @@ classdef utils
             end
 
             n_tle = length(lines) / 3;
+            disp(lines)
+            disp(numel(lines))
+            disp(n_tle);
             if n_tle > 1
                 name = cell.empty;
             end
@@ -180,5 +195,62 @@ classdef utils
 
             kepler_elements = [sma', ecc', inc', raan', aop', ta'];
         end
+
+        function start_time = tleStartTime(utils, tle_set)
+            % Extract the start time from a two-line element set
+            %
+            % EXAMPLE:
+            % tle_lines = readlines("threeSatelliteConstellation.tle");
+            % first_satellite_str = sprintf('%s', join(tleraw(1:3), newline));
+            % startTime = utils().tleStartTime(first_satellite_str);
+            % stopTime = startTime + hours(5);
+            %
+            assert(ischar(tle_set), ...
+                   'TLE set must be a string or character vector');
+
+            if strcmp('.tle', lower(tle_set(numel(tle_set)-3: end)))
+                
+            end
+
+            lines = strsplit(tle_set, '\n');
+            assert(3 == numel(lines), 'TLE set malformed, must be 3 lines');
+            assert(69 == numel(lines{2}), ...
+                'TLE set malformed, line 1 must be 69 characters long');
+            assert(69 == numel(lines{3}), ...
+                'TLE set malformed, line 2 must be 69 characters long');
+
+            year = str2num(lines{2}(19:20));
+            % this is shakey but since we only get the last two digits of the
+            % year from the tle set assume that if its greater than 30 (writing
+            % this is 2022) that the TLE data is probably from 19XX.
+            warning(['### POTENTIALLY INCORRECT YEAR ###', newline, ...
+                'Only the last two digits of the year are provided in ', ...
+                'the TLE format. Adjust the year as needed']);
+            if 50 < year
+                year = 1900 + year;
+            else
+                year = 2000 + year;
+            end
+
+            month_year_ratio = 365 / 12;
+
+            days = str2num(lines{2}(21:32));
+
+            month = floor(days / month_year_ratio);
+            day = floor(days - floor(month_year_ratio * month));
+
+            HOUR = (days - (floor(month_year_ratio * month) + day)) * 24;
+            hour = floor(HOUR);
+
+            MINUTES = (HOUR - hour) * 60;
+            minutes = floor(MINUTES);
+
+            seconds = (MINUTES - minutes) * 60;
+
+            start_time = datetime(year, month, day, hour, minutes, seconds);
+        end
+
+
+
     end
 end

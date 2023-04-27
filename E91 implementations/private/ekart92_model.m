@@ -19,10 +19,10 @@
 % ########################################
 
 function [sifted_key_rate, qber, Rate_In, Rate_Det] = ekart92_model(...
-                                                rep_rate, det_eff, ...
+                                                rep_rate, ...
                                                 prob_dark_counts, loss, ...
-                                                prot_eff, qber_jitter, ...
-                                                dead_time, Detector)
+                                                prot_eff, ...
+                                                Detector)
 
     % Intermidiate step to compute key variables
     P_d = 0;
@@ -41,6 +41,7 @@ function [sifted_key_rate, qber, Rate_In, Rate_Det] = ekart92_model(...
     % prob of dark counts
     P_e = prob_dark_counts;
     % detection efficiency
+    det_eff = Detector.Detection_Efficiency;
     if det_eff > 1
         eta_e = det_eff / 100;
     else
@@ -69,12 +70,12 @@ function [sifted_key_rate, qber, Rate_In, Rate_Det] = ekart92_model(...
 
     % Rates
     Rate_In = s1 .* rep_rate;
-    tau1 = Detector.fall_time;
-    tau2 = Detector.rise_time;
-    Rate_Det = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
+    % tau1 = Detector.fall_time;
+    % tau2 = Detector.rise_time;
+    % Rate_Det = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
     
     % QBER
-    Detector = SetJitterPerformance(Detector, s1 * rep_rate); %?
+    %Detector = SetJitterPerformance(Detector, s1 * rep_rate); %?
     qber_jitter = Detector.QBER_Jitter;
     qber = 1/2 .* (1-t_d.*t_e);
     qber = qber + qber_jitter;
@@ -90,9 +91,9 @@ function [sifted_key_rate, qber, Rate_In, Rate_Det] = ekart92_model(...
     
     % Final sifted key rate
     sifted_key_rate = sift_prob .* P_succ .* R_2 .* prot_eff .* rep_rate;
-    %sifted_key_rate = min(sifted_key_rate, 1/dead_time);
-    sifted_key_rate = dead_time_corrected_count_rate(sifted_key_rate, ...
-                                                     dead_time, 1);
+    sifted_key_rate = min(sifted_key_rate, 1/dead_time);
+    %sifted_key_rate = dead_time_corrected_count_rate(sifted_key_rate, ...
+    %                                                 dead_time, 1);
     
     % Marking the values where the sifted key rate is negative as Nan
     % (when the QBER is above q_thr the R_2 variable becomes negative

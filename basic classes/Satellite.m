@@ -1,7 +1,7 @@
 %Author: Cameron Simmons, Peter Barrow
 %Date: 24/1/22
 
-classdef Satellite < Located_Object
+classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
     %SATELLITE abstract class containing the satellite properties for simulation
 
     %hide large or uninteresting properties, not abstract for this reason
@@ -14,6 +14,13 @@ classdef Satellite < Located_Object
         % satellite object
         satellite_scenario;
         sc_sat;
+        Kepler_Elements;    %the kepler elements of a satellite are:
+        %Semimajor axis (m)
+        %eccentricity (0-1)
+        %inclination (deg)
+        %right argument of the ascending node
+        %argument of periapsis
+        %true anomaly
     end
 
     %do not hide small properties
@@ -22,10 +29,6 @@ classdef Satellite < Located_Object
         Name{mustBeText} = '';
         %File location for Latitude, Longitude, Altitude and Time data
         Orbit_Data_File_Location{mustBeText} = '';
-
-        %object containing transmitter details
-        Source Source = BB84_Source(1);
-        Telescope Telescope
 
         %% information about protocol
         % protocol used (BB84,BBN92,...)
@@ -36,10 +39,15 @@ classdef Satellite < Located_Object
         % a surface object detailing angular and spectal dependence of
         % reflection
         Surface {isa(Surface,'Surface')}
+
+        %% beacon on satellite
+        Beacon =[];
+        %% beacon camera on satellite
+        Camera = [];
     end
 
     methods
-        function [Satellite, varargout] = Satellite(Source, Telescope, varargin)
+        function [Satellite, varargout] = Satellite(Telescope, varargin)
 
             % SATELLITE Construct an instance of satellite using an orbital
             % User must provide either an 'OrbitDataFileLocation' file, TLE
@@ -50,10 +58,15 @@ classdef Satellite < Located_Object
             % If TLE information or KeplerElements are supplied then a startTime,
             %     stopTime and sampleTime must also be supplied.
 
+            %% satellite should support an empty constructor
+            if nargin==0
+                return
+            end
+
             p = inputParser();
 
-            addRequired(p, 'Source');
             addRequired(p, 'Telescope');
+            addParameter(p, 'Source',[]);
             addParameter(p, 'OrbitDataFileLocation','');
             addParameter(p, 'ToolBoxSatellite', []);
             addParameter(p, 'scenario', nan);
@@ -70,11 +83,19 @@ classdef Satellite < Located_Object
             addParameter(p, 'stopTime', []);
             addParameter(p, 'sampleTime', []);
             addParameter(p, 'Name', '');
+            % satellite surface reflection properties
             addParameter(p, 'Surface', Satellite_Foil_Surface(4))
             addParameter(p, 'Area', [])
-            addParameter(p, 'Protocol', []);
 
-            parse(p, Source, Telescope, varargin{:});
+            % downlink beacon, if wanted
+            addParameter(p, 'Beacon', [])
+            %up link beacon camera, if wanted
+            addParameter(p, 'Camera', []);
+
+            %detector, for uplink
+            addParameter(p,'Detector',[]);
+
+            parse(p, Telescope, varargin{:});
 
             sma = p.Results.semiMajorAxis;
             ecc = p.Results.eccentricity;
@@ -82,16 +103,19 @@ classdef Satellite < Located_Object
             raan = p.Results.rightAscensionOfAscendingNode;
             aop = p.Results.argumentOfPeriapsis;
             ta = p.Results.trueAnomaly;
-            
-            hasVelocity = false;
 
+            hasVelocity = false;
+            
+            %store kepler elements
             if (~any(isnan(arrayfun(@isnan, [sma, ecc, inc, raan, aop, ta]))) ...
                     & isempty(p.Results.KeplerElements))
                 KeplerElements = [sma, ecc, inc, raan, aop, ta];
             else
                 KeplerElements = p.Results.KeplerElements;
             end
-
+            Satellite.Kepler_Elements = KeplerElements;
+            
+            %store name
             if ~isempty(p.Results.Name)
                 Satellite.Name = p.Results.Name;
             end
@@ -112,10 +136,12 @@ classdef Satellite < Located_Object
             elseif p.Results.useSatCommsToolbox == true
                 if isempty(p.Results.ToolBoxSatellite) | isempty(p.Results.scenario)
                     error('No toolbox satellite supplied');
-                    
+
                 else
-                    [Satellite, lat, lon, alt, t, vE, vN, vU] = llatAndVelFromScenario(...
-                        Satellite, 'satCommsSatellite', p.Results.ToolBoxSatellite);
+                    [Satellite, lat, lon, alt, t, vE, vN, vU] = ...
+                        llatAndVelFromScenario(Satellite, ...
+                        satCommsSatellite=p.Results.ToolBoxSatellite, ...
+                        scenario=p.Results.scenario);
                     hasVelocity = true;
                 end
 
@@ -170,10 +196,23 @@ classdef Satellite < Located_Object
             Satellite.N_Steps = Satellite.N_Position;
             Satellite.Times = t;
 
-            Satellite.Source = p.Results.Source;
+            %% currently, both transmit and receive scopes are the same
             Satellite.Telescope = p.Results.Telescope;
+
+            %infer correct wavelength from source or detector
+            if ~isempty(p.Results.Source)
+
+            Satellite.Source = p.Results.Source;
             Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
                 Satellite.Source.Wavelength);
+            elseif ~isempty(p.Results.Detector)
+            Satellite.Detector = p.Results.Detector;
+            Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
+                Satellite.Detector.Wavelength);
+            else
+                error('must provide either a source or detector')
+            end
+
 
             %% set surface object of satellite
             Satellite.Surface = p.Results.Surface;
@@ -182,9 +221,13 @@ classdef Satellite < Located_Object
                 Satellite.Surface = SetArea(Satellite.Surface,p.Results.Area);
             end
 
-            if ~isempty(p.Results.Protocol)
-                Satellite.Protocol = p.Results.Protocol;
-            end
+
+            %% set beacon and beaconing camera
+            Satellite.Beacon = p.Results.Beacon;
+            Satellite.Camera = p.Results.Camera;
+
+            %% add detector if wanted
+            Satellite.Detector = p.Results.Detector;
         end
 
 
@@ -224,8 +267,8 @@ classdef Satellite < Located_Object
         end
 
 
-        function [Satellite, lat, lon, alt, t, vE, vN, vU] = llatAndVelFromScenario(Satellite, ...
-                                                                         varargin)
+        function [Satellite, lat, lon, alt, t, vE, vN, vU] = ...
+                            llatAndVelFromScenario(Satellite, varargin)
             p = inputParser();
             addRequired(p, 'Satellite');
             addParameter(p, 'satCommsSatellite', nan);
@@ -246,8 +289,8 @@ classdef Satellite < Located_Object
             % of {latitiude, longitude, altitude}, velocities in a 'North-East-
             % Down' format and time in matlab datetime
 
-            if ~isempty(p.Results.scenario) & isnan(p.Results.TLE) ...
-                    & isempty(p.Results.KeplerElements)
+            if ~isempty(p.Results.scenario) && isnan(p.Results.TLE) ...
+                    && isempty(p.Results.KeplerElements)
 
                 % First case: we have been supplied with only a satCommsToolbox
                 % satellite object, get its position, velocity and time 
@@ -263,27 +306,29 @@ classdef Satellite < Located_Object
                 % the TLE data to construct a satellite and get its position, 
                 % velocity and time steps
 
-                sc_sat = satellite(p.Results.scenario, p.Results.TLE, "Name", ... 
-                    Satellite.Name, "OrbitPropagator", "two-body-keplerian");
+                sc_sat = satellite(p.Results.scenario, p.Results.TLE, ...
+                                   "Name", Satellite.Name, ...
+                                   "OrbitPropagator", "two-body-keplerian");
 
-                [position, velocity, t] = states(sc_sat, ...
-                                                 'CoordinateFrame', 'geographic');
+                [position, velocity, t] = states(...
+                                    sc_sat, 'CoordinateFrame', 'geographic');
                 Satellite.Name = sc_sat.satellite(1).Name;
 
-            % elseif ~any(arrayfun(@isnan, [p.Results.satCommsSatellite, ...
-            %                               p.Results.KeplerElements]))
-            elseif any([isnan(p.Results.satCommsSatellite), isempty(p.Results.KeplerElements)])
+            elseif ~isempty(p.Results.scenario) ...
+                   && ~isempty(p.Results.KeplerElements)
 
                 % Third case: same as above except we have received an array of
                 % kepler elements rather than TLE data
 
-                [sma, ecc, inc, raan, aop, ta] = utils().splat(p.Results.KeplerElements);
+                [sma, ecc, inc, raan, aop, ta] = ...
+                        utils().splat(p.Results.KeplerElements);
 
-                sc_sat = satellite(p.Results.scenario, sma, ecc, inc, raan, aop, ta, ...
-                    "Name", Satellite.Name, "OrbitPropagator", "two-body-keplerian");
+                sc_sat = satellite(p.Results.scenario, sma, ecc, inc, ...
+                                   raan, aop, ta, "Name", Satellite.Name, ...
+                                   "OrbitPropagator", "two-body-keplerian");
 
-                [position, velocity, t] = states(sc_sat, ...
-                                                 'CoordinateFrame', 'geographic');
+                [position, velocity, t] = states(...
+                                sc_sat, 'CoordinateFrame', 'geographic');
                 Satellite.Name = sc_sat.Name;
             end
 
@@ -342,5 +387,29 @@ classdef Satellite < Located_Object
             warning('this behaviour is legacy and may no longer be support. Instead access the "Surface" class of the satellite')
         end
 
+        function [Background_Count_Rates, Satellite] = ComputeTotalBackgroundCountRate(Satellite, Background_Sources, Ground_Station, Headings, Elevations, smarts_configuration)
+            %%COMPUTETOTALBACKGROUNDCOUNTRATE consider background light at the
+            %%satellite to produce BCR
+                Background_Count_Rates = ones(size(Headings))*Satellite.Detector.Dark_Count_Rate;
+                Satellite.Dark_Count_Rates = Background_Count_Rates;
+        end
+
+
+        function PlotBackgroundCountRates(Satellite, Plotting_Indices, X_Axis)
+            %%PLOTBACKGROUNDCOUNTRATES plot the background count rate at the
+            %%satellite
+
+                area(X_Axis(Plotting_Indices),Satellite.Dark_Count_Rates(Plotting_Indices));
+                legend('Dark Counts')
+        end
+
+        function OrbitDetails = GetOrbitDetails(Satellite)
+            %% return the orbit details sufficient to create a MATLAB satellite object
+            %returned asa cell array of arguments (give to function using
+            %OrbitDetails{:})
+         
+            OrbitDetails = timetable(Satellite.Times',[Satellite.Latitude,Satellite.Longitude,Satellite.Altitude]);
+            OrbitDetails = {OrbitDetails,'CoordinateFrame','geographic','Name',Satellite.Name};
+        end
     end
 end

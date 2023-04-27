@@ -7,7 +7,7 @@ classdef HWU_OGS < Ground_Station
     end
 
     methods
-        function HWU_OGS = HWU_OGS(Detector,Telescope)
+        function HWU_OGS = HWU_OGS(Telescope,varargin)
             %HWU_OGS Construct an instance of a OGS at HWU site at the
             %input wavelength
 
@@ -22,11 +22,12 @@ classdef HWU_OGS < Ground_Station
                     error('no background light data for HWU at that wavelength')
             end
 
-            HWU_OGS=HWU_OGS@Ground_Station(Detector,...
+            HWU_OGS=HWU_OGS@Ground_Station(...
                 Telescope,...
                 'LLA',[55.911420,-3.322424,84],... %COORDS
                 'Background_Count_Rate_File_Location',Background_Light_Data_Location,... 
-                'Name','HWU');%location name
+                'Name','HWU',...
+                varargin{:});%location name
                 
         end
 

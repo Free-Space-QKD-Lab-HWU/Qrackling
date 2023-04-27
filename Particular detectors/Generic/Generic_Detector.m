@@ -9,6 +9,7 @@ classdef Generic_Detector<Detector
         Detection_Efficiency=0.5;
         tB=0.9
         Visibility=0.95;
+        Efficiency_Data_Location = 'Generic_Efficiency.mat';
     end
 
     methods

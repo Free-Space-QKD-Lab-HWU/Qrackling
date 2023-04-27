@@ -59,14 +59,24 @@ classdef Constellation
             
             % if no scenario check if start, stop, sample are not nan and init
             %if p.Results.scenario == false
-            if (p.Results.useSatCommsToolbox == true) & (~isobject(p.Results.scenario))
+            if (p.Results.useSatCommsToolbox == true) ...
+               & (~isa(p.Results.scenario, 'satelliteScenario'))
                 Constellation.useSatCommsToolbox = true;
-                if ~any(arrayfun(isnan, [t_start, t_stop, t_sample]))
-                    scenario = satelliteScenarioWrapper(t_start, ...
-                                                        t_stop, ...
-                                                        'sampleTime', t_sample);
-                    varargout{1} = scenario;
-                end
+
+                assert(isdatetime(t_start), ...
+                       ['startTime should be a datetime', ...
+                        '-> datetime(yyyy,m,d,h,m,s)']);
+                assert(isdatetime(t_stop), ...
+                       ['stopTime should be a datetime', ... 
+                        '-> datetime(yyyy,m,d,h,m,s)']);
+                assert(isnumeric(t_sample), ...
+                    'sampleTime should be a duration -> seconds(X)');
+
+                % scenario = satelliteScenarioWrapper(t_start, ...
+                %                                     t_stop, ...
+                %                                     'sampleTime', t_sample);
+                scenario = satelliteScenario(t_start, t_stop, t_sample);
+                varargout{1} = scenario;
             else
                 scenario = p.Results.scenario;
             end
@@ -163,28 +173,29 @@ classdef Constellation
         % end
 
 
-        function Constellation = addSatelliteFromKepler(Constellation, scenario, kepler_mat, names)
+        function Constellation = addSatelliteFromKepler(Constellation, ...
+                                                        scenario, ...
+                                                        kepler_mat, ...
+                                                        names)
 
             if 1 == Constellation.N
                 [sma, ecc, inc, raan, aop, ta] = utils().splat(kepler_mat);
-
-                if isnan(names)
+                
+                if isempty(names)
                     names = '';
                 end
+
                 satellites = satellite(scenario, ...
-                                       sma, ecc, inc, raan, aop, ta, ...
-                                       'Name', names);
+                                       sma, ecc, inc, raan, aop, ta); %, ...
+                                       %'Name', names);
 
             else
-                if isnan(names)
+                if isempty(names)
                     names = cell(0, Constellation.N);
-                    disp(names);
                     for i = 1 : Constellation.N
                         names{i} = '';
                     end
                 end
-
-                disp(names);
 
                 for i = 1 : Constellation.N
                     [sma, ecc, inc, raan, aop, ta] = utils().splat(kepler_mat(i,:));

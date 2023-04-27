@@ -2,7 +2,7 @@
 clear all;
 % close all;
 clc;
-addpath('~/Projects/free_space_modelling/matlab');
+%addpath('~/Projects/free_space_modelling/matlab');
 
 disp("Starting...");
 decibel_to_percent = @(db) 100 .* (10 .^ (db ./ 10));

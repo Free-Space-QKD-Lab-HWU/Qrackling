@@ -1,8 +1,3 @@
-%{
-TODO: cards 10c and 10d are 'sub-cards' of 10b as a result we will have to
-alter the structure of the cardString function to take nested cell arrays to
-correctly build the structure that we need...
-%}
 classdef far_field_albedo < card
 
     properties
@@ -108,7 +103,7 @@ classdef far_field_albedo < card
             far_field_albedo.card_num = 10;
 
             far_field_albedo.groups = {{}, ...
-                {'zonal_broadband_albedo'}, ...
+                { {'zonal_broadband_albedo'}, {'tilt'} }, ...
                 ...
                 {   {'zonal_broadband_albedo'}, ...
                     {'tilt'}, ...
@@ -195,6 +190,8 @@ classdef far_field_albedo < card
                     far_field_albedo.flag = far_field_albedo.flag + 1;
                     far_field_albedo.local_background_albedo = p.Results.rhog;
                 end
+            else
+                far_field_albedo.tilt = 0;
             end
 
             far_field_albedo.flag = far_field_albedo.flag - 1;
