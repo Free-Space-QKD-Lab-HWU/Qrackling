@@ -68,7 +68,7 @@ function [SKR_decoyBB84, QBER, Rate_In, Rate_Det] = decoyBB84_model(
     QBER_noise = 0.5 * prob_dark_counts ./ pD;
     %QBER_jitter = qber_jitter;
     % Detector = SetJitterPerformance(Detector, sum(pD) * rep_rate);
-    
+
     % To avoid that due to QBER_cod and QBER_jitter (fixed) the QBER
     % can go higher than 50%, which doesn't make sense
     QBER = min(QBER_cod + QBER_noise ...
@@ -106,7 +106,7 @@ function [SKR_decoyBB84, QBER, Rate_In, Rate_Det] = decoyBB84_model(
     %% modification cjs
     %do not allow negative SKR
     SKR_decoyBB84(SKR_decoyBB84<0)=0;
-    
+
     %% modification cjs
     %SKR cannot be negative. negative results should be replaced by
     %zero
