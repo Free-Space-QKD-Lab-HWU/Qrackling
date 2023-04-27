@@ -38,7 +38,6 @@ classdef COW_Protocol < Protocol
             QBER = Current_QBER;
             Photon_Rate_In = R_In;
             Photon_Rate_Det = R_Det;
-            
         end
     end
 end
