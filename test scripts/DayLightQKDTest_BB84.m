@@ -33,7 +33,8 @@ Sun = getfield(load('Sun.mat'),'Sun');
 Sun = Sun.SetPosition('LLA', [53, 60, Sun.Altitude], 'Name', Sun.Location_Name);
 
 BB84_S = BB84_Source(Wavelength);
-BB84_P = BB84_Protocol();
+%BB84_P = BB84_Protocol();
+BB84_P = protocol(qkd_protocols.BB84);
 BB84_D = MPD_Detector(Wavelength, ...
                       Repetition_Rate, ...
                       Time_Gate_Width, ...
@@ -50,7 +51,9 @@ SimGround_Station = Errol_OGS(BB84_D, Receiver_Telescope);
 %     'Background_Sources', Sun);
 BB84_Pass = PassSimulation(SimSatellite, BB84_P, SimGround_Station);
 BB84_Pass = Simulate(BB84_Pass);
-%BB84_Pass.plot()
+BB84_Pass.plot()
+
+%%
 
 % activeSatLat = SimSatellite.Latitude(BB84_Pass.Communicating_Flags == 1);
 % activeSatLon = SimSatellite.Longitude(BB84_Pass.Communicating_Flags == 1);

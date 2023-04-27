@@ -11,9 +11,9 @@ for i = 1:length(index_interpreter)
 end
 
 %% Pick 500km sun synchronous orbit
-orbit_data_root = adduserpath([ ...
-    '~/Projects/QKD_Sat_Link/libRadTran/', ...
-    'orbit modelling resources/orbit LLAT files/']);
+orbit_data_root =[ ...
+    '/home/bp38/Projects/QKD_Sat_Link/libRadTran/', ...
+    'orbit modelling resources/orbit LLAT files/'];
 OrbitDataFileLocation = '500kmSSOrbitLLAT.txt';
 
 %% Configure
@@ -26,6 +26,7 @@ time_gate_width = 1E-9;
 Spectral_filter_width = 1;
 
 transmitter_source = decoyBB84_Source(wavelength);
+% bb84_protocol = decoyBB84_Protocol;
 bb84_protocol = decoyBB84_Protocol;
 mpd_bb84_detector = MPD_Detector( ...
     wavelength, ...

@@ -44,7 +44,7 @@ function [SKR_decoyBB84, QBER, Rate_In, Rate_Det] = decoyBB84_model( ...
     Source, prob_dark_counts, loss, prot_eff, Detector)
 
     MPN = Source.Mean_Photon_Number;
-    State_p = Source.g2;
+    State_p = Source.State_Probabilities;
     state_prep_error = Source.State_Prep_Error;
     rep_rate = Source.Repetition_Rate;
 
@@ -76,9 +76,7 @@ function [SKR_decoyBB84, QBER, Rate_In, Rate_Det] = decoyBB84_model( ...
                0.5);
 
     % Estimation of the Secret Key Rate
-    pM_weak = photonDetc(MPN(2) * State_p(2), 2, ...
-                         10.^(-loss/10) .* det_eff, ...
-                         prob_dark_counts)';
+    pM_weak = photonDetc(MPN(2) * State_p(2), 2, 10.^(-loss/10) .* det_eff, prob_dark_counts)';
     pS_weak = pD(2,:) - pM_weak - prob_dark_counts * exp(-MPN(2) * State_p(2));
     QBERs = (QBER(2,:) .* pD(2,:) ...
              - 0.5 * prob_dark_counts * exp(-MPN(2) * State_p(2))) ./ pS_weak;

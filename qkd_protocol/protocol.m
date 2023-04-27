@@ -97,7 +97,7 @@ classdef protocol
 
                     for i = 1 : max(sz)
                         [s, q, ri, rd] = decoyBB84_model( ...
-                            Source, prob_dark_counts, Link_Loss_dB, prot_eff, Detector);
+                            Source, dark_counts(i), Link_Loss_dB(i), prot_eff, Detector);
 
                         SKR(i) = s;
                         %use the first QBER as this is from the signal states
