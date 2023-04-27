@@ -22,7 +22,8 @@ classdef protocol
             protocol.detector_requirements = rd;
         end
 
-        function source = compatibleSource(protocol, source)
+        function check = compatibleSource(protocol, source)
+            check = false;
             for i = 1 : numel(protocol.source_requirements)
                 requirement = protocol.source_requirements{i};
 
@@ -38,9 +39,11 @@ classdef protocol
                     num2str(source.(requirement)) ...
                 ]);
             end
+            check = true;
         end
 
-        function detector = compatibleDetector(protocol, detector)
+        function check = compatibleDetector(protocol, detector)
+            check = false;
             for i = 1 : numel(protocol.detector_requirements)
                 requirement = protocol.detector_requirements{i};
 
@@ -56,6 +59,7 @@ classdef protocol
                     num2str(detector.(requirement)) ...
                 ]);
             end
+            check = true;
         end
 
         function [SKR, QBER, Rate_In, Rate_Det] = EvaluateQKDLink( ...
@@ -64,8 +68,8 @@ classdef protocol
             % TODO Arguments block
             % what should the check for link loss and background counts be?
 
-            Source = protocol.compatibleSource(Source);
-            Detector = protocol.compatibleDetector(Detector);
+            check = protocol.compatibleSource(Source);
+            check = protocol.compatibleDetector(Detector);
 
             dark_counts = 1 - exp(-Background_Count_Rate * Detector.Time_Gate_Width);
 
