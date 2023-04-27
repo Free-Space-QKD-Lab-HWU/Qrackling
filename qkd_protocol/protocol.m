@@ -4,6 +4,7 @@ classdef protocol
         QKD_protocol qkd_protocols;
         source_requirements = {};
         detector_requirements = {};
+        efficiency;
     end
 
     methods
@@ -13,13 +14,14 @@ classdef protocol
                 protoEnum qkd_protocols
             end
 
-            [rs, rd] = protoEnum.requirements;
+            [rs, rd, eff] = protoEnum.requirements;
             assert(~isempty(rs) | ~isempty(rd), ...
                 ['Protocol: \{', string(protoEnum), '\} is not supported']);
 
             protocol.QKD_protocol = protoEnum;
             protocol.source_requirements = rs;
             protocol.detector_requirements = rd;
+            protocol.efficiency = eff;
         end
 
         function check = compatibleSource(protocol, source)
@@ -70,6 +72,7 @@ classdef protocol
 
             check = protocol.compatibleSource(Source);
             check = protocol.compatibleDetector(Detector);
+            prot_eff = protocol.efficiency;
 
             dark_counts = 1 - exp(-Background_Count_Rate * Detector.Time_Gate_Width);
 

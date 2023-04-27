@@ -6,9 +6,10 @@ classdef qkd_protocols
 
     methods
 
-        function [req_source, req_detector] = requirements(proto)
+        function [req_source, req_detector, efficiency] = requirements(proto)
             req_source = {};
             req_detector = {};
+            efficiency = 1;
 
             switch proto
                 case qkd_protocols.BB84
@@ -18,6 +19,7 @@ classdef qkd_protocols
                     req_detector = { ...
                         'Dark_Count_Rate','Time_Gate_Width','Dead_Time' ...
                         };
+                    efficiency = 0.5;
 
                 case qkd_protocols.DecoyBB84
                     req_source = { ...
@@ -28,6 +30,7 @@ classdef qkd_protocols
                     req_detector = { ...
                         'Dark_Count_Rate','Time_Gate_Width','Dead_Time' ...
                         };
+                    efficiency = 0.5;
 
                 case qkd_protocols.E91
                     req_source = { ...
@@ -36,6 +39,7 @@ classdef qkd_protocols
                     req_detector = { ...
                         'Dark_Count_Rate','Time_Gate_Width','Dead_Time' ...
                         };
+                    efficiency = 1;
 
                 case qkd_protocols.COW
                     req_source = { ...
@@ -46,6 +50,7 @@ classdef qkd_protocols
                     req_detector = { ...
                         'Time_Gate_Width', 'Dead_Time', 'Visibility'
                         };
+                    efficiency = 1;
 
                 case qkd_protocols.DPS
                     req_source = { ...
@@ -59,6 +64,8 @@ classdef qkd_protocols
                         'QBER_Jitter', ...
                         'Visibility'
                         };
+                    efficiency = 1;
+
             end
         end
 
