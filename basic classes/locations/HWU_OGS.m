@@ -11,24 +11,14 @@ classdef HWU_OGS < Ground_Station
             %HWU_OGS Construct an instance of a OGS at HWU site at the
             %input wavelength
 
-            %wavelength can be 780 or 850 only as these are what we have
-            %data for 
-            switch Detector.Wavelength
-                case 780
-                    Background_Light_Data_Location='orbit modelling resources\background count rate files\HWU780nm.mat';
-                case 850
-                    Background_Light_Data_Location='orbit modelling resources\background count rate files\HWU850nm.mat';
-                otherwise
-                    error('no background light data for HWU at that wavelength')
-            end
-
             HWU_OGS=HWU_OGS@Ground_Station(...
                 Telescope,...
-                'LLA',[55.911420,-3.322424,84],... %COORDS
-                'Background_Count_Rate_File_Location',Background_Light_Data_Location,... 
-                'Name','HWU',...
-                varargin{:});%location name
-                
+                varargin{:},...
+                LLA=[55.911420,-3.322424,84],... %COORDS
+                Name='HWU',...
+                Sky_Brightness_Store_Location = ['orbit modelling resources',filesep,...
+                                                 'background count rate files',filesep,...
+                                                 'HWU_Experimental_Sky_Brightness_Store.mat']) %data on background light
         end
 
     end
