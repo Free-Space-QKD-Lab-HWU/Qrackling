@@ -11,23 +11,14 @@ classdef York_OGS < Ground_Station
             %Chilbolton_OGS Construct an instance of a OGS at HWU site at the
             %input wavelength
 
-            %wavelength can be 780 or 850 only as these are what we have
-            %data for 
-            switch Detector.Wavelength
-                case 780
-                    Background_Light_Data_Location='orbit modelling resources\background count rate files\York780nm.mat';
-                case 850
-                    Background_Light_Data_Location='orbit modelling resources\background count rate files\York780nm.mat';
-                otherwise
-                    error('no background light data for York at that wavelength')
-            end
-
             York_OGS=York_OGS@Ground_Station(...
                 Telescope,...
-                'LLA',[53.943333,-1.0580555,11],... %COORDS
-                'Background_Count_Rate_File_Location',Background_Light_Data_Location,... 
-                'Name','York',...
-                varargin{:});%location name
+                varargin{:},...
+                LLA=[53.943333,-1.0580555,11],... %COORDS
+                Name='York',...
+                Sky_Brightness_Store_Location = ['orbit modelling resources',filesep,...
+                                                 'background count rate files',filesep,...
+                                                 'York_Experimental_Sky_Brightness_Store.mat']) %data on background light
         end
 
     end

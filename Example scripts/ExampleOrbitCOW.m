@@ -21,7 +21,7 @@ Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do n
 %2.1.3 Construct satellite
 SimSatellite=Satellite(Transmitter_Telescope,...
                         'Source',Transmitter_Source,...
-                        OrbitDataFileLocation',OrbitDataFileLocation);
+                        'OrbitDataFileLocation',OrbitDataFileLocation);
 
 %2.2 Ground station
 %2.2.1 Detector
