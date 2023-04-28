@@ -10,6 +10,7 @@ classdef protocol
     methods
 
         function protocol = protocol(protoEnum)
+
             arguments
                 protoEnum qkd_protocols
             end
@@ -24,10 +25,16 @@ classdef protocol
             protocol.efficiency = eff;
         end
 
-        function check = compatibleSource(protocol, source)
+        function check = compatibleSource(proto, source)
+
+            arguments
+                proto protocol
+                source Source
+            end
+
             check = false;
-            for i = 1 : numel(protocol.source_requirements)
-                requirement = protocol.source_requirements{i};
+            for i = 1 : numel(proto.source_requirements)
+                requirement = proto.source_requirements{i};
 
                 has_prop = isprop(source, requirement);
                 has_value = ~isempty(source.(requirement));
@@ -44,10 +51,16 @@ classdef protocol
             check = true;
         end
 
-        function check = compatibleDetector(protocol, detector)
+        function check = compatibleDetector(proto, detector)
+
+            arguments
+                proto protocol
+                detector Detector
+            end
+
             check = false;
-            for i = 1 : numel(protocol.detector_requirements)
-                requirement = protocol.detector_requirements{i};
+            for i = 1 : numel(proto.detector_requirements)
+                requirement = proto.detector_requirements{i};
 
                 has_prop = isprop(detector, requirement);
                 has_value = ~isempty(detector.(requirement));
@@ -65,24 +78,29 @@ classdef protocol
         end
 
         function [SKR, QBER, Rate_In, Rate_Det] = EvaluateQKDLink( ...
-            protocol, Source, Detector, Link_Loss_dB, Background_Count_Rate)
+            proto, source, detector, Link_Loss_dB, Background_Count_Rate)
 
-            % TODO Arguments block
-            % what should the check for link loss and background counts be?
+            arguments
+                proto protocol
+                source Source
+                detector Detector
+                Link_Loss_dB
+                Background_Count_Rate
+            end
 
-            check = protocol.compatibleSource(Source);
-            check = protocol.compatibleDetector(Detector);
-            prot_eff = protocol.efficiency;
+            check = proto.compatibleSource(source);
+            check = proto.compatibleDetector(detector);
+            prot_eff = proto.efficiency;
 
-            dark_counts = 1 - exp(-Background_Count_Rate * Detector.Time_Gate_Width);
+            dark_counts = 1 - exp(-Background_Count_Rate * detector.Time_Gate_Width);
 
             % Use the qkd_protocols enum (protocol.QKD_protocol) to execute the
             % correct qkd function and return the secure key rate, QBER along
             % with the received count rate and detected count rate
-            switch protocol.QKD_protocol
+            switch proto.QKD_protocol
                 case qkd_protocols.BB84
                     [SKR, QBER, Rate_In, Rate_Det] = BB84_single_photon_model( ...
-                         Source, dark_counts, Link_Loss_dB, prot_eff, Detector);
+                         source, dark_counts, Link_Loss_dB, prot_eff, detector);
 
                 case qkd_protocols.DecoyBB84
                     assert(isvector(Link_Loss_dB) ...
@@ -97,7 +115,7 @@ classdef protocol
 
                     for i = 1 : max(sz)
                         [s, q, ri, rd] = decoyBB84_model( ...
-                            Source, dark_counts(i), Link_Loss_dB(i), prot_eff, Detector);
+                            source, dark_counts(i), Link_Loss_dB(i), prot_eff, detector);
 
                         SKR(i) = s;
                         %use the first QBER as this is from the signal states
@@ -108,11 +126,11 @@ classdef protocol
 
                 case qkd_protocols.E91
                     [SKR, QBER, Rate_In, Rate_Det] = ekart92_model( ...
-                        Source, dark_counts, Link_Loss_dB, prot_eff, Detector)
+                        source, dark_counts, Link_Loss_dB, prot_eff, detector)
 
                 case qkd_protocols.COW
                     [SKR, QBER, Rate_In, Rate_Det] = COW_model( ...
-                        Source, dark_counts, Link_Loss_dB, Detector)
+                        source, dark_counts, Link_Loss_dB, detector)
 
                 case qkd_protocols.DPS
                     error('Broken, protocol missing...')
