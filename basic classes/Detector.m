@@ -193,7 +193,6 @@ classdef (Abstract) Detector
             %equal to integer multiples of the photon arrival period
             QBER = 0;
 
-            % it should be possible to perform the below calculation with by getting the pairwise extrema if we have an array for the "current shifted mode"
 
             %iterating over previous pulses (negative autocorrelation)
             Current_Shifted_Mode = Mode_Time_Index + Repetition_Period_Index;
