@@ -1,7 +1,7 @@
 classdef Sky_Brightness_Store
     %% a class which provides an interface for background light calculations.
     %% This defines how sky brightness data should be provided
-    properties
+    properties(SetAccess=public, GetAccess=public)
         %wavelength at which atmospheric is stored in nm
         Wavelengths = [];
         %elevation of atmospheric data in degrees above the horizon
@@ -55,7 +55,7 @@ classdef Sky_Brightness_Store
             %% parse inputs
             p=inputParser();
             %required inputs
-            ValidateHeadings = @(Head) mustBeVectorBetween(Head,[0,90]);
+            ValidateHeadings = @(Head) mustBeVectorBetween(Head,[0,360]);
             addRequired(p,'Headings',ValidateHeadings);
             ValidateElevations = @(El) mustBeVectorBetween(El,[0,90]);
             addRequired(p,'Elevations',ValidateElevations);
@@ -73,8 +73,18 @@ classdef Sky_Brightness_Store
             %% disseminate inputs
             SBS.Wavelengths = p.Results.Wavelengths;
             SBS.Elevations = p.Results.Elevations;
-            SBS.Headings = p.Results.Headings;
-            SBS.Spectral_Pointance = p.Results.Spectral_Pointance;
+            Headings = p.Results.Headings;
+            %sort headings to that they are increasing and in the range 0-360
+            Headings = mod(Headings,360);
+            [Headings,Indices]=sort(Headings,'ascend');
+            %sort Spectral Pointance to match
+            Spectral_Pointance = p.Results.Spectral_Pointance;
+            Spectral_Pointance = Spectral_Pointance(Indices,:,:);
+            %store both
+            SBS.Headings = Headings;
+            SBS.Spectral_Pointance = Spectral_Pointance;
+            
+            
             %calculate photon flux
             SBS.Photon_Flux = pagemrdivide(SBS.Spectral_Pointance,reshape((SBS.h * SBS.c )./(SBS.Wavelengths * 1E-9),1,1,[]));
             %store heading,elevation,wavelength as meshgrids
@@ -84,17 +94,22 @@ classdef Sky_Brightness_Store
             SBS.Wavelength_ndgrid=Wavelengths_Meshgrid;
         end
 
-        function Count_Rates = GetSkyCountRate(SBS,Headings,Elevations,Wavelengths)
+        function Count_Rates = GetSkyCountRate(SBS,Headings,Elevations,Wavelength)
             %% return the count rate of photons from the sky at a particular heading, elevation and wavelength
             %% in units of counts per (second * steradian * m^2 * nm)
             
             %% we assume that heading, elevation, wavelength are a list of request values (so are 1D vectors at most)
-            mustBeVectorBetween(Headings,[0,360]);
+            mustBeVector(Headings)
+            %convert heading to 0-360
+            Headings = mod(Headings,360);
             mustBeVectorBetween(Elevations,[0,90]);
-            mustBeVectorBetween(Wavelengths,[0,inf]);
+            mustBeVectorBetween(Wavelength,[0,inf]);
             %and that the number of elements in each list is the same
-            assert(isequal(numel(Headings),numel(Elevations),numel(Wavelengths)),...
-                'Number of elements in each of Headings, Elevations and Wavelengths must be the same');
+            assert(isequal(numel(Headings),numel(Elevations)),...
+                'Number of elements in each of Headings and Elevations must be the same');
+            assert(numel(Wavelength)==1,...
+                'Wavelength must be scalar');
+
             Num_Requests = numel(Headings);
             
             %% prepare memory
@@ -102,16 +117,27 @@ classdef Sky_Brightness_Store
 
             %% interpolate into existing data
             for i=1:Num_Requests
-            Count_Rates(i) = interpn(SBS.Heading_ndgrid,SBS.Elevation_ndgrid,SBS.Wavelength_ndgrid,SBS.Photon_Flux,Headings(i),Elevations(i),Wavelengths(i));
+            Count_Rates(i) = interpn(SBS.Heading_ndgrid,SBS.Elevation_ndgrid,SBS.Wavelength_ndgrid,SBS.Photon_Flux,Headings(i),Elevations(i),Wavelength);
+            end
+            %% check for out-of-range values
+            Out_of_Range = isnan(Count_Rates);
+            if any(Out_of_Range)
+                if all(Out_of_Range)
+                    warning('All requested values are out of background light lookup range: Set to 0')
+                else
+                warning('Some requested values are out of background light lookup range\nSet to 0')
+                end
+                Count_Rates(Out_of_Range)=0;
             end
         end
 
-        function Count_Rates = GetSkyPower(SBS,Headings,Elevations,Wavelengths)
+        function Sky_Power = GetSkyPower(SBS,Headings,Elevations,Wavelengths)
             %% return the power from the sky at a particular heading, elevation and wavelength
             %% in units of energy per (second * steradian * m^2 * nm)
             
             %% we assume that heading, elevation, wavelength are a list of request values (so are 1D vectors at most)
-            mustBeVectorBetween(Headings,[0,360]);
+            mustBeVector(Headings);
+            Headings = mod(Headings,360);
             mustBeVectorBetween(Elevations,[0,90]);
             mustBeVectorBetween(Wavelengths,[0,inf]);
             %and that the number of elements in each list is the same
@@ -120,12 +146,24 @@ classdef Sky_Brightness_Store
             Num_Requests = numel(Headings);
             
             %% prepare memory
-            Count_Rates=zeros(size(Headings));
+            Sky_Power=zeros(size(Headings));
 
             %% interpolate into existing data
             for i=1:Num_Requests
-            Count_Rates(i) = interpn(SBS.Heading_ndgrid,SBS.Elevation_ndgrid,SBS.Wavelength_ndgrid,SBS.Spectral_Pointance,Headings(i),Elevations(i),Wavelengths(i));
+            Sky_Power(i) = interpn(SBS.Heading_ndgrid,SBS.Elevation_ndgrid,SBS.Wavelength_ndgrid,SBS.Spectral_Pointance,Headings(i),Elevations(i),Wavelengths(i));
             end
+
+            %% check for out-of-range values
+            Out_of_Range = isnan(Sky_Power);
+            if any(Out_of_Range)
+                if all(Out_of_Range)
+                    warning('All requested values are out of background light lookup range\nSet to 0')
+                else
+                warning('Some requested values are out of background light lookup range\nSet to 0')
+                end
+                Sky_Power(Out_of_Range)=0;
+            end
+
         end
 
         function SaveToFile(SBS,FileName)

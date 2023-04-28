@@ -163,7 +163,7 @@ classdef PassSimulation
                 PassSimulation = SimulateUplink(PassSimulation);
                 case 'Down'
 
-                PassSimulation = SimulateDownlink(PassSimulation, Count_Map);
+                PassSimulation = SimulateDownlink(PassSimulation);
                 otherwise
                 error('must have satellite and ground station support either uplink or downlink')
             end
@@ -390,7 +390,7 @@ classdef PassSimulation
             SKR = PassSimulation.Secret_Key_Rates;
         end
 
-        function PassSimulation = SimulateDownlink(PassSimulation, Count_Map)
+        function PassSimulation = SimulateDownlink(PassSimulation)
 
             %p = inputParser();
             %addParameter(p, 'Count_Map', []);
@@ -416,7 +416,7 @@ classdef PassSimulation
 
             %% Compute background count rate and link heading and elevation
             [Headings, Elevations, Ranges] = RelativeHeadingAndElevation(Satellite, Ground_Station);
-            [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate(Ground_Station, Background_Sources, Satellite, Headings, Elevations, smarts_configuration, Count_Map);
+            [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate(Ground_Station, Background_Sources, Satellite, Headings, Elevations, smarts_configuration);
             PassSimulation.QKD_Receiver = Ground_Station; %need to store OGS details for beacon modelling
             %% Check elevation limit
             Line_Of_Sight_Flags = Elevations>0;

@@ -15,7 +15,10 @@ classdef Errol_OGS < Ground_Station
                 Telescope, ...
                 varargin{:},... %any other inputs
                 LLA = [56.40555555, -3.18833333, 10], ... %coords
-                Name = 'Errol') %location name
+                Name = 'Errol',... %location name
+                Sky_Brightness_Store_Location = ['orbit modelling resources',filesep,...
+                                                 'background count rate files',filesep,...
+                                                 'Errol_Experimental_Sky_Brightness_Store.mat']) %data on background light
         end
 
     end
