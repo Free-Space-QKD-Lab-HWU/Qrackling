@@ -30,10 +30,10 @@ MPD_decoyBB84_Detector=MPD_Detector(Wavelength,Transmitter_Source.Repetition_Rat
 %time gating
 
 %2.2.2 Receiver telescope
-Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);
+Receiver_Telescope=Telescope(Receiver_Telescope_Diameter,'Wavelength',Wavelength);
 
 %2.2.3 construct ground station, use Errol as an example
-SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',MPD_BB84_Detector);
+SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',MPD_decoyBB84_Detector);
 
 %2.3 protocol
 Decoy_BB84_Protocol=decoyBB84_Protocol;

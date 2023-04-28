@@ -123,9 +123,9 @@ classdef Sky_Brightness_Store
             Out_of_Range = isnan(Count_Rates);
             if any(Out_of_Range)
                 if all(Out_of_Range)
-                    warning('All requested values are out of background light lookup range: Set to 0')
+                    warning('All requested values are out of background light lookup range\nThese are set to 0',[])
                 else
-                warning('Some requested values are out of background light lookup range\nSet to 0')
+                warning('Some requested values are out of background light lookup range\nThese are set to 0',[]);
                 end
                 Count_Rates(Out_of_Range)=0;
             end
