@@ -720,8 +720,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
 
             else
                 Light_Pollution_Count_Rate = zeros(size(Headings));
-                warning('No valid background count rate format provided. \nCan provide a Sky_Brightness_Store_Location, a SMARTS_config, or an Atmosphere_File_Location. \nSetting background counts to 0',...
-                        'QKD_Sat_Link:NoBackgroundCountFile');
+                warning('No valid background count rate format provided. Can provide a Sky_Brightness_Store_Location, a SMARTS_config, or an Atmosphere_File_Location. ')
             end
 
 
