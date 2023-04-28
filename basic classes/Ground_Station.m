@@ -14,6 +14,10 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
         % ground station (stored in counts/ s steradian nm)
         Background_Count_Rate_File_Location{mustBeText} = 'none';
 
+        % path to a Sky_Brightness_Store object which unifies the background
+        % light data interface between sources
+        Sky_Brightness_Store_Location{mustBeText} = 'none';
+
         %the camera which receives beacon light, if beaconing is simulated
         Camera=[];
 
@@ -92,6 +96,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             addParameter(p, 'Beacon', []);
             addParameter(p, 'Source', []);
             addParameter(p, 'Atmosphere_File_Location',[]);
+            addParameter(p, 'Sky_Brightness_Store_Location','none');
 
             parse(p, Telescope, varargin{:});
 
