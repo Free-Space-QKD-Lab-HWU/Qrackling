@@ -14,13 +14,14 @@
 %                                                        Detector)
 
 function [SKR_COW_2008, QBER, Rate_In, Rates_Det] = COW_model( ...
-        Source, prob_dark_counts, loss, Detector)
+        Source, prob_dark_counts, loss, protocol_efficiency, Detector)
 
     MPN = Source.Mean_Photon_Number;
     State_Prep_Error = Source.State_Prep_Error;
-    rep_rate = Source.Repetiton_Rate;
+    rep_rate = Source.Repetition_Rate;
     decoy_prob = Source.State_Probabilities(2);
-
+    Dead_Time = Detector.Dead_Time;
+    
     %error correction efficiency
     f = 1.2;
     % Total absolute loss
@@ -32,7 +33,7 @@ function [SKR_COW_2008, QBER, Rate_In, Rates_Det] = COW_model( ...
 
     % frequency of pings at the receiver
     Rate_In = 0.5 * R * rep_rate + prob_dark_counts * rep_rate;
-    R_sifted = min(R_sifted, 1/dead_time);
+    R_sifted = min(Rate_In, 1/Dead_Time);
     % tau1 = Detector.fall_time;
     % tau2 = Detector.rise_time;
     % R_sifted = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
@@ -54,7 +55,7 @@ function [SKR_COW_2008, QBER, Rate_In, Rates_Det] = COW_model( ...
     Xcow = QBER + (1 - QBER).*H((1 + eps(MPN, Detector.Visibility))/2);
 
     % Secure key rate
-    SKR_COW_2008 = R_sifted.*(1 - f*H(QBER) - Xcow).*(1-decoy_prob);
+    SKR_COW_2008 = R_sifted.*(1 - f*H(QBER) - Xcow).*(1-decoy_prob)*protocol_efficiency;
     % SKR cannot be negative
     SKR_COW_2008(SKR_COW_2008<0)=0;
 end

@@ -7,13 +7,17 @@ Wavelength=780;                                                            %wave
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
 OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                              %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
 Receiver_Telescope_Diameter=1;                                           
-Time_Gate_Width=1E-9;                                                      %times are measured in s
-Spectral_Filter_Width=10;                                                  %consistemt with wavelength, spectral width is measured in nm
+Time_Gate_Width=1E-10;                                                      %times are measured in s
+Spectral_Filter_Width=1;                                                  %consistemt with wavelength, spectral width is measured in nm
+Repetition_Rate = 1E8;  
+SPs = [0.9,0.1];
 %% 2. Construct components
 
 %2.1 Satellite
 %2.1.1 Source
-Transmitter_Source=COW_Source(Wavelength);                                       %we use default values to simplify this example
+Transmitter_Source=Source(Wavelength,...
+                          'Repetition_Rate',Repetition_Rate,...
+                          'State_Probabilities',SPs);        %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
 Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
@@ -38,7 +42,7 @@ SimGround_Station=Chilbolton_OGS(Receiver_Telescope,...
                                     'Detector',Generic_COW_Detector);
 
 %2.3 protocol
-COW_protocol=Protocol(qkd_protocols.COW);
+COW_protocol=Protocol.COW;
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object

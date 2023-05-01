@@ -211,7 +211,7 @@ classdef PassSimulation
                     Ground_Station = PassSimulation.QKD_Receiver;
             end
 
-            Fig = figure('name', strjoin(['Pass Simulation using ', string(PassSimulation.Protocol.QKD_protocol), ' protocol at ', num2str(PassSimulation.QKD_Transmitter.Source.Wavelength), 'nm']), 'WindowState', 'maximized');
+            Fig = figure('name', ['Pass Simulation using ', char(PassSimulation.Protocol), ' protocol at ', num2str(PassSimulation.QKD_Transmitter.Source.Wavelength), 'nm'], 'WindowState', 'maximized');
             subplot(3, 3, [3, 6])
 
             title('Satellite Ground Path')
