@@ -46,7 +46,7 @@ Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);
 SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',MPD_BB84_Detector);
 
 %2.3 protocol
-BB84_protocol=Protocol(qkd_protocols.BB84);
+BB84_protocol=Protocol.BB84;
 
 %2.4 jamming source
 Jamming_Source=Jamming_Laser(Wavelength,Jamming_Diameter,Jamming_Coordinates,Jamming_Power,Jamming_Spectral_Width);

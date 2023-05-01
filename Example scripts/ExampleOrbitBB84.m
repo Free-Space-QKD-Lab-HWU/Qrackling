@@ -35,7 +35,7 @@ Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);
 SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',MPD_BB84_Detector);
 
 %2.3 protocol
-BB84_protocol=Protocol(qkd_protocols.BB84);
+BB84_protocol = Protocol.BB84;
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object

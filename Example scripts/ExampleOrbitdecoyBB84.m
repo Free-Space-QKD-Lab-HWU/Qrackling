@@ -9,11 +9,15 @@ OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                              %orbi
 Receiver_Telescope_Diameter=1;                                           
 Time_Gate_Width=1E-9;                                                      %times are measured in s
 Spectral_Filter_Width=10;                                                  %consistemt with wavelength, spectral width is measured in nm
-%% 2. Construct components
+MPNs = [0.7,0.1,0];                                                        %mean photon numbers
+SPs = [0.75,0.25,0.25];                                                    %state probabilities
 
+%% 2. Construct components
 %2.1 Satellite
 %2.1.1 Source
-Transmitter_Source=decoyBB84_Source(Wavelength);                                       %we use default values to simplify this example
+Transmitter_Source=Source(Wavelength,...
+                          'Mean_Photon_Number',MPNs,...
+                          'State_Probabilities',SPs);                                       %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
 Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
@@ -36,7 +40,7 @@ Receiver_Telescope=Telescope(Receiver_Telescope_Diameter,'Wavelength',Wavelength
 SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',MPD_decoyBB84_Detector);
 
 %2.3 protocol
-Decoy_BB84_Protocol=Protocol(qkd_protocol.DecoyBB84);
+Decoy_BB84_Protocol=Protocol.DecoyBB84;
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
