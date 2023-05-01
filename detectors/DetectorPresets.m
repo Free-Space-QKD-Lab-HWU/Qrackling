@@ -1,43 +1,40 @@
 classdef DetectorPresets
 
     enumeration
-        Hamamatsu, MicroPhotonDevices, Excelitas, PerkinElmer, Custom
+        Excelitas ('Excelitas.mat')
+        Hamamatsu ('Hamamatsu.mat')
+        LaserComponents ('LaserComponents.mat')
+        MicroPhotonDevices ('MicroPhotonDevices.mat')
+        PerkinElmer ('PerkinElmer.mat')
+        Custom ('')
+    end
+
+    properties(SetAccess = immutable)
+        preset_location
     end
 
     methods
 
-        function chosenPreset = fromPreset(preset)
+        function preset = DetectorPresets(preset_location)
+            preset.preset_location = preset_location;
+        end
 
-            preset = struct();
+        function preset = LoadPreset(det_preset, varargin)
+            p = inputParser();
+            addParameter(p, 'customPath', '');
+            parse(p, varargin{:});
 
-
-            switch presets
-                case Hamamatsu
-                    preset.Dark_Count_Rate = 10;
-                    preset.Dead_Time = 0;
-                    preset.Histogram_Data_Location = 'HamamatsuHistogram.mat';
-                    preset.Histogram_Bin_Width = 10^-12;
-                    preset.Detection_Efficiency = 0.6;
-                    preset.Efficiency_Data_Location = 'Hamamatsu_efficiency.mat';
-
-                case MicroPhotonDevices
-
-                case Excelitas
-
-                case PerkinElmer
-                    preset = Dark_Count_Rate = 10;
-                    preset = Dead_Time = 0;
-                    preset = Histogram_Data_Location = 'Perkin_ElmerHistogram.mat';
-                    preset = Histogram_Bin_Width = 10^-12;
-                    preset = Detection_Efficiency = 0.6;
-                    preset = Efficiency_Data_Location = 'perkin_elmer_efficiency.mat';
-
-                case Custom
-                    disp('must have file path');
-
-                otherwise
-                    error(['\{ ', string(preset), ' \} not supported']);
+            preset_path = det_preset.preset_location;
+            if det_preset == DetectorPresets.Custom
+                assert(~isempty(p.Results.customPath), ...
+                    ['Attempting to use custom (user defined) detector ', ...
+                    'without supplying a path to a "DetectorPreset"']);
+                preset_path = p.Results.customPath;
             end
+
+            preset = detectorPresetBuilder().loadPreset(preset_path);
         end
 
     end
+
+end

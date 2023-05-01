@@ -3,17 +3,14 @@ classdef Protocol
 
    enumeration
     %% Requirements for an enumeration are:
-                %source requirements (what properties does the source object
-                %need)
-                
-                %detector requirements (what properties does the detector object
-                %need)
-                
-                %efficiency (what portion of successful detections generate key
-                
-                %Evaluation_Function (a function which computes SKR and QBER. This
-                %must conform to [SKR, QBER, Rate_In, Rate_Det] = EvaluateQKDLink( ...
-                %proto, source, detector, Link_Loss_dB, Background_Count_Rate)
+        % source requirements (what properties does the source object
+        % need)
+        % detector requirements (what properties does the detector object
+        % need)
+        % efficiency (what portion of successful detections generate key
+        % Evaluation_Function (a function which computes SKR and QBER. This
+        % must conform to [SKR, QBER, Rate_In, Rate_Det] = EvaluateQKDLink( ...
+        % proto, source, detector, Link_Loss_dB, Background_Count_Rate)
 
 
         %% the BB84 protocol enumeration
@@ -29,7 +26,7 @@ classdef Protocol
                 0.5,...
                 ...%evaluation function to compute SKR,QBER etc
                 @BB84_single_photon_model);
-        
+
         %% the decoy BB84 enumeration
         DecoyBB84(...%Source requirements
                    {'Mean_Photon_Number', ...
@@ -95,16 +92,14 @@ classdef Protocol
    end
 
    methods
-       function AP = Protocol(Source_Requirements,...
-                                        Detector_Requirements,...
-                                        Efficiency,...
-                                        EvaluationFunction)
+        function proto = Protocol( ...
+            Source_Requirements, Detector_Requirements, Efficiency, EvaluationFunction)
            %implement these inputs in the class. These are set by the
            %enumeration class constructor ONLY (immutable)
-           AP.source_requirements=Source_Requirements;
-           AP.detector_requirements=Detector_Requirements;
-           AP.efficiency=Efficiency;
-           AP.Evaluation_Function = EvaluationFunction;
+           proto.source_requirements = Source_Requirements;
+           proto.detector_requirements = Detector_Requirements;
+           proto.efficiency = Efficiency;
+           proto.Evaluation_Function = EvaluationFunction;
        end
 
         function check = compatibleSource(proto, source)
@@ -181,15 +176,16 @@ classdef Protocol
             %get inputs to evaluation function (probability of dark counts in a
             %pulse)
             dark_count_probability = 1 - exp(-Background_Count_Rate * detector.Time_Gate_Width);
-            
+
             %run protocol's evaluation function
             %all evaluation functions must conform to this format
-            [SKR,QBER,Rate_In,Rate_Det] = proto.Evaluation_Function(...
-                                            source,...
-                                            dark_count_probability,...
-                                            Link_Loss_dB,...
-                                            proto.efficiency,...
-                                            detector);
+            [SKR, QBER, Rate_In, Rate_Det] = ...
+                proto.Evaluation_Function( ...
+                    source, ...
+                    dark_count_probability, ...
+                    Link_Loss_dB, ...
+                    proto.efficiency, ...
+                    detector);
         end
    end
 end

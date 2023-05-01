@@ -81,5 +81,17 @@ classdef detectorPresetBuilder
             preset = builder.preset;
         end
 
+        function writePreset(builder, outputPath)
+            outputPath = adduserpath(outputPath);
+            preset = builder.makeDetectorPreset()
+            save(outputPath, 'preset');
+        end
+
+        function preset = loadPreset(builder, presetFilePath)
+            preset = load(presetFilePath).preset;
+            builder.preset = preset;
+            preset = builder.makeDetectorPreset();
+        end
+
     end
 end
