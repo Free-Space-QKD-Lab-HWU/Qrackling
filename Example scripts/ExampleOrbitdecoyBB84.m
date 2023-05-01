@@ -44,7 +44,7 @@ Decoy_BB84_Protocol=Protocol.DecoyBB84;
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,Protocol(qkd_protocol.DecoyBB84),SimGround_Station);
+Pass=PassSimulation(SimSatellite,Protocol(Decoy_BB84_Protocol),SimGround_Station);
 %3.2 run simulation
 Pass=Simulate(Pass);
 %3.3 plot results

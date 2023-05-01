@@ -2,6 +2,20 @@ classdef Protocol
     %PROTOCOL describes the operation of a QKD protocol
 
    enumeration
+    %% Requirements for an enumeration are:
+                %source requirements (what properties does the source object
+                %need)
+                
+                %detector requirements (what properties does the detector object
+                %need)
+                
+                %efficiency (what portion of successful detections generate key
+                
+                %Evaluation_Function (a function which computes SKR and QBER. This
+                %must conform to [SKR, QBER, Rate_In, Rate_Det] = EvaluateQKDLink( ...
+                %proto, source, detector, Link_Loss_dB, Background_Count_Rate)
+
+
         %% the BB84 protocol enumeration
         BB84 (...%Source requirements
               {'g2',...
@@ -12,7 +26,9 @@ classdef Protocol
                'Time_Gate_Width',...
                'Dead_Time'},...
                ...%efficiency
-                0.5);
+                0.5,...
+                ...%evaluation function to compute SKR,QBER etc
+                @BB84_single_photon_model);
         
         %% the decoy BB84 enumeration
         DecoyBB84(...%Source requirements
@@ -24,7 +40,10 @@ classdef Protocol
                     'Time_Gate_Width',...
                     'Dead_Time'},...
                     ...%efficiency
-                    0.5);
+                    0.5,...
+                ...%evaluation function to compute SKR,QBER etc
+                @decoyBB84_model);
+
         %% the COW enumeration
         E91(...%Source requirements
                    {'Mean_Photon_Number', ...
@@ -35,7 +54,10 @@ classdef Protocol
                     'Time_Gate_Width',...
                     'Dark_Count_Rate'},...
                     ...%efficiency
-                    1);
+                    1,...
+                ...%evaluation function to compute SKR,QBER etc
+                @ekart92_model);
+
         %% the COW enumeration
         COW(...%Source requirements
                    {'Mean_Photon_Number', ...
@@ -46,7 +68,9 @@ classdef Protocol
                     'Time_Gate_Width',...
                     'Visibility'},...
                     ...%efficiency
-                    1);
+                    1,...
+                ...%evaluation function to compute SKR,QBER etc
+                @COW_model);
        %% the DPS enumeration
         DPS(...%Source requirements
                    {'Mean_Photon_Number', ...
@@ -58,24 +82,29 @@ classdef Protocol
                     'Dead_Time',...
                     'QBER_Jitter'},...
                     ...%efficiency
-                    1);
+                    1,...
+                ...%evaluation function to compute SKR,QBER etc
+                function_handle.empty);%DPS is missing a function!
     end
 
    properties(SetAccess = immutable)
         source_requirements = {};
         detector_requirements = {};
         efficiency double {mustBeLessThanOrEqual(efficiency,1),mustBeNonnegative}
+        Evaluation_Function function_handle {mustBeScalarOrEmpty}=function_handle.empty;
    end
 
    methods
        function AP = Protocol(Source_Requirements,...
                                         Detector_Requirements,...
-                                        Efficiency)
+                                        Efficiency,...
+                                        EvaluationFunction)
            %implement these inputs in the class. These are set by the
            %enumeration class constructor ONLY (immutable)
            AP.source_requirements=Source_Requirements;
            AP.detector_requirements=Detector_Requirements;
            AP.efficiency=Efficiency;
+           AP.Evaluation_Function = EvaluationFunction;
        end
 
         function check = compatibleSource(proto, source)
@@ -145,54 +174,22 @@ classdef Protocol
                 Background_Count_Rate
             end
 
-            check = proto.compatibleSource(source);
-            check = proto.compatibleDetector(detector);
-            prot_eff = proto.efficiency;
+            %check compatibility
+            proto.compatibleSource(source);
+            proto.compatibleDetector(detector);
 
-            dark_counts = 1 - exp(-Background_Count_Rate * detector.Time_Gate_Width);
-
-            % Use the qkd_protocols enum (protocol.QKD_protocol) to execute the
-            % correct qkd function and return the secure key rate, QBER along
-            % with the received count rate and detected count rate
-            switch proto
-                case Protocol.BB84
-                    [SKR, QBER, Rate_In, Rate_Det] = BB84_single_photon_model( ...
-                         source, dark_counts, Link_Loss_dB, prot_eff, detector);
-
-                case Protocol.DecoyBB84
-                    assert(isvector(Link_Loss_dB) ...
-                           && isvector(Background_Count_Rate), ...
-                           'Link loss and BCR must be at most 1-dimensional arrays');
-
-                    sz = size(Link_Loss_dB);
-                    SKR = zeros(sz);
-                    QBER = nan(sz);
-                    Rate_In = zeros(sz);
-                    Rate_Det = zeros(sz);
-
-                    for i = 1 : max(sz)
-                        [s, q, ri, rd] = decoyBB84_model( ...
-                            source, dark_counts(i), Link_Loss_dB(i), prot_eff, detector);
-
-                        SKR(i) = s;
-                        %use the first QBER as this is from the signal states
-                        QBER(i) = q(1);
-                        Rate_In(i) = ri;
-                        Rate_Det(i) = rd;
-                    end
-
-                case Protocol.E91
-                    [SKR, QBER, Rate_In, Rate_Det] = ekart92_model( ...
-                        source, dark_counts, Link_Loss_dB, prot_eff, detector);
-
-                case Protocol.COW
-                    [SKR, QBER, Rate_In, Rate_Det] = COW_model( ...
-                        source, dark_counts, Link_Loss_dB, detector);
-
-                case Protocol.DPS
-                    error('Broken, protocol missing...')
-            end
+            %get inputs to evaluation function (probability of dark counts in a
+            %pulse)
+            dark_count_probability = 1 - exp(-Background_Count_Rate * detector.Time_Gate_Width);
+            
+            %run protocol's evaluation function
+            %all evaluation functions must conform to this format
+            [SKR,QBER,Rate_In,Rate_Det] = proto.Evaluation_Function(...
+                                            source,...
+                                            dark_count_probability,...
+                                            Link_Loss_dB,...
+                                            proto.efficiency,...
+                                            detector);
         end
    end
-
 end
