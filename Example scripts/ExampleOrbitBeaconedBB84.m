@@ -59,14 +59,11 @@ SimGround_Station=Errol_OGS(Receiver_Telescope,...
                             'Beacon',Uplink_Beacon);
 
 %2.3 protocol
-BB84_protocol=Protocol(qkd_protocols.BB84);
-
-%2.4 SMARTS atmospheric modelling config
-SMARTS_Config = solar_background_errol_fast('executable_path','C:\Git\SMARTS\','stub','C:\Git\QKD_Sat_Link\SMARTS_connection\SMARTS cache\');
+BB84_protocol=Protocol.BB84;
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'SMARTS',SMARTS_Config,'Visibility','20km');
+Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'Visibility','20km');
 
 %3.2 run simulation
 Pass=Simulate(Pass);
