@@ -4,7 +4,7 @@ close all
 clc
 
 % %% protocol enum
-proto = protocol(qkd_protocols.DecoyBB84)
+proto = Protocol(qkd_protocols.DecoyBB84)
 disp(proto.source_requirements')
 
 Wavelength = 800;

@@ -20,7 +20,7 @@ Sun=getfield(load('Sun.mat'),'Sun');
 %declare specific components
 E91_S=E91_Source(Wavelength);
 E91_D=Generic_Detector(Wavelength,'E91',Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
-E91_P=E91_Protocol();
+E91_P=Protocol(qkd_protocols.E91);
 %make generic components
 SimSatellite=Satellite(OrbitDataFileLocation,E91_S,Transmitter_Telescope);
 SimGround_Station=Errol_OGS(E91_D,Receiver_Telescope);

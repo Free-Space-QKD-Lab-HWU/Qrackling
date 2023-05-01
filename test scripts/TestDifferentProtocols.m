@@ -18,7 +18,7 @@ Receiver_Telescope=Telescope(Receiver_Diameter,"Wavelength",Wavelength);
 %declare specific components
 BB84_S=Source(Wavelength);
 BB84_D=MPD_Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
-BB84_P=BB84_Protocol();
+BB84_P=Protocol(qkd_protocols.DecoyBB84);
 %make generic components
 SimSatellite=Satellite(BB84_S,Transmitter_Telescope,'OrbitDataFileLocation',OrbitDataFileLocation);
 SimGround_Station=Errol_OGS(BB84_D,Receiver_Telescope);
@@ -31,7 +31,7 @@ plot(BB84_Simple_Pass);
 %declare specific components
 E91_S=Source(Wavelength);
 E91_D=MPD_Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
-E91_P=E91_Protocol();
+E91_P=Protocol(qkd_protocols.E91);
 %make generic components
 SimSatellite=Satellite(E91_S,Transmitter_Telescope,'OrbitDataFileLocation',OrbitDataFileLocation);
 SimGround_Station=Errol_OGS(E91_D,Receiver_Telescope);
@@ -44,7 +44,7 @@ plot(E91_Pass)
 %declare specific components
 decoyBB84_S=Source(Wavelength,'Mean_Photon_Number',[0.7,0.1,0],'State_Probabilities',[0.8,0.1,0.1],'State_Prep_Error',0.01);
 decoyBB84_D=MPD_Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
-decoyBB84_P=decoyBB84_Protocol();
+decoyBB84_P = Protocol(qkd_protocols.DecoyBB84);
 %make generic components
 SimSatellite=Satellite(decoyBB84_S,Transmitter_Telescope,'OrbitDataFileLocation',OrbitDataFileLocation);
 SimGround_Station=Errol_OGS(decoyBB84_D,Receiver_Telescope);
@@ -57,7 +57,7 @@ plot(decoyBB84_Pass);
 %declare specific components
 COW_S=Source(Wavelength,'Mean_Photon_Number',0.06,'State_Probabilities',[0.9,0.1],'State_Prep_Error',0.01);
 COW_D=Generic_Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
-COW_P=COW_Protocol();
+COW_P=Protocol(qkd_protocols.COW);
 %make generic components
 SimSatellite=Satellite(COW_S,Transmitter_Telescope,'OrbitDataFileLocation',OrbitDataFileLocation);
 SimGround_Station=Errol_OGS(COW_D,Receiver_Telescope);
@@ -70,7 +70,7 @@ plot(COW_Pass)
 %declare specific components
 DPS_S=Source(Wavelength);
 DPS_D=Generic_Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
-DPS_P=DPS_Protocol();
+DPS_P=Protocol(qkd_protocols.DPS);
 %make generic components
 SimSatellite=Satellite(DPS_S,Transmitter_Telescope,'OrbitDataFileLocation',OrbitDataFileLocation);
 SimGround_Station=Errol_OGS(DPS_D,Receiver_Telescope);

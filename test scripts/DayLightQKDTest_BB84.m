@@ -33,7 +33,6 @@ Sun = getfield(load('Sun.mat'),'Sun');
 Sun = Sun.SetPosition('LLA', [53, 60, Sun.Altitude], 'Name', Sun.Location_Name);
 
 BB84_S = BB84_Source(Wavelength);
-%BB84_P = BB84_Protocol();
 BB84_P = protocol(qkd_protocols.BB84);
 BB84_D = MPD_Detector(Wavelength, ...
                       Repetition_Rate, ...

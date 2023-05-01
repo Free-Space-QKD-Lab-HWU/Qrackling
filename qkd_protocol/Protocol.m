@@ -1,4 +1,4 @@
-classdef protocol
+classdef Protocol
 
     properties(SetAccess = protected)
         QKD_protocol qkd_protocols;
@@ -28,7 +28,7 @@ classdef protocol
         function check = compatibleSource(proto, source)
 
             arguments
-                proto protocol
+                proto Protocol
                 source Source
             end
 
@@ -54,7 +54,7 @@ classdef protocol
         function check = compatibleDetector(proto, detector)
 
             arguments
-                proto protocol
+                proto Protocol
                 detector Detector
             end
 
@@ -81,7 +81,7 @@ classdef protocol
             proto, source, detector, Link_Loss_dB, Background_Count_Rate)
 
             arguments
-                proto protocol
+                proto Protocol
                 source Source
                 detector Detector
                 Link_Loss_dB

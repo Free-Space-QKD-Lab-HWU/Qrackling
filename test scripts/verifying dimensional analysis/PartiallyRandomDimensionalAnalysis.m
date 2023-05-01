@@ -48,7 +48,7 @@ R_Tele=Telescope(R_Diameter,Wavelength,1,1);
 SimGroundStation=Ground_Station('none',Detector,R_Tele,'N Pole',[89.9,0,0]);
 
 % jammingless simulation
-UnjammedSimulation=PassSimulation(SimSatellite,BB84_Protocol(),SimGroundStation,[]);
+UnjammedSimulation=PassSimulation(SimSatellite,Protocol(qkd_protocols.BB84),SimGroundStation,[]);
 UnjammedSimulation=Simulate(UnjammedSimulation);
 
 %generate random seed
@@ -62,7 +62,7 @@ Jamming_Spectral_Width=3*Random_0_to_1(4);
 Jammer=Jamming_Laser(Wavelength,J_Diameter,[Jamming_Latitude,0,0],'Janice',J_Power,Jamming_Spectral_Width);
 %Jammer.Pointing_Jitter=0;
 %jammed simulation
-JammedSimulation=PassSimulation(SimSatellite,BB84_Protocol,SimGroundStation,Jammer);
+JammedSimulation=PassSimulation(SimSatellite,Protocol(qkd_protocols.BB84),SimGroundStation,Jammer);
 JammedSimulation=Simulate(JammedSimulation);
 
 %% extract results
