@@ -9,7 +9,7 @@ classdef Protocol
 
     methods
 
-        function protocol = protocol(protoEnum)
+        function Protocol = Protocol(protoEnum)
 
             arguments
                 protoEnum qkd_protocols
@@ -19,10 +19,10 @@ classdef Protocol
             assert(~isempty(rs) | ~isempty(rd), ...
                 ['Protocol: \{', string(protoEnum), '\} is not supported']);
 
-            protocol.QKD_protocol = protoEnum;
-            protocol.source_requirements = rs;
-            protocol.detector_requirements = rd;
-            protocol.efficiency = eff;
+            Protocol.QKD_protocol = protoEnum;
+            Protocol.source_requirements = rs;
+            Protocol.detector_requirements = rd;
+            Protocol.efficiency = eff;
         end
 
         function check = compatibleSource(proto, source)
