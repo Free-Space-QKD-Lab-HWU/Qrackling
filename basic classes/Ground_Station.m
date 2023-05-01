@@ -720,11 +720,9 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
 
             else
                 Light_Pollution_Count_Rate = zeros(size(Headings));
-                warning('No valid background count rate format provided. \nCan provide a Sky_Brightness_Store_Location, a SMARTS_config, or an Atmosphere_File_Location. \nSetting background counts to 0',...
-                        'QKD_Sat_Link:NoBackgroundCountFile');
+                warning('No valid background count rate format provided. \nCan provide a Sky_Brightness_Store_Location, a SMARTS_config, or an Atmosphere_File_Location. \nSetting background counts to 0',[]);
             end
-
-
+            
             % Reflected light pollution
             Reflection_Count_Rate = zeros(size(Light_Pollution_Count_Rate));
             for Simulated_Point_Index = 1:length(Background_Sources)
@@ -760,8 +758,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             %}
 
             % Dark_Counts
-            Dark_Counts = ...
-                ones(size(Headings)) * Ground_Station.Detector.Dark_Count_Rate;
+            Dark_Counts = ones(size(Headings))*4*Ground_Station.Detector.Dark_Count_Rate;
 
             % output value
             Ground_Station.Light_Pollution_Count_Rates = Light_Pollution_Count_Rate;

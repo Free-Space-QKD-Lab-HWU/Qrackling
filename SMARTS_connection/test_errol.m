@@ -5,7 +5,7 @@ clc
 
 ispr = sitePressure(spr=1013.25, altit=0, height=0);
 ico2 = carbon_dioxide(amount=370);
-sb = solar_background_errol('ispr', ispr);
+sb = solar_background_errol('executable_path','C:\Git\SMARTS\','stub','C:\Git\QKD_Sat_Link\SMARTS_connection\SMARTS cache\','ispr', ispr);
 
 % ispr2 = sitePressure(spr=1013.25, altit=0, height=0);
 

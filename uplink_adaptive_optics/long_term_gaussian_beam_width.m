@@ -1,4 +1,4 @@
-function Beam_Width_Increase = long_term_gaussian_beam_width(Geometric_Beam_Size, ...
+function Total_Beam_Width = long_term_gaussian_beam_width(Geometric_Beam_Size, ...
                                                L, ...
                                                wavenumber, ...
                                                atmospheric_turbulence)
@@ -12,6 +12,6 @@ assert(all(isequal(size(L),size(Geometric_Beam_Size),size(atmospheric_turbulence
 
 
 
-    Beam_Width_Increase = width_with_turbulence./Geometric_Beam_Size;
+    Total_Beam_Width = width_with_turbulence;
     %width = sqrt((beam_waist .^ 2) .* (1 + ((L.^2) ./ (rayleigh_range .^ 2))));
 end

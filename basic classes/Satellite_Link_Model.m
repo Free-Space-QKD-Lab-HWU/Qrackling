@@ -21,7 +21,11 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
         Atmospheric_Loss_dB=nan;                                           %atmospheric loss in dB
         Length=nan;                                                        %link distance in m
         Visibility {mustBeText} ='clear'                                   %tag identifying the visibility conditions of this link
-        Elevation_Angles(1,:)=nan;                                              %elevation of the satellite link
+        Turbulence {mustBeText} ='HV5-7';                                  %tag identifying what turbulence model should be used
+        Elevation(1,:)=nan;                                              %elevation of the satellite link
+        Heading(1,:)=nan;                                                %heading of satellite link
+        Turbulent_Spot_Size=nan;                                            %diameter of the spot at the receiver in m including turbulence
+        Geometric_Spot_Size=nan;                                            %diameter of the spot due to geometric spreading
     end
 
     methods (Abstract = false, Access = protected)
@@ -47,22 +51,22 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
                 error('Lengths array must have the same dimensions as the array of link models');
             end
 
-            Link_Models.Length=Lengths;
+            Link_Models.Length=Lengths';
         end
 
         function Link_Models = SetElevationAngle(Link_Models,Satellite,Ground_Station)
             %compute elevation angles
             [~,Elev_Angles]=RelativeHeadingAndElevation(Satellite,Ground_Station);
 
-            Link_Models.Elevation_Angles = Elev_Angles;
+            Link_Models.Elevation = Elev_Angles;
         end
 
         function Link_Models = SetLinkGeometry(Link_Models,Satellite,Ground_Station)
             %%SETLINKGEOMETRY simultaneously set link length and elevation
 
-            [~,Elevation,Length]=RelativeHeadingAndElevation(Satellite,Ground_Station);
-
-            Link_Models.Elevation_Angles=Elevation;
+            [Heading,Elevation,Length]=RelativeHeadingAndElevation(Satellite,Ground_Station);
+            Link_Models.Heading=Heading;
+            Link_Models.Elevation=Elevation;
             Link_Models.Length=Length;
         end
 
@@ -106,6 +110,11 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
             Satellite_Link_Model.Visibility = Visibility;
         end
 
+        function Satellite_Link_Model = SetTurbulence(Satellite_Link_Model,Turbulence)
+            %%SETVISIBILITY set the turbulence tag of this link model
+
+            Satellite_Link_Model.Turbulence = Turbulence;
+        end
     end
     methods(Abstract = false, Access = public)
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% concrete methods available in all
@@ -113,8 +122,6 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% the object
         function Plot(Satellite_Link_Model,X_Axis, Plot_Select_Flags)
             %%PLOT plot the link loss over time of the satellite link
-
-
             Geo = GetGeometricLossdB(Satellite_Link_Model);
             Eff = GetOpticalEfficiencyLossdB(Satellite_Link_Model);
             APT = GetAPTLossdB(Satellite_Link_Model);
@@ -133,8 +140,9 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
 
             %% adjust legend to represent what is plotted
             %atmospheric loss is non zero
-            legend('Geometric loss','Efficiency loss','APT loss','Turbulence loss','Atmospheric loss','Orientation','horizontal');
+            legend('Geometric','Efficiency','Pointing','Turbulence','Atmospheric','Orientation','horizontal');
             legend('Location','south')
+            grid on
         end
 
         function [Link_Model, Link_Loss_dB] = Compute_Link_Loss(Link_Model, Satellite, Ground_Station)
@@ -145,12 +153,13 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
             Link_Model = SetLinkGeometry(Link_Model, Satellite, Ground_Station);
 
             %record loss values
-            [Link_Model,Geo_Spot_Size] = SetGeometricLoss(Link_Model, Satellite, Ground_Station);
-            Link_Model = SetOpticalEfficiencyLoss(Link_Model, Satellite, Ground_Station);
-            Link_Model = SetAtmosphericLoss(Link_Model, Satellite, Ground_Station);
-            Link_Model = SetAPTLoss(Link_Model, Satellite, Ground_Station);
-            Link_Model = SetTurbulenceLoss(Link_Model, Satellite, Ground_Station, Geo_Spot_Size);
-
+            [Link_Model,Geo_Spot_Diam]=SetGeometricLoss(Link_Model,Satellite,Ground_Station);
+            Link_Model.Geometric_Spot_Size = Geo_Spot_Diam;
+            Link_Model=SetOpticalEfficiencyLoss(Link_Model,Satellite,Ground_Station);
+            Link_Model=SetAtmosphericLoss(Link_Model,Satellite,Ground_Station);
+            Link_Model=SetAPTLoss(Link_Model,Satellite,Ground_Station);
+            [Link_Model,Turb_Spot_Size]=SetTurbulenceLoss(Link_Model,Satellite,Ground_Station,Geo_Spot_Diam);
+            Link_Model.Turbulent_Spot_Size=Turb_Spot_Size;
             %compute total loss
             [Link_Model,Link_Loss_dB]=SetTotalLoss(Link_Model);
         end
@@ -158,54 +167,29 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
         function Satellite_Link_Model = SetNumSteps(Satellite_Link_Model, N)
             %%SETNUMSTEPS set the number of points in the simulated link model
 
-            Satellite_Link_Model.N = N;
-            %geometric loss in absolute terms
-            Satellite_Link_Model.Geometric_Loss = zeros(1, N);
-
-            %geometric loss in dB
-            Satellite_Link_Model.Geometric_Loss_dB = zeros(1, N);
-
-            %turbulence loss in absolute terms
-            Satellite_Link_Model.Turbulence_Loss = zeros(1, N);
-
-            %turbulence loss in dB
-            Satellite_Link_Model.Turbulence_Loss_dB = zeros(1, N);
-
-            %Optical Efficiency loss in absolute terms
-            Satellite_Link_Model.Optical_Efficiency_Loss = zeros(1, N);
-
-            %Optical Efficiency loss in dB
-            Satellite_Link_Model.Optical_Efficiency_Loss_dB = zeros(1, N);
-
-            %tracking loss in absolute term s
-            Satellite_Link_Model.APT_Loss = zeros(1, N);
-
-            %tracking loss in dB
-            Satellite_Link_Model.APT_Loss_dB = zeros(1, N);
-
-            %atmospheric loss in absolute terms
-            Satellite_Link_Model.Atmospheric_Loss = zeros(1, N);
-
-            %atmospheric loss in dB
-            Satellite_Link_Model.Atmospheric_Loss_dB = zeros(1, N);
-
-            %link distance in m
-            Satellite_Link_Model.Length = zeros(1, N);
-
+            Satellite_Link_Model.N=N;
+            Satellite_Link_Model.Geometric_Loss=zeros(1,N);                                                %geometric loss in absolute terms
+            Satellite_Link_Model.Geometric_Loss_dB=zeros(1,N);                                             %geometric loss in dB
+            Satellite_Link_Model.Turbulence_Loss=zeros(1,N);                                               %turbulence loss in absolute terms
+            Satellite_Link_Model.Turbulence_Loss_dB=zeros(1,N);                                            %turbulence loss in dB
+            Satellite_Link_Model.Optical_Efficiency_Loss=zeros(1,N);                                       %Optical Efficiency loss in absolute terms
+            Satellite_Link_Model.Optical_Efficiency_Loss_dB=zeros(1,N);                                    %Optical Efficiency loss in dB
+            Satellite_Link_Model.APT_Loss=zeros(1,N);                                                      %tracking loss in absolute term s
+            Satellite_Link_Model.APT_Loss_dB=zeros(1,N);                                                   %tracking loss in dB
+            Satellite_Link_Model.Atmospheric_Loss=zeros(1,N);                                              %atmospheric loss in absolute terms
+            Satellite_Link_Model.Atmospheric_Loss_dB=zeros(1,N);                                           %atmospheric loss in dB
+            Satellite_Link_Model.Length=zeros(1,N);                                                        %link distance in m
+            Satellite_Link_Model.Elevation=zeros(1,N);
+            Satellite_Link_Model.Turbulent_Spot_Size=zeros(1,N);
         end
 
         function [Link_Model,Total_Loss_dB]=SetTotalLoss(Link_Model)
             %%SETTOTALLOSS update total loss to reflect stored loss values
 
-            Total_Loss_dB = ...
-                Link_Model.Geometric_Loss_dB ...
-                + Link_Model.Optical_Efficiency_Loss_dB ...
-                + Link_Model.APT_Loss_dB ...
-                + Link_Model.Turbulence_Loss_dB;
-
-            Total_Loss =  10 .^ (Total_Loss_dB / 10);
-            Link_Model.Link_Loss_dB = Total_Loss_dB;
-            Link_Model.Link_Loss = Total_Loss;
+            Total_Loss_dB=Link_Model.Geometric_Loss_dB+Link_Model.Optical_Efficiency_Loss_dB+Link_Model.APT_Loss_dB+Link_Model.Turbulence_Loss_dB+Link_Model.Atmospheric_Loss_dB;
+            Total_Loss= 10.^(Total_Loss_dB/10);
+            Link_Model.Link_Loss_dB=Total_Loss_dB;
+            Link_Model.Link_Loss=Total_Loss;
         end
     end
     
@@ -220,7 +204,7 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
 
         Link_Models = SetAPTLoss(Link_Models,Satellite,Ground_Station)
 
-        Link_Models = SetTurbulenceLoss(Link_Models,Satellite,Ground_Station,Geo_Spot_Size)
+        [Link_Models,Total_Spot_Size] = SetTurbulenceLoss(Link_Models,Satellite,Ground_Station,Geo_Spot_Size)
 
     end
 end

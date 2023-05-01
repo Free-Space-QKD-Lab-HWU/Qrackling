@@ -27,7 +27,7 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
 
 
     methods (Access = public)
-            function Beacon_Downlink_Model=Beacon_Downlink_Model(N,Visibility)
+        function Beacon_Downlink_Model=Beacon_Downlink_Model(N,Visibility,Turbulence)
             %%BEACON_DOWNLINK_MODEL construct an instance of Beacon_Downlink_Model with the indicated number of modelled points
             if nargin==0
                 return
@@ -36,8 +36,12 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
             elseif nargin==2
                 Beacon_Downlink_Model=SetNumSteps(Beacon_Downlink_Model,N);
                 Beacon_Downlink_Model=SetVisibility(Beacon_Downlink_Model,Visibility);
+            elseif nargin==3
+                Beacon_Downlink_Model=SetNumSteps(Beacon_Downlink_Model,N);
+                Beacon_Downlink_Model=SetVisibility(Beacon_Downlink_Model,Visibility);
+                Beacon_Downlink_Model=SetTurbulence(Beacon_Downlink_Model,Turbulence);
             else
-                error('To instantiate link model, provide a number of steps and, optionally, a visibility string')
+                error('To instantiate link model, provide a number of steps and, optionally, a visibility string and a turbulence string')
             end
             end
     end
@@ -71,9 +75,9 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
         Wavelength = Satellite.Source.Wavelength*10^-9;
         Wavenumber = 2*pi/Wavelength;
         %can only compute for positive elevation
-        [~,Elevation_Angles]=RelativeHeadingAndElevation(Satellite,Ground_Station);
-        Elevation_Flags = Elevation_Angles'>0;
-        Zenith = 90-Elevation_Angles(Elevation_Flags)';
+        [~,Elevation]=RelativeHeadingAndElevation(Satellite,Ground_Station);
+        Elevation_Flags = Elevation'>0;
+        Zenith = 90-Elevation(Elevation_Flags)';
         Satellite_Altitude = Satellite.Altitude(Elevation_Flags);
         Atmospheric_Turbulence_Coherence_Length = ...
             atmospheric_turbulence_coherence_length_downlink(Wavenumber,...
@@ -93,9 +97,9 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
 
         %% atmospheric loss
         %compute elevation angles
-        [~,Elevation_Angles]=RelativeHeadingAndElevation(Satellite,Ground_Station);
+        [~,Elevation]=RelativeHeadingAndElevation(Satellite,Ground_Station);
         %format spectral filters which correspond to these elevation angles
-        Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation_Angles,Satellite.Beacon.Wavelength,{Beacon_Downlink_Model.Visibility});
+        Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Elevation,Satellite.Beacon.Wavelength,{Beacon_Downlink_Model.Visibility});
         Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Beacon.Wavelength);
         
         %% APT loss
@@ -214,7 +218,7 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
 
         %% see Link loss analysis for a satellite quantum communication down-link Chunmei Zhang*, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller, Ross J. Donaldson
         [Geo_Loss,Geo_Spot_Diameter] = GetGeoLoss(Satellite.Beacon,Link_Models.Length,Ground_Station.Camera);
-        %compute when earth shadowing of link is present
+        Geo_Loss=min(Geo_Loss,1);%make sure loss cannot be positive        %compute when earth shadowing of link is present
         Shadowing=IsEarthShadowed(Satellite,Ground_Station);
         Geo_Loss(Shadowing)=0;
         %% input validation
@@ -241,7 +245,7 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
         %% atmospheric loss
 
         %format spectral filters which correspond to these elevation angles
-        Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Link_Models.Elevation_Angles,Satellite.Beacon.Wavelength,{Link_Models.Visibility});
+        Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Link_Models.Elevation,Satellite.Beacon.Wavelength,{Link_Models.Visibility});
         Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Beacon.Wavelength);
 
         %% input validation
@@ -311,7 +315,7 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
     end
    
 
-    function Link_Models = SetTurbulenceLoss(Link_Models,Satellite,Ground_Station,GeoSpotDiameter)
+    function [Link_Models,Turbulence_Beam_Width] = SetTurbulenceLoss(Link_Models,Satellite,Ground_Station,GeoSpotDiameter)
             %%SETTURBULENCELOSS set the turbulence loss of the link
    
 %% this is an overload method which changes the superclass behaviour
@@ -327,16 +331,17 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
         Wavelength = Satellite.Source.Wavelength*10^-9;
         Wavenumber = 2*pi/Wavelength;
         %can only compute for positive elevation
-        Elevation_Flags = Link_Models.Elevation_Angles>0;
-        Zenith = 90-Link_Models.Elevation_Angles(Elevation_Flags);
+        Elevation_Flags = Link_Models.Elevation>0;
+        Zenith = 90-Link_Models.Elevation(Elevation_Flags);
         Satellite_Altitude = Satellite.Altitude(Elevation_Flags)';
         Atmospheric_Turbulence_Coherence_Length = ...
             atmospheric_turbulence_coherence_length_downlink(Wavenumber,...
                                          Zenith, ...
-                                         Satellite_Altitude, ghv_defaults);
+                                         Satellite_Altitude, ghv_defaults('Standard',Link_Models.Turbulence));
         %output variables
-        Turbulence_Beam_Width_Increase = long_term_gaussian_beam_width(GeoSpotDiameter(Elevation_Flags), Link_Models.Length(Elevation_Flags) ,...
-                                    Wavenumber, Atmospheric_Turbulence_Coherence_Length');
+            Turbulence_Beam_Width(~Elevation_Flags)=0;
+            Turbulence_Beam_Width(Elevation_Flags) = long_term_gaussian_beam_width(GeoSpotDiameter(Elevation_Flags), Link_Models.Length(Elevation_Flags) ,...
+                                    Wavenumber, Atmospheric_Turbulence_Coherence_Length);
         %residual beam wander is not needed here as this is dealt with in
         %APT loss
         %wander_tl = residual_beam_wander(error_snr, error_delay, error_centroid, ...
@@ -344,7 +349,7 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
 
         %turbulence loss is the ratio of geometric and turbulent spot areas
         Turbulence_Loss(~Elevation_Flags)=0;
-        Turbulence_Loss(Elevation_Flags) = (Turbulence_Beam_Width_Increase.^(-2))';
+        Turbulence_Loss(Elevation_Flags) = (Turbulence_Beam_Width(Elevation_Flags)./GeoSpotDiameter(Elevation_Flags)).^(-2);
 
             %% input validation
             if ~all(isreal(Turbulence_Loss)&Turbulence_Loss>=0)
@@ -361,6 +366,7 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
 
             Link_Models.Turbulence_Loss=Turbulence_Loss;
             Link_Models.Turbulence_Loss_dB=-10*log10(Turbulence_Loss);
+            Link_Models.Turbulent_Spot_Size=Turbulence_Beam_Width;
         end
 %{
     function Link_Models=SetLinkLength(Link_Models,Lengths)

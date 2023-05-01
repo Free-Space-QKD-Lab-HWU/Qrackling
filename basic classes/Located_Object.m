@@ -189,7 +189,7 @@ classdef (Abstract=true)Located_Object
             Elevations = Elevations';
 
             %% if needed, compute distances
-            Distances = Row2Norms(ENUs);
+            Distances = Row2Norms(ENUs)';
         end
 
         function [X, Y, Z] = GetXYZ(Loc_obj)

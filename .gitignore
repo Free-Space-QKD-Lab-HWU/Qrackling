@@ -4,3 +4,7 @@
 # exclude scripts for testing
 # /test scripts/
 **/SMARTS cache/*
+
+# exclude atmospherics .csv files.
+#these are redundant since they are reformatted into (smaller) .mat files
+**/orbit modelling resources/atmospheric transmittance/varying elevation MODTRAN data 3/**.csv

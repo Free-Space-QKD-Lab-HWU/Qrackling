@@ -3,7 +3,7 @@
 %% Then we simulate the pass and plot the results.
 
 %% 1. Choose parameters
-Wavelength=790;                                                            %wavelength is measured in nm
+Wavelength=780;                                                            %wavelength is measured in nm
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
 OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                              %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
 Receiver_Telescope_Diameter=1;                                           
@@ -24,22 +24,22 @@ SimSatellite=Satellite(Transmitter_Telescope,'Source',Transmitter_Source,...
 
 %2.2 Ground station
 %2.2.1 Detector
-MPD_BB84_Detector=MPD_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
+Detector=Excelitas_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
 
 %2.2.2 Receiver telescope
-Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);
+Receiver_Telescope=Telescope(Receiver_Telescope_Diameter,'FOV',10E-6,'Wavelength',Wavelength);
 
 %2.2.3 construct ground station, use Errol as an example
-SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',MPD_BB84_Detector);
+SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',Detector);
 
 %2.3 protocol
 BB84_protocol = Protocol.BB84;
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station);
+Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'Visibility','20km');
 %3.2 run simulation
 Pass=Simulate(Pass);
 %3.3 plot results

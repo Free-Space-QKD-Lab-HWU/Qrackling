@@ -20,29 +20,34 @@
 % assert(success, 'SMARTS Simulation failed...');
 
 function configuration = solar_background_errol(varargin)
-
+%% SOLAR_BACKGROUND_ERROL write a SMARTS configuration file for Errol
     %card_types = solar_background_errol.card_types;
 
     p = inputParser;
     addParameter(p, 'executable_path', '');
     addParameter(p, 'stub', '');
     addParameter(p, 'dateAndTime', datetime("now"))
+    addParameter(p, 'Visibility', 50)        %meteorological visibility in km
+    addParameter(p, 'Wavelength_Min',500)    %define range of wavelengths (in nm)
+    addParameter(p, 'Wavelength_Max', 1800)
+    addParameter(p, 'Wavelength_Step', 10)
+    addParameter(p, 'ispr', sitePressure(spr=1013.25, altit=0, height=0));
     parse(p, varargin{:});
 
-    ispr = sitePressure(spr=1013.25, altit=0, height=0);
+    ispr = p.Results.ispr;
     iatmos = atmospherecard(atmos='STS');
     ih20 = water_vapour(w=1);
     i03 = ozone();
     igas = gas_atmospheric_absorption(iload=0); 
     ico2 = carbon_dioxide(amount=370);
     iaeros = aerosol(aeros='S&F_RURAL');
-    iturb = turbidity(visi=50);
+    iturb = turbidity(visi=p.Results.Visibility);
     ialbdx = far_field_albedo(spectral_reflectance=38, ...
                               tilt=45, wazim=90, ialbdg=38);
-    isolar = extra_spectral(wlmin=280, wlmax=4000, ...
+    isolar = extra_spectral(wlmin=p.Results.Wavelength_Min, wlmax=p.Results.Wavelength_Max, ....
                             suncor=1, solarc=1367);
-    iprt = printing(output_options=linspace(1, 43, 43), ...
-                    wpmn=280, wpmx=4000, intvl=0.5);
+    iprt = printing(output_options=linspace(1, 43, 43), ....
+                    wpmn=p.Results.Wavelength_Min, wpmx=p.Results.Wavelength_Max, intvl=p.Results.Wavelength_Step);
     icirc = circum_solar(slope=0, apert=2.9, limit=0);
     iscan = scanning(filtering=0);
     illum = illuminance(value=0);
