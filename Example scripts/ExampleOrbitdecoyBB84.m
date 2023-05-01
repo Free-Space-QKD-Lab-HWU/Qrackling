@@ -36,11 +36,11 @@ Receiver_Telescope=Telescope(Receiver_Telescope_Diameter,'Wavelength',Wavelength
 SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',MPD_decoyBB84_Detector);
 
 %2.3 protocol
-Decoy_BB84_Protocol=decoyBB84_Protocol;
+Decoy_BB84_Protocol=Protocol(qkd_protocol.DecoyBB84);
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,Decoy_BB84_Protocol,SimGround_Station);
+Pass=PassSimulation(SimSatellite,Protocol(qkd_protocol.DecoyBB84),SimGround_Station);
 %3.2 run simulation
 Pass=Simulate(Pass);
 %3.3 plot results

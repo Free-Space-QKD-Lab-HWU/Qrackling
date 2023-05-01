@@ -32,7 +32,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
 
         %% information about protocol
         % protocol used (BB84,BBN92,...)
-        Protocol Protocol = BB84_Protocol();
+        Protocol Protocol = Protocol(qkd_protocls.BB84);
         Protocol_Efficiency{mustBeScalarOrEmpty} = 1;
 
         %% information about reflection
