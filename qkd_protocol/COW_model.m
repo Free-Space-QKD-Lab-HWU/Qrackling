@@ -5,7 +5,7 @@
 %altered by Cameron Simmons
 % further altered by Peter Barrow
 
-% function [SKR_COW_2008, QBER, Rate_In, Rates_Det] = COW_model(MPN, ...
+% function [SKR_COW_2008, QBER, Sifted_Key_Rate] = COW_model(MPN, ...
 %                                                        State_Prep_Error, ...
 %                                                        rep_rate, ...
 %                                                        prob_dark_counts, ...
@@ -13,7 +13,7 @@
 %                                                        decoy_prob, ...
 %                                                        Detector)
 
-function [SKR_COW_2008, QBER, Rate_In, Rates_Det] = COW_model( ...
+function [SKR_COW_2008, QBER, Sifted_Key_Rate] = COW_model( ...
         Source, prob_dark_counts, loss, protocol_efficiency, Detector)
 
     MPN = Source.Mean_Photon_Number;
@@ -33,11 +33,8 @@ function [SKR_COW_2008, QBER, Rate_In, Rates_Det] = COW_model( ...
 
     % frequency of pings at the receiver
     Rate_In = 0.5 * R * rep_rate + prob_dark_counts * rep_rate;
-    R_sifted = min(Rate_In, 1/Dead_Time);
-    % tau1 = Detector.fall_time;
-    % tau2 = Detector.rise_time;
-    % R_sifted = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
-    Rates_Det = R_sifted;
+    Sifted_Key_Rate = min(Rate_In, 1/Dead_Time);
+    
 
     %% QBER totalling
     %Detector = SetJitterPerformance(Detector, Rates_In);

@@ -30,34 +30,14 @@
 % From thesis "(2005) Xiongfeng Ma - Security of Quantum Key Distribution with 
 % Realistic Devices", although these equations are fairly known
 
-<<<<<<< HEAD:qkd_protocol/decoyBB84_model.m
-% function [SKR_decoyBB84, QBER, Rate_In, Rate_Det] = decoyBB84_model(
-%     MPN, ...
-%     State_p, ...
-%     state_prep_error, ...
-%     rep_rate,...
-%     prob_dark_counts, ...
-%     loss, ...
-%     prot_eff, ...
-%     Detector)
-
-function [SKR_decoyBB84, QBER, Rate_In, Rate_Det] = decoyBB84_model( ...
+function [SKR_decoyBB84, QBER, Sifted_Key_Rate] = decoyBB84_model( ...
     Source, prob_dark_counts, loss, prot_eff, Detector)
 
+    %% get variables from source object
     MPN = Source.Mean_Photon_Number;
     State_p = Source.State_Probabilities;
-    state_prep_error = Source.State_Prep_Error;
     rep_rate = Source.Repetition_Rate;
-=======
-function [SKR_decoyBB84, QBER, Sifted_Key_Rate] = decoyBB84_model(MPN, ...
-                                                    State_p, ...
-                                                    state_prep_error, ...
-                                                    rep_rate,...
-                                                    prob_dark_counts, ...
-                                                    loss, ...
-                                                    prot_eff, ...
-                                                    Detector)
->>>>>>> Beacon-modelling:BB84 decoy implementations/private/decoyBB84_model.m
+    state_prep_error = Source.State_Prep_Error;
 
     %% get variables from detector object
     det_eff = Detector.Detection_Efficiency;
@@ -67,23 +47,12 @@ function [SKR_decoyBB84, QBER, Sifted_Key_Rate] = decoyBB84_model(MPN, ...
 
 
     Detection_Probability = (MPN .* State_p)' * 10.^(-(loss) / 10) .* det_eff + prob_dark_counts;
-    %disp(sum(pD) * rep_rate);
-    %tau1 = Detector.fall_time;
-    %tau2 = Detector.rise_time;
-    Photon_Arrival_Rate = sum(Detection_Probability) .* rep_rate;
-    %Photon_Detection_Rate = dead_time_corrected_count_rate(Photon_Arrival_Rate, tau1, tau2, 1);
-    %Detector = Detector.SetJitterPerformance(rep_rate);
 
     QBER_cod = state_prep_error;
     QBER_noise = 0.5 * prob_dark_counts ./ Detection_Probability;
     %QBER_jitter = qber_jitter;
-<<<<<<< HEAD:qkd_protocol/decoyBB84_model.m
-    % Detector = SetJitterPerformance(Detector, sum(pD) * rep_rate);
-
-=======
     %Detector = SetJitterPerformance(Detector, sum(pD) * rep_rate);
-    
->>>>>>> Beacon-modelling:BB84 decoy implementations/private/decoyBB84_model.m
+
     % To avoid that due to QBER_cod and QBER_jitter (fixed) the QBER
     % can go higher than 50%, which doesn't make sense
     QBER = min(QBER_cod + QBER_noise ...
@@ -91,17 +60,9 @@ function [SKR_decoyBB84, QBER, Sifted_Key_Rate] = decoyBB84_model(MPN, ...
                0.5);
 
     % Estimation of the Secret Key Rate
-<<<<<<< HEAD:qkd_protocol/decoyBB84_model.m
     pM_weak = photonDetc(MPN(2) * State_p(2), 2, 10.^(-loss/10) .* det_eff, prob_dark_counts)';
-    pS_weak = pD(2,:) - pM_weak - prob_dark_counts * exp(-MPN(2) * State_p(2));
-    QBERs = (QBER(2,:) .* pD(2,:) ...
-=======
-    pM_weak = photonDetc(MPN(2) * State_p(2), 2, ...
-                         10.^(-loss/10) .* det_eff, ...
-                         prob_dark_counts)';
     pS_weak = Detection_Probability(2,:) - pM_weak - prob_dark_counts * exp(-MPN(2) * State_p(2));
     QBERs = (QBER(2,:) .* Detection_Probability(2,:) ...
->>>>>>> Beacon-modelling:BB84 decoy implementations/private/decoyBB84_model.m
              - 0.5 * prob_dark_counts * exp(-MPN(2) * State_p(2))) ./ pS_weak;
 
     pS_signal = photonDetc(MPN(1) * State_p(1), 1, ...

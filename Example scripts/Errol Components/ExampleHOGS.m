@@ -43,9 +43,9 @@ SampleTime = seconds(1);
 Sat=NOTQUARC(Wavelength,StartTime,StopTime,SampleTime);
 %use decoy BB84, or CV if wavelength is 1550
 if Wavelength==1550
-Protocol = CV_Protocol();
+Prot = Protocol.CV;
 else
-Protocol=decoyBB84_Protocol();
+Prot=Protocol.DecoyBB84;
 end
 
 %create SMARTS atmospheric sim- this is not needed if an atmosphere cache is
@@ -54,9 +54,8 @@ end
 %                                     'stub','C:\Git\QKD_Sat_Link\SMARTS_connection\SMARTS cache\');
 
 
-
 %% simulate a pass
-Pass=PassSimulation(Sat,Protocol,OGS,'Visibility',VisString,'Turbulence',TurbulenceString);
+Pass=PassSimulation(Sat,Prot,OGS,'Visibility',VisString,'Turbulence',TurbulenceString);
 Pass=Simulate(Pass);
 plot(Pass,'Elevation') %plot elevation window only
 %Play(Pass);

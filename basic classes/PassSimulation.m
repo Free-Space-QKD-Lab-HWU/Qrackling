@@ -88,8 +88,6 @@ classdef PassSimulation
         %flag describing whether the link from satellite to ground station is above the horizon
         Line_Of_Sight_Flags = false(0, 0);
 
-        Rates_In ;
-        Rates_Det;
 
         % SMARTS configuration
         smarts_configuration SMARTS_input;
@@ -463,7 +461,7 @@ classdef PassSimulation
 
             %% compute SKR and QBER for links inside the elevation window
             %[Computed_Sifted_Key_Rates, Computed_QBERs] = EvaluateQKDLink(...
-            [Computed_Secret_Key_Rates, Computed_QBERs, Sifted_Key_rate, Rates_Det] = EvaluateQKDLink(...
+            [Computed_Secret_Key_Rates, Computed_QBERs, Sifted_Key_rate] = EvaluateQKDLink(...
                 Protocol, Satellite.Source, ...
                 Ground_Station.Detector, ...
                 [Downlink_Model.Link_Loss_dB(Elevation_Limit_Flags)], ...
@@ -518,7 +516,6 @@ classdef PassSimulation
             PassSimulation.Elevation_Limit_Flags=Elevation_Limit_Flags;
             PassSimulation.Line_Of_Sight_Flags=Line_Of_Sight_Flags;
             PassSimulation.Sifted_Key_Rates=Sifted_Key_Rates;
-            PassSimulation.Rates_Det=Rates_Det;
             PassSimulation.Total_Sifted_Key=Total_Sifted_Key;
             PassSimulation.Total_Secret_Key=Total_Secret_Key;
         end

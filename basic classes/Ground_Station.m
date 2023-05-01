@@ -591,6 +591,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
                 matObj = matfile(Ground_Station.Atmosphere_File_Location);
                 %check the included variables
                 Variables = who(matObj);
+                assert(~isempty(Variables),'This atmosphere file does not exist')
                 if isequal(Variables{1}, "Atmospheres") && isequal(Variables{2}, "Hours")
                     %this is the tricker option, we need to pick the right Hour
                     %and use this index to pick the right element of Atmospheres
@@ -675,7 +676,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
 
                 %sky_photon_rate = sum(Sky_Photons(:, Inside_Wavelength_Filter_Flag),2);
                 sky_photon_rate = sum( ...
-                    Sky_Photons(:, Inside_Wavelength_Filter_Flag), 2)
+                    Sky_Photons(:, Inside_Wavelength_Filter_Flag), 2);
 
                 Ground_Station.Sky_Photon_Rate = sky_photon_rate;
 

@@ -12,8 +12,8 @@ classdef Protocol
                 %efficiency (what portion of successful detections generate key
                 
                 %Evaluation_Function (a function which computes SKR and QBER. This
-                %must conform to [SKR, QBER, Rate_In, Rate_Det] = EvaluateQKDLink( ...
-                %proto, source, detector, Link_Loss_dB, Background_Count_Rate)
+                %must conform to [SKR, QBER, Rate_In, Rate_Det] = f( ...
+                %source, detector, Link_Loss_dB, Background_Count_Rate)
 
 
         %% the BB84 protocol enumeration
@@ -85,6 +85,16 @@ classdef Protocol
                     1,...
                 ...%evaluation function to compute SKR,QBER etc
                 function_handle.empty);%DPS is missing a function!
+
+       %% the CV enumeration
+        CV(...%Source requirements
+                   {},...
+                   ...%Detector requirements
+                   {},...
+                    ...%efficiency
+                    0,...
+                ...%evaluation function to compute SKR,QBER etc
+                @CV_model);%DPS is missing a function!
     end
 
    properties(SetAccess = immutable)
@@ -161,7 +171,7 @@ classdef Protocol
             check = true;
         end
 
-        function [SKR, QBER, Rate_In, Rate_Det] = EvaluateQKDLink( ...
+        function [Secret_Key_Rate, QBER, Sifted_Key_Rate] = EvaluateQKDLink( ...
             proto, source, detector, Link_Loss_dB, Background_Count_Rate)
         %%EVALUATEQKDLINK enact the link performance simulation for the
         %%particular protocol
@@ -184,7 +194,7 @@ classdef Protocol
             
             %run protocol's evaluation function
             %all evaluation functions must conform to this format
-            [SKR,QBER,Rate_In,Rate_Det] = proto.Evaluation_Function(...
+            [Secret_Key_Rate,QBER,Sifted_Key_Rate] = proto.Evaluation_Function(...
                                             source,...
                                             dark_count_probability,...
                                             Link_Loss_dB,...
