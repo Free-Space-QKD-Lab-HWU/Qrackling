@@ -37,7 +37,7 @@ SimGround_Station=Errol_OGS(Receiver_Telescope,...
                                 'Detector',MPD_BB84_Detector);
 
 %2.3 protocol
-BB84_protocol=BB84_Protocol;
+BB84_protocol=Protocol(qkd_protocols.BB84);
 
 %2.4 SMARTS atmospheric modelling config
 SMARTS_Config = solar_background_errol_fast('executable_path','C:\Git\SMARTS\','stub','C:\Git\QKD_Sat_Link\SMARTS_connection\SMARTS cache\');

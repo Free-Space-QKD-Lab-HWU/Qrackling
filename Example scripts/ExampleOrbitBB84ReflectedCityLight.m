@@ -37,7 +37,7 @@ Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);
 SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',MPD_BB84_Detector);
 
 %2.3 protocol
-BB84_protocol=BB84_Protocol;
+BB84_protocol=Protocol(qkd_protocols.BB84);
 
 %2.4 background light cities
 Cities_Struct=load("Light Reflection implementations\Cities.mat");

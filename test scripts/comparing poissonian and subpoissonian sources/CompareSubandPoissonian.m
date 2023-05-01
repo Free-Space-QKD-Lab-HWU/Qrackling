@@ -16,7 +16,7 @@ Transmitter_Telescope=Telescope(Transmitter_Diameter,Wavelength);
 Receiver_Telescope=Telescope(Receiver_Diameter,Wavelength);
 BB84_S=decoyBB84_Source(Wavelength);
 BB84_D=Generic_Detector(Wavelength,'decoyBB84',Time_Gate_Width,Spectral_Filter_Width,Repetition_Rate);
-BB84_P=decoyBB84_Protocol();
+BB84_P=Protocol(qkd_protocol.DecoyBB84);
 SimSatellite=Satellite(OrbitDataFileLocation,BB84_S,Transmitter_Telescope);
 SimGround_Station=Errol_OGS(BB84_D,Receiver_Telescope);
 

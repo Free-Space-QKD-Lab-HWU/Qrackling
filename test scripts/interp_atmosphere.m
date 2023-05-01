@@ -75,7 +75,7 @@ central_obscuration_ratio_rx = 0.3;
 diameter_tx = 0.08;
 diameter_rx = 0.7;
 
-protocol = decoyBB84_Protocol();
+protocol = Protocol(qkd_protocols.DecoyBB84);
 
 source = Source(wvl, ...
                 Repetition_Rate = 50e6, ...

@@ -38,7 +38,7 @@ SimGround_Station=Chilbolton_OGS(Receiver_Telescope,...
                                     'Detector',Generic_COW_Detector);
 
 %2.3 protocol
-COW_protocol=COW_Protocol;
+COW_protocol=Protocol(qkd_protocols.COW);
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object

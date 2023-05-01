@@ -121,10 +121,14 @@ classdef PassSimulation
             PassSimulation.Protocol = P.Results.Protocol;
             PassSimulation.Visibility = P.Results.Visibility;
 
-            assert(IsSourceCompatible(Protocol, QKD_Transmitter.Source), ...
-                'satellite source is not compatible with %s protocol', Protocol.Name);
-            assert(IsDetectorCompatible(Protocol, QKD_Receiver.Detector), ...
-                'Ground station detector is not compatible with %s protocol', Protocol.Name);
+            % assert(IsSourceCompatible(Protocol, QKD_Transmitter.Source), ...
+            %     'satellite source is not compatible with %s protocol', Protocol.Name);
+            % assert(IsDetectorCompatible(Protocol, QKD_Receiver.Detector), ...
+            %     'Ground station detector is not compatible with %s protocol', Protocol.Name);
+
+            check = Protocol.compatibleSource(QKD_Transmitter.Source);
+            check = Protocol.compatibleDetector(QKD_Receiver.Detector);
+
             assert(isequal(QKD_Transmitter.Source.Wavelength, QKD_Receiver.Detector.Wavelength), ...
                 'satellite and ground station must use the same wavelength');
                 %decide on direction
@@ -207,7 +211,7 @@ classdef PassSimulation
                     Ground_Station = PassSimulation.QKD_Receiver;
             end
 
-            Fig = figure('name', ['Pass Simulation using ', PassSimulation.Protocol.Name, ' protocol at ', num2str(PassSimulation.QKD_Transmitter.Source.Wavelength), 'nm'], 'WindowState', 'maximized');
+            Fig = figure('name', strjoin(['Pass Simulation using ', string(PassSimulation.Protocol.QKD_protocol), ' protocol at ', num2str(PassSimulation.QKD_Transmitter.Source.Wavelength), 'nm']), 'WindowState', 'maximized');
             subplot(3, 3, [3, 6])
 
             title('Satellite Ground Path')

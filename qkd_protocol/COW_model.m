@@ -4,13 +4,22 @@
 
 %altered by Cameron Simmons
 % further altered by Peter Barrow
-function [SKR_COW_2008, QBER, Rate_In, Rates_Det] = COW_model(MPN, ...
-                                                       State_Prep_Error, ...
-                                                       rep_rate, ...
-                                                       prob_dark_counts, ...
-                                                       loss, ...
-                                                       decoy_prob, ...
-                                                       Detector)
+
+% function [SKR_COW_2008, QBER, Rate_In, Rates_Det] = COW_model(MPN, ...
+%                                                        State_Prep_Error, ...
+%                                                        rep_rate, ...
+%                                                        prob_dark_counts, ...
+%                                                        loss, ...
+%                                                        decoy_prob, ...
+%                                                        Detector)
+
+function [SKR_COW_2008, QBER, Rate_In, Rates_Det] = COW_model( ...
+        Source, prob_dark_counts, loss, Detector)
+
+    MPN = Source.Mean_Photon_Number;
+    State_Prep_Error = Source.State_Prep_Error;
+    rep_rate = Source.Repetiton_Rate;
+    decoy_prob = Source.State_Probabilities(2);
 
     %error correction efficiency
     f = 1.2;
@@ -20,7 +29,7 @@ function [SKR_COW_2008, QBER, Rate_In, Rates_Det] = COW_model(MPN, ...
     R = MPN.*T;
     % probability of pings at receiver
     P_click = R + prob_dark_counts;
-    
+
     % frequency of pings at the receiver
     Rate_In = 0.5 * R * rep_rate + prob_dark_counts * rep_rate;
     R_sifted = min(R_sifted, 1/dead_time);
@@ -33,17 +42,17 @@ function [SKR_COW_2008, QBER, Rate_In, Rates_Det] = COW_model(MPN, ...
     %Detector = SetJitterPerformance(Detector, Rates_In);
     QBER_Jitter = Detector.QBER_Jitter;
     QBER_dark = 0.5 * prob_dark_counts ./ P_click;
-    
+
     %each QBER is a probability. These probabilities are independent
     %(coming from different sources). Therefore QBERs add in union, in other 
     % words, the probability of an errorless bit (Quantum No Bit Error Rate 
     % QNBER) is the product of the probabilities of no errors from each source 
     QNBER = (1 - QBER_dark) * (1 - QBER_Jitter) * (1 - State_Prep_Error);
     QBER = 1 - QNBER;
-    
+
     %% Privacy amplification stage
-    Xcow = QBER + (1 - QBER).*H((1 + eps(MPN, Detector.Visibility))/2);                      
-    
+    Xcow = QBER + (1 - QBER).*H((1 + eps(MPN, Detector.Visibility))/2);
+
     % Secure key rate
     SKR_COW_2008 = R_sifted.*(1 - f*H(QBER) - Xcow).*(1-decoy_prob);
     % SKR cannot be negative

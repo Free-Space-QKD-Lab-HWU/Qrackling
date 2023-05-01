@@ -39,7 +39,7 @@ SimGround_Station=Errol_OGS(Receiver_Telescope,...
                             'Source',Transmitter_Source);
 
 %2.3 protocol
-BB84_protocol=BB84_Protocol;
+BB84_protocol=Protocol(qkd_protocols.BB84);
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object

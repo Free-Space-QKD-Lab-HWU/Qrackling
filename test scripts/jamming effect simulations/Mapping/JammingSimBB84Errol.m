@@ -24,7 +24,7 @@
     %declare specific components
     BB84_S=Source(Wavelength,'Mean_Photon_Number',0.01);
     BB84_D=MPD_Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
-    BB84_P=BB84_Protocol();
+    BB84_P=Protocol(qkd_protocols.BB84);
     %make generic components
     SimSatellite=Satellite(BB84_S,Transmitter_Telescope,'OrbitDataFileLocation',OrbitDataFileLocation);
     SimGround_Station=Ground_Station(BB84_D,Receiver_Telescope,'LLA',OGS_Location,'name','Errol');

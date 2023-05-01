@@ -37,8 +37,7 @@ total_skr = zeros(1, numel(reprates));
 max_skr = zeros(1, numel(reprates));
 rate_det = zeros(1, numel(reprates));
 
-protocol = decoyBB84_Protocol();
-%protocol = BB84_Protocol();
+protocol = Protocol(qkd_protocols.DecoyBB84);
 telescope_tx = Telescope(diameter_tx, Wavelength = wvl);
 telescope_rx = Telescope(diameter_rx, Wavelength = wvl);
 telescope_rx.Optical_Efficiency = obscurationRatio(diameter_rx, ...

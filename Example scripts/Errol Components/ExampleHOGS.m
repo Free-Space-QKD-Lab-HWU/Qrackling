@@ -14,7 +14,7 @@ StopTime = datetime(2023,1,31,5,0,0);
 SampleTime = seconds(1);
 Sat=NOTQUARC(StartTime,StopTime,SampleTime);
 %use decoy BB84
-Protocol=decoyBB84_Protocol();
+Protocol=Protocol(qkd_protocol.DecoyBB84);
 
 
 %create SMARTS atmospheric sim- this is not needed if an atmosphere cache is
