@@ -40,7 +40,7 @@
 %         prot_eff, ...
 %         Detector)
 
-function [secret_key_rate, qber, Rate_In, Rate_Det] = BB84_single_photon_model( ...
+function [secret_key_rate, qber, sifted_key_rate] = BB84_single_photon_model( ...
     Source, prob_dark_counts, loss, prot_eff, Detector)
 
     MPN = Source.Mean_Photon_Number;
@@ -80,11 +80,6 @@ function [secret_key_rate, qber, Rate_In, Rate_Det] = BB84_single_photon_model( 
     % qber due to polarisation compensation error is the sine of the mean error
     % angle (in degrees)
 
-    Rate_In = rep_rate .* prob_click;
-    % tau1 = Detector.fall_time;
-    % tau2 = Detector.rise_time;
-    % Rate_Det = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
-    Rate_Det = Rate_In;
     %Detector = SetJitterPerformance(Detector, Rate_In);
     qber_jitter = Detector.QBER_Jitter;
     qber_polarisation_error = sind(Detector.Polarisation_Error);
@@ -110,8 +105,8 @@ function [secret_key_rate, qber, Rate_In, Rate_Det] = BB84_single_photon_model( 
     bin_ent = -qber.*log2(qber) - (1-qber).*log2(1-qber);
 
     % secret key rate
-    rate = rep_rate .* prot_eff .* prob_click;
-    secret_key_rate = rate .* (beta .* tau - f .* bin_ent);
+    sifted_key_rate = rep_rate .* prot_eff .* prob_click;
+    secret_key_rate = sifted_key_rate .* (beta .* tau - f .* bin_ent);
     secret_key_rate(secret_key_rate < 0) = 0; 
     % cs modification: output sifted key rate of zero in place of nan when 
     % calculation returns zero

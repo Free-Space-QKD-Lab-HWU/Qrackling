@@ -591,6 +591,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
                 matObj = matfile(Ground_Station.Atmosphere_File_Location);
                 %check the included variables
                 Variables = who(matObj);
+                assert(~isempty(Variables),'This atmosphere file does not exist')
                 if isequal(Variables{1}, "Atmospheres") && isequal(Variables{2}, "Hours")
                     %this is the tricker option, we need to pick the right Hour
                     %and use this index to pick the right element of Atmospheres
@@ -675,7 +676,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
 
                 %sky_photon_rate = sum(Sky_Photons(:, Inside_Wavelength_Filter_Flag),2);
                 sky_photon_rate = sum( ...
-                    Sky_Photons(:, Inside_Wavelength_Filter_Flag), 2)
+                    Sky_Photons(:, Inside_Wavelength_Filter_Flag), 2);
 
                 Ground_Station.Sky_Photon_Rate = sky_photon_rate;
 
@@ -720,11 +721,9 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
 
             else
                 Light_Pollution_Count_Rate = zeros(size(Headings));
-                warning('No valid background count rate format provided. \nCan provide a Sky_Brightness_Store_Location, a SMARTS_config, or an Atmosphere_File_Location. \nSetting background counts to 0',...
-                        'QKD_Sat_Link:NoBackgroundCountFile');
+                warning('No valid background count rate format provided. \nCan provide a Sky_Brightness_Store_Location, a SMARTS_config, or an Atmosphere_File_Location. \nSetting background counts to 0',[]);
             end
-
-
+            
             % Reflected light pollution
             Reflection_Count_Rate = zeros(size(Light_Pollution_Count_Rate));
             for Simulated_Point_Index = 1:length(Background_Sources)
@@ -760,8 +759,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             %}
 
             % Dark_Counts
-            Dark_Counts = ...
-                ones(size(Headings)) * Ground_Station.Detector.Dark_Count_Rate;
+            Dark_Counts = ones(size(Headings))*4*Ground_Station.Detector.Dark_Count_Rate;
 
             % output value
             Ground_Station.Light_Pollution_Count_Rates = Light_Pollution_Count_Rate;

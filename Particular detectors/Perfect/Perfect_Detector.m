@@ -5,7 +5,7 @@ classdef Perfect_Detector<Detector
         Dark_Count_Rate=0;
         Dead_Time=0;
         Histogram_Data_Location='PerfectHistogram.mat';
-        Histogram_Bin_Width=10^-12;
+        Histogram_Bin_Width=10^-15;
         Detection_Efficiency=1;
         tB=1;
         Visibility=1;

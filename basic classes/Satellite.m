@@ -7,7 +7,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
     %hide large or uninteresting properties, not abstract for this reason
     properties (SetAccess=protected, Hidden=true)
         N_Steps{mustBeScalarOrEmpty, mustBePositive}
-        Times % {mustBeNumeric} not sure what this would need to be for datetimes
+        Times {mustBeA(Times,'datetime')} = datetime.empty  %not sure what this would need to be for datetimes
 
         % If using TLE or KeplerElements to define satellite path we will
         % store the satelliteScenario object as well as the corresponding
@@ -21,6 +21,8 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
         %right argument of the ascending node
         %argument of periapsis
         %true anomaly
+
+        TLE_Uncertainty {mustBeScalarOrEmpty,mustBeNonnegative} = 5E3;  %uncertainty in satellite orbital position (in lat and long) in m
     end
 
     %do not hide small properties
@@ -71,6 +73,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             addParameter(p, 'ToolBoxSatellite', []);
             addParameter(p, 'scenario', nan);
             addParameter(p, 'useSatCommsToolbox', false);
+            addParameter(p, 'LLAT',[]);
             addParameter(p, 'TLE', []);
             addParameter(p, 'KeplerElements', []);
             addParameter(p, 'semiMajorAxis', nan)
@@ -83,6 +86,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             addParameter(p, 'stopTime', []);
             addParameter(p, 'sampleTime', []);
             addParameter(p, 'Name', '');
+            addParameter(p, 'TLE_Uncertainty',5E3);
             % satellite surface reflection properties
             addParameter(p, 'Surface', Satellite_Foil_Surface(4))
             addParameter(p, 'Area', [])
@@ -132,6 +136,20 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             if ~isempty(p.Results.OrbitDataFileLocation)
                 [Satellite, lat, lon, alt, t] = ReadOrbitLLATFile(Satellite,...
                     p.Results.OrbitDataFileLocation);
+            elseif ~isempty(p.Results.LLAT)
+                %if LLAT (latitude, longitude, altitude, time) is provided manually, use this
+                LLAT = p.Results.LLAT;
+                lat = LLAT(:,1);
+                lon = LLAT(:,2);
+                alt = LLAT(:,3);
+                time_seconds   = LLAT(:,4);
+                %either refer time in seconds to startTime, or use default
+                %startTime
+                if ~isempty(p.Results.startTime)
+                    t = startTime + seconds(time_seconds);
+                else
+                    t= datetime(2000,1,1,12,0,0) + seconds(time_seconds);
+                end
 
             elseif p.Results.useSatCommsToolbox == true
                 if isempty(p.Results.ToolBoxSatellite) | isempty(p.Results.scenario)
@@ -147,9 +165,14 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
 
             else
                 if isdatetime(p.Results.startTime)
+                    if isduration(p.Results.sampleTime)
+                        sampleTime = seconds(p.Results.sampleTime);
+                    else
+                        sampleTime = p.Results.sampleTime;
+                    end
                     scenario = satelliteScenarioWrapper(p.Results.startTime, ...
                                                         p.Results.stopTime, ...
-                                                        'sampleTime', p.Results.sampleTime);
+                                                        'sampleTime',sampleTime);
                 else
                     scenario = p.Results.scenario;
 
@@ -195,6 +218,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
 
             Satellite.N_Steps = Satellite.N_Position;
             Satellite.Times = t;
+            Satellite.TLE_Uncertainty = p.Results.TLE_Uncertainty;
 
             %% currently, both transmit and receive scopes are the same
             Satellite.Telescope = p.Results.Telescope;
@@ -263,7 +287,8 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             lat = LLATData(1,:);
             lon = LLATData(2,:);
             alt = LLATData(3,:) * 1000; %conversion to m from km
-            t = LLATData(4,:);
+            %time must now conform to being a datetime object
+            t = datetime(LLATData(4,:),'ConvertFrom','epochtime','Epoch',datetime(2023,1,1,0,0,0));
         end
 
 

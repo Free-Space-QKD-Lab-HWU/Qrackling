@@ -27,7 +27,7 @@ Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do n
 Downlink_Beacon = Gaussian_Beacon(Transmitter_Telescope,Beacon_Power,Beacon_Wavelength);
 
 %2.1.4 add a beacon camera to the satellite
-Uplink_Cam = Camera(Transmitter_Telescope);
+Uplink_Cam = Camera(Transmitter_Telescope,'Wavelength',Beacon_Wavelength);
 
 %2.1.5 Construct satellite
 SimSatellite=Satellite(Transmitter_Telescope,...

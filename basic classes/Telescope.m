@@ -5,28 +5,28 @@ classdef Telescope
     properties
         %diameter of the transmitter in m
         Diameter{mustBeScalarOrEmpty,mustBePositive};
-        
+
         %ratio between theoretical and acutal far field divergence angle
-        Far_Field_Divergence_Coefficient{mustBeScalarOrEmpty,mustBePositive}=1
-        
+        Far_Field_Divergence_Coefficient{mustBeScalarOrEmpty,mustBeGreaterThanOrEqual(Far_Field_Divergence_Coefficient,1)}=1;
+
         %optical efficiency- from cassegrain telescope obscuration (Link loss analysis for a satellite quantum communication downlink, Single photon group)
-        Optical_Efficiency{mustBeScalarOrEmpty,mustBePositive}=0.6;
-        
+        Optical_Efficiency{mustBeScalarOrEmpty,mustBePositive}=1-0.3^2;
+
         %rms error in pointing in radians
-        Pointing_Jitter{mustBeScalarOrEmpty,mustBePositive}=10^-6;
+        Pointing_Jitter{mustBeScalarOrEmpty,mustBeNonnegative}=10^-6;
 
         %focal length (in m_ of the telescope collecting optics
         Focal_Length {mustBeScalarOrEmpty,mustBeNonnegative}=[];
 
         %F number is the ratio of focal length to diameter
-        F_Number {mustBeScalarOrEmpty,mustBeNonnegative}=8.4;   %default is 8.4
+        F_Number {mustBeScalarOrEmpty,mustBeNonnegative}=12;   %default is 12
 
         %magnification of telescope- applied directly to beam expansion and
         %inversely to angle compression
         Magnification {mustBeScalarOrEmpty,mustBePositive};
 
         %eyepiece focal length (in m) to compute magnification
-        Eyepiece_Focal_Length {mustBeScalarOrEmpty,mustBeNonnegative}= 0.058; %default is 2 inches
+        Eyepiece_Focal_Length {mustBeScalarOrEmpty,mustBeNonnegative}= 0.076; %default is 3 inches
     end
     properties(SetAccess=protected)
         %wavelength of the transmitter (in nm), set by the satellite it is mounted to
@@ -57,26 +57,26 @@ classdef Telescope
             addParameter(P,'Wavelength',[])
             addParameter(P,'Optical_Efficiency', obj.Optical_Efficiency);
             addParameter(P,'Far_Field_Divergence_Coefficient', ...
-                         obj.Far_Field_Divergence_Coefficient);
+                obj.Far_Field_Divergence_Coefficient);
             addParameter(P,'Pointing_Jitter',obj.Pointing_Jitter);
             addParameter(P,'FOV',[])
             addParameter(P,'Focal_Length',[]);
-            addParameter(P,'F_Number',8.4);
-            addParameter(P,'Eyepiece_Focal_Length',0.058);
+            addParameter(P,'F_Number',obj.F_Number);
+            addParameter(P,'Eyepiece_Focal_Length',obj.Eyepiece_Focal_Length);
             %parse inputs
             parse(P,Diameter,varargin{:});
 
             %% set values
             obj.Diameter=P.Results.Diameter;
             obj.Far_Field_Divergence_Coefficient = ...
-                                P.Results.Far_Field_Divergence_Coefficient;
+                P.Results.Far_Field_Divergence_Coefficient;
             obj.Optical_Efficiency=P.Results.Optical_Efficiency;
             obj=SetPointingJitter(obj,P.Results.Pointing_Jitter);
             obj=SetWavelength(obj,P.Results.Wavelength);
             if ~isempty(P.Results.FOV)
                 obj=SetFOV(obj,P.Results.FOV);
             end
-            
+
             if ~isempty(P.Results.Focal_Length)
                 obj.Focal_Length = P.Results.Focal_Length;
                 obj.F_Number = obj.Focal_Length/obj.Diameter;
@@ -93,6 +93,27 @@ classdef Telescope
             %%SETWAVELENGTH set the wavelength (nm) of the transmitter
             Telescope.Wavelength=Wavelength;
         end
+        
+        function Telescope=SetFarFieldDivergenceCoefficient(Telescope,FOV,Wavelength,Diameter)
+            %%SETFARFIELDDIVERGENCECOEFFICIENT set the FFDC required to
+            %%maintain a given FOV at a given wavelegngth
+
+            if isempty(FOV)||isempty(Wavelength)
+                Telescope.Far_Field_Divergence_Coefficient=1;
+                return
+            end
+            
+               
+            Far_Field_Divergence_Coefficient=FOV/(2.44 *( Wavelength * 10^-9 )/ Diameter);
+
+            %check that this farfield divergence coeff is not impossible
+                if Far_Field_Divergence_Coefficient <1
+                    warning('Requested FOV is narrower than diffraction limit. Reverting to diffraction limit');
+                    Telescope.Far_Field_Divergence_Coefficient = 1;
+                else
+                    Telescope.Far_Field_Divergence_Coefficient = Far_Field_Divergence_Coefficient;
+                end
+        end
 
         function Telescope=SetDiameter(Telescope,Diameter)
             %%SETWAVELENGTH set the diameter (in m) of the transmitter
@@ -108,19 +129,18 @@ classdef Telescope
             %%SETFOV set the FOV of a telescope by updating the far field
             %%divergence coefficient to suit
 
-            if ~isempty(Telescope.Wavelength)
-            Telescope.Far_Field_Divergence_Coefficient = ...
-                        FOV * Telescope.Diameter / ...
-                            (2.44 *( Telescope.Wavelength * 10^-9 ));  
-            else
-                Telescope.FOV = FOV;
+            if isempty(Telescope.Wavelength)
+                error('cannot set FOV without first setting wavelength')
             end
+
+            Telescope = SetFarFieldDivergenceCoefficient(Telescope,FOV,Telescope.Wavelength,Telescope.Diameter);
+
         end
 
         function Area = get.Collecting_Area(Telescope)
             %%COLLECTINGAREA return the total collecting area of the telescope in
             %%m^2
-    
+
             Area = (pi/4)*Telescope.Diameter^2;
         end
 
@@ -128,15 +148,9 @@ classdef Telescope
             %%FOV return the FOV of the telescope in radians, computed by
             %%scaling the divergence limited FOV
 
-            %if no wavelength is set then return empty FOV
-            if isempty(Telescope.Wavelength)
-                FOV=[];
-                return
-            end
-    
             %compute the diffraction-limited FOV at a particular wavelength
-            %with a modification 
-            %see 
+            %with a modification
+            %see
             % Chunmei Zhang, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller,
             % and Ross J. Donaldson "Link loss analysis for a satellite quantum
             % communication down-link", Proc. SPIE 11540, Emerging Imaging and
@@ -145,9 +159,9 @@ classdef Telescope
             % and Defence III, 1154007 (20 September 2020);
             % https://doi.org/10.1117/12.2573489
             FOV = 2.44 ...
-                    * Telescope.Far_Field_Divergence_Coefficient ...
-                    *( Telescope.Wavelength * 10^-9 ) ...
-                    / Telescope.Diameter;
+                * Telescope.Far_Field_Divergence_Coefficient ...
+                *( Telescope.Wavelength * 10^-9 ) ...
+                / Telescope.Diameter;
         end
     end
 end

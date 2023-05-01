@@ -24,9 +24,10 @@ function configuration = solar_background_errol_fast(varargin)
 
 
     %% specify the reduced wavelength range simulated
-    Wavelength_Min=600;
-    Wavelength_Max=950;
-    Step=10;
+    Wavelength_Min=600; %min simulated wavelength
+    Wavelength_Max=950; %max simulated wavelength
+    Step=10;            %wavelength interval in nm
+    Visibility = 50;    %meteorological visibility in km
 
     p = inputParser;
     addParameter(p, 'executable_path', '');

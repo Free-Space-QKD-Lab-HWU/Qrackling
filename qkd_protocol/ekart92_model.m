@@ -24,7 +24,7 @@
 %                                                 prot_eff, ...
 %                                                 Detector)
 
-function [sifted_key_rate, qber, Rate_In, Rate_Det] = ekart92_model( ...
+function [secret_key_rate, qber, sifted_key_rate] = ekart92_model( ...
     Source, prob_dark_counts, loss, prot_eff, Detector)
 
     rep_rate = Source.Repetition_Rate;
@@ -74,7 +74,7 @@ function [sifted_key_rate, qber, Rate_In, Rate_Det] = ekart92_model( ...
     t_e = (1-2.*omega1) ./ (1+2.*omega1);
 
     % Rates
-    Rate_In = s1 .* rep_rate;
+    sifted_key_rate = s1 .* rep_rate;
     % tau1 = Detector.fall_time;
     % tau2 = Detector.rise_time;
     % Rate_Det = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
@@ -95,14 +95,14 @@ function [sifted_key_rate, qber, Rate_In, Rate_Det] = ekart92_model( ...
     R_2 = 1 - 2.*bin_ent(qber);
 
     % Final sifted key rate
-    sifted_key_rate = sift_prob .* P_succ .* R_2 .* prot_eff .* rep_rate;
-    sifted_key_rate = min(sifted_key_rate, 1/dead_time);
+    secret_key_rate = sift_prob .* P_succ .* R_2 .* prot_eff .* rep_rate;
+    secret_key_rate = min(secret_key_rate, 1/dead_time);
     %sifted_key_rate = dead_time_corrected_count_rate(sifted_key_rate, ...
     %                                                 dead_time, 1);
 
     % Marking the values where the sifted key rate is negative as Nan
     % (when the QBER is above q_thr the R_2 variable becomes negative
     % hence the sifted key rate becomes negative)
-    sifted_key_rate(sifted_key_rate < 0) = 0;
+    secret_key_rate(secret_key_rate < 0) = 0;
 
 end

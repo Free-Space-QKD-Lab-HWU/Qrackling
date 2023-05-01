@@ -16,42 +16,61 @@ classdef Atmosphere
 
     methods
 
-        function Atmosphere = Atmosphere(file_path)
+        function Atmosphere = Atmosphere(varargin)
             %MATLAB requires that all objects have empty constructor
             if nargin == 0
                 return
             end
-            Atmosphere = Atmosphere.LoadAtmosphere(file_path);
-            
+            Atmosphere = Atmosphere.LoadAtmosphere(varargin{:});
+
         end
 
-        function Atmosphere = LoadAtmosphere(Atmosphere, Input)
-            %support loading from an already loaded file or a path
+        function Atmosphere = LoadAtmosphere(Atmosphere, Input, Time)
+            %support loading from an already loaded file, a file path direct to
+            %atmosphere data or a file path to an array of atmosphere objects
+            %which correspond to different times
             if isstring(Input)||ischar(Input)
-            assert(2 == exist(Input), 'File does not exist');
-            data = load(Input);
+                %path to atmosphere file or file containing array of atmospheres
+                assert(2 == exist(Input), 'File does not exist');
 
-            fields = fieldnames(data);
-            assert(convertCharsToStrings(fields{1}) == "atmosphere", ...
-                   'Not an atmosphere');
-            atmosphere = load(Input).atmosphere;
-           elseif isstruct(Input)
-                atmosphere = Input;
+                %first, we scan the .mat file to see what's in it
+                matObj = matfile(Input);
+                Variables = who(matObj);
+
+
+                if isequal(Variables{1}, "Atmospheres") && isequal(Variables{2}, "Hours")
+                    %this is the format for an array of atmospheres at different
+                    %times
+
+                    %find closest hour to current time
+                    [~,ClosestTimeIndex] = min(abs(hour(Time)-matObj.Hours));
+
+                    %load this atmosphere
+                    TempFile = matObj.Atmospheres(1,ClosestTimeIndex);
+                    atmos = TempFile{1}.atmosphere;
+
+                elseif isequal(Variables{1}, "atmosphere")
+                    %this is the format for a single atmosphere file
+                    atmos = matObj.atmosphere;
+                end
+
+            elseif isstruct(Input)
+                atmos = Input;
             end
 
-            Atmosphere.data = atmosphere.values;
+            Atmosphere.data = atmos.values;
 
-            Atmosphere.wavelengths = atmosphere.wavelengths;
-            Atmosphere.sky_dome = atmosphere.values;
+            Atmosphere.wavelengths = atmos.wavelengths;
+            Atmosphere.sky_dome = atmos.values;
 
-            [N_a, N_e] = size(atmosphere.values);
-            Atmosphere.Azimuth = zeros(size(atmosphere.values));
-            Atmosphere.Elevation = zeros(size(atmosphere.values));
+            [N_a, N_e] = size(atmos.values);
+            Atmosphere.Azimuth = zeros(size(atmos.values));
+            Atmosphere.Elevation = zeros(size(atmos.values));
 
             for i = 1 : N_e
                 for j = 1 : N_a
-                    Atmosphere.Azimuth(j, i) = atmosphere.values{j, i}.azimuth;
-                    Atmosphere.Elevation(j, i) = atmosphere.values{j, i}.elevation;
+                    Atmosphere.Azimuth(j, i) = atmos.values{j, i}.azimuth;
+                    Atmosphere.Elevation(j, i) = atmos.values{j, i}.elevation;
                 end
             end
 
@@ -61,7 +80,7 @@ classdef Atmosphere
 
 
         function [azimuth, elevation, store] = ...
-                    extractField(Atmosphere, SatellitePass, Wavelength, Field)
+                extractField(Atmosphere, SatellitePass, Wavelength, Field)
 
             azimuth = zeros(size(Atmosphere.data));
             elevation = zeros(size(Atmosphere.data));
@@ -82,9 +101,9 @@ classdef Atmosphere
 
 
         function conditions = satellitePassConditions(Atmosphere, ...
-                                                      SatellitePass, ...
-                                                      Wavelengths, ...
-                                                      Field)
+                SatellitePass, ...
+                Wavelengths, ...
+                Field)
 
             conditions = cell(0, 0);
             nWavelengths = numel(Wavelengths);
@@ -99,7 +118,7 @@ classdef Atmosphere
                 Wavelength = Wavelengths(i);
 
                 [atmos_azimuth, atmos_elevation, store] = Atmosphere.extractField(...
-                                    SatellitePass, Wavelength, Field);
+                    SatellitePass, Wavelength, Field);
 
                 [X, Y] = meshgrid(unique(atmos_azimuth), unique(atmos_elevation));
                 [newX, newY] = meshgrid(azimuth, elevation);
@@ -128,7 +147,7 @@ classdef Atmosphere
 
             clean_field = replace(Condition.field, '_', ' ');
             fig_title = sprintf('%s around ground station @ %.3g', ...
-                                clean_field, Condition.wavelength);
+                clean_field, Condition.wavelength);
 
             fig = figure(name = fig_title);
             grid on
@@ -136,18 +155,18 @@ classdef Atmosphere
             N = numel(Condition.pass_elevation);
             line_data = Condition.interpolated_sky_dome(eye(N) == 1);
             plot3(Condition.pass_azimuth, ...
-                  Condition.pass_elevation, ...
-                  line_data, LineWidth=3, Color='black')
+                Condition.pass_elevation, ...
+                line_data, LineWidth=3, Color='black')
             surf(Condition.interpolated_azimuth, ...
-                 Condition.interpolated_elevation, ...
-                 Condition.interpolated_sky_dome)
+                Condition.interpolated_elevation, ...
+                Condition.interpolated_sky_dome)
             colormap(summer)
             shading interp
             hold off
             xlim([min(Condition.pass_azimuth), max(Condition.pass_azimuth)])
             ylim([min(Condition.pass_elevation), max(Condition.pass_elevation)])
             zlim([min(min(Condition.interpolated_sky_dome)), ...
-                  max(max(Condition.interpolated_sky_dome))])
+                max(max(Condition.interpolated_sky_dome))])
             xlabel('Aziumth \circ');
             ylabel('Elevation \circ');
             zlabel(sprintf('%s @ %.3gnm', clean_field, Condition.wavelength));
@@ -162,13 +181,13 @@ classdef Atmosphere
 
             clean_field = replace(Field, '_', ' ');
             fig_title = sprintf('%s around ground station @ %.3g', ...
-                                clean_field, Wavelength);
+                clean_field, Wavelength);
             fig = figure(name = fig_title);
             contourf(atmos_azimuth, atmos_elevation, store);
             xlim([min(min(atmos_azimuth)), ...
-                  max(max(atmos_azimuth))])
+                max(max(atmos_azimuth))])
             ylim([min(min(atmos_elevation)), ...
-                  max(max(atmos_elevation))])
+                max(max(atmos_elevation))])
             xlabel('Aziumth \circ');
             ylabel('Elevation \circ');
             title(fig_title);
@@ -181,15 +200,15 @@ classdef Atmosphere
 
             clean_field = replace(Field, '_', ' ');
             fig_title = sprintf('%s around ground station @ %.3g', ...
-                                clean_field, Wavelength);
+                clean_field, Wavelength);
             fig = figure(name = fig_title);
             grid on
             hold on
             surf(atmos_azimuth, atmos_elevation, store);
             xlim([min(min(atmos_azimuth)), ...
-                  max(max(atmos_azimuth))])
+                max(max(atmos_azimuth))])
             ylim([min(min(atmos_elevation)), ...
-                  max(max(atmos_elevation))])
+                max(max(atmos_elevation))])
             colormap(summer)
             shading interp
             xlabel('Aziumth \circ');
@@ -255,7 +274,31 @@ classdef Atmosphere
 
         end
 
+        function FieldData = InterpolateFieldData(Atmosphere,Field,Wavelength,Headings,Elevations)
+        %% return an array of data corresponding to input headings and elevations and at a given wavelength contained in the specific data field
+        %here we will need to do 2D interpolation (heading and elevation) with
+        %1D interpolation (wavelengh) inside it
 
+        %input validation
+        assert(isscalar(Wavelength),'can only interpolate for scalar wavelength')
+        assert(all(isequal(size(Headings),size(Elevations))),'Headings and elevations must be the same dimensions')
+        assert(ismember(Field,Atmosphere.fields),'Specified field is not a data field of the atmosphere class')
+
+
+        %% wavelength interpolation
+        WavelengthInterpolation = @(AtmospherePoint,WavelengthData,WavelengthQuery,Field) interp1(WavelengthData,AtmospherePoint.data.(Field),WavelengthQuery);
+        
+        %% heading and elevation interpolation
+           %extract data
+           [HeadingData,Elevation_Data] = meshgrid(Atmosphere.Azimuth(:,1),Atmosphere.Elevation(1,:));
+           WavelengthData = Atmosphere.wavelengths;
+           %get field data array
+           FieldDataArray = cellfun(@(x) WavelengthInterpolation(x,WavelengthData,Wavelength,Field), Atmosphere.data)';
+           %do interpolation
+           FieldData = interp2(HeadingData,Elevation_Data,FieldDataArray,Headings,Elevations); 
+
+
+        end
     end
 
 end

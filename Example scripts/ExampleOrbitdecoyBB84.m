@@ -3,7 +3,7 @@
 %% Then we simulate the pass and plot the results.
 
 %% 1. Choose parameters
-Wavelength=850;                                                            %wavelength is measured in nm
+Wavelength=780;                                                            %wavelength is measured in nm
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
 OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                              %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
 Receiver_Telescope_Diameter=1;                                           
@@ -29,7 +29,7 @@ SimSatellite=Satellite(Transmitter_Telescope,...
 
 %2.2 Ground station
 %2.2.1 Detector
-MPD_decoyBB84_Detector=MPD_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
+Detector=MPD_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
 
@@ -37,7 +37,7 @@ MPD_decoyBB84_Detector=MPD_Detector(Wavelength,Transmitter_Source.Repetition_Rat
 Receiver_Telescope=Telescope(Receiver_Telescope_Diameter,'Wavelength',Wavelength);
 
 %2.2.3 construct ground station, use Errol as an example
-SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',MPD_decoyBB84_Detector);
+SimGround_Station=Errol_OGS(Receiver_Telescope,'Detector',Detector);
 
 %2.3 protocol
 Decoy_BB84_Protocol=Protocol.DecoyBB84;

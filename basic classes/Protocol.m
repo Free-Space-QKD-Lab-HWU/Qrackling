@@ -3,6 +3,7 @@ classdef Protocol
 
    enumeration
     %% Requirements for an enumeration are:
+<<<<<<< HEAD
         % source requirements (what properties does the source object
         % need)
         % detector requirements (what properties does the detector object
@@ -11,6 +12,19 @@ classdef Protocol
         % Evaluation_Function (a function which computes SKR and QBER. This
         % must conform to [SKR, QBER, Rate_In, Rate_Det] = EvaluateQKDLink( ...
         % proto, source, detector, Link_Loss_dB, Background_Count_Rate)
+=======
+                %source requirements (what properties does the source object
+                %need)
+                
+                %detector requirements (what properties does the detector object
+                %need)
+                
+                %efficiency (what portion of successful detections generate key
+                
+                %Evaluation_Function (a function which computes SKR and QBER. This
+                %must conform to [SKR, QBER, Rate_In, Rate_Det] = f( ...
+                %source, detector, Link_Loss_dB, Background_Count_Rate)
+>>>>>>> 0647529f4e82947d0cf379c9a8d3ffc86cf098a4
 
 
         %% the BB84 protocol enumeration
@@ -82,6 +96,16 @@ classdef Protocol
                     1,...
                 ...%evaluation function to compute SKR,QBER etc
                 function_handle.empty);%DPS is missing a function!
+
+       %% the CV enumeration
+        CV(...%Source requirements
+                   {},...
+                   ...%Detector requirements
+                   {},...
+                    ...%efficiency
+                    0,...
+                ...%evaluation function to compute SKR,QBER etc
+                @CV_model);%DPS is missing a function!
     end
 
    properties(SetAccess = immutable)
@@ -156,7 +180,7 @@ classdef Protocol
             check = true;
         end
 
-        function [SKR, QBER, Rate_In, Rate_Det] = EvaluateQKDLink( ...
+        function [Secret_Key_Rate, QBER, Sifted_Key_Rate] = EvaluateQKDLink( ...
             proto, source, detector, Link_Loss_dB, Background_Count_Rate)
         %%EVALUATEQKDLINK enact the link performance simulation for the
         %%particular protocol
@@ -179,6 +203,7 @@ classdef Protocol
 
             %run protocol's evaluation function
             %all evaluation functions must conform to this format
+<<<<<<< HEAD
             [SKR, QBER, Rate_In, Rate_Det] = ...
                 proto.Evaluation_Function( ...
                     source, ...
@@ -186,6 +211,14 @@ classdef Protocol
                     Link_Loss_dB, ...
                     proto.efficiency, ...
                     detector);
+=======
+            [Secret_Key_Rate,QBER,Sifted_Key_Rate] = proto.Evaluation_Function(...
+                                            source,...
+                                            dark_count_probability,...
+                                            Link_Loss_dB,...
+                                            proto.efficiency,...
+                                            detector);
+>>>>>>> 0647529f4e82947d0cf379c9a8d3ffc86cf098a4
         end
    end
 end
