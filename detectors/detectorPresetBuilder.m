@@ -1,6 +1,6 @@
 classdef detectorPresetBuilder
 
-    properties(SetAccess=protected)
+    properties(SetAccess=protected, GetAccess=protected)
         preset = DetectorPreset
     end
 
@@ -68,6 +68,8 @@ classdef detectorPresetBuilder
             builder.preset.Efficiencies_Values = Efficiencies;
         end
 
+        % Only way of accessing the "preset" property. This way only valid
+        % DetectorPreset objects can be created
         function preset = makeDetectorPreset(builder)
             fields = fieldnames(DetectorPreset);
             for i = 1:numel(fields)
