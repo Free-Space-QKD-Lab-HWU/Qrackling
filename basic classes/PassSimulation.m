@@ -179,16 +179,23 @@ classdef PassSimulation
             end
         end
 
-        function plot(PassSimulation, Range)
+        function plot(PassSimulation, varargin)
             %% PLOT plot data from this PassSimulation, according to the keyword Range:
             %EMPTY = plot while satellite is in elevation window
             %Elevation = plot while satellite is in elevation window
             %Communication = plot while satellite is communicating
             %All = plot whole pass
-
-            if nargin == 1 %default is elevation
-                Range = 'Elevation';
-            end
+            
+            %% parse possible input options
+            p=inputParser();
+            addRequired(p,'PassSimulation');
+            addParameter(p,'Range','Communication'); %range over which X axis is plotted
+            addParameter(p,'XAxis','Time')           %values on the X axis of main plots
+            %parse
+            parse(p,PassSimulation,varargin{:});
+            %collect outputs
+            Range = p.Results.Range;
+            XAxisFlag = p.Results.XAxis;
 
             %select the correct range of data to plot
             switch Range
@@ -216,6 +223,19 @@ classdef PassSimulation
             %need to add an extra true at beginning and end of range to ensure
             %that periods outside of windows are plotted as having no key
             Plot_Select_Flags=[or(Plot_Select_Flags(2:end),Plot_Select_Flags(1:end-1)),false];
+
+            % set what you want on X axis of plots
+            switch XAxisFlag
+                case 'Time'
+                    XAxisValues = PassSimulation.Times(Plot_Select_Flags);
+                    WiderXAxisValues = PassSimulation.Times;
+                case 'Elevation'
+                    XAxisValues = PassSimulation.Elevations(Plot_Select_Flags);
+                    WiderXAxisValues = PassSimulation.Elevations;
+                otherwise
+                    error('XAxis flag not recognised')
+            end
+
 
             %% plot ground path of satellite
             switch PassSimulation.Link_Direction
@@ -257,35 +277,29 @@ classdef PassSimulation
             subplot(3, 3, [1, 2])
             % plot performance
             yyaxis left
-            plot(PassSimulation.Times(Plot_Select_Flags), PassSimulation.Secret_Key_Rates(Plot_Select_Flags),'-',...
-                PassSimulation.Times(Plot_Select_Flags), PassSimulation.Sifted_Key_Rates(Plot_Select_Flags),':');
-            NameTimeAxis(PassSimulation.Times);
+            plot(XAxisValues, PassSimulation.Secret_Key_Rates(Plot_Select_Flags),'-',...
+                XAxisValues, PassSimulation.Sifted_Key_Rates(Plot_Select_Flags),':');
+            NameXAxis(XAxisValues,XAxisFlag);
             ylabel('Rate (bits/s)')
             text(0.5, 0.5, sprintf('total secret key\ntransfered = %3.2g', PassSimulation.Total_Secret_Key), 'Units', 'Normalized', 'VerticalAlignment', 'middle', 'HorizontalAlignment', 'center','FontName',get(groot,'defaultAxesFontName'),'FontSize',get(groot,'defaultAxesFontSize'))
             % plot QBER
             yyaxis right
-            plot(PassSimulation.Times(Plot_Select_Flags), PassSimulation.QBERs(Plot_Select_Flags).*100);
-            NameTimeAxis(PassSimulation.Times);
+            plot(XAxisValues, PassSimulation.QBERs(Plot_Select_Flags).*100);
+            NameXAxis(XAxisValues,XAxisFlag);
             ylabel('QBER (%)')
             legend('Secret Key Rate','Sifted Key Rate','')
             % plot background counts
             subplot(3, 3, [7, 8])
             title('BCR (counts/s)')
-            PlotBackgroundCountRates(PassSimulation.QKD_Receiver, Plot_Select_Flags, PassSimulation.Times);
-            NameTimeAxis(PassSimulation.Times);
-            xlim([ ...
-                min(PassSimulation.Times(Plot_Select_Flags)), ...
-                max(PassSimulation.Times(Plot_Select_Flags)) ...
-                ]);
+            PlotBackgroundCountRates(PassSimulation.QKD_Receiver, Plot_Select_Flags, WiderXAxisValues);
+            NameXAxis(XAxisValues,XAxisFlag);
+
             % plot link loss
             subplot(3, 3, [4, 5])
             title('Link Loss')
-            Plot(PassSimulation.Link_Model, PassSimulation.Times, Plot_Select_Flags);
-            NameTimeAxis(PassSimulation.Times);
-            xlim([ ...
-                min(PassSimulation.Times(Plot_Select_Flags)), ...
-                max(PassSimulation.Times(Plot_Select_Flags)) ...
-                ]);
+            Plot(PassSimulation.Link_Model, WiderXAxisValues, Plot_Select_Flags);
+            NameXAxis(XAxisValues,XAxisFlag);
+
 
             %% plot key rate as a function of link loss
             subplot(3, 3, [9, 9])
@@ -310,18 +324,18 @@ classdef PassSimulation
                 subplot(3,1,1)
                 plot(PassSimulation.Times(Plot_Select_Flags),PassSimulation.Downlink_Beacon_Power(Plot_Select_Flags));
                 ylabel('Beacon Power (W)')
-                NameTimeAxis(GetTimes(PassSimulation));
+                NameXAxis(GetTimes(PassSimulation));
 
                 %then, plot link loss
                 subplot(3,1,2)
                 Plot(PassSimulation.Downlink_Beacon_Link_Model,PassSimulation.Times,Plot_Select_Flags);
-                NameTimeAxis(PassSimulation.Times);
+                NameXAxis(PassSimulation.Times);
 
                 %finally, plot SNR
                 subplot(3,1,3)
                 hold on
                 plot(PassSimulation.Times(Plot_Select_Flags),PassSimulation.Downlink_Beacon_SNR_dB(Plot_Select_Flags));
-                NameTimeAxis(PassSimulation.Times);
+                NameXAxis(PassSimulation.Times);
                 ylabel('SNR (dB)');
             end
 
@@ -331,28 +345,30 @@ classdef PassSimulation
                 BeaconFig = figure('name', 'Uplink Beacon'); %#ok<NASGU>
                 %first, plot intensity as a function of time
                 subplot(3,1,1)
-                plot(PassSimulation.Times(Plot_Select_Flags),PassSimulation.Uplink_Beacon_Power(Plot_Select_Flags));
+                plot(XAxisValues,PassSimulation.Uplink_Beacon_Power(Plot_Select_Flags));
                 ylabel('Beacon Power (W)')
-                NameTimeAxis(GetTimes(PassSimulation));
+                NameXAxis(XAxisValues,XAxisFlag);
 
                 %then, plot link loss
                 subplot(3,1,2)
-                Plot(PassSimulation.Uplink_Beacon_Link_Model,PassSimulation.Times,Plot_Select_Flags);
-                NameTimeAxis(PassSimulation.Times);
+                Plot(PassSimulation.Uplink_Beacon_Link_Model,WiderXAxisValues,Plot_Select_Flags);
+                NameXAxis(XAxisValues,XAxisFlag);
 
                 %finally, plot SNR
                 subplot(3,1,3)
                 hold on
-                plot(PassSimulation.Times(Plot_Select_Flags),PassSimulation.Uplink_Beacon_SNR_dB(Plot_Select_Flags));
-                NameTimeAxis(PassSimulation.Times);
+                plot(XAxisValues,PassSimulation.Uplink_Beacon_SNR_dB(Plot_Select_Flags));
+                NameXAxis(XAxisValues,XAxisFlag);
                 ylabel('SNR (dB)');
             end
 
-            function NameTimeAxis(Times)
+            function NameXAxis(XAxisValues,XAxisFlag)
                 %%NAMETIMEAXIS consistently name the time axis with units of
                 %%seconds if it is numeric or without if it is datetime
-                if ~isdatetime(Times)
+                if ~isdatetime(XAxisValues)&&isequal(XAxisFlag,'Time')
                     xlabel('Time (s)')
+                elseif isnumeric(XAxisValues)&&isequal(XAxisFlag,'Elevation')
+                    xlabel('Elevation (deg)')
                 else
                     xlabel('')
                 end
@@ -483,7 +499,7 @@ classdef PassSimulation
             Elevation_Viability_Flag = any(Elevation_Limit_Flags);
             %compute total data downlink
             %first produce a vector of time bin widths
-            Downlink_Time_Windows = Times([false,Communicating_Flags(1:end-1)])-Times([Communicating_Flags(2:end), false]);
+            Downlink_Time_Windows = Times([false,Communicating_Flags(1:end-1)])-Times(Communicating_Flags);
 
             %the dot with sifted data rate
             if ~isempty(Downlink_Time_Windows)&&isnumeric(Downlink_Time_Windows)
@@ -562,7 +578,7 @@ classdef PassSimulation
 
             %% compute SKR and QBER for links inside the elevation window
             %[Computed_Sifted_Key_Rates, Computed_QBERs] = EvaluateQKDLink(...
-            [Computed_Sifted_Key_Rates, Computed_QBERs, Sifted_Key_Rate, Rates_Det] = EvaluateQKDLink(...
+            [Computed_Sifted_Key_Rates, Computed_QBERs, Sifted_Key_Rate] = EvaluateQKDLink(...
                 Protocol, Ground_Station.Source, ...
                 Satellite.Detector, ...
                 [Uplink_Model.Link_Loss_dB(Elevation_Limit_Flags)], ...
@@ -616,7 +632,6 @@ classdef PassSimulation
             PassSimulation.Elevation_Limit_Flags=Elevation_Limit_Flags;
             PassSimulation.Line_Of_Sight_Flags=Line_Of_Sight_Flags;
             PassSimulation.Sifted_Key_Rates=Sifted_Key_Rates;
-            PassSimulation.Rates_Det=Rates_Det;
             PassSimulation.Total_Sifted_Key=Total_Sifted_Key;
             PassSimulation.Total_Secret_Key=Total_Secret_Key;
         end
