@@ -102,12 +102,22 @@ LaserComp.writePreset('~/Projects/QKD_Sat_Link/detector_presets/detectors/preset
 close all
 clear all
 clc
+Efficiency_Data_Location = 'LaserComponents_efficiency.mat';
+eff = load(Efficiency_Data_Location);
+test = DetectorPresets.Custom
+test.PresetLoader() ...
+    .addName('Laser Components') ...
+    .addDarkCountRate(10) ...
+    .addDeadTime(0) ...
+    .addJitterHistogram(load('LaserComponentHistogram.mat').Counts, 10^-12) ...
+    .addDetectorEfficiencyArray(eff.wavelengths, eff.efficiency) ...
+    .makeDetectorPreset()
 
 % load the Hamamatsu
 DetectorPresets.Hamamatsu.LoadPreset()
 
 % Test custom loading (using the LaserComponents.mat as the test case for a users detector)
-DetectorPresets.Custom.LoadPreset(customPath='LaserComponents.mat')
+DetectorPresets.Custom.LoadPreset('LaserComponents.mat')
 
 % Load the preset thats held in the enumeration (Hamamatsu) not in the customPath
-DetectorPresets.Hamamatsu.LoadPreset(customPath='LaserComponents.mat')
+DetectorPresets.Hamamatsu.LoadPreset('LaserComponents.mat')
