@@ -64,16 +64,15 @@ classdef detectorPresetBuilder
                 mat2str(size(Efficiencies))] ...
             )
 
-            builder.preset.Efficiencies_Wavelengths = Wavelengths;
-            builder.preset.Efficiencies_Values = Efficiencies;
+            builder.preset.Wavelength_Range = Wavelengths;
+            builder.preset.Efficiencies = Efficiencies;
         end
 
         % Only way of accessing the "preset" property. This way only valid
         % DetectorPreset objects can be created
         function preset = makeDetectorPreset(builder)
-            fields = fieldnames(DetectorPreset);
-            for i = 1:numel(fields)
-                field = fields{i};
+            for f = fieldnames(DetectorPreset)'
+                field = f{1};
                 value = builder.preset.(field);
                 assert(~isempty(value), ...
                     [field, ' is empty and must contain a value.']);
@@ -91,6 +90,21 @@ classdef detectorPresetBuilder
             preset = load(presetFilePath).preset;
             builder.preset = preset;
             preset = builder.makeDetectorPreset();
+        end
+
+        function presetBuilder = BuildPresetFromDetector(builder, name, detector)
+            arguments
+                builder detectorPresetBuilder
+                name {mustBeText}
+                detector AltDetector
+            end
+
+            presetBuilder = detectorPresetBuilder() ...
+                .addName(name) ...
+                .addDarkCountRate(detector.Dark_Count_Rate) ...
+                .addDeadTime(detector.Dead_Time) ...
+                .addJitterHistogram(detector.Jitter_Histogram, detector.Histogram_Bin_Width) ...
+                .addDetectorEfficiencyArray(detector.Wavelength_Range, detector.Efficiencies);
         end
 
     end
