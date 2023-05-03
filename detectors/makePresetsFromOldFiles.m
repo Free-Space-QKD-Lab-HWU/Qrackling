@@ -134,28 +134,27 @@ rr = 1e9;
 timeGate = 1e-9;
 spectralWidth = 1;
 
-% AltDetector( ...
-%     DetectorPresets.Hamamatsu.LoadPreset, ...
-%     wvl, rr, timeGate, spectralWidth)
-
 Efficiency_Data_Location = 'MPD_efficiency.mat';
 eff = load(Efficiency_Data_Location);
 
-newPreset = DetectorPresets.Custom.PresetLoader() ...
+presetBuilder = DetectorPresets.Custom.PresetLoader() ...
     .addName('Micro Photon Devices') ...
     .addDarkCountRate(10) ...
     .addDeadTime(0) ...
     .addJitterHistogram(load('MPDHistogram.mat').Counts, 10^-12) ...
     .addDetectorEfficiencyArray(eff.wavelengths, eff.efficiency);
 
-assert(~isempty(newPreset.makeDetectorPreset()), '...')
+newPreset = presetBuilder.makeDetectorPreset();
 
+assert(~isempty(newPreset), '...')
 
-detector = AltDetector(wvl, rr, timeGate, spectralWidth, ...
-    Preset=newPreset.makeDetectorPreset() )
+detector = AltDetector(wvl, rr, timeGate, spectralWidth, Preset=newPreset)
+
+detector = AltDetector(wvl, rr, timeGate, spectralWidth, Preset=DetectorPresets.Hamamatsu.LoadPreset())
 
 detectorPresetBuilder().BuildPresetFromDetector('a test', detector).makeDetectorPreset()
 
+% Will fail since no parameters passed
 detector = AltDetector(wvl, rr, timeGate, spectralWidth)
 
 %detector.HistogramInfo;

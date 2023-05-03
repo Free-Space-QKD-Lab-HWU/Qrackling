@@ -1,6 +1,12 @@
 classdef DetectorPresets
+    % Enumrated type to select one of several predined detectors derived from
+    % measurements bundled with the library.
+    % The ".Custom" enumeration instead of loading in one of the bundled presets
+    % returns a detectorPresetBuilder to the user allowing them to create their
+    % own presets.
 
     enumeration
+        % The following enumerations are bundled with the library
         Excelitas ('Excelitas.mat')
         Hamamatsu ('Hamamatsu.mat')
         LaserComponents ('LaserComponents.mat')
@@ -25,6 +31,10 @@ classdef DetectorPresets
         end
 
         function preset = LoadPreset(Preset, varargin)
+            % Load the file specified by the chosen enumeration.
+            % If ".Custom" has been set the user must also supply a path to a
+            % DetectorPreset that they have previously created. For details on
+            % creating a DetectorPreset see detectorPresetBuilder.
 
             if nargin > 1
                 assert(nargin <= 2, 'Arguments to LoadPreset should be a path');

@@ -71,8 +71,9 @@ classdef detectorPresetBuilder
         % Only way of accessing the "preset" property. This way only valid
         % DetectorPreset objects can be created
         function preset = makeDetectorPreset(builder)
-            for f = fieldnames(DetectorPreset)'
-                field = f{1};
+            fields = fieldnames(DetectorPreset);
+            for i = 1:numel(fields)
+                field = fields{i};
                 value = builder.preset.(field);
                 assert(~isempty(value), ...
                     [field, ' is empty and must contain a value.']);
