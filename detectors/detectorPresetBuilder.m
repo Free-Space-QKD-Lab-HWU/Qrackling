@@ -1,4 +1,15 @@
 classdef detectorPresetBuilder
+    % Class to build a detector preset (DetectorPreset.m).
+    %
+    % # Example of making a preset and saving it
+    % MyDetector = detectorPresetBuilder() ...
+    %     .addName('My Detector') ...
+    %     .addDarkCountRate(10) ...
+    %     .addDeadTime(35e-9) ...
+    %     .addJitterHistogram(jitter_histogram, 1e-12) ...
+    %     .addDetectorEfficiencyArray(wavelengths, efficiencies);
+    % MyDetector.makeDetectorPreset()
+    % MyDetector.writePreset('path/to/save/preset/to.mat')
 
     properties(SetAccess=protected, GetAccess=protected)
         preset = DetectorPreset
@@ -7,6 +18,7 @@ classdef detectorPresetBuilder
     methods
 
         function builder = addName(builder, Name)
+            % Add a name to a preset
             arguments
                 builder detectorPresetBuilder
                 Name {mustBeText}
@@ -15,6 +27,7 @@ classdef detectorPresetBuilder
         end
 
         function builder = addDarkCountRate(builder, DarkCountRate)
+            % Add a dark count rate to a preset
             arguments
                 builder detectorPresetBuilder
                 DarkCountRate { ...
@@ -26,6 +39,7 @@ classdef detectorPresetBuilder
         end
 
         function builder = addDeadTime(builder, DeadTime)
+            % Add a detector dead time (reset time) to a preset
             arguments
                 builder detectorPresetBuilder
                 DeadTime {mustBeNumeric, mustBeGreaterThanOrEqual(DeadTime, 0)}
@@ -35,6 +49,9 @@ classdef detectorPresetBuilder
         end
 
         function builder = addJitterHistogram(builder, Histogram, BinWidth)
+            % Add a detector jitter histogram to a preset.
+            % Histogram should be an array and BinWidth should be a double (
+            % probably 1 ps (1e-12) or something similar)
             arguments
                 builder detectorPresetBuilder
                 Histogram { ...
@@ -49,6 +66,8 @@ classdef detectorPresetBuilder
 
         function builder = addDetectorEfficiencyArray(...
                 builder, Wavelengths, Efficiencies)
+            % Add an array of possible wavelengths and corresponding 
+            % efficiencies for a detector to a preset
             arguments
                 builder detectorPresetBuilder
                 Wavelengths
@@ -68,9 +87,9 @@ classdef detectorPresetBuilder
             builder.preset.Efficiencies = Efficiencies;
         end
 
-        % Only way of accessing the "preset" property. This way only valid
-        % DetectorPreset objects can be created
         function preset = makeDetectorPreset(builder)
+            % Only way of accessing the "preset" property. This way only valid
+            % DetectorPreset objects can be created
             fields = fieldnames(DetectorPreset);
             for i = 1:numel(fields)
                 field = fields{i};
@@ -82,18 +101,24 @@ classdef detectorPresetBuilder
         end
 
         function writePreset(builder, outputPath)
+            % Write the preset contained within the builder to a file specified
+            % by outputPath. This calls makeDetectorPreset() ensuring that the
+            % requirements for a valid detector preset have been met.
             outputPath = adduserpath(outputPath);
             preset = builder.makeDetectorPreset()
             save(outputPath, 'preset');
         end
 
         function preset = loadPreset(builder, presetFilePath)
+            % Load a preset from presetFilePath. The loaded preset is contained
+            % within the builder and validated with makeDetectorPreset()
             preset = load(presetFilePath).preset;
             builder.preset = preset;
             preset = builder.makeDetectorPreset();
         end
 
         function presetBuilder = BuildPresetFromDetector(builder, name, detector)
+            % Build a preset from a name and a Detector object.
             arguments
                 builder detectorPresetBuilder
                 name {mustBeText}
