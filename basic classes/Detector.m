@@ -1,4 +1,4 @@
-classdef  AltDetector
+classdef  Detector
     %DETECTOR provide the properties of the single photon detector to be used for an OGS
 
     properties
@@ -25,7 +25,7 @@ classdef  AltDetector
 
         Jitter_Histogram;
         Histogram_Bin_Width;
-        Total_Counts = 0;;
+        Total_Counts = 0;
         CDF;
         PDF;
 
@@ -52,7 +52,7 @@ classdef  AltDetector
 
     methods
 
-        function AltDetector = AltDetector( ...
+        function Detector = Detector( ...
             Wavelength, Repetition_Rate, Time_Gate_Width, ...
             Spectral_Filter_Width, options)
             %%DETECTOR Construct a detector object with properties
@@ -102,7 +102,7 @@ classdef  AltDetector
                     if strcmp(f{1}, 'Name') % We don't need this field here
                         continue
                     end
-                    AltDetector.(f{1}) = Preset.(f{1});
+                    Detector.(f{1}) = Preset.(f{1});
                 end
             else
                 for f = fieldnames(DetectorPreset)' % Same as loop above
@@ -112,35 +112,35 @@ classdef  AltDetector
                     assert(any(contains(optionFields, f{1})), ...
                         ['Since a DetectorPreset is not being used { ', ...
                         f{1}, ' } must be supplied']);
-                    AltDetector.(f{1}) = options.(f{1});
+                    Detector.(f{1}) = options.(f{1});
                 end
             end
 
             %% implement detector properties
-            AltDetector.Wavelength = Wavelength;
-            AltDetector.Time_Gate_Width = Time_Gate_Width;
-            AltDetector.Spectral_Filter_Width = Spectral_Filter_Width;
-            AltDetector.Repetition_Rate = Repetition_Rate;
+            Detector.Wavelength = Wavelength;
+            Detector.Time_Gate_Width = Time_Gate_Width;
+            Detector.Spectral_Filter_Width = Spectral_Filter_Width;
+            Detector.Repetition_Rate = Repetition_Rate;
  
             % compute jitter qber and loss
-            AltDetector = AltDetector.DensityFunctions();
-            AltDetector = AltDetector.SetJitterPerformance(Repetition_Rate);
+            Detector = Detector.DensityFunctions();
+            Detector = Detector.SetJitterPerformance(Repetition_Rate);
 
-            AltDetector = AltDetector.SetEfficiency(Wavelength=Wavelength);
+            Detector = Detector.SetEfficiency(Wavelength=Wavelength);
         end
 
-        function AltDetector = HistogramInfo(AltDetector)
+        function Detector = HistogramInfo(Detector)
 
             range = @(b) linspace(1, b, b);
             upperHalf = @(array) array >= (max(array) / 2);
             width = @(array) array(end) - array(1);
             fwhm = @(xarray, yarray) width(xarray(upperHalf(yarray)));
 
-            bins = range(numel(AltDetector.Jitter_Histogram));
+            bins = range(numel(Detector.Jitter_Histogram));
 
             % TODO fix magic number here!!!
-            smoothed = smooth(AltDetector.Jitter_Histogram, 1000);
-            shift = floor(fwhm(bins, AltDetector.Jitter_Histogram) / 2);
+            smoothed = smooth(Detector.Jitter_Histogram, 1000);
+            shift = floor(fwhm(bins, Detector.Jitter_Histogram) / 2);
             crossed = abs(smoothed - circshift(smoothed, shift));
             mask = bins((crossed / max(crossed)) > 0.05);
 
@@ -151,54 +151,54 @@ classdef  AltDetector
             waveformStart = mask(1);
             waveformEnd = mask(end);
             disp([waveformStart, peakLocation, waveformEnd])
-            riseTime = (peakLocation - waveformStart) * AltDetector.Histogram_Bin_Width;
-            fallTime = (waveformEnd - peakLocation) * AltDetector.Histogram_Bin_Width;
-            deadTime = fwhm(bins, AltDetector.Jitter_Histogram) * AltDetector.Histogram_Bin_Width;
+            riseTime = (peakLocation - waveformStart) * Detector.Histogram_Bin_Width;
+            fallTime = (waveformEnd - peakLocation) * Detector.Histogram_Bin_Width;
+            deadTime = fwhm(bins, Detector.Jitter_Histogram) * Detector.Histogram_Bin_Width;
 
             disp([riseTime, fallTime, deadTime] .* 1e9)
         end
 
-        function AltDetector = SetHistogramBinWidth(AltDetector,Width)
+        function Detector = SetHistogramBinWidth(Detector,Width)
             %%SETHISTOGRAMBINWIDTH set how wide the bins are in the jitter
             %%histogram data provided for this detector
-            AltDetector.Histogram_Bin_Width = Width;
-            AltDetector = SetJitterPerformance(AltDetector, AltDetector.Repetition_Rate);
+            Detector.Histogram_Bin_Width = Width;
+            Detector = SetJitterPerformance(Detector, Detector.Repetition_Rate);
         end
 
-        function AltDetector = SetWavelength(AltDetector, Wavelength)
+        function Detector = SetWavelength(Detector, Wavelength)
             %%SETWAVELENGTH set wavelength at which the detector is
             %%operating- which will determine detection efficiency
-            AltDetector.Wavelength = Wavelength;
+            Detector.Wavelength = Wavelength;
         end
 
-        function AltDetector = SetDeadTime(AltDetector, Dead_Time)
-            AltDetector.Dead_Time = Dead_Time;
+        function Detector = SetDeadTime(Detector, Dead_Time)
+            Detector.Dead_Time = Dead_Time;
         end
 
-        function AltDetector = DensityFunctions(AltDetector)
+        function Detector = DensityFunctions(Detector)
             % Calculate the probability density function and cumulative density
             % function for the detectors derived from the jitter histogram
-            assert(~isempty(AltDetector.Jitter_Histogram), ...
+            assert(~isempty(Detector.Jitter_Histogram), ...
                 [inputname(1), '.Jitter_Histogram, must not be empty']);
 
-            AltDetector.Total_Counts = sum(AltDetector.Jitter_Histogram);
-            N = numel(AltDetector.Jitter_Histogram);
-            AltDetector.CDF = zeros(1,N);
-            AltDetector.PDF = zeros(1,N);
+            Detector.Total_Counts = sum(Detector.Jitter_Histogram);
+            N = numel(Detector.Jitter_Histogram);
+            Detector.CDF = zeros(1,N);
+            Detector.PDF = zeros(1,N);
  
-            %% iterating over elements in the AltDetector.Jitter_Histogram
-            AltDetector.PDF(1) = AltDetector.Jitter_Histogram(1)/AltDetector.Total_Counts;
-            AltDetector.CDF(1) = 0;
+            %% iterating over elements in the Detector.Jitter_Histogram
+            Detector.PDF(1) = Detector.Jitter_Histogram(1)/Detector.Total_Counts;
+            Detector.CDF(1) = 0;
             for i = 2:N
                 %compute histogram probability density function and
                 %cumulitive density function
-                AltDetector.PDF(i) = ...
-                    AltDetector.Jitter_Histogram(i) / AltDetector.Total_Counts;
-                AltDetector.CDF(i) = sum(AltDetector.PDF(1:i));
+                Detector.PDF(i) = ...
+                    Detector.Jitter_Histogram(i) / Detector.Total_Counts;
+                Detector.CDF(i) = sum(Detector.PDF(1:i));
             end
         end
 
-        function AltDetector = SetJitterPerformance(AltDetector, Repetiton_Rate)
+        function Detector = SetJitterPerformance(Detector, Repetiton_Rate)
             % Jitter calculations...
             % This is a non-trivial component of the model. Depending on the kind
             % of source, the method to calculate the jitter and so the contribution
@@ -221,9 +221,9 @@ classdef  AltDetector
 
             %% turn time measures into index increments
             Time_Gate_Width_Index = 2 * round( ...
-                AltDetector.Time_Gate_Width / (2 * AltDetector.Histogram_Bin_Width));
+                Detector.Time_Gate_Width / (2 * Detector.Histogram_Bin_Width));
             Repetition_Period_Index = round( ...
-                1 ./ (Repetiton_Rate * AltDetector.Histogram_Bin_Width));
+                1 ./ (Repetiton_Rate * Detector.Histogram_Bin_Width));
 
             %check that rounding results in reasonable precision
             if Time_Gate_Width_Index < 10
@@ -234,14 +234,14 @@ classdef  AltDetector
             end
 
             %% compute mode point
-            [~, Mode_Time_Index] = max(AltDetector.PDF);
+            [~, Mode_Time_Index] = max(Detector.PDF);
 
-            N = numel(AltDetector.Jitter_Histogram);
+            N = numel(Detector.Jitter_Histogram);
             HalfIndex = Time_Gate_Width_Index / 2;
             %% compute loss
             Loss =  ...
-                - AltDetector.CDF(max(Mode_Time_Index - HalfIndex, 1)) ...
-                + AltDetector.CDF(min(Mode_Time_Index + HalfIndex, N));
+                - Detector.CDF(max(Mode_Time_Index - HalfIndex, 1)) ...
+                + Detector.CDF(min(Mode_Time_Index + HalfIndex, N));
 
             %% compute QBER
             %computing QBER is done by performing a discrete
@@ -253,8 +253,8 @@ classdef  AltDetector
             Current_Mode = Mode_Time_Index + Repetition_Period_Index;
             while Current_Mode < N
                 QBER = QBER + 0.5 * ( ...
-                    AltDetector.CDF(min(Current_Mode + HalfIndex, N)) ...
-                    - AltDetector.CDF(max(Current_Mode - HalfIndex, 1)) ...
+                    Detector.CDF(min(Current_Mode + HalfIndex, N)) ...
+                    - Detector.CDF(max(Current_Mode - HalfIndex, 1)) ...
                     );
 
                 Current_Mode = Current_Mode + Repetition_Period_Index;
@@ -264,8 +264,8 @@ classdef  AltDetector
             Current_Mode = Mode_Time_Index - Repetition_Period_Index;
             while Current_Mode > 0
                 QBER = QBER + 0.5 * ( ...
-                    AltDetector.CDF(min(Current_Mode + HalfIndex, N)) ...
-                       - AltDetector.CDF(max(Current_Mode - HalfIndex, 1)) ...
+                    Detector.CDF(min(Current_Mode + HalfIndex, N)) ...
+                       - Detector.CDF(max(Current_Mode - HalfIndex, 1)) ...
                     );
 
                 Current_Mode = Current_Mode - Repetition_Period_Index;
@@ -277,8 +277,8 @@ classdef  AltDetector
             end
 
             %% store answers
-            AltDetector.QBER_Jitter = QBER;
-            AltDetector.Jitter_Loss = Loss;
+            Detector.QBER_Jitter = QBER;
+            Detector.Jitter_Loss = Loss;
         end
 
         function Det = StretchToNewJitter(Det, TargetJitter)
@@ -355,7 +355,7 @@ classdef  AltDetector
         function Det = SetDarkCountRate(Det, DCR)
             % SetDarkCountRate set detector dark count rate
             arguments
-                Det AltDetector
+                Det Detector
                 DCR double {mustBeNonnegative}
             end
             Det.Dark_Count_Rate = DCR;
@@ -365,7 +365,7 @@ classdef  AltDetector
             % Set the polarisation error in a
             % modelled polarisation compensation system
             arguments
-                Det AltDetector
+                Det Detector
                 Polarisation_Error double {mustBeNonnegative, ...
                     mustBeLessThanOrEqual(Polarisation_Error, 360)}
             end
@@ -378,7 +378,7 @@ classdef  AltDetector
             % Set detection efficiency according to the options.{Efficiency, 
             % Wavelength}, only one options can be passed when called otherwise the
             % function errors:
-            %   - Efficiency: Forces the value, ignoring the AltDetector.Wavelength_Range
+            %   - Efficiency: Forces the value, ignoring the Detector.Wavelength_Range
             %   - Wavelength: Asserts that the detector operates at that wavelength 
             %       and uses the efficiency at that wavelength and updating the
             %       wavelength currently set
@@ -386,7 +386,7 @@ classdef  AltDetector
             % det.SetDetectionEfficiency(Efficiency=0.8)
             % det.SetDetectionEfficiency(Wavelength=1550)
             arguments
-                Det AltDetector
+                Det Detector
                 options.Efficiency double { ...
                     mustBeNonnegative, mustBeLessThanOrEqual(options.Efficiency, 1)}
                 options.Wavelength double {mustBeNonnegative}

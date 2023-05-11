@@ -122,7 +122,7 @@ classdef detectorPresetBuilder
             arguments
                 builder detectorPresetBuilder
                 name {mustBeText}
-                detector AltDetector
+                detector Detector
             end
 
             presetBuilder = detectorPresetBuilder() ...
