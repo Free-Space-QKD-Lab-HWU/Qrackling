@@ -49,7 +49,7 @@ function [secret_key_rate, qber, sifted_key_rate] = BB84_single_photon_model( ..
     rep_rate = Source.Repetition_Rate;
 
     % detection efficiency
-    eta = Detector.Detection_Efficiency;
+    eta = Detector.Efficiency;
 
     % transmission channel's loss
     loss = 10.^(-loss/10);

@@ -46,7 +46,7 @@ function [secret_key_rate, qber, sifted_key_rate] = ekart92_model( ...
     % prob of dark counts
     P_e = prob_dark_counts;
     % detection efficiency
-    det_eff = Detector.Detection_Efficiency;
+    det_eff = Detector.Efficiency;
     if det_eff > 1
         eta_e = det_eff / 100;
     else
