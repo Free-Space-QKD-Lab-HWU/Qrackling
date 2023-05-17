@@ -37,12 +37,34 @@ classdef HufnagelValley
                 options.Prefactor double = 1
             end
 
-            pre = options.Prefactor;
-
-            ghv = ((pre*HV.A) .* exp(-altitude ./ (pre*HV.HA))) ...
-                   + ((pre*HV.B) .* exp(-altitude ./ (pre*HV.HB))) ...
-                   + ((pre*HV.C) .* (altitude.^10) .* exp(-altitude ./ (pre*HV.HC)));
+            ghv = HufnagelValley.HvCalculation( ...
+                altitude, ...
+                HV.A, HV.B, HV.C, ...
+                HV.HA, HV.HB, HV.HC, ...
+                Prefactor = options.Prefactor);
         end
 
     end
+
+    methods (Static)
+        function ghv = HvCalculation(altitude, A, B, C, HA, HB, HC, options)
+            arguments
+                altitude double
+                A {mustBeNumeric}
+                B {mustBeNumeric}
+                C {mustBeNumeric}
+                HA {mustBeNumeric}
+                HB {mustBeNumeric}
+                HC {mustBeNumeric}
+                options.Prefactor double = 1
+            end
+
+            pre = options.Prefactor;
+
+            ghv = ((pre*A) .* exp(-altitude ./ (pre*HA))) ...
+                   + ((pre*B) .* exp(-altitude ./ (pre*HB))) ...
+                   + ((pre*C) .* (altitude.^10) .* exp(-altitude ./ (pre*HC)));
+        end
+    end
+
 end
