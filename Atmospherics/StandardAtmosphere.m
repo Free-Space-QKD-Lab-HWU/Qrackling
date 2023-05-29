@@ -3,145 +3,127 @@ classdef StandardAtmosphere
 
         layer = [0, 1, 2, 3, 4, 5, 6, 7]
         height = [0, 11, 20, 32, 47, 51, 71, 84.8]
-        temperature_gradient = [−6.5, 0.0, 1.0, 2.8, 0.0, −2.8, −2.0]
+        %temperature_gradient = [6.5 * (-1), 0.0, 1.0, 2.8, 0.0, 2.8 * (-1), 2.0 * (-1), 2.0 * (-1)]
+        temperature_gradient
         temperature = [288, 217, 217, 229, 271, 271, 215, 188]
         pressure = [1013, 226, 54.7, 8.68, 1.11, 0.67, 0.04, 0.004]
 
     end
 
+    properties (Hidden)
+        temperature_lerp
+        gradient_lerp
+        pressure_lerp
+    end
+
     methods
 
         function StdAtm = StandardAtmosphere()
+            StdAtm.temperature_gradient = gradient(StdAtm.temperature, StdAtm.height);
+            StdAtm.temperature_lerp = interp1( ...
+                StdAtm.height, StdAtm.temperature, 'pchip', 'pp');
+
+            StdAtm.gradient_lerp = interp1( ...
+                StdAtm.height, StdAtm.temperature_gradient, ...
+                'pchip', 'pp');
+
+            StdAtm.pressure_lerp = interp1( ...
+                StdAtm.height, StdAtm.pressure, ...
+                'pchip', 'pp');
         end
 
-        function T = Temperature(StdAtm, altitude, options)
-            arguments
-                StdAtm StandardAtmosphere
-                altitude double
-                options.Layer = NaN
-            end
-
-            if isnan(options.Layer)
-                layer = sum(StdAtm.height < altitude) + 1;
-            else
-                layer = options.Layer;
-            end
-
-            altitude_difference = altitude - StdAtm.height(layer);
-            T = StdAtm.temperature(layer) ...
-                + (StdAtm.temperature_gradient(layer) * altitude_difference);
+        function Steps = StepMask(StdAtm, Altitudes)
+            Steps = sum(Altitudes >= StdAtm.height');
         end
 
-        function P = Pressure(StdAtm, altitude, options)
+        function delta = AltitudeDifference(StdAtm, Altitudes)
+            % difference ('delta') between target altitude ('Altitudes') and 
+            % layer that the model has been discretized over
+            layers = StdAtm.StepMask(Altitudes);
+            delta = Altitudes - StdAtm.height(layers);
+        end
+
+        function T = Temperature(StdAtm, Altitudes)
             arguments
                 StdAtm StandardAtmosphere
-                altitude double
-                options.Layer = NaN
-                options.Temperature = NaN
+                Altitudes
             end
 
-            if isnan(options.Layer)
-                layer = sum(StdAtm.height < altitude) + 1;
-            else
-                layer = options.Layer;
-            end
+            delta = StdAtm.AltitudeDifference(Altitudes)
+            T = ppval(StdAtm.temperature_lerp, Altitudes) ...
+                + ppval(StdAtm.gradient_lerp, Altitudes) .* delta;
+        end
 
-            if isnan(options.Temperature)
-                T = StdAtm.Temperature(altitude, Layer=layer);
-            else
-                T = options.Temperature;
+        function P = Pressure(StdAtm, Altitudes)
+            arguments
+                StdAtm StandardAtmosphere
+                Altitudes double
             end
 
             g = 9.8;
             R = 287.053;
-            P_layer = StdAtm.pressure(layer);
-            altitude_difference = altitude - StdAtm.height(layer);
 
-            P = P_layer * exp(-(altitude_difference * g) / (R * T));
+            delta = StdAtm.AltitudeDifference(Altitudes)
+            T_interp = ppval(StdAtm.temperature_lerp, Altitudes);
+            P_interp = ppval(StdAtm.pressure_lerp, Altitudes);
+            P = P_interp .* exp(-(delta) .* g ./ (R .* T_interp));
         end
 
-        function n = AltitudeDependentRefractiveIndex(StdAtm, Altitude, Wavelength)
+        function dispersion = DispersionEquation(StdAtm, Wavelength, options)
             arguments
                 StdAtm StandardAtmosphere
-                Altitude double
-                Wavelength double
-            end
-
-            layer = sum(StdAtm.height < Altitude) + 1;
-            H = StdAtm.height(layer)
-            n_i = StandardAtmosphere.AtmosphericRefractiveIndex(Wavelength, Altitude);
-            n_i = 1 + (n_i ./ 1e8);
-            altitude_difference = H - altitude;
-            dn_dh = StdAtm.RefractiveIndexGradient(Altitude, Wavelength);
-
-            n = n_i + (dn_dh .* altitude_difference);
-        end
-
-        function dn_dh = RefractiveIndexGradient(StdAtm, Altitude, Wavelength)
-            layer = sum(StdAtm.height < Altitude) + 1;
-            h_0 = StdAtm.height(layer)
-            n_0 = StandardAtmosphere.AtmosphericRefractiveIndex(Wavelength, n_0);
-            n_0 = 1 + n_0;
-            h_1 = Altitude;
-            n_1 = StandardAtmosphere.AtmosphericRefractiveIndex(Wavelength, n_1);
-            n_1 = 1 + n_1;
-            dn_dh = (n_1 - n_0) / (h_1 - h_0);
-        end
-
-    end
-
-    methods (Static, Access=private)
-
-        function n_1 = AtmosphericRefractiveIndex(Wavelength, Altitude, options)
-            arguments
-                Wavelength double
-                Altitude double
+                Wavelength
                 options.WavelengthUnit OrderOfMagnitude = OrderOfMagnitude.micro
             end
 
-            % Equations here expect to be in terms of µm
-            ratio = OrderOfMagnitude ...
-                .Ratio(OrderOfMagnitude.micro, options.WavelengthUnit);
-            wavelength = Wavelength * (10 ^ ratio);
+            WavelengthUnitDefault = OrderOfMagnitude.micro;
+            exponent = OrderOfMagnitude ...
+                .Ratio(options.WavelengthUnit, WavelengthUnitDefault);
+
+            Wavelength = Wavelength .* (10 ^ exponent);
+
+            wl = (1 ./ Wavelength).^2;
+            dispersion = 8342.54 ...
+                + (2406147 ./ (130 - wl)) + (25998 ./ (38.9 - wl));
+            dispersion = dispersion ./ (1e8);
+        end
+
+        function n = RefractiveIndex(StdAtm, Wavelength, Altitudes, options)
+            arguments
+                StdAtm StandardAtmosphere
+                Wavelength
+                Altitudes
+                options.WavelengthUnit OrderOfMagnitude = OrderOfMagnitude.micro
+            end
+
+            WavelengthUnitDefault = OrderOfMagnitude.micro;
+            exponent = OrderOfMagnitude ...
+                .Ratio(options.WavelengthUnit, WavelengthUnitDefault);
+
+            Wavelength = Wavelength .* (10 ^ exponent);
 
             PascalFromMbar = @(mbar) mbar .* 100;
-            KelvinFromCelcius = @(celcius) celcius + 273.15;
+            CelciusFromKelvin = @(kelvin) kelvin - 273.15;
 
-            layer = sum(StdAtm.height < altitude) + 1;
-            T = KelvinFromCelciu( ...
-                StandardAtmosphere.Temperature(Altitude, Layer=layer));
-            P = PascalFromMbar( ...
-                StandardAtmosphere.Pressure(Altitude, Layer=layer, Temperature=T));
-            n_1_s = StandardAtmosphere.DispersionEquation(wavelength);
+            T_interp = ppval(StdAtm.temperature_lerp, Altitudes);
+            T = CelciusFromKelvin(T_interp);
+            % T = StdAtm.Temperature(Altitudes);
+            % T = CelciusFromKelvin(T);
 
-            n_1 = ((P .* n_1_s) ./ 96095.43) ...
-                .* ((1 + ((1e-8) .* (0.601 - (0.00972 .* T)))) ...
-                    ./ (1 + 0.0036610 .* T));
+            P_interp = ppval(StdAtm.pressure_lerp, Altitudes);
+            P = PascalFromMbar(P_interp);
+            % P = StdAtm.Pressure(Altitudes);
+            % P = PascalFromMbar(P);
+
+            n_1s = StdAtm.DispersionEquation(Wavelength);
+
+            n_1 = ((P .* n_1s) ./ 96095.43) ...
+                .* ( ...
+                    (1 + (1e-8 ./ (0.601 - (0.00972 .* T)) .* P)) ...
+                    ./ (1 + (0.0036610 .* T)) ...
+                );
+            n = 1 + n_1;
         end
-
-        function n_1_s = DispersionEquation(Wavelength)
-            arguments
-                Wavelength double
-            end
-
-            ratio = OrderOfMagnitude ...
-                .Ratio(OrderOfMagnitude.micro, options.Magnitude);
-            wavelength = Wavelength * (10 ^ ratio);
-
-            wl = (1 ./ wavelength) .^ 2;
-            n_1_s = 8342 + (2406147 ./ (130 - wl)) + (15998 ./ (38.9 - wl));
-            n_1_s = n_1_s ./ (1e8);
-        end
-
-        function N = RelativeNumberDensity(altitude, options)
-            arguments
-                altitude double
-                options.ObserverNumberDensity = 2.55e25
-                options.H0 = 6600
-            end
-            N = exp(-altitude / options.H0) ./ options.ObserverNumberDensity;
-        end
-
 
     end
 
