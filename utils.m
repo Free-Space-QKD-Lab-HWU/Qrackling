@@ -15,5 +15,19 @@ classdef utils
             wvl = 2 .* pi / k;
         end
 
+        function dydx = FiniteDifferenceGradient(x, y)
+            assert(utils.sameSize(x, y), 'Inputs must have same dimensions');
+
+            dydx = zeros(size(x));
+
+            for i = 2:numel(x)
+                j = i - 1;
+                dy = y(j) - y(i);
+                dx = x(j) - x(i);
+                dydx(j) = dy / dx;
+            end
+
+        end
+
     end
 end

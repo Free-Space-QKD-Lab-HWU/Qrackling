@@ -49,7 +49,7 @@ classdef StandardAtmosphere
                 Altitudes
             end
 
-            delta = StdAtm.AltitudeDifference(Altitudes)
+            delta = StdAtm.AltitudeDifference(Altitudes);
             T = ppval(StdAtm.temperature_lerp, Altitudes) ...
                 + ppval(StdAtm.gradient_lerp, Altitudes) .* delta;
         end
@@ -63,7 +63,7 @@ classdef StandardAtmosphere
             g = 9.8;
             R = 287.053;
 
-            delta = StdAtm.AltitudeDifference(Altitudes)
+            delta = StdAtm.AltitudeDifference(Altitudes);
             T_interp = ppval(StdAtm.temperature_lerp, Altitudes);
             P_interp = ppval(StdAtm.pressure_lerp, Altitudes);
             P = P_interp .* exp(-(delta) .* g ./ (R .* T_interp));
@@ -88,7 +88,7 @@ classdef StandardAtmosphere
             dispersion = dispersion ./ (1e8);
         end
 
-        function n = RefractiveIndex(StdAtm, Wavelength, Altitudes, options)
+        function n = AtmosphericRefractiveIndex(StdAtm, Wavelength, Altitudes, options)
             arguments
                 StdAtm StandardAtmosphere
                 Wavelength
@@ -107,13 +107,9 @@ classdef StandardAtmosphere
 
             T_interp = ppval(StdAtm.temperature_lerp, Altitudes);
             T = CelciusFromKelvin(T_interp);
-            % T = StdAtm.Temperature(Altitudes);
-            % T = CelciusFromKelvin(T);
 
             P_interp = ppval(StdAtm.pressure_lerp, Altitudes);
             P = PascalFromMbar(P_interp);
-            % P = StdAtm.Pressure(Altitudes);
-            % P = PascalFromMbar(P);
 
             n_1s = StdAtm.DispersionEquation(Wavelength);
 
@@ -123,6 +119,28 @@ classdef StandardAtmosphere
                     ./ (1 + (0.0036610 .* T)) ...
                 );
             n = 1 + n_1;
+        end
+
+        function n = AltitudeDependentRefractiveIndex(StdAtm, Wavelength, ...
+            Altitudes, options)
+
+            arguments
+                StdAtm StandardAtmosphere
+                Wavelength
+                Altitudes
+                options.WavelengthUnit OrderOfMagnitude = OrderOfMagnitude.micro
+            end
+
+            WavelengthUnitDefault = OrderOfMagnitude.micro;
+            exponent = OrderOfMagnitude ...
+                .Ratio(options.WavelengthUnit, WavelengthUnitDefault);
+
+            Wavelength = Wavelength .* (10 ^ exponent);
+
+            n = StdAtm.AtmosphericRefractiveIndex(Wavelength, Altitudes);
+            delta = StdAtm.AltitudeDifference(Altitudes);
+            dndh = gradient(n, Altitudes);
+            n = n + (dndh .* delta);
         end
 
     end
