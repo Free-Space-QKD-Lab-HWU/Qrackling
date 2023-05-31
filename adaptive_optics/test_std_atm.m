@@ -48,6 +48,11 @@ hold on
 plot(A(2:end), r)
 xlim([-1, A(end)])
 
+figure
+hold on
+b = PathElongation.Beta(deg2rad(45), n, A);
+plot(A(1:end-1), tan(b(2:end)) - tan(b(1:end-1)))
+
 [n_1, dndh, kernel] = PathElongation.BendingAngle(deg2rad(45), n, A);
 
 figure
@@ -64,3 +69,27 @@ size(dndh)
 size(kernel)
 figure
 plot(n_1(1:996) .* A(1:996), dndh(1:996) ./ kernel)
+
+%% new
+close all
+clear all
+clc
+
+stdatm = StandardAtmosphere()
+
+N = 10;
+A = linspace(0, 85, N);
+
+o = OrderOfMagnitude.nano;
+n = stdatm.AtmosphericRefractiveIndex(840, A, WavelengthUnit=o);
+Z = deg2rad(30);
+A_sat = 400;
+
+details = PathElongation(Z, A, 400, n)
+
+disp(['Length of arrays', newline, 'Name', char(9), 'X, Y'])
+for fn = fieldnames(details)'
+    disp([fn{1}, char(9), num2str(size(details.(fn{1})))])
+end
+
+(sum(details.Length) + details.Length_N) / details.SlantRange
