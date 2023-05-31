@@ -12,47 +12,59 @@ function Details = PathElongation(Zenith_Angle, Altitudes, ...
     n_0 = options.Sea_Level_Refractive_Index;
     Z_a = ApparentZenith(n_0, Zenith_Angle);
 
+    Refractive_Index = cat(2, n_0, Refractive_Index);
+
     C_H = C(Satellite_Altitude); % C at sateliite altitude
     C_i = C(Altitudes); % C for each atmospheric layer
-    disp(size(C_i))
 
     B_N = Beta(Zenith_Angle, 1, C_H); % B at last atmospheric layer
-    B_i = Beta(Zenith_Angle, Refractive_Index, C_i);
+    B_i = Beta(Zenith_Angle, Refractive_Index(2:end), C_i);
     B_i = cat(2, B_i, B_N);
 
     A_i = ...
         Refractive_Index(2:end) ...
         ./ Refractive_Index(1:end-1) ...
-        .* cos(B_i(1:end-2));
+        .* cos(B_i(1:end-1));
 
     r_i = 2 ...
         .* ((Refractive_Index(1:end-1) - Refractive_Index(2:end)) ...
-        ./ (tan(B_i(2:end-1)) + tan(B_i(1:end-2))));
+        ./ (tan(B_i(2:end)) + tan(B_i(1:end-1))));
 
-    Chi_i = r_i - (A_i - B_i(1:end-2));
+    Chi_i = r_i - (A_i - B_i(1:end-1));
 
-    a_0i = zeros(1, numel(C_i)-1);
+    N = numel(C_i) + 0;
+    a_0i = zeros(1, N);
     a_0i(1) = (pi / 2) - Z_a;
 
-    Delta = zeros(1, numel(C_i)-1);
+    Delta = zeros(1, N);
     Delta(1) = Delta_i(A_i(1), Chi_i(1), C_i(1), 1, a_0i(1));
 
-    Psi = zeros(1, numel(C_i)-1);
+    Psi = zeros(1, N);
     Psi(1) = pi - Z_a - Delta(1) - A_i(1) + a_0i(1) - Chi_i(1);
 
-    for i = 2 : numel(C_i) - 1
+    disp([num2str(1), char(9), num2str([a_0i(1), A_i(1), B_i(1), C_i(1), Delta(1), Chi_i(1), Psi(1)])])
+
+    for i = 2 : N
         i_1 = i - 1;
 
         Psi(i) = Psi_i(C_i(i), C_i(i_1), Z_a, B_i(i_1), a_0i(i_1));
-        a_0i(i) = A_i(i) - a_0i(i_1) + B_i(i) + Chi_i(i) + Psi(i);
-        Delta(i) = Delta_i(A_i(i), Chi_i(i), C_i(i), i, a_0i(i));
+        a_0i(i) = A_i(i) - a_0i(i_1) + B_i(i) + Chi_i(i) + Psi(i) - Z_a;
+        Delta(i) = Delta_i(A_i(i), Chi_i(i), C_i(i), C_i(i_1), a_0i(i));
+        disp([num2str(i), char(9), num2str([a_0i(i), A_i(i), B_i(i), C_i(i), Delta(i), Chi_i(i), Psi(i)])])
     end
 
-    Delta_N = Delta_i(A_i(end), Chi_i(end), C_H, C_i(end), a_0i(end));
-    Psi_S = Psi_i(C_i(end), C_H, r_i(end), Delta(end), Psi(end));
+    disp(['N: ', num2str(N)])
+
+    disp(['Delta Params: ', num2str([A_i(N), Chi_i(N), C_H, C_i(N), a_0i(N)])])
+    Delta_N = Delta_i(A_i(N), Chi_i(N), C_H, C_i(N), a_0i(N));
+    disp(['Delta: -> ', num2str(Delta_N)])
+
+    Psi_S = asin((C_H / C_i(N)) * sin(r_i(N) - Delta_N + Psi(N)));
+    disp(['Psi: -> ', num2str(Psi_S)])
 
     Length = PathLength(Altitudes, A_i, a_0i, Chi_i);
-    Length_N = PathLengthVacuum(Satellite_Altitude, Altitudes(end), r_i(end), Delta_N, Psi(end), Psi_S);
+    Length_N = PathLengthVacuum( ...
+        Satellite_Altitude, Altitudes(N), r_i(N), Delta_N, Psi(N), Psi_S);
 
     Details = struct();
     Details.Z_a = Z_a;
@@ -109,19 +121,23 @@ end
 function l = PathLength(Altitudes, Alpha_i, Alpha_0i, Chi_i)
     earth_radius = 6378; % km
 
-    Phi = Alpha_i - Alpha_0i + Chi_i;
+    Phi = Alpha_i(1:end) - Alpha_0i + Chi_i(1:end);
     left = earth_radius + Altitudes(1:end-1);
     right = earth_radius + Altitudes(2:end);
-    l = sqrt(left.^2 + right.^2 + left.*right.*cos(Phi))
+    l = sqrt((left.^2) + (right.^2) - (2.*left.*right.*cos(Phi(1:end-1))));
 end
 
 function l = PathLengthVacuum(Satellite_Altitude, Altitudes, BendingAngle, Delta, Psi, Psi_S)
     earth_radius = 6378; % km
 
     Theta = BendingAngle - Delta + Psi - Psi_S;
+    %disp([BendingAngle, Delta, Psi, Psi_S])
+    disp(['Theta: -> ', num2str(Theta)])
     left = earth_radius + Altitudes(end);
     right = earth_radius + Satellite_Altitude;
-    l = sqrt(left.^2 + right.^2 + left.*right.*cos(Theta))
+    l = sqrt((left.^2) + (right.^2) - (2.*left.*right.*cos(Theta)));
+    % l = sqrt((left.^2) + (right.^2) - abs(2.*left.*right.*cos(pi)));
+    % l = sqrt((left.^2) + (right.^2) - abs(2.*left.*right.*cos(pi/8)));
 end
 
 function l = SlantRange(Satellite_Altitude, Zenith_Angle)

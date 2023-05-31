@@ -75,17 +75,32 @@ close all
 clear all
 clc
 
-stdatm = StandardAtmosphere()
+stdatm = StandardAtmosphere();
 
 N = 10;
 A = linspace(0, 85, N);
+A = [0, 5, 7, 11, 15, 20, 32, 47, 51, 71, 84.8];
+A = [5, 7, 11, 15, 20, 32, 47, 51, 71, 84.8];
 
 o = OrderOfMagnitude.nano;
 n = stdatm.AtmosphericRefractiveIndex(840, A, WavelengthUnit=o);
-Z = deg2rad(30);
+n = ([27340, 14660, 11142, 6141, 3268, 1485, 235, 34, 21, 1, 0.1] ./ (1e8)) + 1;
+n = ([14660, 11142, 6141, 3268, 1485, 235, 34, 21, 1, 0.1] ./ (1e8)) + 1;
+Z = deg2rad(45);
 A_sat = 400;
 
-details = PathElongation(Z, A, 400, n)
+
+details = PathElongation(Z, A, 400, n);
+disp(['Lengths: -> ', num2str(details.Length)])
+disp(['Length in vacuum: -> ', num2str(details.Length_N)])
+(sum(details.Length) + details.Length_N) / details.SlantRange
+
+%%
+
+
+details.SlantRange
+details.Length
+details.Length(1)
 
 disp(['Length of arrays', newline, 'Name', char(9), 'X, Y'])
 for fn = fieldnames(details)'
@@ -93,3 +108,8 @@ for fn = fieldnames(details)'
 end
 
 (sum(details.Length) + details.Length_N) / details.SlantRange
+
+
+
+
+
