@@ -6,10 +6,11 @@ classdef AdaptiveOptics
     methods(Static, Access=private)
 
         function result = FriedCoherenceLengthIntegral( ...
-                wavenumber, zenith_angle, satellite_altitude, HV, options)
+                zenith_angle, satellite_altitude, HV, options)
+                %wavenumber, zenith_angle, satellite_altitude, HV, options)
 
             arguments
-                wavenumber double
+                % wavenumber double
                 zenith_angle {mustBeVector, mustBeNumeric}
                 satellite_altitude {mustBeVector, mustBeNumeric}
                 HV HufnagelValley
@@ -27,7 +28,7 @@ classdef AdaptiveOptics
                 HV.Calculate(alt, options.Prefactor) ...
                 .* ((1 - (alt ./ sat_alt)) .^ (5/3));
 
-            result = zeros(size(satellite_altitude))
+            result = zeros(size(satellite_altitude));
             for i = 1 : numel(satellite_altitude)
                 result(i) = integral( ...
                     @(x) fun(x, satellite_altitude(i)), ...
@@ -66,7 +67,7 @@ classdef AdaptiveOptics
         end
 
         function r0 = FriedCoherenceLengthHorizontal(wavenumber, ...
-                site_altitude, horizontal_path_length, HV, options);
+                site_altitude, horizontal_path_length, HV, options)
 
             arguments
                 wavenumber double
@@ -213,7 +214,7 @@ classdef AdaptiveOptics
                 .* ((sec(zenith_angle) .* result) .^ (3/5));
         end
 
-        function f_t = TrackingFrequency(transmitter_diameter, wavelength, ...
+        function freq = TrackingFrequency(transmitter_diameter, wavelength, ...
                 zenith_angle, satellite_altitude, HV, BFW, options)
 
             arguments

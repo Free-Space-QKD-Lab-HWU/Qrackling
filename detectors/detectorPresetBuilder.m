@@ -105,8 +105,8 @@ classdef detectorPresetBuilder
             % by outputPath. This calls makeDetectorPreset() ensuring that the
             % requirements for a valid detector preset have been met.
             outputPath = adduserpath(outputPath);
-            preset = builder.makeDetectorPreset()
-            save(outputPath, 'preset');
+            new_preset = builder.makeDetectorPreset();
+            save(outputPath, 'new_preset');
         end
 
         function preset = loadPreset(builder, presetFilePath)

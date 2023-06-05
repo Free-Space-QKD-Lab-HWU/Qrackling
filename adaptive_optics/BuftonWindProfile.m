@@ -62,7 +62,7 @@ classdef BuftonWindProfile
                 high_altitude_wind_speed, peak_altitude, scale_height)
 
             velocity = ground_wind_speed ...
-                + high_altitude_wind_speed 
+                + high_altitude_wind_speed ...
                 .* exp(-((altitude - peak_altitude) ./ scale_height) .^ 2);
         end
 

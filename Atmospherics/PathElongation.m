@@ -24,7 +24,7 @@ function Details = PathElongation(Zenith_Angle, Altitudes, ...
     A_i = ...
         Refractive_Index(2:end) ...
         ./ Refractive_Index(1:end-1) ...
-        .* cos(B_i(1:end-1));
+        .* cos(B_i(2:end));
 
     r_i = 2 ...
         .* ((Refractive_Index(1:end-1) - Refractive_Index(2:end)) ...
@@ -42,25 +42,18 @@ function Details = PathElongation(Zenith_Angle, Altitudes, ...
     Psi = zeros(1, N);
     Psi(1) = pi - Z_a - Delta(1) - A_i(1) + a_0i(1) - Chi_i(1);
 
-    disp([num2str(1), char(9), num2str([a_0i(1), A_i(1), B_i(1), C_i(1), Delta(1), Chi_i(1), Psi(1)])])
-
     for i = 2 : N
         i_1 = i - 1;
 
         Psi(i) = Psi_i(C_i(i), C_i(i_1), Z_a, B_i(i_1), a_0i(i_1));
-        a_0i(i) = A_i(i) - a_0i(i_1) + B_i(i) + Chi_i(i) + Psi(i) - Z_a;
+        a_0i(i) = Alpha_0i(A_i(i), a_0i(i_1), B_i(i), Chi_i(i), Psi(i), Z_a);
         Delta(i) = Delta_i(A_i(i), Chi_i(i), C_i(i), C_i(i_1), a_0i(i));
-        disp([num2str(i), char(9), num2str([a_0i(i), A_i(i), B_i(i), C_i(i), Delta(i), Chi_i(i), Psi(i)])])
     end
 
-    disp(['N: ', num2str(N)])
-
-    disp(['Delta Params: ', num2str([A_i(N), Chi_i(N), C_H, C_i(N), a_0i(N)])])
     Delta_N = Delta_i(A_i(N), Chi_i(N), C_H, C_i(N), a_0i(N));
-    disp(['Delta: -> ', num2str(Delta_N)])
+    %Delta_N = Delta(N);
 
     Psi_S = asin((C_H / C_i(N)) * sin(r_i(N) - Delta_N + Psi(N)));
-    disp(['Psi: -> ', num2str(Psi_S)])
 
     Length = PathLength(Altitudes, A_i, a_0i, Chi_i);
     Length_N = PathLengthVacuum( ...
@@ -94,7 +87,7 @@ function out = ApparentZenith(n_0, Zenith_Angle)
 end
 
 function out = C(height)
-    earth_radius = 6378; % km
+    earth_radius = 6371; % km
     out = earth_radius ./ (earth_radius + height);
 end
 
@@ -119,7 +112,7 @@ function psi_i = Psi_i(C_i, C_i_1, Z_a, B_i_1, Alpha_0i_1)
 end
 
 function l = PathLength(Altitudes, Alpha_i, Alpha_0i, Chi_i)
-    earth_radius = 6378; % km
+    earth_radius = 6371; % km
 
     Phi = Alpha_i(1:end) - Alpha_0i + Chi_i(1:end);
     left = earth_radius + Altitudes(1:end-1);
@@ -127,25 +120,46 @@ function l = PathLength(Altitudes, Alpha_i, Alpha_0i, Chi_i)
     l = sqrt((left.^2) + (right.^2) - (2.*left.*right.*cos(Phi(1:end-1))));
 end
 
-function l = PathLengthVacuum(Satellite_Altitude, Altitudes, BendingAngle, Delta, Psi, Psi_S)
-    earth_radius = 6378; % km
+function l = PathLengthVacuum(Satellite_Altitude, Altitudes, BendingAngle, ...
+    Delta, Psi_N, Psi)
 
-    Theta = BendingAngle - Delta + Psi - Psi_S;
-    %disp([BendingAngle, Delta, Psi, Psi_S])
-    disp(['Theta: -> ', num2str(Theta)])
+    earth_radius = 6371; % km
+
+    Theta = BendingAngle - Delta + Psi_N - Psi;
+    cosTheta = cos(Theta);
+
     left = earth_radius + Altitudes(end);
     right = earth_radius + Satellite_Altitude;
-    l = sqrt((left.^2) + (right.^2) - (2.*left.*right.*cos(Theta)));
-    % l = sqrt((left.^2) + (right.^2) - abs(2.*left.*right.*cos(pi)));
-    % l = sqrt((left.^2) + (right.^2) - abs(2.*left.*right.*cos(pi/8)));
+    lr = (left ^ 2) + (right ^ 2);
+
+    difference = abs(2 * left * right .* cosTheta);
+    total = lr - difference;
+
+    l = sqrt(total);
 end
 
 function l = SlantRange(Satellite_Altitude, Zenith_Angle)
-    earth_radius = 6378; % km
+    earth_radius = 6371; % km
 
     rCosZ = earth_radius * cos(Zenith_Angle);
 
     l = sqrt((Satellite_Altitude ^ 2) ...
         + (2 * Satellite_Altitude * earth_radius) ...
-        + rCosZ ^ 2) - rCosZ;
+        + earth_radius^2 * cos(Zenith_Angle)^2) - rCosZ;
 end
+
+% function pprint(varargin)
+%     names = {};
+%     values = {};
+%     for i = 1:nargin
+%         names{i} = inputname(i);
+%         values{i} = varargin{i};
+%     end
+%     names = pad(names);
+%     values = string(cell2mat(values));
+% 
+%     for i = 1:nargin
+%         result = [names{i}, ' -> ', values{i}];
+%         disp(result);
+%     end
+% end
