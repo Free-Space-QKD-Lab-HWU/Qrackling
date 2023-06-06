@@ -30,7 +30,7 @@ classdef Angle
                 return
             end
 
-            out = rad2deg(Angles);
+            out = deg2rad(Angles);
         end
 
     end
