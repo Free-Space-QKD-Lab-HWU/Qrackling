@@ -112,9 +112,11 @@ classdef detectorPresetBuilder
         function preset = loadPreset(builder, presetFilePath)
             % Load a preset from presetFilePath. The loaded preset is contained
             % within the builder and validated with makeDetectorPreset()
-            preset = load(presetFilePath).preset;
-            builder.preset = preset;
-            preset = builder.makeDetectorPreset();
+            preset_file = load(presetFilePath);
+            disp(fieldnames(preset_file))
+            preset = {};
+            %builder.preset = preset;
+            %preset = builder.makeDetectorPreset();
         end
 
         function presetBuilder = BuildPresetFromDetector(builder, name, detector)
