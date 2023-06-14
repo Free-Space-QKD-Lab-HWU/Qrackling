@@ -40,6 +40,9 @@ Perkin_Elmer = detectorPresetBuilder() ...
 Perkin_Elmer.makeDetectorPreset()
 Perkin_Elmer.writePreset('~/Projects/QKD_Sat_Link/detector_presets/detectors/presets/PerkinElmer.mat')
 
+test = load('~/Projects/QKD_Sat_Link/detector_presets/detectors/presets/PerkinElmer.mat')
+
+DetectorPresets.PerkinElmer.LoadPreset()
 
 %% Example usage to generate Excelitas detector
 clear all
@@ -58,6 +61,8 @@ Excelitas = detectorPresetBuilder() ...
 
 Excelitas.makeDetectorPreset()
 Excelitas.writePreset('~/Projects/QKD_Sat_Link/detector_presets/detectors/presets/Excelitas.mat')
+
+load('~/Projects/QKD_Sat_Link/detector_presets/detectors/presets/Excelitas.mat')
 
 
 %% Example usage to generate Micro Photon Devices detector
@@ -155,7 +160,25 @@ detector = AltDetector(wvl, rr, timeGate, spectralWidth, Preset=DetectorPresets.
 detectorPresetBuilder().BuildPresetFromDetector('a test', detector).makeDetectorPreset()
 
 % Will fail since no parameters passed
-detector = AltDetector(wvl, rr, timeGate, spectralWidth)
+detector = Detector(wvl, rr, timeGate, spectralWidth)
+
+%% 
+clear all
+close all
+clc
+
+DetectorPresets.Hamamatsu.LoadPreset()
+DetectorPresets.PerkinElmer.LoadPreset()
+
+test = load('/home/bp38/Projects/QKD_Sat_Link/detector_presets/detectors/presets/Excelitas.mat').preset
+
+test = load('/home/bp38/Projects/QKD_Sat_Link/detector_presets/detectors/presets/Hamamatsu.mat').preset
+
+test = load('/home/bp38/Projects/QKD_Sat_Link/detector_presets/detectors/presets/PerkinElmer.mat').preset
+
+test = load('/home/bp38/Projects/QKD_Sat_Link/detector_presets/detectors/presets/LaserComponents.mat').preset
+
+test = load('/home/bp38/Projects/QKD_Sat_Link/detector_presets/detectors/presets/MicroPhotonDevices.mat').preset
 
 %detector.HistogramInfo;
 
