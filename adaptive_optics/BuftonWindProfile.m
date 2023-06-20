@@ -29,7 +29,7 @@ classdef BuftonWindProfile
             arguments
                 BFW BuftonWindProfile
                 altitude {mustBeNumeric}
-                options.UseSimpleAngularVelocity {mustBeLogical} = false;
+                options.UseSimpleAngularVelocity = false;
                 options.RelativeAngularVelocity = [];
                 options.ZenithAngles = [];
             end

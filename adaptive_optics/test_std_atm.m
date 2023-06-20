@@ -82,67 +82,47 @@ A = [5, 7, 11, 15, 20, 32, 47, 51, 71, 84.8];
 % A = linspace(0, 84.8, 10);
 
 o = OrderOfMagnitude.nano;
-% n = stdatm.AtmosphericRefractiveIndex(840, A, WavelengthUnit=o);
+n = stdatm.AtmosphericRefractiveIndex(840, A, WavelengthUnit=o);
 % n = ([27340, 14660, 11142, 6141, 3268, 1485, 235, 34, 21, 1, 0.1] ./ (1e8)) + 1;
-n = ([14660, 11142, 6141, 3268, 1485, 235, 34, 21, 1, 0.1] ./ (1e8)) + 1;
+% n = ([14660, 11142, 6141, 3268, 1485, 235, 34, 21, 1, 0.1] ./ (1e8)) + 1;
 
 satellite_altitudes = [400, 780, 1200]; % km
 % zeniths = linspace(-90, 90, 100);
 N = 1000;
-zeniths = linspace(0, 90, N);
-% zeniths = linspace(45, 90, 100);
+% zeniths = linspace(0, 90, N);
+zeniths = linspace(45, 90, 100);
 zeniths_rad = deg2rad(zeniths);
+
 
 labels = {};
 figure
 hold on
 i = 1;
-for a_sat = satellite_altitudes;
-    epsilon = PathElongation.PathElongationFactors(zeniths_rad, A, a_sat, n);
+for a_sat = satellite_altitudes
+    epsilon = PathElongation.ElongationFactor(zeniths_rad, A, a_sat, n);
     labels{i} = [num2str(a_sat), 'km'];
     l1 = plot(zeniths, epsilon);
     i = i + 1;
-    epsilon = PathElongation.PathElongationFactors(zeniths_rad, A, a_sat, n, UseApparentZenith=false);
+    epsilon = PathElongation.ElongationFactor(zeniths_rad, A, a_sat, n, UseApparentZenith=false);
     labels{i} = [num2str(a_sat), 'km (True zenith)'];
     plot(zeniths, epsilon, color=l1.Color , LineStyle='--')
     i = i + 1;
 end
 legend(labels);
-ylim([0.95,1.35])
-%ylim([0.8,max(epsilon)])
-
-labels = {};
-figure
-hold on
-for i = 1:numel(satellite_altitudes)
-    a_sat = satellite_altitudes(i);
-    epsilon = PathElongation.PathElongationFactors(zeniths_rad, A, a_sat, n, UseApparentZenith=false);
-    labels{i} = [num2str(a_sat), 'km'];
-    plot(zeniths, epsilon)
-end
-legend(labels);
+xlim([min(zeniths), max(zeniths)])
 ylim([0.95,1.35])
 
-% need to compare PathElongation.PathLength against PathElongation.SlantRange
-% and ensure that for angles in PathLength close to zenith they overlap
+%% test
+close all
+clear all
+clc
 
-%%
-re = PathElongation.Earth_Radius;
-hn = A(end);
-ha = A_sat;
+A = [5, 7, 11, 15, 20, 32, 47, 51, 71, 84.8];
+cn2 = AFGL_Plus() ...
+    .UsingWindModel(BuftonWindProfile.Pugh_2020) ...
+    .UsingAtmosphereProfile(StandardAtmosphere) ...
+    .RefractiveIndexStructureConstant(A);
+disp(cn2) % values produced are too big...
 
-zeniths = linspace(0, 90, 100);
-
-lv = sqrt( ...
-    ((re + hn) .^ 2) ...
-    + ((re + ha) .^ 2) ...
-    - (2 .* (re + hn) .* (re + ha) .* cosd(zeniths)));
-
-lr = slant_range(ha, zeniths, earth_radius=re);
-
-figure
-hold on
-plot(zeniths, lv)
-plot(zeniths, lr)
-legend('vacuum', 'range')
-%ylim([0,max([max(lv), max(lr)])])
+cn2_b = HufnagelValley.HV5_7.Calculate(A);
+disp(cn2_b)

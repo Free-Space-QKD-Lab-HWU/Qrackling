@@ -1,13 +1,16 @@
+% Path Elongation according to appendix:C of Vasylyev, D., Vogel, W., et al. 
+% (2019), Satellite-Mediated Quantum Atmospheric Links, 10.1103/PhysRevA.99.053830.
+
 classdef PathElongation
-    properties(Constant)
+    properties(Constant, Hidden, Access=private)
         Earth_Radius = 6371; % km
         Sea_Level_Refractive_Index double = 1.00027
     end
 
     methods(Static)
 
-        function factors = PathElongationFactors(Zenith_Angles, ...
-                Altitudes, Satellite_Altitude, Refractive_Index, options)
+        function factors = ElongationFactor(Zenith_Angles, Altitudes, ...
+                Satellite_Altitude, Refractive_Index, options)
 
             arguments
                 Zenith_Angles double
@@ -28,15 +31,14 @@ classdef PathElongation
                     Refractive_Index, Sea_Level_Refractive_Index = n_0, ...
                     UseApparentZenith = options.UseApparentZenith);
                 factors(i) = sum(details.Length) / details.SlantRange;
-                % disp([sum(details.Length(1:end-1)), details.Length(end), details.SlantRange])
-                %disp([sum(details.Length), details.SlantRange])
-                %disp(sum(details.Length) / details.SlantRange)
-                % disp([sum(details.Length(1:end-1)), details.Length(end), details.SlantRange]);
             end
 
             factors(factors < 1) = 1;
-
         end
+
+    end
+
+    methods(Static, Access=private)
 
         function Details = Factor(Zenith_Angle, Altitudes, ...
                 Satellite_Altitude, Refractive_Index, options)
@@ -101,7 +103,6 @@ classdef PathElongation
             Psi(1) = pi - Z_a - Delta(1) - A(1) + a_0i(1) - Chi(1);
 
             Length = zeros(1, N);
-            Length(1) = PathElongation.PathLength(Altitudes(1), 0, A(1), a_0i(1), Chi(1));
 
             for i = 2 : N
                 i_1 = i - 1;
@@ -165,7 +166,6 @@ classdef PathElongation
                 ./ (tan(Beta(2:end)) + tan(Beta(1:end-1)));
         end
 
-        %function l = PathLength(Altitudes, Alpha_i, Alpha_0i, Chi_i)
         function l = PathLength(Altitude_i, Altitude_i_1, Alpha_i, Alpha_0i, Chi_i)
             arguments
                 Altitude_i
@@ -218,10 +218,6 @@ classdef PathElongation
                 + (2 .* Satellite_Altitude .* earth_rad) ...
                 + (earth_rad^2) .* cos(Zenith_Angle).^2) - rCosZ;
         end
-
-    end
-
-    methods(Static, Hidden)
 
         function out = C(height)
             earth_rad = PathElongation.Earth_Radius;

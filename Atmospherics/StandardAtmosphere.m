@@ -54,6 +54,14 @@ classdef StandardAtmosphere
                 + ppval(StdAtm.gradient_lerp, Altitudes) .* delta;
         end
 
+        function temp_grad = TemperatureGradient(StdAtm, Altitudes)
+            arguments
+                StdAtm StandardAtmosphere
+                Altitudes
+            end
+            temp_grad = ppval(StdAtm.gradient_lerp, Altitudes);
+        end
+
         function P = Pressure(StdAtm, Altitudes)
             arguments
                 StdAtm StandardAtmosphere
