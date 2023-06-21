@@ -11,6 +11,7 @@ A = linspace(0, 85, N);
 p = stdatm.Pressure(A);
 figure
 hold on
+title('Pressure')
 plot(p, A)
 xlim([-50, 800])
 
@@ -19,6 +20,7 @@ n = stdatm.AtmosphericRefractiveIndex(840, A, WavelengthUnit=o);
 refr = (n-1) .* (1e5);
 figure
 hold on
+title('Refractive Index')
 plot(refr, A)
 xlim([-1, max(refr)])
 set(gca, 'xdir', 'reverse')
@@ -27,48 +29,13 @@ n = stdatm.AltitudeDependentRefractiveIndex(840, A, WavelengthUnit=o);
 refr = (n-1) .* (1e5);
 figure
 hold on
+title('Refractive Index')
 plot(refr, A)
 xlim([-1, max(refr)])
 set(gca, 'xdir', 'reverse')
 
 zenith_deg = linspace(0, 90, 10);
 zenith = deg2rad(zenith_deg);
-
-n = stdatm.AtmosphericRefractiveIndex(840, A, WavelengthUnit=o);
-r = PathElongation.BendingAngle(deg2rad(45), n, A);
-figure
-hold on
-plot(A(1:numel(r)), r)
-xlim([-1, A(end)])
-
-n = stdatm.AtmosphericRefractiveIndex(840, A, WavelengthUnit=o);
-r = PathElongation.BendingAngle2(deg2rad(45), n, A);
-figure
-hold on
-plot(A(2:end), r)
-xlim([-1, A(end)])
-
-figure
-hold on
-b = PathElongation.Beta(deg2rad(45), n, A);
-plot(A(1:end-1), tan(b(2:end)) - tan(b(1:end-1)))
-
-[n_1, dndh, kernel] = PathElongation.BendingAngle(deg2rad(45), n, A);
-
-figure
-plot(n_1)
-
-figure
-plot(dndh)
-
-figure
-plot(kernel)
-
-
-size(dndh)
-size(kernel)
-figure
-plot(n_1(1:996) .* A(1:996), dndh(1:996) ./ kernel)
 
 
 %% new
@@ -118,11 +85,40 @@ clear all
 clc
 
 A = [5, 7, 11, 15, 20, 32, 47, 51, 71, 84.8];
+% A = linspace(5, 30, 6);
+cn2_b = HufnagelValley.HV15_12.Calculate(A);
+disp(['Target: ', num2str(cn2_b)])
+
 cn2 = AFGL_Plus() ...
     .UsingWindModel(BuftonWindProfile.Pugh_2020) ...
     .UsingAtmosphereProfile(StandardAtmosphere) ...
     .RefractiveIndexStructureConstant(A);
-disp(cn2) % values produced are too big...
+disp(['Result: ', num2str(cn2)]) % values produced are too big...
 
-cn2_b = HufnagelValley.HV5_7.Calculate(A);
-disp(cn2_b)
+%% HWM (wind model)
+A = linspace(5, 85, 81) .* (1e3);
+latitude = 48 .* ones(size(A))';
+longitude = 11.5 .* ones(size(A))';
+day = 236 .* ones(size(A))';
+
+wind_speed = atmoshwm(latitude, longitude, A, day=day);
+meridional_wind_speed = wind_speed(:, 1);
+zonal_wind_speed = wind_speed(:, 2);
+
+meridional_wind_shear = gradient(wind_speed(:, 1), A);
+zonal_wind_shear = gradient(wind_speed(:, 2), A);
+
+figure
+subplot(1, 2, 1)
+hold on
+title('Wind Speed')
+plot(meridional_wind_speed, A ./ (1e3))
+plot(zonal_wind_speed, A ./ (1e3))
+legend('Meridional', 'Zonal')
+subplot(1, 2, 2)
+hold on
+title('Wind Shear')
+plot(meridional_wind_shear, A ./ (1e3))
+plot(zonal_wind_shear, A ./ (1e3))
+legend('Meridional', 'Zonal')
+

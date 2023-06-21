@@ -4,7 +4,7 @@ classdef OrderOfMagnitude
         nano (-9)
         micro (-6)
         milli (-3)
-        none (1)
+        none (0)
         Kilo (3)
         Mega (6)
         Giga (9)

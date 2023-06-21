@@ -50,12 +50,9 @@ classdef AFGL_Plus
                 wind_model, ...
                 AtmosphereProfile=atmospheric_profile);
 
-            disp(AFGL_Plus.MParameter(Altitudes))
-            result = ...
-                2.8 ...
-                .* (AFGL_Plus.MParameter(Altitudes).*2) ...
-                .* (0.1 ^ (4/3)) ...
-                .* (10 .^ Y);
+            M = abs(AFGL_Plus.MParameter(Altitudes)) ./ (1e3);
+
+            result = 2.8 .* (M.^2) .* (0.1 ^ (4/3)) .* (10 .^ Y);
         end
 
     end
@@ -71,6 +68,7 @@ classdef AFGL_Plus
             temperature = options.AtmosphereProfile.Temperature(Altitudes);
             pressure = options.AtmosphereProfile.Pressure(Altitudes);
             lapse_rate = options.AtmosphereProfile.TemperatureGradient(Altitudes);
+            % lapse_rate = gradient(temperature, Altitudes);
 
             g = 9.81; % km/s2
             Gamma = 9.8; % K/km -> dray adiabatic lapse rate
@@ -83,11 +81,35 @@ classdef AFGL_Plus
                 Altitudes
                 WindModel BuftonWindProfile
                 options.AtmosphereProfile StandardAtmosphere
+                options.AltitudeUnit OrderOfMagnitude = OrderOfMagnitude.Kilo
             end
 
+            % temperature = options.AtmosphereProfile.Temperature(Altitudes);
+            % lapse_rate = gradient(temperature, Altitudes);
             lapse_rate = options.AtmosphereProfile.TemperatureGradient(Altitudes);
-            wind_speed = WindModel.Calculate(Altitudes);
-            wind_shear = gradient(wind_speed);
+
+            if ~contains(strjoin({ver().Name}, newline), 'Aerospace')
+                error('Aerospce toolbox is not installed, needed for atmoshwm')
+            end
+
+            exponent = OrderOfMagnitude.Ratio( ...
+                OrderOfMagnitude.none, ...
+                options.AltitudeUnit);
+            altitudes_metres = Altitudes .* (10^exponent);
+
+            latitudes = 48 .* ones(fliplr(size(altitudes_metres)));
+            longitudes = 11.5 .* ones(fliplr(size(altitudes_metres)));
+            day = 236 .* ones(fliplr(size(altitudes_metres)));
+
+            wind_speed = atmoshwm( ...
+                latitudes, longitudes, altitudes_metres, ...
+                day=day);
+
+            meridional_wind_shear = gradient(wind_speed(:, 1), altitudes_metres);
+            zonal_wind_shear = gradient(wind_speed(:, 2), altitudes_metres);
+
+            vector_vertical_shear = sqrt( ...
+                (meridional_wind_shear .^ 2) + (zonal_wind_shear .^ 2))';
 
             % need to map Altitudes to LowerTroposphere Troposphere and to
             % Stratosphere and call the correct function for the correct
@@ -102,16 +124,17 @@ classdef AFGL_Plus
             result = zeros(size(Altitudes));
 
             result(mask_lower_troposphere) = AFGL_Plus.LowerTroposphere( ...
-                wind_shear(mask_lower_troposphere), ...
+                vector_vertical_shear(mask_lower_troposphere), ...
                 lapse_rate(mask_lower_troposphere));
 
             result(mask_troposphere) = AFGL_Plus.Troposphere( ...
-                wind_shear(mask_troposphere), ...
+                vector_vertical_shear(mask_troposphere), ...
                 lapse_rate(mask_troposphere));
 
             result(mask_stratosphere) = AFGL_Plus.Stratosphere( ...
-                wind_shear(mask_stratosphere), ...
+                vector_vertical_shear(mask_stratosphere), ...
                 lapse_rate(mask_stratosphere));
+
         end
 
         function result = LowerTroposphere(WindShear, LapseRate)
