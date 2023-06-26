@@ -40,6 +40,9 @@ Perkin_Elmer = detectorPresetBuilder() ...
 Perkin_Elmer.makeDetectorPreset()
 Perkin_Elmer.writePreset('~/Projects/QKD_Sat_Link/detector_presets/detectors/presets/PerkinElmer.mat')
 
+test = load('~/Projects/QKD_Sat_Link/detector_presets/detectors/presets/PerkinElmer.mat')
+
+DetectorPresets.PerkinElmer.LoadPreset()
 
 %% Example usage to generate Excelitas detector
 clear all
@@ -58,6 +61,8 @@ Excelitas = detectorPresetBuilder() ...
 
 Excelitas.makeDetectorPreset()
 Excelitas.writePreset('~/Projects/QKD_Sat_Link/detector_presets/detectors/presets/Excelitas.mat')
+
+test = load('~/Projects/QKD_Sat_Link/detector_presets/detectors/presets/Excelitas.mat')
 
 
 %% Example usage to generate Micro Photon Devices detector
@@ -124,6 +129,50 @@ DetectorPresets.Custom.LoadPreset('LaserComponents.mat')
 % Load the preset thats held in the enumeration (Hamamatsu) not in the path
 DetectorPresets.Hamamatsu.LoadPreset('LaserComponents.mat')
 
+%% Quantum Opus 1550 Cryo Amplified
+close all
+clear all
+clc
+
+Efficiency_Data_Location = 'quantum_opus_1550_efficiency.mat';
+eff = load(Efficiency_Data_Location);
+
+quantumopus_roomtemp = DetectorPresets.Custom.PresetLoader() ...
+    .addName('Quantum Opus 1550 (cryogenic amplifier)') ...
+    .addDarkCountRate(10) ...
+    .addDeadTime(0) ...
+    .addJitterHistogram(load('SNSPD1550CryoAmpsHistogram.mat').Counts, 10^-12) ...
+    .addDetectorEfficiencyArray(eff.wavelengths, eff.efficiency);
+
+quantumopus_roomtemp.makeDetectorPreset()
+quantumopus_roomtemp.writePreset('~/Projects/QKD_Sat_Link/detector_presets/detectors/presets/QuantumOpus1550_CryogenicAmplifier.mat')
+
+%% Quantum Opus 1550 Room Temperature Amplified
+close all
+clear all
+clc
+
+Efficiency_Data_Location = 'quantum_opus_1550_efficiency.mat';
+eff = load(Efficiency_Data_Location);
+
+quantumopus_roomtemp = DetectorPresets.Custom.PresetLoader() ...
+    .addName('Quantum Opus 1550 (room temperature amplifier)') ...
+    .addDarkCountRate(10) ...
+    .addDeadTime(0) ...
+    .addJitterHistogram(load('SNSPD1550RoomTempAmpsHistogram.mat').Counts, 10^-12) ...
+    .addDetectorEfficiencyArray(eff.wavelengths, eff.efficiency);
+
+quantumopus_roomtemp.makeDetectorPreset()
+quantumopus_roomtemp.writePreset('~/Projects/QKD_Sat_Link/detector_presets/detectors/presets/QuantumOpus1550_RoomTempAmplifier.mat')
+
+% jitter_data = readtable('/home/bp38/Documents/instrumentResponseFunction/cryo_amp_snspd.csv');
+% Counts = jitter_data.first';
+% save('/home/bp38/Projects/QKD_Sat_Link/detector_presets/detector_data/1550CryoSNSPD/SNSPD1550CryoAmpsHistogram.mat', 'Counts')
+% 
+% jitter_data = readtable('/home/bp38/Documents/instrumentResponseFunction/roomtemp_amp_snspd.csv');
+% Counts = jitter_data.first';
+% save('/home/bp38/Projects/QKD_Sat_Link/detector_presets/detector_data/1550RoomTempSNSPD/SNSPD1550RoomTempAmpsHistogram.mat', 'Counts')
+
 %% Test AltDetector
 close all
 clear all
@@ -155,7 +204,25 @@ detector = AltDetector(wvl, rr, timeGate, spectralWidth, Preset=DetectorPresets.
 detectorPresetBuilder().BuildPresetFromDetector('a test', detector).makeDetectorPreset()
 
 % Will fail since no parameters passed
-detector = AltDetector(wvl, rr, timeGate, spectralWidth)
+detector = Detector(wvl, rr, timeGate, spectralWidth)
+
+%% 
+clear all
+close all
+clc
+
+DetectorPresets.Hamamatsu.LoadPreset()
+DetectorPresets.PerkinElmer.LoadPreset()
+
+test = load('/home/bp38/Projects/QKD_Sat_Link/detector_presets/detectors/presets/Excelitas.mat').preset
+
+test = load('/home/bp38/Projects/QKD_Sat_Link/detector_presets/detectors/presets/Hamamatsu.mat').preset
+
+test = load('/home/bp38/Projects/QKD_Sat_Link/detector_presets/detectors/presets/PerkinElmer.mat').preset
+
+test = load('/home/bp38/Projects/QKD_Sat_Link/detector_presets/detectors/presets/LaserComponents.mat').preset
+
+test = load('/home/bp38/Projects/QKD_Sat_Link/detector_presets/detectors/presets/MicroPhotonDevices.mat').preset
 
 %detector.HistogramInfo;
 
