@@ -12,6 +12,8 @@ classdef DetectorPresets
         LaserComponents ('LaserComponents.mat')
         MicroPhotonDevices ('MicroPhotonDevices.mat')
         PerkinElmer ('PerkinElmer.mat')
+        QuantumOpus_RoomTemperatureAmplifier ('QuantumOpus1550_RoomTemperatureAmplifier.mat')
+        QuantumOpus_CryogenicAmplifier ('QuantumOpus1550_CryogenicAmplifier.mat')
 
         % Set PresetLoader to a detectorPresetBuilder in the case of Custom 
         % detectors. In this case LoadPreset **MUST** be supplied with a path.
