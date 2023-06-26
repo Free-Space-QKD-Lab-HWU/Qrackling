@@ -52,7 +52,7 @@ classdef AFGL_Plus
 
             M = abs(AFGL_Plus.MParameter(Altitudes)) ./ (1e3);
 
-            result = 2.8 .* (M.^2) .* (0.1 ^ (4/3)) .* (10 .^ Y);
+            result = 2.8 .* (M .^ 2) .* (0.1 ^ (4/3)) .* (10 .^ Y);
         end
 
     end

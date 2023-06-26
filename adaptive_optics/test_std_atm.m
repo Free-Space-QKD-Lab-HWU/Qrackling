@@ -85,7 +85,7 @@ clear all
 clc
 
 A = [5, 7, 11, 15, 20, 32, 47, 51, 71, 84.8];
-% A = linspace(5, 30, 6);
+A = linspace(5, 35, 7);
 cn2_b = HufnagelValley.HV15_12.Calculate(A);
 disp(['Target: ', num2str(cn2_b)])
 
@@ -121,4 +121,20 @@ title('Wind Shear')
 plot(meridional_wind_shear, A ./ (1e3))
 plot(zonal_wind_shear, A ./ (1e3))
 legend('Meridional', 'Zonal')
+
+%% test
+
+A = linspace(5, 85, 81) .* (1e3);
+n = 100;
+latitude = linspace(-180, 180, n)';
+longitude = linspace(-90, 90, n)';
+
+[la, lo] = meshgrid(latitude, longitude);
+A = 30 .* ones(size(la));
+day = 236 .* ones(size(la));
+
+wind_speed = atmoshwm(la, lo, A, day=day);
+% meridional_wind_speed = wind_speed(:, 1);
+% zonal_wind_speed = wind_speed(:, 2);
+
 
