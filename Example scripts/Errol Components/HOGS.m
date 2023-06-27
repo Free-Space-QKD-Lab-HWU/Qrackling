@@ -26,24 +26,24 @@ Channel_Wavelength = 785;                                    %signal wavelength 
 Repetition_Rate = 1E8;                                              %signal rep rate in Hz
 Time_Gate = 2E-9;                                                   %time gate width in s
 Spectral_Filter_Width = 10;                                          %spectral filter width in nm
-HOGS_Detector = Excelitas_Detector(Channel_Wavelength,Repetition_Rate,...
-    Time_Gate,Spectral_Filter_Width);
+HOGS_Detector = Detector(Channel_Wavelength,Repetition_Rate,...
+    Time_Gate,Spectral_Filter_Width,Preset=DetectorPresets.Excelitas.LoadPreset());
 
     case 808
 Channel_Wavelength = 808;                                    %signal wavelength in nm
 Repetition_Rate = 1E8;                                              %signal rep rate in Hz
 Time_Gate = 2E-9;                                                   %time gate width in s
 Spectral_Filter_Width = 10;                                          %spectral filter width in nm
-HOGS_Detector = Excelitas_Detector(Channel_Wavelength,Repetition_Rate,...
-    Time_Gate,Spectral_Filter_Width);
+HOGS_Detector = Detector(Channel_Wavelength,Repetition_Rate,...
+    Time_Gate,Spectral_Filter_Width,Preset=DetectorPresets.Excelitas.LoadPreset());
 
     case 1550
 Channel_Wavelength = 1550;                                    %signal wavelength in nm
 Repetition_Rate = 1;                                              %signal rep rate in Hz
 Time_Gate = 1;                                                   %time gate width in s
 Spectral_Filter_Width = 10;                                          %spectral filter width in nm
-HOGS_Detector = Perfect_Detector(Channel_Wavelength,Repetition_Rate,...
-    Time_Gate,Spectral_Filter_Width);
+HOGS_Detector = Detector(Channel_Wavelength,Repetition_Rate,...
+    Time_Gate,Spectral_Filter_Width,Preset=DetectorPresets.ID_Qube_NIR);
 end
 
 %beacon camera

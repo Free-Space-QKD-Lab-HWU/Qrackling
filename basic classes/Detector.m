@@ -40,10 +40,10 @@ classdef  Detector
         Dead_Time double;
 
         Efficiencies
-        Efficiency{ ...
+        Detection_Efficiency{ ...
             mustBeScalarOrEmpty, ...
             mustBePositive, ...
-            mustBeLessThanOrEqual(Efficiency, 1)};
+            mustBeLessThanOrEqual(Detection_Efficiency, 1)};
 
         %rate at which eroneous counts occur
         Dark_Count_Rate{mustBeNonnegative,mustBeScalarOrEmpty};
@@ -126,7 +126,7 @@ classdef  Detector
             Detector = Detector.DensityFunctions();
             Detector = Detector.SetJitterPerformance(Repetition_Rate);
 
-            Detector = Detector.SetEfficiency(Wavelength=Wavelength);
+            Detector = Detector.SetDetectionEfficiency(Wavelength=Wavelength);
         end
 
         function Detector = HistogramInfo(Detector)
@@ -374,7 +374,7 @@ classdef  Detector
             Det.Polarisation_Error = Polarisation_Error;
         end
 
-        function Det = SetEfficiency(Det, options)
+        function Det = SetDetectionEfficiency(Det, options)
             % Set detection efficiency according to the options.{Efficiency, 
             % Wavelength}, only one options can be passed when called otherwise the
             % function errors:
@@ -398,7 +398,7 @@ classdef  Detector
                 'Either "Efficiency" or "Wavelength" should supplied not both');
 
             if contains(fields, 'Efficiency')
-                Det.Efficiency = options.Efficiency;
+                Det.Detection_Efficiency = options.Efficiency;
                 return
             end
 
@@ -414,10 +414,9 @@ classdef  Detector
                 Det = Det.SetWavelength(options.Wavelength);
 
                 pw_poly = interp1(Det.Wavelength_Range, Det.Efficiencies, 'cubic', 'pp');
-                Det.Efficiency = ppval(pw_poly, options.Wavelength);
+                Det.Detection_Efficiency = ppval(pw_poly, options.Wavelength);
             end
 
         end
-
     end
 end

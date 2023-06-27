@@ -29,7 +29,8 @@ SimSatellite=Satellite(Transmitter_Telescope,...
 
 %2.2 Ground station
 %2.2.1 Detector
-Generic_COW_Detector=Generic_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
+Generic_COW_Detector=Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,...
+    Preset=DetectorPresets.MicroPhotonDevices.LoadPreset());
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
 %NOTE only detectors with the 'Visibility' property can be used for COW
