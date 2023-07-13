@@ -12,6 +12,8 @@ function output = runlibRadtran(filename, parameters, quiet, output_path)
     filename = adduserpath(filename);
     lrtinputs = strjoin(formatAll(parameters), delim);
 
+    disp(filename)
+
     fd = fopen(filename, 'w');
     written_bytes = fprintf(fd, lrtinputs);
     assert(written_bytes > 0, 'Nothing written, something has gone wrong');

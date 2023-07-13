@@ -1,54 +1,62 @@
 classdef AFGL_Plus
 
-    properties(SetAccess=private, Hidden)
+    enumeration
+        StandardAtmosphere_Bufton_Pugh2020 (StandardAtmosphere, BuftonWindProfile.Pugh_2020)
+        StandardAtmosphere_Bufton_Gruneusen2021 (StandardAtmosphere, BuftonWindProfile.Gruneisen_2021)
+        StandardAtmosphere_HWM (StandardAtmosphere, @atmoshwm)
+    end
+
+    properties %(SetAccess=private, Hidden)
         AtmosphericProfile
         WindModel
     end
 
     methods
 
-        function AFGLP = AFGL_Plus()
+        function AFGLP = AFGL_Plus(Atmosphere_Model, Wind_Model)
+            AFGLP.AtmosphericProfile = Atmosphere_Model;
+            AFGLP.WindModel = Wind_Model;
         end
 
-        function AFGLP = UsingAtmosphereProfile(AFGLP, AtmosphereProfile)
-            arguments
-                AFGLP AFGL_Plus
-                AtmosphereProfile StandardAtmosphere
-            end
-            AFGLP.AtmosphericProfile = AtmosphereProfile;
-        end
+%        function AFGLP = UsingAtmosphereProfile(AFGLP, AtmosphereProfile)
+%            arguments
+%                AFGLP AFGL_Plus
+%                AtmosphereProfile StandardAtmosphere
+%            end
+%            AFGLP.AtmosphericProfile = AtmosphereProfile;
+%        end
+%
+%        function AFGLP = UsingWindModel(AFGLP, WindModel)
+%            arguments
+%                AFGLP AFGL_Plus
+%                WindModel BuftonWindProfile
+%            end
+%            AFGLP.WindModel = WindModel;
+%        end
 
-        function AFGLP = UsingWindModel(AFGLP, WindModel)
-            arguments
-                AFGLP AFGL_Plus
-                WindModel BuftonWindProfile
-            end
-            AFGLP.WindModel = WindModel;
-        end
-
-        function result = RefractiveIndexStructureConstant(AFGLP, Altitudes, options)
+        function result = Calculate(AFGLP, Altitudes)
             arguments
                 AFGLP AFGL_Plus
                 Altitudes
-                options.WindModel BuftonWindProfile
-                options.AtmosphereProfile StandardAtmosphere
+                %options.WindModel BuftonWindProfile
+                %options.AtmosphereProfile StandardAtmosphere
             end
 
-            wind_model = AFGLP.WindModel;
-            atmospheric_profile = AFGLP.AtmosphericProfile;
+            % wind_model = AFGLP.WindModel;
+            % atmospheric_profile = AFGLP.AtmosphericProfile;
 
-            opts = fieldnames(options);
-            if contains(opts, 'WindModel')
-                wind_model = options.WindModel;
-            end
-            if contains(opts, 'AtmosphereProfile')
-                atmospheric_profile = options.AtmosphereProfile;
-            end
+            % opts = fieldnames(options);
+            % if contains(opts, 'WindModel')
+            %     wind_model = options.WindModel;
+            % end
+            % if contains(opts, 'AtmosphereProfile')
+            %     atmospheric_profile = options.AtmosphereProfile;
+            % end
 
             Y = AFGL_Plus.EmpiricalFunction_Y( ...
                 Altitudes, ...
-                wind_model, ...
-                AtmosphereProfile=atmospheric_profile);
+                AFGLP.WindModel, ...
+                AFGLP.AtmosphericProfile);
 
             M = abs(AFGL_Plus.MParameter(Altitudes)) ./ (1e3);
 
@@ -76,17 +84,17 @@ classdef AFGL_Plus
             result = ((-79e-6) .* pressure .* N_Squared) ./ (g .* temperature);
         end
 
-        function result = EmpiricalFunction_Y(Altitudes, WindModel, options)
+        function result = EmpiricalFunction_Y(Altitudes, WindModel, AtmosphereProfile, options)
             arguments
                 Altitudes
-                WindModel BuftonWindProfile
-                options.AtmosphereProfile StandardAtmosphere
+                WindModel
+                AtmosphereProfile StandardAtmosphere
                 options.AltitudeUnit OrderOfMagnitude = OrderOfMagnitude.Kilo
             end
 
             % temperature = options.AtmosphereProfile.Temperature(Altitudes);
             % lapse_rate = gradient(temperature, Altitudes);
-            lapse_rate = options.AtmosphereProfile.TemperatureGradient(Altitudes);
+            lapse_rate = AtmosphereProfile.TemperatureGradient(Altitudes);
 
             if ~contains(strjoin({ver().Name}, newline), 'Aerospace')
                 error('Aerospce toolbox is not installed, needed for atmoshwm')
@@ -102,8 +110,7 @@ classdef AFGL_Plus
             day = 236 .* ones(fliplr(size(altitudes_metres)));
 
             wind_speed = atmoshwm( ...
-                latitudes, longitudes, altitudes_metres, ...
-                day=day);
+                latitudes, longitudes, altitudes_metres, day=day);
 
             meridional_wind_shear = gradient(wind_speed(:, 1), altitudes_metres);
             zonal_wind_shear = gradient(wind_speed(:, 2), altitudes_metres);
@@ -134,7 +141,6 @@ classdef AFGL_Plus
             result(mask_stratosphere) = AFGL_Plus.Stratosphere( ...
                 vector_vertical_shear(mask_stratosphere), ...
                 lapse_rate(mask_stratosphere));
-
         end
 
         function result = LowerTroposphere(WindShear, LapseRate)

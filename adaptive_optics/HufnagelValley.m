@@ -61,6 +61,7 @@ classdef HufnagelValley
             HV.HC = HC;
         end
 
+        %function ghv = Calculate(HV, altitude, options)
         function ghv = Calculate(HV, altitude, options)
             % Calculate - Calculates the refractive index structure constant using the Hufnagel-Valley model.
             %

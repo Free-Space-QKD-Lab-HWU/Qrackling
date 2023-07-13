@@ -95,6 +95,7 @@ cn2 = AFGL_Plus() ...
     .RefractiveIndexStructureConstant(A);
 disp(['Result: ', num2str(cn2)]) % values produced are too big...
 
+
 %% HWM (wind model)
 A = linspace(5, 85, 81) .* (1e3);
 latitude = 48 .* ones(size(A))';
@@ -137,4 +138,21 @@ wind_speed = atmoshwm(la, lo, A, day=day);
 % meridional_wind_speed = wind_speed(:, 1);
 % zonal_wind_speed = wind_speed(:, 2);
 
+%% new
 
+fp = FriedParameter("Downlink", "Hufnagel_Valley", "HV5_7");
+fp = FriedParameter("Uplink", "AirForceGeophysicsLab", AFGL_Plus);
+
+AFGL_Plus(StandardAtmosphere, BuftonWindProfile.Pugh_2020)
+AFGL_Plus(StandardAtmosphere, @atmoshwm)
+
+AFGL_Plus.StandardAtmosphere_Bufton_Pugh2020
+
+clear all
+clc
+semilogy(AFGL_Plus.StandardAtmosphere_HWM.Calculate(linspace(5, 85, 81)))
+
+
+fp = FriedParameter("Downlink", "AirForceGeophysicsLab", "StandardAtmosphere_HWM")
+
+AFGL_Plus.StandardAtmosphere_HWM

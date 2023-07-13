@@ -66,18 +66,17 @@ classdef BuftonWindProfile
                 .* exp(-((altitude - peak_altitude) ./ scale_height) .^ 2);
         end
 
-        function anglular_velocity = ...
+        function angular_velocity = ...
                 SimpleCircularDirectOverPassAngularVelocity( ...
                     satellite_altitude, zenith_angle)
             G = 6.673e-20;
             M = 5.97e24;
             Earth_radius = 6371;
 
-            dist = ...
-                (satellite_altitude .^ 2) ...
+            dist = (satellite_altitude .^ 2) ...
                 .* (Earth_radius + satellite_altitude);
 
-            anglular_velocity = sqrt((G * M) ./ dist) .* (cosd(zenith_angle) .^ 2);
+            angular_velocity = sqrt((G * M) ./ dist) .* (cosd(zenith_angle) .^ 2);
         end
 
     end
