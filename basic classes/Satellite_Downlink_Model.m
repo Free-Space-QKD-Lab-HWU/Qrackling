@@ -214,6 +214,7 @@ end
                                              Zenith, ...
                                              Satellite_Altitude, ghv_defaults('Standard',Link_Models.Turbulence));
             %output variables
+            
             Turbulence_Beam_Width(~Elevation_Flags)=0;
             Turbulence_Beam_Width(Elevation_Flags) = long_term_gaussian_beam_width(Geo_Spot_Size(Elevation_Flags), Link_Models.Length(Elevation_Flags) ,...
                                         Wavenumber, Atmospheric_Turbulence_Coherence_Length);
@@ -245,6 +246,7 @@ end
             Link_Models.Turbulence_Loss=Turb_Loss;
             Link_Models.Turbulence_Loss_dB=-10*log10(Turb_Loss);
             Link_Models.Turbulent_Spot_Size = Turbulence_Beam_Width;
+            Link_Models.r0(Elevation_Flags) = Atmospheric_Turbulence_Coherence_Length;
         end
 %{
         function Link_Models = SetElevationAngle(Link_Models,Satellite,Ground_Station)

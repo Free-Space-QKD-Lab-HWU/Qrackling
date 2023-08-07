@@ -35,10 +35,10 @@ assert(ismember(Wavelength,[785,808,1550]),'Wavelength must be one of the intend
     %Mazzarella, Luc, Lowe, Christopher, Lowndes, David, Joshi, Siddarth Koduru, Greenland, Steve
     %McNeil, Doug, Mercury, Cassandra, Macdonald, Malcolm, Rarity, John, Oi, Daniel Kuan Li
 
-    HubSat_Scope_Diameter = 0.08;                                        %telescope diameter in m
-    HubSat_Scope_Efficiency = 1;                                      %telescope optical efficiency (unitless)
-    HubSat_Pointing_Jitter = 1E-6;                                      %telescope pointing error in rads
-   % HubSat_Scope_FOV = 22E-6;                                          %quantum signal FOV in rads
+    HubSat_Scope_Diameter = 0.08;                                          %telescope diameter in m
+    HubSat_Scope_Efficiency = 1;                                           %telescope optical efficiency (unitless)
+    HubSat_Pointing_Jitter = 1E-6;                                         %telescope pointing error in rads
+    %HubSat_Scope_FOV = 22E-6;                                              %quantum signal FOV in rads
     HubSatScope = Telescope(HubSat_Scope_Diameter,...
         'Wavelength',Wavelength,...
         'Optical_Efficiency',HubSat_Scope_Efficiency,...
@@ -96,7 +96,7 @@ assert(ismember(Wavelength,[785,808,1550]),'Wavelength must be one of the intend
         'Beacon',HubSatBeacon,...
         'Camera',HubSatCamera,...
         'Surface',Satellite_Foil_Surface(0.01),...          %correctly set reflevctive surface proporties and area
-        'SemiMajorAxis',500E3 + earthRadius,...             %mean orbital radius = Altitude + Earth radius
+        'SemiMajorAxis',600E3 + earthRadius,...             %mean orbital radius = Altitude + Earth radius
         'eccentricity',0,...                                %measure of ellipticity of the orbit, for circular, =0
         'inclination',9.7065055549e+01,...                  %inclination of orbit in deg- set by sun synchronicity
         'rightAscensionOfAscendingNode',-1.5,...            %measure of location of orbit in longitude
