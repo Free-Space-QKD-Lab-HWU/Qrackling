@@ -155,4 +155,12 @@ semilogy(AFGL_Plus.StandardAtmosphere_HWM.Calculate(linspace(5, 85, 81)))
 
 fp = FriedParameter("Downlink", "AirForceGeophysicsLab", "StandardAtmosphere_HWM")
 
-AFGL_Plus.StandardAtmosphere_HWM
+fp = FriedParameter("Downlink", "AirForceGeophysicsLab", "StandardAtmosphere_HWM").AtmosphericTurbulenceCoherenceLength(1000, 60, 0.8 / 2 / pi, "none")
+
+FriedParameter("Uplink", "Hufnagel_Valley", "HV5_7").AtmosphericTurbulenceCoherenceLength(80, 60, 0.8 / 2/ pi, "Kilo")
+
+fp = FriedParameter("Downlink", "Hufnagel_Valley", "HV10_10")
+r0 = fp.AtmosphericTurbulenceCoherenceLength(80, 60, 0.8 / 2 / pi, "Kilo")
+
+FriedParameter("Downlink", "Hufnagel_Valley", "HV5_7").AtmosphericTurbulenceCoherenceLength(30, 85, 0.8 / (2*pi), "Kilo")
+FriedParameter("Uplink", "AirForceGeophysicsLab", "StandardAtmosphere_HWM").AtmosphericTurbulenceCoherenceLength(30, 85, 0.8 / (2*pi), "Kilo")

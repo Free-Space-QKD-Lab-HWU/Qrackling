@@ -1,9 +1,14 @@
 classdef AFGL_Plus
 
     enumeration
-        StandardAtmosphere_Bufton_Pugh2020 (StandardAtmosphere, BuftonWindProfile.Pugh_2020)
-        StandardAtmosphere_Bufton_Gruneusen2021 (StandardAtmosphere, BuftonWindProfile.Gruneisen_2021)
-        StandardAtmosphere_HWM (StandardAtmosphere, @atmoshwm)
+        StandardAtmosphere_Bufton_Pugh2020 ( ...
+            StandardAtmosphere, BuftonWindProfile.Pugh_2020)
+
+        StandardAtmosphere_Bufton_Gruneusen2021 ( ...
+            StandardAtmosphere, BuftonWindProfile.Gruneisen_2021)
+
+        StandardAtmosphere_HWM ( ...
+            StandardAtmosphere, @atmoshwm)
     end
 
     properties %(SetAccess=private, Hidden)
@@ -100,9 +105,7 @@ classdef AFGL_Plus
                 error('Aerospce toolbox is not installed, needed for atmoshwm')
             end
 
-            exponent = OrderOfMagnitude.Ratio( ...
-                OrderOfMagnitude.none, ...
-                options.AltitudeUnit);
+            exponent = OrderOfMagnitude.Ratio(options.AltitudeUnit, "none");
             altitudes_metres = Altitudes .* (10^exponent);
 
             latitudes = 48 .* ones(fliplr(size(altitudes_metres)));

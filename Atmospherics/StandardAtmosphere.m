@@ -84,10 +84,7 @@ classdef StandardAtmosphere
                 options.WavelengthUnit OrderOfMagnitude = OrderOfMagnitude.micro
             end
 
-            WavelengthUnitDefault = OrderOfMagnitude.micro;
-            exponent = OrderOfMagnitude ...
-                .Ratio(options.WavelengthUnit, WavelengthUnitDefault);
-
+            exponent = OrderOfMagnitude.Ratio(options.WavelengthUnit, "micro");
             Wavelength = Wavelength .* (10 ^ exponent);
 
             wl = (1 ./ Wavelength).^2;
@@ -104,10 +101,7 @@ classdef StandardAtmosphere
                 options.WavelengthUnit OrderOfMagnitude = OrderOfMagnitude.micro
             end
 
-            WavelengthUnitDefault = OrderOfMagnitude.micro;
-            exponent = OrderOfMagnitude ...
-                .Ratio(options.WavelengthUnit, WavelengthUnitDefault);
-
+            exponent = OrderOfMagnitude.Ratio(options.WavelengthUnit, "micro");
             Wavelength = Wavelength .* (10 ^ exponent);
 
             PascalFromMbar = @(mbar) mbar .* 100;
@@ -139,10 +133,7 @@ classdef StandardAtmosphere
                 options.WavelengthUnit OrderOfMagnitude = OrderOfMagnitude.micro
             end
 
-            WavelengthUnitDefault = OrderOfMagnitude.micro;
-            exponent = OrderOfMagnitude ...
-                .Ratio(options.WavelengthUnit, WavelengthUnitDefault);
-
+            exponent = OrderOfMagnitude.Ratio(options.WavelengthUnit, "micro");
             Wavelength = Wavelength .* (10 ^ exponent);
 
             n = StdAtm.AtmosphericRefractiveIndex(Wavelength, Altitudes);
