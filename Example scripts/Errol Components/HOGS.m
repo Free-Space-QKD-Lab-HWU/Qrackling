@@ -25,25 +25,25 @@ switch Wavelength
 Channel_Wavelength = 785;                                    %signal wavelength in nm
 Repetition_Rate = 1E8;                                              %signal rep rate in Hz
 Time_Gate = 2E-9;                                                   %time gate width in s
-Spectral_Filter_Width = 10;                                          %spectral filter width in nm
+Spectral_Filter = SpectralFilter('input_file',['spectral filters',filesep(),'FBH780-10.xlsx']);
 HOGS_Detector = Detector(Channel_Wavelength,Repetition_Rate,...
-    Time_Gate,Spectral_Filter_Width,Preset=DetectorPresets.Excelitas.LoadPreset());
+    Time_Gate,Spectral_Filter,Preset=DetectorPresets.Excelitas.LoadPreset());
 
     case 808
 Channel_Wavelength = 808;                                    %signal wavelength in nm
 Repetition_Rate = 1E8;                                              %signal rep rate in Hz
 Time_Gate = 2E-9;                                                   %time gate width in s
-Spectral_Filter_Width = 10;                                          %spectral filter width in nm
+Spectral_Filter = SpectralFilter('input_file',['spectral filters',filesep(),'FBH850-10.xlsx']);
 HOGS_Detector = Detector(Channel_Wavelength,Repetition_Rate,...
-    Time_Gate,Spectral_Filter_Width,Preset=DetectorPresets.Excelitas.LoadPreset());
+    Time_Gate,Spectral_Filter,Preset=DetectorPresets.Excelitas.LoadPreset());
 
     case 1550
 Channel_Wavelength = 1550;                                    %signal wavelength in nm
 Repetition_Rate = 1;                                              %signal rep rate in Hz
 Time_Gate = 1;                                                   %time gate width in s
-Spectral_Filter_Width = 10;                                          %spectral filter width in nm
+Spectral_Filter = SpectralFilter('input_file',['spectral filters',filesep(),'FBH1550-12.xlsx']);
 HOGS_Detector = Detector(Channel_Wavelength,Repetition_Rate,...
-    Time_Gate,Spectral_Filter_Width,Preset=DetectorPresets.ID_Qube_NIR);
+    Time_Gate,Spectral_Filter,Preset=DetectorPresets.Excelitas.LoadPreset());
 end
 
 %beacon camera
@@ -61,10 +61,10 @@ Spectral_Filter_Width = 10;
 HOGS_Camera = AC4040(Camera_Telescope,Exposure_Time,Spectral_Filter_Width);%this is a constructor for the ATIK camera we use
 
 %uplink beacon
-Beacon_Power = 10E-3;                                                           %power of uplink beacon in W
+Beacon_Power = 40E-3;                                                           %power of uplink beacon in W
 Beacon_Wavelength = 850;                                                        %uplink beacon wavelength in nm
 BeaconPointingPrecision = 1E-6;                                                 %beacon pointing precision (coarse pointing precision) in rads
-Beacon_Beam_Divergence = 49.9E-6;
+Beacon_Beam_Divergence = 0.0070;%49.9E-6;
 Beacon_Telescope = SetWavelength(HOGS_Telescope,Beacon_Wavelength);
 Beacon_Telescope = SetFOV(Beacon_Telescope,Beacon_Beam_Divergence);
 %initially, uncertainty in satellite position is 5km and range is roughly
