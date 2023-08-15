@@ -33,4 +33,51 @@ classdef (Abstract) QKD_Receiver < Optical_Node
 
             [Total_Background_Count_Rate,QKD_Receiver] = ComputeTotalBackgroundCountRate(QKD_Receiver, Background_Sources, QKD_Transmitter, Headings, Elevations, SMARTS_Configuration, Count_Map)
     end
+
+    methods (Abstract=false)
+
+        function Received_Wavelengths = DopplerShift(QKD_Receiver,QKD_Transmitter)
+            %%DOPPLERSHIFT compute the apparent wavelength at the receiver
+            %%of a transmitted QKD signal
+
+
+            %speed of light (m/s)
+            c=2.998E8;
+
+            %% Compute doppler velocity over time
+            % get distance between receiver and transmitter over time
+            Distances = ComputeDistanceBetween(QKD_Receiver,QKD_Transmitter);
+            %get time stamps
+            if isa(QKD_Receiver,'Satellite')
+                Times = QKD_Receiver.Times;
+            elseif isa(QKD_Transmitter,'Satellite')
+                Times = QKD_Transmitter.Times;
+            else
+                error('one of transmitter or receiver must be a satellite')
+            end
+            %differentiate wrt time
+            Doppler_Velocity = Distances(2:end)-Distances(1:end-1)./seconds(Times(2:end)-Times(1:end-1));
+            %append last result to fill end slot
+            Doppler_Velocity = [Doppler_Velocity,Doppler_Velocity(end)];
+
+            %% use this to modify wavelength
+            Received_Wavelengths = (1+Doppler_Velocity/c)*QKD_Transmitter.Source.Wavelength;
+        end
+    
+        function Visibility = ComputeVisibility(QKD_Receiver,QKD_Transmitter)
+            %%COMPUTEVISIBILITY compute the visibility of an interferometer
+            %%at the QKD receiver due to transmitter motion
+
+            %speed of light
+            c=2.998E8;
+
+            %% Doppler shift
+            Received_Wavelengths = DopplerShift(QKD_Receiver,QKD_Transmitter);
+            delta_Wavelengths = Received_Wavelengths-QKD_Transmitter.Source.Wavelength;
+            Received_Phase_Offset = 2*pi*delta_Wavelengths*c/(QKD_Transmitter.Source.Repetition_Rate*(QKD_Transmitter.Source.Wavelength*1E-9)^2);
+
+            %% compute visibility
+            Visibility = abs(cos(Received_Phase_Offset)-cos(Received_Phase_Offset+pi))./(2+cos(Received_Phase_Offset)+cos(Received_Phase_Offset+pi));
+        end
+    end
 end

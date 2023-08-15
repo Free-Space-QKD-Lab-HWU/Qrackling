@@ -456,7 +456,7 @@ classdef PassSimulation
             %% Compute background count rate and link heading and elevation
             [Headings, Elevations, Ranges] = RelativeHeadingAndElevation(Satellite, Ground_Station);
             [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate(Ground_Station, Background_Sources, Satellite, Headings, Elevations, smarts_configuration);
-            PassSimulation.QKD_Receiver = Ground_Station; %need to store OGS details for beacon modelling
+
             %% Check elevation limit
             Line_Of_Sight_Flags = Elevations>0;
             %Check that satellite rises above horizon at some point
@@ -471,9 +471,12 @@ classdef PassSimulation
             %% Beaconing
             PassSimulation = SimulateBeaconing(PassSimulation);
 
-
             %% Compute Link loss
             Downlink_Model = Compute_Link_Loss(Downlink_Model, Satellite, Ground_Station);
+
+            %% Compute visibility (for phase based protocols)
+            Full_Visibility = ComputeVisibility(Ground_Station,Satellite);
+            Ground_Station.Detector.Visibility = Full_Visibility(Elevation_Limit_Flags);
 
             %% compute SKR and QBER for links inside the elevation window
             %[Computed_Sifted_Key_Rates, Computed_QBERs] = EvaluateQKDLink(...
@@ -575,6 +578,10 @@ classdef PassSimulation
 
             %% Compute Link loss
             Uplink_Model = Compute_Link_Loss(Uplink_Model, Satellite, Ground_Station);
+
+            %% Compute visibility (for phase based protocols)
+            Full_Visibility = ComputeVisibility(Satellite,Ground_Station);
+            Satellite.Detector.Visibility = Full_Visibility(Elevation_Limit_Flags);
 
             %% compute SKR and QBER for links inside the elevation window
             %[Computed_Sifted_Key_Rates, Computed_QBERs] = EvaluateQKDLink(...
