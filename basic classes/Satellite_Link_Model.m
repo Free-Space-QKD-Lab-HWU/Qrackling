@@ -193,6 +193,7 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
             Link_Model.Link_Loss_dB=Total_Loss_dB;
             Link_Model.Link_Loss=Total_Loss;
         end
+      
     end
     
     methods (Abstract = true, Access = protected)
