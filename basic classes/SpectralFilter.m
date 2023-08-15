@@ -101,7 +101,12 @@ classdef SpectralFilter < matlab.mixin.Heterogeneous
 
             transmission = get_column_from_name(SpectralFilter, ...
                 table, ...
-                p.Results.transmission) ./ 100;
+                p.Results.transmission);
+
+            %if any transmission is above 1, this is probably a percentage
+            if any(transmission>1)
+                transmission=transmission./100;
+            end
         end
 
         function column = get_column_from_name(self, table, column_name)
@@ -184,7 +189,7 @@ classdef SpectralFilter < matlab.mixin.Heterogeneous
 
         end
 
-        function Transmission  = computeTransmission(SpectralFilter,Wavelength)
+        function Transmission  = ComputeTransmission(SpectralFilter,Wavelength)
                 %%COMPUTETRANSMISSION return the transmission from a spectral
                 %%filter vector at the specified wavelengths
 
@@ -203,7 +208,7 @@ classdef SpectralFilter < matlab.mixin.Heterogeneous
                 for i=1:numel(SpectralFilter)
 
                     %% two cases, either wavelength is already set correctly or interpolation is required
-                    if SpectralFilter(i).wavelengths==Wavelength
+                    if numel(SpectralFilter(i).wavelengths)==1&&SpectralFilter(i).wavelengths==Wavelength
                         Transmission(:,i)=SpectralFilter(i).transmission;
                     else
                     %interpolate onto spectral filter data

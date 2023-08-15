@@ -246,7 +246,7 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
 
         %format spectral filters which correspond to these elevation angles
         Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Link_Models.Elevation,Satellite.Beacon.Wavelength,{Link_Models.Visibility});
-        Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Beacon.Wavelength);
+        Atmos_Loss = ComputeTransmission(Atmospheric_Spectral_Filter,Satellite.Beacon.Wavelength);
 
         %% input validation
         if ~all(isreal(Atmos_Loss)&Atmos_Loss>=0)
