@@ -5,7 +5,7 @@ classdef crs_file
     end
     methods
         function cf = crs_file(species, file)
-            arguments
+            arguments (Repeating)
                 species {mustBeMember(species, { ...
                     'O3',   'O2', 'H2O', 'CO2', 'NO2', 'BRO', 'OCLO', ...
                     'HCHO', 'O4', 'SO2', 'CH4', 'N2O', 'CO',  'N2'})}

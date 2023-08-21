@@ -3,7 +3,7 @@ classdef umu
         Value
     end
     methods
-        function u = thermal_bandwidth(value)
+        function u = umu(value)
             arguments
                 value {mustBeNumeric}
             end

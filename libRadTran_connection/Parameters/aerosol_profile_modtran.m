@@ -1,13 +1,13 @@
 classdef aerosol_profile_modtran
-    properties
+    properties (SetAccess = protected)
         Tag TagEnum = TagEnum.IsValue
-        on {mustBeNumericOrLogical} = false
+        on matlab.lang.OnOffSwitchState
     end
 
     methods
         function profile = aerosol_profile_modtran(state)
             arguments
-                state {mustBeNumericOrLogical}
+                state matlab.lang.OnOffSwitchState = 'off'
             end
             profile.on = state;
         end

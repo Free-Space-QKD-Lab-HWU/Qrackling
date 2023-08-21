@@ -1,17 +1,13 @@
 classdef aerosol_haze
-    enumeration
-       Rural ('Rural type aerosols'),
-       Maritime ('Maritime type aerosols'),
-       Urban ('Urban type aerosols'),
-       Tropospheric ('Tropospheric type aerosols')
-    end
-
-    properties
+    properties (SetAccess = protected)
         Label
     end
 
     methods
         function haze = aerosol_haze(model)
+            arguments
+                model {mustBeMember(model, {'Rural', 'Maritime', 'Urban', 'Tropospheric'})}
+            end
             haze.Label = model;
         end
     end

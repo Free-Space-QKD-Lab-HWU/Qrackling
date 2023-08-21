@@ -5,8 +5,19 @@ classdef output_file
     methods
         function out = output_file(file)
             arguments
-                file {mustBeFile}
+                file {mustBeText}
             end
+            delim = '/';
+            if ispc
+                delim = '\';
+            end
+
+            elems = strsplit(file, delim);
+            path = strjoin(elems(1:end-1), delim);
+
+            assert(numel(elems) ~= numel(path), ...
+                'Not a valid file path')
+            mustBeFolder(path)
             out.File = file;
         end
     end

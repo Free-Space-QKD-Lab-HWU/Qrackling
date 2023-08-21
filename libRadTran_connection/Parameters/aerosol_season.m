@@ -1,7 +1,7 @@
 classdef aerosol_season
     enumeration
-        Spring_Summer ('Spring-summer profile'),
-        Fall_Winter ('Fall-winter profile')
+        Spring_Summer (1),
+        Fall_Winter (2)
     end
 
     properties

@@ -17,7 +17,7 @@ classdef aerosol_species_file
 
     methods
         function species_file = aerosol_species_file(file)
-            species_file.Label = file
+            species_file.Label = file;
         end
     end
 

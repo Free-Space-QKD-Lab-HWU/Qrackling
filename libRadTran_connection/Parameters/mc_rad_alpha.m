@@ -1,14 +1,13 @@
 classdef mc_rad_alpha
     properties (SetAccess = protected)
-        Tag = TagEnum.IsCondition
-        State matlab.lang.OnOffSwitchState
+        Value
     end
     methods
-        function mc = mc_rad_alpha(state)
+        function mc = mc_rad_alpha(value)
             arguments
-                state matlab.lang.OnOffSwitchState
+                value {mustBeNumeric}
             end
-            mc.State = state;
+            mc.Value = value;
         end
     end
 end

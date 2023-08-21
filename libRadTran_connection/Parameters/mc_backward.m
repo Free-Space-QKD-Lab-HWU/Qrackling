@@ -1,5 +1,6 @@
 classdef mc_backward
     properties (SetAccess = protected)
+        State matlab.lang.OnOffSwitchState
         Start_X
         Start_Y
         Stop_X
@@ -13,6 +14,8 @@ classdef mc_backward
                 options.stop_x
                 options.stop_y
             end
+
+            mc.State = matlab.lang.OnOffSwitchState.on;
 
             fields = fieldnames(options);
 

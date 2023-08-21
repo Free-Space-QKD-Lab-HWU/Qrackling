@@ -26,7 +26,7 @@ classdef output_user
                     'mmr_O4',   'vmr_O4'})}
 
             end
-            out.Label = cellstr(label);
+            out.Label = unique(cellstr(label));
         end
     end
 end
