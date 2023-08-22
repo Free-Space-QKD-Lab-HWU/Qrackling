@@ -128,3 +128,7 @@ d = d(index(1:end))
 
 mol = Molecular()
 mol.CrossSectionModel("o3_Molina")
+
+geo = Geometry()
+geo = geo.SensorLatitude('N', 45, min=5)
+geo.sensor_latitude

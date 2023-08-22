@@ -1,5 +1,6 @@
 classdef GeneralAtmosphere
     properties (SetAccess = protected)
+        atmosphere atmosphere_file
         disable_absorption no_absorption
         disable_scattering no_scattering
         interpret_profile_as_levels interpret_as_level
@@ -13,6 +14,23 @@ classdef GeneralAtmosphere
         function g = GeneralAtmosphere()
         end
 
+        function g = Atmosphere(g, options)
+            arguments
+                g GeneralAtmosphere
+                options.Default {mustBeMember(options.Default, { ...
+                    'tropics', 'midlatitude_summer', 'midlatitude_winter', ...
+                    'subarctic_summer', 'subarctic_winter', 'US-standard' ...
+                })}
+                options.File {mustBeFile}
+            end
+            fields = fieldnames(options);
+            if contains(fields, "Default")
+                g.atmosphere = atmosphere_file("Default", options.Default);
+            end
+            if contains(fields, "File")
+                g.atmosphere = atmosphere_file("File", options.File);
+            end
+        end
 
         function g = DisableAbsorptionFor(g, label)
             arguments (Repeating)

@@ -7,6 +7,7 @@ classdef mc_randomseed
             arguments
                 value {mustBeNumeric}
             end
+            mc.Value = value;
         end
     end
 end

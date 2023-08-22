@@ -1,4 +1,4 @@
-classdef bpdf_tsant_u10
+classdef bpdf_tsang_u10
     properties (SetAccess = protected)
         Value {mustBeNumeric}
     end

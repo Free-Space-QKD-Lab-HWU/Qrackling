@@ -1,14 +1,14 @@
 classdef mc_boxairmass
     properties
         Tag TagEnum = TagEnum.IsValue
-        on {mustBeNumericOrLogical} = false
+        state {mustBeNumericOrLogical} = false
     end
     methods
-        function mc = mc_boxairmass(varargin)
+        function mc = mc_boxairmass(state)
             arguments
                 state {mustBeNumericOrLogical}
             end
-            mc.on = state;
+            mc.state = state;
         end
     end
 end

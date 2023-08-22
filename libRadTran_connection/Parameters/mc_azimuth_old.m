@@ -1,14 +1,15 @@
 classdef mc_azimuth_old
     properties
         Tag TagEnum = TagEnum.IsValue
-        on {mustBeNumericOrLogical} = false
+        state matlab.lang.OnOffSwitchState
     end
     methods
 
         function mc_old = mc_azimuth_old(state)
             arguments
-                state {mustBeNumericOrLogical}
+                state matlab.lang.OnOffSwitchState = "off"
             end
-            mc_old.on = state;
+            mc_old.state = state;
+        end
     end
 end
