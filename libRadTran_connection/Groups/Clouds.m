@@ -1,4 +1,8 @@
-classdef Clouds
+classdef Clouds < handle
+    properties (SetAccess = protected)
+        lrt_config libRadtran
+    end
+
     properties (SetAccess = protected)
         water_cloud_file wc_file
         water_cloud_modifications wc_modify
@@ -17,7 +21,13 @@ classdef Clouds
     end
 
     methods
-        function c = Clouds()
+        function c = Clouds(options)
+            arguments
+                options.lrtConfiguration libRadtran
+            end
+            if numel(fieldnames(options)) > 0
+                c.lrt_config = options.lrtConfiguration;
+            end
         end
 
         function c = WaterCloudFile(c, type, file)

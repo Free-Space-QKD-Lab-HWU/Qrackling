@@ -1,4 +1,8 @@
-classdef Outputs
+classdef Outputs < handle
+    properties (SetAccess = protected)
+        lrt_config libRadtran
+    end
+
    properties (SetAccess = protected)
         Columns output_user
         Quantity output_quantity
@@ -6,8 +10,15 @@ classdef Outputs
         File output_file
         Format output_format
    end
+
    methods
-        function out = Outputs()
+        function out = Outputs(options)
+            arguments
+                options.lrtConfiguration libRadtran
+            end
+            if numel(fieldnames(options)) > 0
+                out.lrt_config = options.lrtConfiguration;
+            end
         end
 
         function out = OutputColumns(out, label)

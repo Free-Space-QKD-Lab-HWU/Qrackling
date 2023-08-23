@@ -1,4 +1,7 @@
-classdef Mystic
+classdef Mystic < handle
+    properties (SetAccess = protected)
+        lrt_config libRadtran
+    end
     properties
         azimuth_old mc_azimuth_old
         backward_increment mc_backward_increment
@@ -24,8 +27,15 @@ classdef Mystic
         surface_reflectalways mc_surface_reflectalways
         vroom mc_vroom
     end
+
     methods
-        function m = Mystic()
+        function m = Mystic(options)
+            arguments
+                options.lrtConfiguration libRadtran
+            end
+            if numel(fieldnames(options)) > 0
+                m.lrt_config = options.lrtConfiguration;
+            end
         end
 
         function m = AzimuthOld(m, state)

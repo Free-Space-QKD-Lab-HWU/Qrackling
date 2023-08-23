@@ -1,4 +1,8 @@
-classdef Solver
+classdef Solver < handle
+    properties (SetAccess = protected)
+        lrt_config libRadtran
+    end
+
     properties (SetAccess = protected)
         pseudospherical_geometry pseudospherical
         disort_intensity_correction disort_intcor
@@ -21,7 +25,7 @@ classdef Solver
 
     methods
 
-        function s = Solver(label)
+        function s = Solver(label, options)
             arguments
                 label {mustBeMember(label, { ...
                     'disort',     'twostr',      'fdisort1',             ...
@@ -30,8 +34,12 @@ classdef Solver
                     'twomaxrnd',  'twomaxrnd3C', 'twomaxrnd3C_scale_cf', ...
                     'sslidar',    'sos',         'montecarlo',           ...
                     'mystic',     'tzs',         'sss'})}
+                options.lrtConfiguration libRadtran
             end
             s.solver = rte_solver(label);
+            if numel(fieldnames(options)) > 0
+                s.lrt_config = options.lrtConfiguration;
+            end
         end
 
         function rte = Pseudospherical(rte, state)

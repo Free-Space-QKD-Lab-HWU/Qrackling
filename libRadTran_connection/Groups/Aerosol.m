@@ -1,4 +1,8 @@
-classdef Aerosol
+classdef Aerosol < handle
+    properties (SetAccess = protected)
+        lrt_config libRadtran
+    end
+
     properties (SetAccess = protected)
         angstrom aerosol_angstrom
         default aerosol_default
@@ -14,7 +18,13 @@ classdef Aerosol
     end
 
     methods
-        function aer = Aerosol()
+        function aer = Aerosol(options)
+            arguments
+                options.lrtConfiguration libRadtran
+            end
+            if numel(fieldnames(options)) > 0
+                aer.lrt_config = options.lrtConfiguration;
+            end
         end
 
         function aer = Angstrom(aer, alpha, beta)

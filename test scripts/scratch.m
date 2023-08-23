@@ -135,3 +135,19 @@ geo.sensor_latitude
 
 mystic = Mystic()
 mystic.Vroom("on").SurfaceReflectalways("on").Photons(10000).SensorDirection(1, 2, 3)
+
+Solver("disort").DeltaMScaling("on").Streams(10)
+
+lrt = libRadtran()
+[lrt, rte] = lrt.addHandleToSolver()
+rte = rte.DisortIntensityCorrection("phase")
+
+lrt.Solver_Settings
+
+rte = Solver("disort")
+
+clear all
+lrt = libRadtran("disort")
+lrt.GetSettingsHandle("Solver_Settings", true, "NewSolverType", "mystic")
+lrt.Solver_Settings.lrt_config
+

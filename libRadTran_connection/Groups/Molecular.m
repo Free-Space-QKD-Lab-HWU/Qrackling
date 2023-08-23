@@ -1,4 +1,8 @@
-classdef Molecular
+classdef Molecular < handle
+    properties (SetAccess = protected)
+        lrt_config libRadtran
+    end
+
     properties (SetAccess = protected)
         surface_pressure pressure
         pressure_levels pressure_out
@@ -17,7 +21,13 @@ classdef Molecular
     end
 
     methods
-        function mol = Molecular()
+        function mol = Molecular(options)
+            arguments
+                options.lrtConfiguration
+            end
+            if numel(fieldnames(options)) > 0
+                mol.lrt_config = options.lrtConfiguration;
+            end
         end
 
         function mol = Pressure(mol, value)

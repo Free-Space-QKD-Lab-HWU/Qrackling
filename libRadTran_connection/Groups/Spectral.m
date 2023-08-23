@@ -1,4 +1,8 @@
-classdef Spectral
+classdef Spectral < handle
+    properties (SetAccess = protected)
+        lrt_config libRadtran
+    end
+
     properties (SetAccess = protected)
         radiation_source source
         thermal_bands thermal_bands_file
@@ -8,7 +12,13 @@ classdef Spectral
         wavelength_grid wavelength_grid_file
     end
     methods
-        function s = Spectral()
+        function s = Spectral(options)
+            arguments
+                options.lrtConfiguration libRadtran
+            end
+            if numel(fieldnames(options)) > 0
+                s.lrt_config = options.lrtConfiguration;
+            end
         end
 
         function s = RadiationSource(s, type, options)

@@ -1,4 +1,8 @@
-classdef GeneralAtmosphere
+classdef GeneralAtmosphere < handle
+    properties (SetAccess = protected)
+        lrt_config libRadtran
+    end
+
     properties (SetAccess = protected)
         atmosphere atmosphere_file
         disable_absorption no_absorption
@@ -11,7 +15,13 @@ classdef GeneralAtmosphere
     end
 
     methods
-        function g = GeneralAtmosphere()
+        function g = GeneralAtmosphere(options)
+            arguments
+                options.lrtConfiguration
+            end
+            if numel(fieldnames(options)) > 0
+                g.lrt_config = options.lrtConfiguration;
+            end
         end
 
         function g = Atmosphere(g, options)
