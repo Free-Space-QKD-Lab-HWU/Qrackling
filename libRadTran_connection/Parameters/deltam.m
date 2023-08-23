@@ -1,5 +1,5 @@
 classdef deltam
-    properties
+    properties (SetAccess = protected)
         State matlab.lang.OnOffSwitchState
     end
     methods

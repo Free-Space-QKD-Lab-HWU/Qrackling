@@ -132,3 +132,6 @@ mol.CrossSectionModel("o3_Molina")
 geo = Geometry()
 geo = geo.SensorLatitude('N', 45, min=5)
 geo.sensor_latitude
+
+mystic = Mystic()
+mystic.Vroom("on").SurfaceReflectalways("on").Photons(10000).SensorDirection(1, 2, 3)
