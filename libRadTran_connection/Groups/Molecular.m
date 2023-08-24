@@ -27,6 +27,7 @@ classdef Molecular < handle
             end
             if numel(fieldnames(options)) > 0
                 mol.lrt_config = options.lrtConfiguration;
+                options.lrtConfiguration.Molecule_Settings = mol;
             end
         end
 

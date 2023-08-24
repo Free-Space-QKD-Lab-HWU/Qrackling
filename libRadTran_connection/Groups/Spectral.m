@@ -18,6 +18,7 @@ classdef Spectral < handle
             end
             if numel(fieldnames(options)) > 0
                 s.lrt_config = options.lrtConfiguration;
+                options.lrtConfiguration.Spectral_Settings = s;
             end
         end
 

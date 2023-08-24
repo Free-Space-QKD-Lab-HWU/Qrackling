@@ -18,6 +18,7 @@ classdef Outputs < handle
             end
             if numel(fieldnames(options)) > 0
                 out.lrt_config = options.lrtConfiguration;
+                options.lrtConfiguration.Output_Settings = out;
             end
         end
 
@@ -26,7 +27,7 @@ classdef Outputs < handle
                 out Outputs
             end
             arguments (Repeating)
-                label {mustBeMember(label, {                      ...
+                label {mustBeMember(label, { ...
                     'lambda',   'wavenumber', 'sza',    'zout',     ...
                     'edir',     'eglo',       'edn',    'eup',      ...
                     'enet',     'esum',       'uu',     'fdir',     ...
@@ -45,7 +46,6 @@ classdef Outputs < handle
                     'mmr_OCLO', 'vmr_OCLO',   'n_HCHO', 'rho_HCHO', ...
                     'mmr_HCHO', 'vmr_HCHO',   'n_O4',   'rho_O4',   ...
                     'mmr_O4',   'vmr_O4'})}
-
             end
             out.Columns = output_user(label{1:end});
         end

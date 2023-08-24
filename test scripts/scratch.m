@@ -149,5 +149,36 @@ rte = Solver("disort")
 clear all
 lrt = libRadtran("disort")
 lrt.GetSettingsHandle("Solver_Settings", true, "NewSolverType", "mystic")
-lrt.Solver_Settings.lrt_config
+lrt.Solver_Settings.solver
 
+
+clear all
+lrt = libRadtran("disort");
+aer = Aerosol("lrtConfiguration", lrt);
+aer = aer.Haze("Rural");
+lrt.Aerosol_Settings.haze;
+solv = lrt.GetSettingsHandle("Solver_Settings");
+solv.Pseudospherical("on");
+lrt.Solver_Settings.pseudospherical_geometry
+lrt.ConfigString();
+
+lrt.Aerosol_Settings
+
+out = Outputs("lrtConfiguration", lrt) ...
+    .OutputColumns("lambda", "uu");
+lrt.Output_Settings.ConfigString()
+
+clear all
+conf = libRadtran();
+clds = conf.GetCloudsSettings();
+solv = conf.GetSolverSettings();
+
+clear all
+conf = libRadtran();
+outs = conf.GetOutputSettings();
+outs.OutputColumns("lambda", "sza", "edir", "eglo");
+solv = conf.GetSolverSettings();
+solv.Solver("disort");
+general = conf.GetGeneralAtmosphereSettings();
+general.InterpolateZ("on")
+conf.ConfigString()

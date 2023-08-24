@@ -24,6 +24,7 @@ classdef Aerosol < handle
             end
             if numel(fieldnames(options)) > 0
                 aer.lrt_config = options.lrtConfiguration;
+                options.lrtConfiguration.Aerosol_Settings = aer;
             end
         end
 

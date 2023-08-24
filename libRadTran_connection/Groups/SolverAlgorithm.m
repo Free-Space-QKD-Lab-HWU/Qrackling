@@ -1,4 +1,4 @@
-classdef Solver < handle
+classdef SolverAlgorithm < handle
     properties (SetAccess = protected)
         lrt_config libRadtran
     end
@@ -25,8 +25,18 @@ classdef Solver < handle
 
     methods
 
-        function s = Solver(label, options)
+        function s = SolverAlgorithm(options)
             arguments
+                options.lrtConfiguration libRadtran
+            end
+            if numel(fieldnames(options)) > 0
+                s.lrt_config = options.lrtConfiguration;
+            end
+        end
+
+        function s = Solver(s, label)
+            arguments
+                s SolverAlgorithm
                 label {mustBeMember(label, { ...
                     'disort',     'twostr',      'fdisort1',             ...
                     'fdisort2',   'sdisort',     'spsdisort',            ...
@@ -34,17 +44,13 @@ classdef Solver < handle
                     'twomaxrnd',  'twomaxrnd3C', 'twomaxrnd3C_scale_cf', ...
                     'sslidar',    'sos',         'montecarlo',           ...
                     'mystic',     'tzs',         'sss'})}
-                options.lrtConfiguration libRadtran
             end
             s.solver = rte_solver(label);
-            if numel(fieldnames(options)) > 0
-                s.lrt_config = options.lrtConfiguration;
-            end
         end
 
         function rte = Pseudospherical(rte, state)
             arguments
-                rte Solver
+                rte SolverAlgorithm
                 state matlab.lang.OnOffSwitchState
             end
             rte = rte.validFor("disort", "twostr");
@@ -53,7 +59,7 @@ classdef Solver < handle
 
         function rte = DisortIntensityCorrection(rte, val)
             arguments
-                rte Solver
+                rte SolverAlgorithm
                 val {mustBeMember(val, {'phase', 'moments', 'off'})};
             end
             rte = rte.validFor('disort');
@@ -62,7 +68,7 @@ classdef Solver < handle
 
         function rte = TopOfAtmosphereIsotropicIllumination(rte, state)
             arguments
-                rte Solver
+                rte SolverAlgorithm
                 state matlab.lang.OnOffSwitchState
             end
             rte = rte.validFor("disort", "twostr");
@@ -71,7 +77,7 @@ classdef Solver < handle
 
         function rte = RamanScattering(rte, state, options)
             arguments
-                rte Solver
+                rte SolverAlgorithm
                 state matlab.lang.OnOffSwitchState
                 options.label {mustBeMember(options.label, {'original'})}
             end
@@ -85,7 +91,7 @@ classdef Solver < handle
 
         function rte = Streams(rte, n)
             arguments
-                rte Solver
+                rte SolverAlgorithm
                 n {mustBeInteger}
             end
             rte = rte.validFor(["disort", "polradtran"]);
@@ -94,7 +100,7 @@ classdef Solver < handle
 
         function rte = Polradtran(rte, label, value, options)
             arguments
-                rte Solver
+                rte SolverAlgorithm
                 label {mustBeMember(label, {'Gaussian', 'Double Gaussian', ...
                     'Lobatto', 'Extra-angle(s)'})}
                 value {mustBeNumeric}
@@ -105,7 +111,7 @@ classdef Solver < handle
                     mustBeInRange(options.src_code, 0, 3)}
             end
             rte = rte.validFor("polradtran");
-            args = Solver.expandArguments(options);
+            args = SolverAlgorithm.expandArguments(options);
             rte.polradtran_opts = polradtran(args{:});
             rte.quad_type = polradtran_quad_type(label);
             rte.max_delta_tau = polradtran_max_delta_tau(value);
@@ -113,7 +119,7 @@ classdef Solver < handle
 
         function rte = SDisort(rte, label)
             arguments
-                rte Solver
+                rte SolverAlgorithm
                 label {mustBeMember(label, { ...
                     'single scattering', ...
                     'multiple scattering', ...
@@ -127,7 +133,7 @@ classdef Solver < handle
 
         function rte = DeltaMScaling(rte, state)
             arguments
-                rte Solver
+                rte SolverAlgorithm
                 state matlab.lang.OnOffSwitchState
             end
             rte = rte.validFor("disort", "twostr");
@@ -136,7 +142,7 @@ classdef Solver < handle
 
         function rte = SingleScatterinLidar(rte, variable, value, range, state)
             arguments
-                rte Solver
+                rte SolverAlgorithm
                 variable {mustBeMember(variable, {'area', 'E0', 'eff', ...
                     'position', 'range'})}
                 value {mustBeNumeric}
@@ -151,7 +157,7 @@ classdef Solver < handle
 
         function rte = HeightOfBlackBodyClouds(rte, value)
             arguments
-                rte Solver
+                rte SolverAlgorithm
                 value {mustBeNumeric}
             end
             rte = rte.validFor('tzs');
@@ -160,7 +166,7 @@ classdef Solver < handle
 
         function rte = ScaleFactorForCloudFractionSplit(rte, value)
             arguments
-                rte Solver
+                rte SolverAlgorithm
                 value {mustBeNumeric}
             end
             rte = rte.validFor("twomaxrnd3C")
@@ -171,7 +177,7 @@ classdef Solver < handle
     methods (Access = private)
         function s = validFor(s, possible_solvers)
             arguments
-                s Solver
+                s SolverAlgorithm
             end
             arguments (Repeating)
                 possible_solvers {mustBeMember(possible_solvers, { ...

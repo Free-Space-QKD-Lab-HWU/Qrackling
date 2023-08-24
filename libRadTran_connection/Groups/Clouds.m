@@ -27,6 +27,7 @@ classdef Clouds < handle
             end
             if numel(fieldnames(options)) > 0
                 c.lrt_config = options.lrtConfiguration;
+                options.lrtConfiguration.Cloud_Settings = c;
             end
         end
 
