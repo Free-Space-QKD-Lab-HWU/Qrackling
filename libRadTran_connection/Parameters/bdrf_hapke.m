@@ -6,7 +6,7 @@ classdef bdrf_hapke
     methods
         function hapke = bdrf_hapke(var, val)
             arguments
-                var {mustBeMember(var, {'w', 'B0', 'h'}})
+                var {mustBeMember(var, {'w', 'B0', 'h'})}
                 val {mustBeNumeric}
             end
             hapke.Variable = var;

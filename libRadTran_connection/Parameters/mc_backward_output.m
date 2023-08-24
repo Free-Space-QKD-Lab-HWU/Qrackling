@@ -17,14 +17,16 @@ classdef mc_backward_output
                     'W_per_m2_and_dz', 'W_per_m3', 'K_per_day'})}
             end
             outputs.Label = strjoin(unique(cellstr(label)), " ");
-            for f = fieldnames(options)
-                switch f{1}
-                    case "Absorption"
-                        outputs.Label = strjoin([outputs.Label, 'abs', options.(f{1})]);
-                    case "Emission"
-                        outputs.Label = strjoin([outputs.Label, 'emis', options.(f{1})]);
-                    case "Heating"
-                        outputs.Label = strjoin([outputs.Label, 'heat', options.(f{1})]);
+            if numel(fieldnames(options)) > 0
+                for f = fieldnames(options)
+                    switch f{1}
+                        case "Absorption"
+                            outputs.Label = strjoin([outputs.Label, 'abs', options.(f{1})]);
+                        case "Emission"
+                            outputs.Label = strjoin([outputs.Label, 'emis', options.(f{1})]);
+                        case "Heating"
+                            outputs.Label = strjoin([outputs.Label, 'heat', options.(f{1})]);
+                    end
                 end
             end
         end

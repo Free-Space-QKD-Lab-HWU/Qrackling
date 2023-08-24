@@ -251,8 +251,10 @@ classdef libRadtran < handle
                     if isempty(variable)
                         continue
                     end
-                    disp(param_name)
 
+                    if variable == 0.02
+                        error('!!')
+                    end
 
                     type = class(variable);
                     switch type
@@ -260,14 +262,7 @@ classdef libRadtran < handle
                             str = [str, ' ', char(variable)];
                         case 'cell'
                             if numel(variable) > 1
-                                switch class(variable{1})
-                                case 'double'
-                                    str = [str, ' ', num2str(variable{1})];
-                                case 'string'
-                                    str = [str, ' ', char(variable{1})];
-                                otherwise
-                                    str = [str, ' ', strjoin(variable)];
-                                end
+                                str = [str, ' ', strjoin(variable)];
                             else
                                 str = [str, ' ', variable{1}];
                             end
@@ -289,3 +284,4 @@ classdef libRadtran < handle
 
     end
 end
+

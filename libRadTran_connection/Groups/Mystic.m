@@ -2,7 +2,7 @@ classdef Mystic < handle
     properties (SetAccess = protected)
         lrt_config libRadtran
     end
-    properties
+    properties (SetAccess = protected)
         azimuth_old mc_azimuth_old
         backward_increment mc_backward_increment
         backward mc_backward
@@ -64,8 +64,11 @@ classdef Mystic < handle
                 options.stop_y
             end
             args = {};
-            for f = fieldnames(options)
-                args = [args, f{1}, options.(f{1})];
+            fields = fieldnames(options);
+            if numel(fields) > 0
+                for f = fields
+                    args = [args, f{1}, options.(f{1})];
+                end
             end
             m.backward = mc_backward(args{:});
         end
@@ -86,10 +89,13 @@ classdef Mystic < handle
                 options.Heating {mustBeMember(options.Heating, { ...
                     'W_per_m2_and_dz', 'W_per_m3', 'K_per_day'})}
             end
-            optionals = [fieldnames(options), options];
-            index = reshape(1:numel(options), [3, numel(d)/2])';
-            args = [label, optionals(index(1:end))];
-            m.backward_output = mc_backward_output(args{:});
+            args = {label};
+            if numel(fieldnames(options)) > 0
+                optionals = [fieldnames(options), options];
+                index = reshape(1:numel(options), [3, numel(options)/3])';
+                args = [args, optionals(index(1:end))];
+            end
+            m.backward_output = mc_backward_output(label{:});
         end
 
         function m = BackwardWriteback(m, state)

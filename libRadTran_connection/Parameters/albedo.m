@@ -1,6 +1,6 @@
 classdef albedo
     properties (Access = protected)
-        Value {mustBeNumeric, mustBeNonzero, mustBeLessThanOrEqual(Value, 1)}
+        Value
     end
 
     methods
@@ -9,6 +9,7 @@ classdef albedo
                 a {mustBeNumeric, mustBeNonzero, mustBeLessThanOrEqual(a, 1)}
             end
             A.Value = a;
+            disp(A.Value)
         end
     end
 end

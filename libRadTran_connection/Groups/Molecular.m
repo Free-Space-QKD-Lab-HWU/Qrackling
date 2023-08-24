@@ -27,7 +27,6 @@ classdef Molecular < handle
             end
             if numel(fieldnames(options)) > 0
                 mol.lrt_config = options.lrtConfiguration;
-                options.lrtConfiguration.Molecule_Settings = mol;
             end
         end
 
@@ -133,9 +132,10 @@ classdef Molecular < handle
                 column {mustBeNumeric}
                 unit {mustBeMember(unit, {'DU', 'CM_2', 'MM'})}
             end
-            args = [species, column, unit];
-            index = reshape(1:numel(d), [3, numel(d)/3])';
-            args = args(index(1:end));
+            args = {};
+            for i = 1:numel(species)
+                args = [args, species(i), column(i), unit(i)];
+            end
             mol.species_modifications = mol_modify(args{:});
         end
 

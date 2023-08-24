@@ -17,11 +17,10 @@ classdef GeneralAtmosphere < handle
     methods
         function g = GeneralAtmosphere(options)
             arguments
-                options.lrtConfiguration
+                options.lrtConfiguration libRadtran
             end
             if numel(fieldnames(options)) > 0
                 g.lrt_config = options.lrtConfiguration;
-                options.lrtConfiguration.General_Atmosphere_Settings = g;
             end
         end
 

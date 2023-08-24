@@ -1,6 +1,6 @@
 classdef atmosphere_file
 
-    properties
+    properties (SetAccess = protected)
         Label
     end
 

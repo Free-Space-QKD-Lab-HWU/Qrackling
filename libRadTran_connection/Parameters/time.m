@@ -1,23 +1,18 @@
 classdef time
     properties (SetAccess = protected)
-        Year
-        Month
-        Day
-        Hour
-        Minute
-        Second
+        T
     end
     methods
         function t = time(date)
             arguments
                 date {mustBeA(date, 'datetime')}
             end
-            t.Year = date.Year;
-            t.Month = date.Month;
-            t.Day = date.Day;
-            t.Hour = date.Hour;
-            t.Minute = date.Minute;
-            t.Second = date.Second;
+
+            t.T = strjoin({ ...
+                num2str(date.Year), num2str(date.Month), ...
+                num2str(date.Day), num2str(date.Hour), ...
+                num2str(date.Minute), num2str(date.Second), ...
+            }, ' ');
         end
     end
 end

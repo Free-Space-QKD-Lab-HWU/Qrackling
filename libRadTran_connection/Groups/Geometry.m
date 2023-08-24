@@ -1,5 +1,6 @@
-classdef Geometry
+classdef Geometry < handle
     properties (SetAccess = protected)
+        lrt_config libRadtran
         solar_zenith_angle sza
         solar_zenith_angle_file sza_file
         solar_azimuth_angle phi
@@ -9,10 +10,18 @@ classdef Geometry
         sensor_latitude latitude
         sensor_longitude longitude
         day day_of_year
+        simulated_time time
+        output_altitudes zout
     end
 
     methods
-        function g = Geometry()
+        function g = Geometry(options)
+            arguments
+                options.lrtConfiguration libRadtran
+            end
+            if numel(fieldnames(options)) > 0
+                g.lrt_config = options.lrtConfiguration;
+            end
         end
 
         function g = SolarZenithAngle(g, value)
@@ -74,9 +83,11 @@ classdef Geometry
                 options.sec {mustBeNumeric}
             end
             args = {hemisphere, deg};
-            for f = fieldnames(options)
-                disp(f)
-                args = [args, f, options.(f{1})];
+            if numel(fieldnames(options)) > 0
+                for f = fieldnames(options)
+                    disp(f)
+                    args = [args, f, options.(f{1})];
+                end
             end
             g.sensor_latitude = latitude(args{:});
         end
@@ -90,19 +101,37 @@ classdef Geometry
                 options.sec {mustBeNumeric}
             end
             args = {hemisphere, deg};
-            for f = fieldnames(options)
-                disp(f)
-                args = [args, f, options.(f{1})];
+            if numel(fieldnames(options)) > 0
+                for f = fieldnames(options)
+                    disp(f)
+                    args = [args, f, options.(f{1})];
+                end
             end
             g.sensor_longitude = longitude(args{:});
         end
 
-        function g = DayOfYear(g, date)
-            arguments
+        function g = Time(g, t)
+            arguments (Input)
                 g Geometry
-                date {mustBeA(date, 'datetime')}
+                t {mustBeA(t, 'datetime')}
             end
+            g.simulated_time = time(t);
+        end
+
+        function g = DayOfYear(g, date)
+            %arguments
+            %    g Geometry
+            %    date %{mustBeA(date, 'datetime')}
+            %end
             g.day = day_of_year(date);
+        end
+
+        function g = OutputAltitudes(g, altitude)
+            arguments (Input)
+                g Geometry
+                altitude {mustBeNumeric}
+            end
+            g.output_altitudes = zout(altitude);
         end
     end
 end

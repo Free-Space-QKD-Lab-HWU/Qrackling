@@ -1,5 +1,6 @@
-classdef Surfaces
+classdef Surfaces < handle
     properties (SetAccess = protected)
+        lrt_config libRadtran
         altitudes altitude
         surface_albedo albedo
         surface_albedo_file albedo_file
@@ -17,7 +18,13 @@ classdef Surfaces
         bpdf bpdf_tsang_u10
     end
     methods
-        function s = Surfaces()
+        function s = Surfaces(options)
+            arguments
+                options.lrtConfiguration libRadtran
+            end
+            if numel(fieldnames(options)) > 0
+                s.lrt_config = options.lrtConfiguration;
+            end
         end
 
         function s = Altitude(s, A, options)
@@ -33,7 +40,7 @@ classdef Surfaces
             s.altitudes = altitude(A);
         end
 
-        function s = Albedo(s, a)
+        function s = SurfaceAlbedo(s, a)
             arguments
                 s Surfaces
                 a {mustBeNumeric, mustBeNonzero, mustBeLessThanOrEqual(a, 1)}
@@ -112,7 +119,7 @@ classdef Surfaces
         function s = Hapke(s, var, val)
             arguments
                 s Surfaces
-                var {mustBeMember(var, {'w', 'B0', 'h'}})
+                var {mustBeMember(var, {'w', 'B0', 'h'})}
                 val {mustBeNumeric}
             end
             s.hapke = bdrf_hapke(var, val);

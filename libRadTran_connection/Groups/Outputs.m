@@ -75,14 +75,23 @@ classdef Outputs < handle
                 options.File {mustBeText}
                 options.Format {mustBeMember(options.Format, {'ascii', 'flexstor'})}
             end
-            for opt = fieldnames(options)
-                switch opt{1}
-                    case "File"
-                        out.File = output_file(options.File{1:end});
-                    case "Format"
-                        out.Format = output_format(options.Format{1:end});
-                end
+
+            fields = fieldnames(options);
+            if any(contains(fields, 'File'))
+                out.File = output_file(options.File);
             end
+            if any(contains(fields, 'Format'))
+                out.Format = output_format(options.Format);
+            end
+
+            % for opt = fieldnames(options)
+            %     switch opt{1}
+            %         case "File"
+            %             out.File = output_file(options.File{1:end});
+            %         case "Format"
+            %             out.Format = output_format(options.Format{1:end});
+            %     end
+            % end
         end
 
         function str = ConfigString(out)
