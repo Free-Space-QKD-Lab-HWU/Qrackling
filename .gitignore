@@ -5,6 +5,9 @@
 # /test scripts/
 **/SMARTS cache/*
 
+# matlab likes to add a resources folder lets not push it
+resources/
+
 # exclude atmospherics .csv files.
 #these are redundant since they are reformatted into (smaller) .mat files
 **/orbit modelling resources/atmospheric transmittance/varying elevation MODTRAN data 3/**.csv
