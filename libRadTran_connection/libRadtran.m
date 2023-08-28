@@ -190,7 +190,9 @@ classdef libRadtran < handle
                 str = [str, details];
             end
         end
+    end
 
+    methods (Access = private)
 
         function str = GroupString(lrt, group_name)
             arguments
@@ -215,75 +217,79 @@ classdef libRadtran < handle
                     continue
                 end
 
-                props = properties(param);
-                types = cellfun( ...
-                    @(p) class(param.(p)), ...
-                    props, ...
-                    "UniformOutput", false);
+                for i = 1: numel(param)
+                    current_param = param(i);
+                    str = [str, lrt.ParameterString(current_param)];
+                end
+            end
+        end
 
-                hasTag = contains(types, 'TagEnum');
-                hasOnOff = contains(types, 'matlab.lang.OnOffSwitchState');
+        function str = ParameterString(lrt, param)
+            str = '';
+            props = properties(param);
+            types = cellfun( ...
+                @(p) class(param.(p)), ...
+                props, ...
+                "UniformOutput", false);
 
-                if any(hasTag) && any(hasOnOff)
-                    idx = 1:numel(types);
-                    switch_prop = props(idx(hasOnOff));
-                    if param.(switch_prop{1}) == matlab.lang.OnOffSwitchState.on
-                        tag_prop = props(idx(hasTag));
-                        tag = param.(tag_prop{1});
-                        switch tag
-                            case TagEnum.IsCondition
-                                str = [str, newline, class(param)];
-                            case TagEnum.IsValue
-                                disp(class(param))
-                                str = [str, newline, class(param)];
-                            otherwise
-                                error('Unimplemented')
-                        end
-                        %str = [str, newline, class(param)];
+            hasTag = contains(types, 'TagEnum');
+            hasOnOff = contains(types, 'matlab.lang.OnOffSwitchState');
+
+            if any(hasTag) && any(hasOnOff)
+                idx = 1:numel(types);
+                switch_prop = props(idx(hasOnOff));
+                if param.(switch_prop{1}) == matlab.lang.OnOffSwitchState.on
+                    tag_prop = props(idx(hasTag));
+                    tag = param.(tag_prop{1});
+                    switch tag
+                        case TagEnum.IsCondition
+                            str = [str, newline, class(param)];
+                        case TagEnum.IsValue
+                            str = [str, newline, class(param)];
+                        otherwise
+                            error('Unimplemented')
                     end
+                    %str = [str, newline, class(param)];
+                end
+                return
+            end
+
+            str = [str, newline, class(param)];
+            for p = properties(param)'
+                variable = param.(p{1});
+                if isempty(variable)
                     continue
                 end
 
-                str = [str, newline, class(param)];
-                for p = properties(param)'
-
-                    variable = param.(p{1});
-                    if isempty(variable)
-                        continue
-                    end
-                    disp(param_name)
-
-
-                    type = class(variable);
-                    switch type
-                        case 'string'
-                            str = [str, ' ', char(variable)];
-                        case 'cell'
-                            if numel(variable) > 1
-                                switch class(variable{1})
-                                case 'double'
-                                    str = [str, ' ', num2str(variable{1})];
-                                case 'string'
-                                    str = [str, ' ', char(variable{1})];
-                                otherwise
-                                    str = [str, ' ', strjoin(variable)];
-                                end
-                            else
-                                str = [str, ' ', variable{1}];
+                type = class(variable);
+                switch type
+                    case 'string'
+                        str = [str, ' ', char(variable)];
+                    case 'cell'
+                        if numel(variable) >= 1
+                            % need to test here for repeated variables like mol_modify
+                            switch class(variable{1})
+                            case 'double'
+                                str = [str, ' ', num2str(variable{1})];
+                            case 'string'
+                                str = [str, ' ', char(variable{1})];
+                            otherwise
+                                str = [str, ' ', strjoin(variable)];
                             end
-                        case 'double'
-                            str = [str, ' ', num2str(variable)];
-                        case 'char'
-                            str = [str, ' ', variable];
-                        otherwise
-                            disp(group_name)
-                            disp(param_name)
-                            disp(type)
-                            disp(param)
-                            error('Unimplemented')
-                    end
+                        else
+                            str = [str, ' ', variable{1}];
+                        end
+                    case 'double'
+                        str = [str, ' ', num2str(variable)];
+                    case 'char'
+                        str = [str, ' ', variable];
+                    otherwise
+                        disp(group_name)
+                        disp(param_name)
+                        disp(type)
+                        disp(param)
+                        error('Unimplemented')
                 end
-
             end
         end
 

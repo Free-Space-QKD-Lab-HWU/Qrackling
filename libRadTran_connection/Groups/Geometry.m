@@ -62,7 +62,7 @@ classdef Geometry < handle
                 angles {mustBeNumeric}
                 unit Angle
             end
-            cosines = acos(unit.ToRadians(angles));
+            cosines = cosd(unit.ToDegrees(angles));
             g.output_polar_angle_cosines = umu(cosines);
         end
 

@@ -1,5 +1,5 @@
 classdef albedo
-    properties (Access = protected)
+    properties (SetAccess = protected)
         Value
     end
 
@@ -8,8 +8,7 @@ classdef albedo
             arguments
                 a {mustBeNumeric, mustBeNonzero, mustBeLessThanOrEqual(a, 1)}
             end
-            A.Value = a;
-            disp(A.Value)
+            A.Value = num2str(a);
         end
     end
 end

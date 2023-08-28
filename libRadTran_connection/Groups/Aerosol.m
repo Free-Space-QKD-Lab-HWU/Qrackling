@@ -1,9 +1,9 @@
 classdef Aerosol < handle
     properties (SetAccess = protected)
-        lrt_config libRadtran
     end
 
     properties (SetAccess = protected)
+        lrt_config libRadtran
         angstrom aerosol_angstrom
         default aerosol_default
         haze aerosol_haze
@@ -24,7 +24,6 @@ classdef Aerosol < handle
             end
             if numel(fieldnames(options)) > 0
                 aer.lrt_config = options.lrtConfiguration;
-                options.lrtConfiguration.Aerosol_Settings = aer;
             end
         end
 

@@ -195,57 +195,59 @@
 % 
 % atmosphere_file("Default", "tropics")
 
+cosd(90)
+
 %%
 clear all
 lrt = libRadtran();
 
-atm = lrt.GetGeneralAtmosphereSettings();
-atm.Atmosphere("Default", "tropics");
+atm = lrt.GetGeneralAtmosphereSettings() ...
+    .Atmosphere("Default", "tropics");
 
-spec = lrt.GetSpectralSettings();
-spec.RadiationSource("solar", "File",  "~/libRadtran-2.0.4/data/solar_flux/kurudz_1.0nm.dat");
+spec = lrt.GetSpectralSettings() ...
+    .RadiationSource("solar", "File",  "~/libRadtran-2.0.4/data/solar_flux/kurudz_1.0nm.dat");
 
-alb = lrt.GetSurfaceSettings();
-alb.SurfaceAlbedo(0.02); %surface is broken
+alb = lrt.GetSurfaceSettings() ...
+    .SurfaceAlbedo(0.02);
 
-rte = lrt.GetSolverSettings();
-rte.Solver("mystic");
+rte = lrt.GetSolverSettings() ...
+    .Solver("mystic");
 
-mc = lrt.GetMysticsSettings();
-mc.Photons(100000);
-mc.Polarisation("(1) (1,1,0,0)");
-mc.Backward();
-mc.BackwardOutput("edir");
-mc.Basename("~/Documents/MATLAB/lrt/lrt_new");
-mc.Vroom("on");
-mc.RadAlpha(10);
+mc = lrt.GetMysticsSettings() ...
+    .Photons(100000)...
+    .Polarisation("(1) (1,1,0,0)")...
+    .Backward()...
+    .BackwardOutput("edir")...
+    .Basename("~/Documents/MATLAB/lrt/lrt_new")...
+    .Vroom("on")...
+    .RadAlpha(10);
 
-geo = lrt.GetGeometrySettings();
-geo.OutputPolarAngles(90, "Degrees");
-geo.SolarAzimuthAngle(0);
-geo.OutputAltitudes(0);
-geo.Time(datetime("now"));
-geo.SensorLatitude("N", 56.405);
-geo.SensorLongitude("W", 3.183);
+geo = lrt.GetGeometrySettings() ...
+    .OutputPolarAngles(linspace(10, 90, 9), "Degrees")...
+    .SolarAzimuthAngle(0)...
+    .OutputAltitudes(0)...
+    .Time(datetime("now"))...
+    .SensorLatitude("N", 56.405)...
+    .SensorLongitude("W", 3.183);
 
-out = lrt.GetOutputSettings();
-out.OutputColumns("lambda", "zout", "uu", "edir", "eglo", "edn", "eup", "enet", "esum");
-out.OutputQuantity("reflectivity");
-out.PostProcessing("per_nm");
-out.FileAndFormat("File", './spooky.txt');
+out = lrt.GetOutputSettings() ...
+    .OutputColumns("lambda", "zout", "uu", "edir", "eglo", "edn", "eup", "enet", "esum")...
+    .OutputQuantity("reflectivity")...
+    .PostProcessing("per_nm")...
+    .FileAndFormat("File", './spooky.txt');
 
-mol = lrt.GetMoleculeSettings();
-mol.MolecularAbsorption("reptran coarse");
-mol.CrossSectionModel("rayleigh_Bodhaine");
-mol.ModifySpecies("O3", 200, "DU", "H2O", 20, "MM");
+mol = lrt.GetMoleculeSettings()...
+    .MolecularAbsorption("reptran coarse")...
+    .CrossSectionModel("rayleigh_Bodhaine")...
+    .ModifySpecies("O3", 200, "DU", "H2O", 20, "MM");
 
-spec = lrt.GetSpectralSettings();
-spec.WavelengthRange(500, 950);
+spec = lrt.GetSpectralSettings() ...
+    .WavelengthRange(500, 950);
 
-aer = lrt.GetAerosolSettings();
-aer.Season("Spring_Summer");
-aer.Default("on");
-aer.Visibility(50);
+aer = lrt.GetAerosolSettings() ...
+    .Season("Spring_Summer") ...
+    .Default("on") ...
+    .Visibility(50);
 
 config_string = lrt.ConfigString();
 disp(char(config_string))

@@ -13,7 +13,7 @@ debug = false;
 %startTime = datetime(2020,6,02,18,43,16);
 tleraw = readlines("threeSatelliteConstellation.tle");
 tlestr = sprintf('%s', join(tleraw(1:3), newline))
-startTime = utils().tleStartTime(tlestr);
+startTime = utils.tleStartTime(tlestr);
 stopTime = startTime + hours(5);
 sampleTime = 360;
 %sampleTime = 6;
@@ -66,12 +66,12 @@ tle = sprintf([...
 '2 07530 101.9048 168.4749 0012358   5.5276 108.6298 12.53655723179980' ...
     ]);
 
-startTime = utils().tleStartTime(tle);
+startTime = utils.tleStartTime(tle);
 stopTime = startTime + hours(5);
 sampleTime = 360;
 
-[name, kepler_elements] = utils().TLE2Kepler(TLE=tle);
-[sma, ecc, inc, raan, aop, ta] = utils().splat(kepler_elements);
+[name, kepler_elements] = utils.TLE2Kepler(TLE=tle);
+[sma, ecc, inc, raan, aop, ta] = utils.splat(kepler_elements);
 
 [constellation, scene] = Constellation(BB84_S, ...
                               Receiver_Telescope, ...
@@ -112,13 +112,13 @@ tle_4lines = sprintf([...
 
 splits = strsplit(tle_4lines, newline);
 j = join(splits(1:3), newline)
-startTime = utils().tleStartTime(j{1});
+startTime = utils.tleStartTime(j{1});
 stopTime = startTime + hours(5);
 sampleTime = 360;
 
-[names, kepler_elements] = utils().TLE2Kepler(TLE=tle_4lines);
+[names, kepler_elements] = utils.TLE2Kepler(TLE=tle_4lines);
 
-[sma, ecc, inc, raan, aop, ta] = utils().splat(kepler_elements);
+[sma, ecc, inc, raan, aop, ta] = utils.splat(kepler_elements);
 
 
 [constellation, scene] = Constellation(BB84_S, ...
@@ -162,7 +162,7 @@ strsplit(sprintf('%s', tledata(1:end-1)), '\n')
 disp(tledata)
 
 tledata
-[name, ke] = utils().TLE2Kepler(TLE=tledata)
+[name, ke] = utils.TLE2Kepler(TLE=tledata)
 
 tledata(1:3)
 sprintf('%s', [tledata(1), newline, tledata(2), newline, tledata(3)])

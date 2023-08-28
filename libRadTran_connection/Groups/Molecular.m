@@ -132,11 +132,10 @@ classdef Molecular < handle
                 column {mustBeNumeric}
                 unit {mustBeMember(unit, {'DU', 'CM_2', 'MM'})}
             end
-            args = {};
             for i = 1:numel(species)
-                args = [args, species(i), column(i), unit(i)];
+                new_molecule = mol_modify(species{i}, column{i}, unit{i});
+                mol.species_modifications = [mol.species_modifications, new_molecule];
             end
-            mol.species_modifications = mol_modify(args{:});
         end
 
         function mol = OpticalDepthFile(mol, kind, file)

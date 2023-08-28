@@ -124,7 +124,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
                 Satellite.Name = p.Results.Name;
             end
 
-            if (0 > utils().nan_present(p.Results.OrbitDataFileLocation, ...
+            if (0 > utils.nan_present(p.Results.OrbitDataFileLocation, ...
                     p.Results.scenario, ...
                     p.Results.ToolBoxSatellite, ...
                     p.Results.TLE, ...
@@ -346,7 +346,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
                 % kepler elements rather than TLE data
 
                 [sma, ecc, inc, raan, aop, ta] = ...
-                        utils().splat(p.Results.KeplerElements);
+                        utils.splat(p.Results.KeplerElements);
 
                 sc_sat = satellite(p.Results.scenario, sma, ecc, inc, ...
                                    raan, aop, ta, "Name", Satellite.Name, ...
@@ -366,7 +366,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             % Since we work in the East-North-Up coordinate frame we need to 
             % change the format of the velocities from NED to ENU.
             % See 'basic classes/utils.m for details.
-            velocity_enu = utils().ned2enu(velocity);
+            velocity_enu = utils.ned2enu(velocity);
             vE = velocity_enu(1, :);
             vN = velocity_enu(2, :);
             vU = velocity_enu(3, :);
