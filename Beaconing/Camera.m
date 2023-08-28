@@ -32,35 +32,67 @@ classdef Camera
         c=2.998E8;                                                              %speed of light in m/s
     end
     methods
-        function C = Camera(Telescope,varargin)
+        function C = Camera(telescope, Quantum_Efficiency, Exposure_Time, ...
+                Spectral_Filter_Width, Detector_Diameter, Focal_Length, ...
+                Readout_Noise, Dark_Current, Full_Well_Capacity, ...
+                Wavelength, Pixels)
             %CAMERA Construct an instance of a beacon camera
-            
             %% using inputParser
-            p=inputParser();
-            addRequired(p,'Telescope');
-            addParameter(p,'Quantum_Efficiency',1);
-            addParameter(p,'Exposure_Time', 0.001);
-            addParameter(p,'Spectral_Filter_Width',10);
-            addParameter(p,'Detector_Diameter',1);
-            addParameter(p,'Focal_Length',0.03);
-            addParameter(p,'Readout_Noise', 1.3E-11);
-            addParameter(p,'Dark_Current', 0);
-            addParameter(p,'Full_Well_Capacity',2E-9);
-            addParameter(p,'Wavelength',Telescope.Wavelength);
-            addParameter(p,'Pixels',[1080,1080]);
-            parse(p,Telescope,varargin{:})
+            arguments
+                telescope Telescope
+                Quantum_Efficiency = 1
+                Exposure_Time =  0.001
+                Spectral_Filter_Width = 10
+                Detector_Diameter = 1
+                Focal_Length = 0.03
+                Readout_Noise =  1.3E-11
+                Dark_Current =  0
+                Full_Well_Capacity = 2E-9
+                Wavelength = telescope.Wavelength
+                Pixels = [1080,1080]
+            end
             %get outputs
-            C.Telescope = SetWavelength(p.Results.Telescope,p.Results.Wavelength);%make sure telescope has input wavelength
-            C.Quantum_Efficiency = p.Results.Quantum_Efficiency;
-            C.Exposure_Time = p.Results.Exposure_Time;
-            C.Spectral_Filter_Width = p.Results.Spectral_Filter_Width;
-            C.Detector_Diameter = p.Results.Detector_Diameter;
-            C.Focal_Length = p.Results.Focal_Length;
-            C.Readout_Noise = p.Results.Readout_Noise;
-            C.Dark_Current_Noise = p.Results.Dark_Current;
-            C.Full_Well_Capacity = p.Results.Full_Well_Capacity;
-            C.Pixels = p.Results.Pixels;
+            C.Telescope = SetWavelength(telescope,Wavelength);%make sure telescope has input wavelength
+            C.Quantum_Efficiency = Quantum_Efficiency;
+            C.Exposure_Time = Exposure_Time;
+            C.Spectral_Filter_Width = Spectral_Filter_Width;
+            C.Detector_Diameter = Detector_Diameter;
+            C.Focal_Length = Focal_Length;
+            C.Readout_Noise = Readout_Noise;
+            C.Dark_Current_Noise = Dark_Current;
+            C.Full_Well_Capacity = Full_Well_Capacity;
+            C.Pixels = Pixels;
         end
+
+        %function C = Camera(Telescope,varargin)
+        %    %CAMERA Construct an instance of a beacon camera
+        %    
+        %    %% using inputParser
+        %    p=inputParser();
+        %    addRequired(p,'Telescope');
+        %    addParameter(p,'Quantum_Efficiency',1);
+        %    addParameter(p,'Exposure_Time', 0.001);
+        %    addParameter(p,'Spectral_Filter_Width',10);
+        %    addParameter(p,'Detector_Diameter',1);
+        %    addParameter(p,'Focal_Length',0.03);
+        %    addParameter(p,'Readout_Noise', 1.3E-11);
+        %    addParameter(p,'Dark_Current', 0);
+        %    addParameter(p,'Full_Well_Capacity',2E-9);
+        %    addParameter(p,'Wavelength',Telescope.Wavelength);
+        %    addParameter(p,'Pixels',[1080,1080]);
+        %    parse(p,Telescope,varargin{:})
+        %    %get outputs
+        %    C.Telescope = SetWavelength(p.Results.Telescope,p.Results.Wavelength);%make sure telescope has input wavelength
+        %    C.Quantum_Efficiency = p.Results.Quantum_Efficiency;
+        %    C.Exposure_Time = p.Results.Exposure_Time;
+        %    C.Spectral_Filter_Width = p.Results.Spectral_Filter_Width;
+        %    C.Detector_Diameter = p.Results.Detector_Diameter;
+        %    C.Focal_Length = p.Results.Focal_Length;
+        %    C.Readout_Noise = p.Results.Readout_Noise;
+        %    C.Dark_Current_Noise = p.Results.Dark_Current;
+        %    C.Full_Well_Capacity = p.Results.Full_Well_Capacity;
+        %    C.Pixels = p.Results.Pixels;
+        %end
 
         function Collecting_Area = get.Collecting_Area(Camera)
             %%GETCOLLECTINGAREA overload get function to get collecting area
