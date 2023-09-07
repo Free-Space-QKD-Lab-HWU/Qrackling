@@ -5,7 +5,6 @@
 %% 1. Choose parameters
 Wavelength=780;                                                            %wavelength is measured in nm
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
-OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                              %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
 Receiver_Telescope_Diameter=1;                                           
 Time_Gate_Width=1E-10;                                                      %times are measured in s
 Spectral_Filter_Width=1;                                                  %consistemt with wavelength, spectral width is measured in nm
@@ -23,9 +22,20 @@ Transmitter_Source=Source(Wavelength,...
 Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
 
 %2.1.3 Construct satellite
+StartTime = datetime(2022,12,25,6,0,0);
+StopTime = datetime(2022,12,25,7,0,0);
+        SampleTime = 0.01;
 SimSatellite=Satellite(Transmitter_Telescope,...
                         'Source',Transmitter_Source,...
-                        'OrbitDataFileLocation',OrbitDataFileLocation);
+                        'SemiMajorAxis',600E3 + earthRadius,...             %mean orbital radius = Altitude + Earth radius
+                        'eccentricity',0,...                                %measure of ellipticity of the orbit, for circular, =0
+                        'inclination',9.7065055549e+01,...                  %inclination of orbit in deg- set by sun synchronicity
+                        'rightAscensionOfAscendingNode',-1.5,...            %measure of location of orbit in longitude
+                        'argumentOfPeriapsis',0,...                         %measurement of location of ellipse nature of orbit in longitude, irrelevant for circular orbits
+                        'trueAnomaly',0,...                                 %initial position through orbit of satellite
+                        'StartTime',StartTime,...                           %start of simulation
+                        'StopTime',StopTime,...                             %end of simulation
+                        'sampleTime',SampleTime);                           %simulation interval in s
 
 %2.2 Ground station
 %2.2.1 Detector

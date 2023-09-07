@@ -135,7 +135,7 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
             Turb=Turb(Plot_Select_Flags)';
             Atmos=Atmos(Plot_Select_Flags)';
 
-            area(X_Axis(Plot_Select_Flags),[Geo,Eff,APT,Turb,Atmos]);
+            area(X_Axis(Plot_Select_Flags)',[Geo,Eff,APT,Turb,Atmos]);
             xlabel('Time (s)')
             ylabel('Losses (dB)')
 

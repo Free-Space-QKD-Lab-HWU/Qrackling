@@ -56,13 +56,41 @@ classdef (Abstract) QKD_Receiver < Optical_Node
                 error('one of transmitter or receiver must be a satellite')
             end
             %differentiate wrt time
-            Doppler_Velocity = Distances(2:end)-Distances(1:end-1)./seconds(Times(2:end)-Times(1:end-1));
+            Doppler_Velocity = (Distances(2:end)-Distances(1:end-1))./seconds(Times(2:end)-Times(1:end-1));
             %append last result to fill end slot
             Doppler_Velocity = [Doppler_Velocity,Doppler_Velocity(end)];
 
             %% use this to modify wavelength
             Received_Wavelengths = (1+Doppler_Velocity/c)*QKD_Transmitter.Source.Wavelength;
         end
+
+        function Phi = ComputeMotionPhaseShift(QKD_Receiver,QKD_Transmitter)
+            %%MOTIONPHASESHIFT compute the phase shift which relative
+            %%motion between transmitter and receiver causes between pulses
+           
+            c=2.998E8;%speed of light
+            Wavelength = QKD_Transmitter.Source.Wavelength*1E-9;
+            Rep_Rate = QKD_Transmitter.Source.Repetition_Rate;
+
+            % get distance between receiver and transmitter over time
+            Distances = ComputeDistanceBetween(QKD_Receiver,QKD_Transmitter);
+            %get time stamps
+            if isa(QKD_Receiver,'Satellite')
+                Times = QKD_Receiver.Times;
+            elseif isa(QKD_Transmitter,'Satellite')
+                Times = QKD_Transmitter.Times;
+            else
+                error('one of transmitter or receiver must be a satellite')
+            end
+            %differentiate wrt time
+            Relative_Velocity = (Distances(2:end)-Distances(1:end-1))./seconds(Times(2:end)-Times(1:end-1));
+            %append last result to fill end slot
+            Relative_Velocity = [Relative_Velocity,Relative_Velocity(end)];
+
+            %% compute phase shift
+            Phi = -2*pi*(c/(Wavelength*Rep_Rate))*(Relative_Velocity./(Relative_Velocity+c));
+        end
+
     
         function Visibility = ComputeVisibility(QKD_Receiver,QKD_Transmitter)
             %%COMPUTEVISIBILITY compute the visibility of an interferometer
@@ -74,9 +102,13 @@ classdef (Abstract) QKD_Receiver < Optical_Node
             %% Doppler shift
             Received_Wavelengths = DopplerShift(QKD_Receiver,QKD_Transmitter);
             delta_Wavelengths = Received_Wavelengths-QKD_Transmitter.Source.Wavelength;
-            Received_Phase_Offset = 2*pi*delta_Wavelengths*c/(QKD_Transmitter.Source.Repetition_Rate*(QKD_Transmitter.Source.Wavelength*1E-9)^2);
+
+
+            %% phase difference induced by moving between pulses
+            Phi = ComputeMotionPhaseShift(QKD_Receiver,QKD_Transmitter);
 
             %% compute visibility
+            Received_Phase_Offset = 2*pi*delta_Wavelengths*c/(QKD_Transmitter.Source.Repetition_Rate*(QKD_Transmitter.Source.Wavelength*1E-9)^2) + Phi;
             Visibility = abs(cos(Received_Phase_Offset)-cos(Received_Phase_Offset+pi))./(2+cos(Received_Phase_Offset)+cos(Received_Phase_Offset+pi));
         end
     end
