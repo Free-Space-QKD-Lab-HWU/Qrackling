@@ -6,7 +6,12 @@ classdef utils
             % East-Down coordinate system when we ask it for positions in LLA.
             % As such it would be convenient to convert these to NED coords to
             % ENU since this is what is already in use in the Located_Object
-            [n, e, d] = utils.splat(ned');
+            disp(size(ned));
+            disp(size(ned(1, :)))
+            %[n, e, d] = utils.splat(ned');
+            n = ned(1, :);
+            e = ned(2, :);
+            d = ned(3, :);
             enu = [e', n', -d']';
         end
 
@@ -187,9 +192,10 @@ classdef utils
 
         function l = lengths(varargin)
             n = nargin;
+            disp(n)
             l = zeros(1, n);
             for i = 1: n
-                l(i) = numel(varargin{i+1});
+                l(i) = numel(varargin{i});
             end
         end
 
@@ -202,32 +208,33 @@ classdef utils
                 error('Too many input arguments, %d', n_in);
             end
 
-            elements = numel(varargin{2});
+            elements = numel(varargin{1});
 
             if elements == 0
                 error('Nothing to splat')
                 return
             end
 
-            if n_out > elements
-                error('Splatting up to element %d', n_out);
-            end
+            % if n_out > elements
+            %     error('Splatting up to element %d', n_out);
+            % end
 
-            if is_1dim(utils, varargin{2})
+            if utils.is_1dim(utils, varargin{1})
                 for i = 1 : n_out
-                    varargout(i) = {varargin{2}(i)};
+                    varargout(i) = {varargin{1}(i)};
                 end
             else
-                major = major_axis(utils, varargin{2});
+                major = major_axis(utils, varargin{1});
                 if strcmp(major, 'y')
                     for i = 1 : n_out
-                        varargout(i) = {varargin{2}(i,:)};
+                        varargout(i) = {varargin{1}(i,:)};
                     end
                 else
                     for i = 1 : n_out
-                        temp = varargin{2}(:,i);
-                        if is_1dim(utils, temp)
-                            [xdim, ydim] = size(temp);
+                        temp = varargin{1}(:,i);
+                        if utils.is_1dim(utils, temp)
+                            %[xdim, ydim] = size(temp);
+                            [xdim, ~] = size(temp);
                             if ~(xdim == 1)
                                 varargout(i) = {temp'};
                             else

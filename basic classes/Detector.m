@@ -40,10 +40,10 @@ classdef  Detector
         Dead_Time double;
 
         Efficiencies
-        Efficiency{ ...
+        Detection_Efficiency{ ...
             mustBeScalarOrEmpty, ...
             mustBePositive, ...
-            mustBeLessThanOrEqual(Efficiency, 1)};
+            mustBeLessThanOrEqual(Detection_Efficiency, 1)};
 
         %rate at which eroneous counts occur
         Dark_Count_Rate{mustBeNonnegative,mustBeScalarOrEmpty};
@@ -398,7 +398,7 @@ classdef  Detector
                 'Either "Efficiency" or "Wavelength" should supplied not both');
 
             if contains(fields, 'Efficiency')
-                Det.Efficiency = options.Efficiency;
+                Det.Detection_Efficiency = options.Efficiency;
                 return
             end
 
@@ -414,7 +414,7 @@ classdef  Detector
                 Det = Det.SetWavelength(options.Wavelength);
 
                 pw_poly = interp1(Det.Wavelength_Range, Det.Efficiencies, 'cubic', 'pp');
-                Det.Efficiency = ppval(pw_poly, options.Wavelength);
+                Det.Detection_Efficiency = ppval(pw_poly, options.Wavelength);
             end
 
         end

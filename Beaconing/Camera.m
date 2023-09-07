@@ -14,7 +14,8 @@ classdef Camera
         Collecting_Area (1,1) double {mustBeNonnegative}                        %the optics area which collects beacon light, usually the telescope effective area
         Detector_Diameter (1,1) double {mustBeNonnegative}=0.001                %the physical size of the camera's detector area
         Focal_Length (1,1) double {mustBeNonnegative}=0.0125;                   %focal length (in m) of the lens focussing onto the camera's sensor
-        Quantum_Efficiency (1,1) double {mustBeNonnegative,mustBeLessThanOrEqual(Quantum_Efficiency,1)}=1; %the efficiency of the camera at collecting beacon light which arrives on a pixel
+        %Quantum_Efficiency (1,1) double {mustBeNonnegative,mustBeLessThanOrEqual(Quantum_Efficiency,1)}=1; %the efficiency of the camera at collecting beacon light which arrives on a pixel
+        Quantum_Efficiency  double {mustBeNonnegative,mustBeLessThanOrEqual(Quantum_Efficiency,1)}=1; %the efficiency of the camera at collecting beacon light which arrives on a pixel
         Exposure_Time (1,1) double {mustBePositive} = 1;                        %exposure time for operation of the camera in s
         Wavelength (1,1) double {mustBeScalarOrEmpty}
 
@@ -32,36 +33,52 @@ classdef Camera
         c=2.998E8;                                                              %speed of light in m/s
     end
     methods
-        function C = Camera(telescope, Quantum_Efficiency, Exposure_Time, ...
-                Spectral_Filter_Width, Detector_Diameter, Focal_Length, ...
-                Readout_Noise, Dark_Current, Full_Well_Capacity, ...
-                Wavelength, Pixels)
+        % function C = Camera(telescope, Quantum_Efficiency, Exposure_Time, ...
+        %         Spectral_Filter_Width, Detector_Diameter, Focal_Length, ...
+        %         Readout_Noise, Dark_Current, Full_Well_Capacity, ...
+        %         Wavelength, Pixels)
+        function C = Camera(telescope, options)
             %CAMERA Construct an instance of a beacon camera
             %% using inputParser
+            % arguments
+            %     telescope Telescope
+            %     Quantum_Efficiency = 1
+            %     Exposure_Time =  0.001
+            %     Spectral_Filter_Width = 10
+            %     Detector_Diameter = 1
+            %     Focal_Length = 0.03
+            %     Readout_Noise =  1.3E-11
+            %     Dark_Current =  0
+            %     Full_Well_Capacity = 2E-9
+            %     Wavelength = telescope.Wavelength
+            %     Pixels = [1080,1080]
+            % end
             arguments
                 telescope Telescope
-                Quantum_Efficiency = 1
-                Exposure_Time =  0.001
-                Spectral_Filter_Width = 10
-                Detector_Diameter = 1
-                Focal_Length = 0.03
-                Readout_Noise =  1.3E-11
-                Dark_Current =  0
-                Full_Well_Capacity = 2E-9
-                Wavelength = telescope.Wavelength
-                Pixels = [1080,1080]
+                options.Quantum_Efficiency = 1
+                options.Exposure_Time =  0.001
+                options.Spectral_Filter_Width = 10
+                options.Detector_Diameter = 1
+                options.Focal_Length = 0.03
+                options.Readout_Noise =  1.3E-11
+                options.Dark_Current =  0
+                options.Full_Well_Capacity = 2E-9
+                options.Wavelength = telescope.Wavelength
+                options.Pixels = [1080,1080]
             end
+
             %get outputs
-            C.Telescope = SetWavelength(telescope,Wavelength);%make sure telescope has input wavelength
-            C.Quantum_Efficiency = Quantum_Efficiency;
-            C.Exposure_Time = Exposure_Time;
-            C.Spectral_Filter_Width = Spectral_Filter_Width;
-            C.Detector_Diameter = Detector_Diameter;
-            C.Focal_Length = Focal_Length;
-            C.Readout_Noise = Readout_Noise;
-            C.Dark_Current_Noise = Dark_Current;
-            C.Full_Well_Capacity = Full_Well_Capacity;
-            C.Pixels = Pixels;
+            %C.Telescope = SetWavelength(telescope,Wavelength);%make sure telescope has input wavelength
+            C.Telescope = telescope.SetWavelength(options.Wavelength) ;%make sure telescope has input wavelength
+            C.Quantum_Efficiency = options.Quantum_Efficiency;
+            C.Exposure_Time = options.Exposure_Time;
+            C.Spectral_Filter_Width = options.Spectral_Filter_Width;
+            C.Detector_Diameter = options.Detector_Diameter;
+            C.Focal_Length = options.Focal_Length;
+            C.Readout_Noise = options.Readout_Noise;
+            C.Dark_Current_Noise = options.Dark_Current;
+            C.Full_Well_Capacity = options.Full_Well_Capacity;
+            C.Pixels = options.Pixels;
         end
 
         %function C = Camera(Telescope,varargin)

@@ -27,7 +27,7 @@ classdef libRadtran < handle
             end
         end
 
-        function aerosol = GetAerosolSettings(lrt)
+        function aerosol = AerosolSettings(lrt)
             arguments (Output)
                 aerosol Aerosol
             end
@@ -37,7 +37,7 @@ classdef libRadtran < handle
             aerosol = lrt.Aerosol_Settings;
         end
 
-        function clouds = GetCloudsSettings(lrt)
+        function clouds = CloudsSettings(lrt)
             arguments (Output)
                 clouds Clouds
             end
@@ -47,7 +47,7 @@ classdef libRadtran < handle
             clouds = lrt.Cloud_Settings;
         end
 
-        function general = GetGeneralAtmosphereSettings(lrt)
+        function general = GeneralAtmosphereSettings(lrt)
             arguments (Output)
                 general GeneralAtmosphere
             end
@@ -57,7 +57,7 @@ classdef libRadtran < handle
             general = lrt.General_Atmosphere_Settings;
         end
 
-        function geo = GetGeometrySettings(lrt)
+        function geo = GeometrySettings(lrt)
             arguments (Output)
                 geo Geometry
             end
@@ -67,7 +67,7 @@ classdef libRadtran < handle
             geo = lrt.Geometry_Settings;
         end
 
-        function mol = GetMoleculeSettings(lrt)
+        function mol = MoleculeSettings(lrt)
             arguments (Input)
                 lrt
             end
@@ -80,7 +80,7 @@ classdef libRadtran < handle
             mol = lrt.Molecule_Settings;
         end
 
-        function s = GetSurfaceSettings(lrt)
+        function s = SurfaceSettings(lrt)
             arguments (Input)
                 lrt libRadtran
             end
@@ -93,7 +93,7 @@ classdef libRadtran < handle
             s = lrt.Surface_Settings;
         end
 
-        function mc = GetMysticsSettings(lrt)
+        function mc = MysticsSettings(lrt)
             arguments (Input)
                 lrt libRadtran
             end
@@ -106,7 +106,7 @@ classdef libRadtran < handle
             mc = lrt.Mystic_Settings;
         end
 
-        function spectral = GetSpectralSettings(lrt)
+        function spectral = SpectralSettings(lrt)
             arguments (Input)
                 lrt
             end
@@ -119,7 +119,7 @@ classdef libRadtran < handle
             spectral = lrt.Spectral_Settings;
         end
 
-        function solver = GetSolverSettings(lrt)
+        function solver = SolverSettings(lrt)
             arguments (Output)
                 solver SolverAlgorithm
             end
@@ -129,7 +129,7 @@ classdef libRadtran < handle
             solver = lrt.Solver_Settings;
         end
 
-        function outputs = GetOutputSettings(lrt)
+        function outputs = OutputSettings(lrt)
             arguments (Input)
                 lrt libRadtran
             end

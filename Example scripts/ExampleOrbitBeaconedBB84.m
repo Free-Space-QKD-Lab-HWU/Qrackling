@@ -7,12 +7,14 @@
 Wavelength=850;                                                            %wavelength is measured in nm
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
 OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                                %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
+OrbitDataFileLocation = '100kmSSOrbitLLAT.txt';
 Receiver_Telescope_Diameter=1;                                           
 Time_Gate_Width=1E-9;                                                      %times are measured in s
 Spectral_Filter_Width=10;                                                  %consistemt with wavelength, spectral width is measured in nm
 
 Beacon_Power = 1;                                                           %beacon power in W
 Beacon_Wavelength = 650;                                                    %beacon wavelength in nm
+Beacon_Wavelength = 800;                                                    %beacon wavelength in nm
 OGS_Camera_Scope_Diameter = 0.1;                                                %camera telescope diameter in m
 %% 2. Construct components
 
@@ -27,14 +29,15 @@ Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do n
 Downlink_Beacon = Gaussian_Beacon(Transmitter_Telescope,Beacon_Power,Beacon_Wavelength);
 
 %2.1.4 add a beacon camera to the satellite
-Uplink_Cam = Camera(Transmitter_Telescope,'Wavelength',Beacon_Wavelength);
+Uplink_Cam = Camera(Transmitter_Telescope, ...
+    "Wavelength", Beacon_Wavelength);
 
 %2.1.5 Construct satellite
 SimSatellite=Satellite(Transmitter_Telescope,...
-                        'OrbitDataFileLocation',OrbitDataFileLocation,...
-                        'Source',Transmitter_Source,...
-                        'Beacon',Downlink_Beacon,...
-                        'Camera',Uplink_Cam);
+    'OrbitDataFileLocation',OrbitDataFileLocation,...
+    'Source',Transmitter_Source,...
+    'Beacon',Downlink_Beacon,...
+    'Camera',Uplink_Cam);
 
 %2.2 Ground station
 %2.2.1 Detector
@@ -69,7 +72,7 @@ BB84_protocol=Protocol.BB84;
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'Visibility','20km');
+Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'Visibility','50km');
 
 %3.2 run simulation
 Pass=Simulate(Pass);

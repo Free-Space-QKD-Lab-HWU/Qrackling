@@ -234,7 +234,8 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
                 Satellite.Detector.Wavelength);
             else
-                error('must provide either a source or detector')
+                %error('must provide either a source or detector')
+                warning('must provide either a source or detector')
             end
 
 
@@ -319,7 +320,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
 
                 % First case: we have been supplied with only a satCommsToolbox
                 % satellite object, get its position, velocity and time 
-                
+
                 [position, velocity, t] = states(p.Results.satCommsSatellite, ...
                                             'CoordinateFrame', 'geographic');
                 Satellite.Name = p.Results.satCommsSatellite.Name;

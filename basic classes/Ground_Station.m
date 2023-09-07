@@ -559,12 +559,8 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
                 Ground_Station, Background_Sources, Satellite, ...
                 Headings, Elevations, SMARTS_Configuration)
 
-            % need a atmosphere_type enum or something similar
-            % "Background_Sources" used for reflected counts.
-
             % COMPUTETOTALBACKGROUNDCOUNTRATE return the total count rate
             % at the given headings and elevations
-
             %% find light pollution count rate for given headings and elevations
             %if a SMARTS config is provided, use SMARTS for this calculation
 
@@ -776,7 +772,13 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             % PLOTBACKGROUNDCOUNTRATES plot the background count rates
             % affecting the ground station
 
-            area(X_Axis(Plotting_Indices), ...
+            disp(size(Ground_Station.Dark_Count_Rates(Plotting_Indices)'))
+            disp(size(Ground_Station.Reflection_Count_Rates(Plotting_Indices)'))
+            disp(size(Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)'))
+            disp(size(Ground_Station.Directed_Count_Rates(Plotting_Indices)'))
+            disp(size(X_Axis(Plotting_Indices)))
+
+            area(X_Axis(Plotting_Indices)', ...
                 [Ground_Station.Dark_Count_Rates(Plotting_Indices)', ...
                 Ground_Station.Reflection_Count_Rates(Plotting_Indices)', ...
                 Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)', ...

@@ -30,8 +30,6 @@ end
     methods (Access=protected)
         function [Link_Models,Geo_Spot_Size]=SetGeometricLoss(Link_Models,Satellite,Ground_Station)
             %%SETGEOMETRICLOSS set the geometric loss in a link model array
-
-
             %% geometric loss
             %Link loss analysis for a satellite quantum communication down-link Chunmei Zhang*, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller, Ross J. Donaldson
             % disp(numel(Link_Models.Length));

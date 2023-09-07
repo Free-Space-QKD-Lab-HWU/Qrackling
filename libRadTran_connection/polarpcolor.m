@@ -1,20 +1,38 @@
-function varargout = polarpcolor(Theta, R, Z)
+function varargout = polarpcolor(Theta, R, Z, options)
+    arguments
+        Theta {mustBeNumeric}
+        R {mustBeNumeric}
+        Z {mustBeNumeric}
+        options.TotalRings {mustBeInteger} = 3
+        options.TotalSpokes {mustBeInteger} = 8
+        options.normalisation {mustBeMember( ...
+        options.normalisation, {'linear', 'logarithmic'})} = 'linear'
+        options.SpokePositions {mustBeNumeric} = nan
+        options.Title {mustBeTextScalar} = ''
+        options.Colourbar {mustBeNumericOrLogical} = true,
+        options.ColourBarLabel {mustBeTextScalar} = ''
+        options.Interpreter {mustBeMember( ...
+        options.Interpreter, {'tex', 'latex', 'none'})} = 'tex'
+        options.Offset {mustBeNumeric} = 0
+        options.Normalisation = [];
+    end
+
     [r_min, r_max] = extrema(R);
     [t_min, t_max] = extrema(Theta);
 
-    n_rings = 5;
-    n_spokes = 8;
-    r_scale = 'linear';
+    n_rings = options.TotalRings + 2;
+    n_spokes = options.TotalSpokes;
+    % r_scale = 'linear';
+    r_scale = options.normalisation;
 
     ring_ticks = {};
-    ring_tick_labels = {};
     ring_tick_labels = linspace(0, 90, n_rings-1);
 
     ring_position = [];
 
-    origin = defineOrigin(true, r_scale, r_min, r_max);
+    origin = defineOrigin(true, r_scale, r_min);
     [ring_position, n_rings] = defineRings( ...
-        ring_position, n_rings, ring_ticks, ring_tick_labels, r_min, r_max);
+        ring_position, n_rings, ring_ticks, ring_tick_labels, r_min);
 
     if isempty(ring_position)
         ring_position = linspace(r_min, r_max, n_rings);
@@ -27,37 +45,68 @@ function varargout = polarpcolor(Theta, R, Z)
 
     [RR, TT] = meshgrid(r_norm, theta);
 
-    img = pcolor(RR.*cosd(TT), RR.*sind(TT), Z);
+    [~] = pcolor(RR.*cosd(TT), RR.*sind(TT), Z);
 
     shading interp;
     set(new_plot, 'dataaspectratio', [1, 1, 1]);
     axis off;
     hold(new_plot, 'on');
 
-    contours = drawSpokes( ...
-        t_min,   t_max,    r_min,  r_max, R(1), r_range, ...
-        n_rings, n_spokes, origin, ring_position);
+    [~] = drawSpokes( ...
+        t_min, t_max, R(1), r_range, n_spokes, origin, ring_position, ...
+        SpokePositions=options.SpokePositions, Interpreter=options.Interpreter);
 
-    [spokes, contours1] = drawRings( ...
-        t_min,   t_max,    R,      r_min, r_max, R(1), r_range, ...
-        n_rings, n_spokes, origin, ring_position);
+    [~, contours1] = drawRings( ...
+        t_min, t_max, R, R(1), r_range, n_rings, n_spokes, origin, ring_position);
 
-    annotateFigure(theta, n_spokes, n_rings, ring_ticks, ring_tick_labels, contours1, spokes);
 
-    c = colorbar(location = 'WestOutside');
-    caxis([quantile(Z(:), 0.01), quantile(Z(:), 0.99)])
+    annotateFigure(ring_tick_labels, contours1, n_rings, ...
+        Interpreter=options.Interpreter, Offset=options.Offset);
+    clim([quantile(Z(:), 0.01), quantile(Z(:), 0.99)]);
+
+    if options.Colourbar == true
+        c = colorbar(location = 'WestOutside');
+        if isempty(options.Normalisation)
+            clim([quantile(Z(:), 0.01), quantile(Z(:), 0.99)]);
+        else
+            clim([options.Normalisation(1), options.Normalisation(2)]);
+        end
+    end
+
+    if ~isempty(options.ColourBarLabel)
+        c.Label.String = options.ColourBarLabel;
+    end
+
+    if contains(options.Interpreter, 'latex')
+        c.Label.Interpreter = options.Interpreter;
+        c.TickLabelInterpreter = options.Interpreter;
+    end
+
+    if ~isempty(options.Title)
+        title(options.Title);
+    end
 
     nargoutchk(0, 2)
     varargout{1} = new_plot;
-    varargout{2} = c;
+    if options.Colourbar == true
+        varargout{2} = c;
+    end
 
 end
 
-function annotateFigure(Theta, N_Spokes, N_Rings, R_Ticks, R_Tick_Labels, Contours, Spokes)
+function annotateFigure(R_Tick_Labels, Contours, N_Rings, options)
+    arguments
+        R_Tick_Labels
+        Contours
+        N_Rings
+        options.Interpreter {mustBeMember( ...
+            options.Interpreter, {'tex', 'latex', 'none'})} = 'tex'
+        options.Offset {mustBeNumeric} = 0;
+    end
+
     %a = Spokes(min(N_Spokes, round(N_Rings / 2)));
     %b = Spokes(min(N_Spokes, 1 + round(N_Rings / 2)));
     %position = 0.51 .* (a + b);
-    
     R_Tick_Labels = fliplr(R_Tick_Labels);
 
     for i = 2:N_Rings
@@ -67,14 +116,14 @@ function annotateFigure(Theta, N_Spokes, N_Rings, R_Ticks, R_Tick_Labels, Contou
         end
 
         rtick = text( ...
-            Contours(i) .* sind(180), ... % .* sind(position + 30), ...
-            Contours(i) .* cosd(180), ... % .* cosd(position), ...
+            Contours(i) .* sind(180 + options.Offset), ... % .* sind(position + 30), ...
+            Contours(i) .* cosd(180 + options.Offset), ... % .* cosd(position), ...
             tick, ...
             color = 'w', ...
             verticalalignment = 'bottom',...
             horizontalAlignment = 'right',...
             handlevisibility = 'off');
-        rtick.Interpreter = 'latex';
+        rtick.Interpreter = options.Interpreter;
         clear rtick;
 
         %if min(round(abs(90 - Theta))) < 5
@@ -105,7 +154,7 @@ function annotateFigure(Theta, N_Spokes, N_Rings, R_Ticks, R_Tick_Labels, Contou
 end
 
 function [spokes, contours] = drawRings( ...
-    Theta_min, Theta_max, R, R_min,  R_max, R1, R_Range, ...
+    Theta_min, Theta_max, R, R1, R_Range, ...
     N_Rings,   N_Spokes,  Origin, Ring_Positions)
 
     contours = Ring_Positions - R1;
@@ -136,11 +185,28 @@ function [spokes, contours] = drawRings( ...
 end
 
 function contours = drawSpokes( ...
-    Theta_min, Theta_max, R_min,  R_max, R1, R_Range, ...
-    N_Rings,   N_Spokes,  Origin, Ring_Positions)
+    Theta_min, Theta_max, R1, R_Range, N_Spokes, Origin, Ring_Positions, options)
 
-    spokes = fliplr(round(linspace(Theta_min, Theta_max, N_Spokes+1)));
-    spokes =spokes(2:end);
+    arguments
+        Theta_min
+        Theta_max
+        R1
+        R_Range
+        N_Spokes
+        Origin
+        Ring_Positions
+        options.SpokePositions {mustBeNumeric} = nan
+        options.Interpreter {mustBeMember( ...
+            options.Interpreter, {'tex', 'latex', 'none'})} = 'tex'
+    end
+
+    if ~isnan(options.SpokePositions)
+        spokes = options.SpokePositions(1:end-1);
+    else
+        spokes = fliplr(round(linspace(Theta_min, Theta_max, N_Spokes+1)));
+        spokes =spokes(2:end);
+    end
+
     contours = abs( ...
         (Ring_Positions - Ring_Positions(1)) / R_Range + R1 / R_Range);
 
@@ -162,7 +228,11 @@ function contours = drawSpokes( ...
             LineWidth = 0.75, ...
             handlevisibility = 'off' );
         spoke.Color = [spoke.Color, 0.5];
-        tick = ['$', num2str(spokes(i), 3), '^{\circ}$'];
+        if contains(options.Interpreter, 'latex')
+            tick = ['$', num2str(spokes(i), 3), '^{\circ}$'];
+        else
+            tick = [num2str(spokes(i), 3), '\circ'];
+        end
         rtick = text( ...
             1.1 .* contours(1) .* x(i), ...
             1.1 .* contours(1) .* y(i), ...
@@ -172,12 +242,12 @@ function contours = drawSpokes( ...
             'vert', ...
             'middle');
 
-        rtick.Interpreter = 'latex';
+        rtick.Interpreter = options.Interpreter;
         clear rtick;
     end
 end
 
-function origin = defineOrigin(isAuto, scale, R_min, R_max)
+function origin = defineOrigin(isAuto, scale, R_min)
     if isAuto
         origin = R_min;
     else
@@ -194,7 +264,6 @@ function [ring_position, N] = defineRings( ...
     ringPosition, N, ringTicks, ringTickLabels, R_min, R_max)
 
     ring_position = ringPosition;
-    N = N;
 
     %assert((numel(ringTicks) < N | isempty(ringTicks)), ...
     %    'R ticks must be >= N or empty');
@@ -202,7 +271,7 @@ function [ring_position, N] = defineRings( ...
     %    'R tick labels must be >= N or empty');
 
     if ~isempty(ringPosition)
-        origin = max([min(ring_position), R_min])
+        %origin = max([min(ring_position), R_min])
         ring_position(ring_position < R_min) = [];
         ring_position(ring_position > R_max) = [];
     end
@@ -248,7 +317,7 @@ function normalisation = linearNormalisation(origin, values, distance)
 end
 
 function normalisation = logarithmicNormalisation(values, distance)
-    [x_min, x_max] = extrema(values);
+    [x_min, ~] = extrema(values);
     assert(x_min <= 0, 'Logarithmic scale requires values greater than 0');
 
     normalisation = log10(values);
