@@ -3,10 +3,10 @@
 %% Then we simulate the pass and plot the results. In this simulation, the uplink configuration is used
 
 %% 1. Choose parameters
-Wavelength=650;                                                            %wavelength is measured in nm
-Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
+Wavelength=850;                                                            %wavelength is measured in nm
+Transmitter_Telescope_Diameter=1;                                        %diameters are measured in m
 OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                              %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
-Receiver_Telescope_Diameter=1;                                           
+Receiver_Telescope_Diameter=0.2;                                           
 Time_Gate_Width=1E-9;                                                      %times are measured in s
 Spectral_Filter_Width=10;                                                  %consistent with wavelength, spectral width is measured in nm
 Repetition_Rate = 1E8;                                                     %source rep rate in Hz
@@ -14,7 +14,7 @@ Repetition_Rate = 1E8;                                                     %sour
 
 %2.1 Satellite
 %2.1.1 Detector
-MPD_BB84_Detector=MPD_Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
+MPD_BB84_Detector=Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,Preset=DetectorPresets.MicroPhotonDevices.LoadPreset());
 
 %2.1.2 Transmitter telescope
 Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
@@ -47,4 +47,4 @@ Pass=PassSimulation(SimGround_Station,BB84_protocol,SimSatellite);
 %3.2 run simulation
 Pass=Simulate(Pass);
 %3.3 plot results
-plot(Pass);
+plot(Pass,'Range','Elevation');

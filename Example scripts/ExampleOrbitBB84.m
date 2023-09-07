@@ -5,7 +5,7 @@
 %% 1. Choose parameters
 Wavelength=780;                                                            %wavelength is measured in nm
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
-OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                              %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
+OrbitDataFileLocation='100kmSSOrbitLLAT.txt';                              %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
 Receiver_Telescope_Diameter=1;                                           
 Time_Gate_Width=1E-10;                                                      %times are measured in s
 Spectral_Filter_Width=10;                                                  %consistent with wavelength, spectral width is measured in nm
@@ -24,7 +24,7 @@ SimSatellite=Satellite(Transmitter_Telescope,'Source',Transmitter_Source,...
 
 %2.2 Ground station
 %2.2.1 Detector
-Detector=Excelitas_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
+Detector=Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,'Preset',DetectorPresets.Excelitas.LoadPreset());
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
 
@@ -39,7 +39,7 @@ BB84_protocol = Protocol.BB84;
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'Visibility','20km');
+Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'Visibility','50km');
 %3.2 run simulation
 Pass=Simulate(Pass);
 %3.3 plot results

@@ -66,7 +66,7 @@ classdef Satellite_Uplink_Model < Satellite_Link_Model
 
             %format spectral filters which correspond to these elevation angles
             Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Link_Models.Elevation, Ground_Station.Source.Wavelength, {Link_Models.Visibility});
-            Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Ground_Station.Source.Wavelength);
+            Atmos_Loss = ComputeTransmission(Atmospheric_Spectral_Filter,Ground_Station.Source.Wavelength);
 
             %% input validation
             if ~all(isreal(Atmos_Loss)&Atmos_Loss>=0)
@@ -88,14 +88,16 @@ classdef Satellite_Uplink_Model < Satellite_Link_Model
         function Link_Models=SetOpticalEfficiencyLoss(Link_Models,Satellite,Ground_Station)
             %%SETOPTICALEFFICIENCYLOSS set the optical efficiency loss in the link
 
-            %% atmospheric loss
-            %computed using MODTRAN software package and cached in .mat
-            %files in this package
+            %% compute received wavelenth from doppler shift
+            Doppler_Wavelength = DopplerShift(Ground_Station,Satellite);
+            Filter_Efficiency = ComputeTransmission(Satellite.Detector.Spectral_Filter,Doppler_Wavelength);
+
             Eff = Ground_Station.Source.Efficiency ...
             * Ground_Station.Telescope.Optical_Efficiency ...
             * Satellite.Detector.Detection_Efficiency ...
             * Satellite.Detector.Jitter_Loss ...
-            * Satellite.Telescope.Optical_Efficiency;
+            * Satellite.Telescope.Optical_Efficiency ...
+            * Filter_Efficiency;
 
 
             %% input validation
@@ -222,6 +224,8 @@ classdef Satellite_Uplink_Model < Satellite_Link_Model
             Link_Models.Turbulence_Loss=Turb_Loss;
             Link_Models.Turbulence_Loss_dB=-10*log10(Turb_Loss);
             Link_Models.Turbulent_Spot_Size = Turbulence_Beam_Width;
+            Link_Models.r0(Elevation_Flags) = Atmospheric_Turbulence_Coherence_Length;
+
         end
 %{
         function Link_Models = SetElevationAngle(Link_Models,Satellite,Ground_Station)

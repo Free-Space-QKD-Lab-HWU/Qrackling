@@ -14,7 +14,7 @@ classdef DetectorPresets
         PerkinElmer ('PerkinElmer.mat')
         QuantumOpus_RoomTemperatureAmplifier ('QuantumOpus1550_RoomTemperatureAmplifier.mat')
         QuantumOpus_CryogenicAmplifier ('QuantumOpus1550_CryogenicAmplifier.mat')
-
+        ID_Qube_NIR ('ID_Qube_NIR.mat')
         % Set PresetLoader to a detectorPresetBuilder in the case of Custom 
         % detectors. In this case LoadPreset **MUST** be supplied with a path.
         % Alternatively, PresetLoader could be used as a detectorPresetBuilder 

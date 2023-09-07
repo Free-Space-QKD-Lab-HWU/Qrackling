@@ -246,7 +246,7 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
 
         %format spectral filters which correspond to these elevation angles
         Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Link_Models.Elevation,Satellite.Beacon.Wavelength,{Link_Models.Visibility});
-        Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Beacon.Wavelength);
+        Atmos_Loss = ComputeTransmission(Atmospheric_Spectral_Filter,Satellite.Beacon.Wavelength);
 
         %% input validation
         if ~all(isreal(Atmos_Loss)&Atmos_Loss>=0)
@@ -367,6 +367,8 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
             Link_Models.Turbulence_Loss=Turbulence_Loss;
             Link_Models.Turbulence_Loss_dB=-10*log10(Turbulence_Loss);
             Link_Models.Turbulent_Spot_Size=Turbulence_Beam_Width;
+            Link_Models.r0(Elevation_Flags) = Atmospheric_Turbulence_Coherence_Length;
+
         end
 %{
     function Link_Models=SetLinkLength(Link_Models,Lengths)

@@ -28,7 +28,7 @@ SimSatellite.Telescope = Transmitter_Telescope;
 
 %2.2 Ground station
 %2.2.1 Detector
-Detector=MPD_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
+Detector=Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,'Preset',DetectorPresets.MicroPhotonDevices.LoadPreset());
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
 

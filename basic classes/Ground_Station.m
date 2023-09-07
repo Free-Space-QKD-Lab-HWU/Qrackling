@@ -236,7 +236,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
                 Background_Rates = Background_Rates_sr_m2_nm * ...
                     Ground_Station.Telescope.Collecting_Area * ...
                     (pi/4)*(Ground_Station.Telescope.FOV)^2 * ...
-                    Ground_Station.Detector.Spectral_Filter_Width * ...
+                    10 * ...                                                %Ground_Station.Detector.Spectral_Filter_Width
                     Ground_Station.Detector.Detection_Efficiency;
             elseif ~isequal(Ground_Station.Background_Count_Rate_File_Location,'none')
 
@@ -290,6 +290,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             end
 
         end
+
 
         function Ground_Station = ReadBackgroundCountRateData(Ground_Station, Background_Count_Rate_File_Location)
             % input validation
@@ -662,21 +663,9 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
 
                 %sky photons has units of photons/nm.s, we need to apply
                 %wavelength filter to get total sky photon rate
-                filter_back = ...
-                    Ground_Station.Telescope.Wavelength ...
-                    - (Ground_Station.Detector.Spectral_Filter_Width / 2);
+                Filter_Transmission = ComputeTransmission(Ground_Station.Detector.Spectral_Filter,Wavelengths);
 
-                filter_forward = ...
-                    Ground_Station.Telescope.Wavelength ...
-                    + (Ground_Station.Detector.Spectral_Filter_Width / 2);
-
-                Inside_Wavelength_Filter_Flag = ...
-                    (Wavelengths > filter_back) ...
-                    & (Wavelengths < filter_forward);
-
-                %sky_photon_rate = sum(Sky_Photons(:, Inside_Wavelength_Filter_Flag),2);
-                sky_photon_rate = sum( ...
-                    Sky_Photons(:, Inside_Wavelength_Filter_Flag), 2);
+                sky_photon_rate = Sky_Photons*Filter_Transmission;
 
                 Ground_Station.Sky_Photon_Rate = sky_photon_rate;
 
@@ -721,7 +710,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
 
             else
                 Light_Pollution_Count_Rate = zeros(size(Headings));
-                warning('No valid background count rate format provided. \nCan provide a Sky_Brightness_Store_Location, a SMARTS_config, or an Atmosphere_File_Location. \nSetting background counts to 0',[]);
+                warning('No valid background count rate format provided. \nCan provide a Sky_Brightness_Store_Location, a SMARTS_config, or an Atmosphere_File_Location. \nSetting background counts to 0');
             end
             
             % Reflected light pollution
@@ -776,7 +765,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
             % PLOTBACKGROUNDCOUNTRATES plot the background count rates
             % affecting the ground station
 
-            area(X_Axis(Plotting_Indices), ...
+            area(X_Axis(Plotting_Indices)', ...
                 [Ground_Station.Dark_Count_Rates(Plotting_Indices)', ...
                 Ground_Station.Reflection_Count_Rates(Plotting_Indices)', ...
                 Ground_Station.Light_Pollution_Count_Rates(Plotting_Indices)', ...

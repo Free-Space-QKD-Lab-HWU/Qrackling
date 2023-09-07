@@ -18,7 +18,7 @@ OGS=HOGS(Wavelength);%current HOGS model
 % or using custom start, stop and interval times
 
 %best case pass: 0423 to 0426 31 jan 2023, 50km visibility
-%%{
+%{
 StartTime = datetime(2022,12,25,6,0,0);
 StopTime = datetime(2022,12,25,7,0,0);
 VisString = '50km';
@@ -33,7 +33,7 @@ TurbulenceString = 'HV5-7';
 %}
 
 %worst case pass: 0330 to 0333 4 feb 2023, 2km visibility
-%{
+%%{
 StartTime = datetime(2023,1,31,4,0,0);
 StopTime = datetime(2023,1,31,5,0,0);
 VisString = '2km';
