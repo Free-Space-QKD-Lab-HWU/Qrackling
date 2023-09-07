@@ -92,7 +92,7 @@ classdef (Abstract=true)Located_Object
             end
         end
 
-        function Located_Object = SetVelocities(Located_Object, velEast, velNorth, velUp);
+        function Located_Object = SetVelocities(Located_Object, velEast, velNorth, velUp)
             Located_Object.Velocity_East = velEast;
             Located_Object.Velocity_North = velNorth;
             Located_Object.Velocity_Up = velUp;
@@ -170,7 +170,7 @@ classdef (Abstract=true)Located_Object
             %compute relative coords
             ENUs = ComputeRelativeCoords(Located_Obj_1, Located_Obj_2);
             %take magnitude for distances
-            Distance = Row2Norms(ENUs);
+            Distance = Row2Norms(ENUs)';
         end
 
         function [Headings, Elevations, Distances] = RelativeHeadingAndElevation(Located_Obj_1, ...

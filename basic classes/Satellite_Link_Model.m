@@ -26,6 +26,7 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
         Heading(1,:)=nan;                                                %heading of satellite link
         Turbulent_Spot_Size=nan;                                            %diameter of the spot at the receiver in m including turbulence
         Geometric_Spot_Size=nan;                                            %diameter of the spot due to geometric spreading
+        r0 = nan;                                                          %atmospheric turbulence coherence length in m
     end
 
     methods (Abstract = false, Access = protected)
@@ -134,7 +135,7 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
             Turb=Turb(Plot_Select_Flags)';
             Atmos=Atmos(Plot_Select_Flags)';
 
-            area(X_Axis(Plot_Select_Flags),[Geo,Eff,APT,Turb,Atmos]);
+            area(X_Axis(Plot_Select_Flags)',[Geo,Eff,APT,Turb,Atmos]);
             xlabel('Time (s)')
             ylabel('Losses (dB)')
 
@@ -181,6 +182,7 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
             Satellite_Link_Model.Length=zeros(1,N);                                                        %link distance in m
             Satellite_Link_Model.Elevation=zeros(1,N);
             Satellite_Link_Model.Turbulent_Spot_Size=zeros(1,N);
+            Satellite_Link_Model.r0 = zeros(1,N);
         end
 
         function [Link_Model,Total_Loss_dB]=SetTotalLoss(Link_Model)
@@ -191,6 +193,7 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
             Link_Model.Link_Loss_dB=Total_Loss_dB;
             Link_Model.Link_Loss=Total_Loss;
         end
+      
     end
     
     methods (Abstract = true, Access = protected)

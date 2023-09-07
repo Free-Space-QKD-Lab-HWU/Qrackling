@@ -80,7 +80,7 @@ classdef Protocol
                     ...%efficiency
                     1,...
                 ...%evaluation function to compute SKR,QBER etc
-                function_handle.empty);%DPS is missing a function!
+                @DPS_Model);%DPS is missing a function!
 
        %% the CV enumeration
         CV(...%Source requirements
@@ -90,7 +90,7 @@ classdef Protocol
                     ...%efficiency
                     0,...
                 ...%evaluation function to compute SKR,QBER etc
-                @CV_model);%DPS is missing a function!
+                @CV_model);%this is a placeholder function
     end
 
    properties(SetAccess = immutable)

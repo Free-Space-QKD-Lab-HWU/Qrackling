@@ -12,4 +12,8 @@ classdef (Abstract) QKD_Transmitter < Optical_Node
 
         PlotBackgroundCountRates(QKD_Transmitter, Plotting_Indices, X_Axis)
     end
+
+    methods (Abstract=false)
+         
+    end
 end

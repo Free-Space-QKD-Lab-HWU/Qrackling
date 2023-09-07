@@ -1,4 +1,4 @@
-classdef Satellite_Downlink_Model < Satellite_Link_Model
+ classdef Satellite_Downlink_Model < Satellite_Link_Model
     %SATELLITE_DOWNLINK_MODEL a link model specific to satellite to OGS downlink
 %{
     properties (SetAccess=protected,Abstract=false)
@@ -85,7 +85,7 @@ end
 %}
           %format spectral filters which correspond to these elevation angles
             Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Link_Models.Elevation, Satellite.Source.Wavelength, {Link_Models.Visibility});
-            Atmos_Loss = computeTransmission(Atmospheric_Spectral_Filter,Satellite.Source.Wavelength);
+            Atmos_Loss = ComputeTransmission(Atmospheric_Spectral_Filter,Satellite.Source.Wavelength);
 %            end
             %% input validation
             if ~all(isnan(Atmos_Loss)|Atmos_Loss>=0)
@@ -107,14 +107,17 @@ end
         function Link_Models=SetOpticalEfficiencyLoss(Link_Models,Satellite,Ground_Station)
             %%SETOPTICALEFFICIENCYLOSS set the optical efficiency loss in the link
 
-            %% atmospheric loss
-            %computed using MODTRAN software package and cached in .mat
-            %files in this package
+            %% compute received wavelenth from doppler shift
+            Doppler_Wavelength = DopplerShift(Ground_Station,Satellite);
+            Filter_Efficiency = ComputeTransmission(Ground_Station.Detector.Spectral_Filter,Doppler_Wavelength);
+
+            %% sources of efficiency
             Eff = Satellite.Source.Efficiency ...
             * Satellite.Telescope.Optical_Efficiency ...
             * Ground_Station.Detector.Detection_Efficiency ...
             * Ground_Station.Detector.Jitter_Loss ...
-            * Ground_Station.Telescope.Optical_Efficiency;
+            * Ground_Station.Telescope.Optical_Efficiency ...
+            * Filter_Efficiency;
 
 
             %% input validation
@@ -212,6 +215,7 @@ end
                                              Zenith, ...
                                              Satellite_Altitude, ghv_defaults('Standard',Link_Models.Turbulence));
             %output variables
+            
             Turbulence_Beam_Width(~Elevation_Flags)=0;
             Turbulence_Beam_Width(Elevation_Flags) = long_term_gaussian_beam_width(Geo_Spot_Size(Elevation_Flags), Link_Models.Length(Elevation_Flags) ,...
                                         Wavenumber, Atmospheric_Turbulence_Coherence_Length);
@@ -243,6 +247,7 @@ end
             Link_Models.Turbulence_Loss=Turb_Loss;
             Link_Models.Turbulence_Loss_dB=-10*log10(Turb_Loss);
             Link_Models.Turbulent_Spot_Size = Turbulence_Beam_Width;
+            Link_Models.r0(Elevation_Flags) = Atmospheric_Turbulence_Coherence_Length;
         end
 %{
         function Link_Models = SetElevationAngle(Link_Models,Satellite,Ground_Station)

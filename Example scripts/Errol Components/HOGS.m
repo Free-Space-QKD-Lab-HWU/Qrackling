@@ -25,25 +25,25 @@ switch Wavelength
 Channel_Wavelength = 785;                                    %signal wavelength in nm
 Repetition_Rate = 1E8;                                              %signal rep rate in Hz
 Time_Gate = 2E-9;                                                   %time gate width in s
-Spectral_Filter_Width = 10;                                          %spectral filter width in nm
-HOGS_Detector = Excelitas_Detector(Channel_Wavelength,Repetition_Rate,...
-    Time_Gate,Spectral_Filter_Width);
+Spectral_Filter = SpectralFilter('input_file',['spectral filters',filesep(),'FBH780-10.xlsx']);
+HOGS_Detector = Detector(Channel_Wavelength,Repetition_Rate,...
+    Time_Gate,Spectral_Filter,Preset=DetectorPresets.Excelitas.LoadPreset());
 
     case 808
 Channel_Wavelength = 808;                                    %signal wavelength in nm
 Repetition_Rate = 1E8;                                              %signal rep rate in Hz
 Time_Gate = 2E-9;                                                   %time gate width in s
-Spectral_Filter_Width = 10;                                          %spectral filter width in nm
-HOGS_Detector = Excelitas_Detector(Channel_Wavelength,Repetition_Rate,...
-    Time_Gate,Spectral_Filter_Width);
+Spectral_Filter = SpectralFilter('input_file',['spectral filters',filesep(),'FBH850-10.xlsx']);
+HOGS_Detector = Detector(Channel_Wavelength,Repetition_Rate,...
+    Time_Gate,Spectral_Filter,Preset=DetectorPresets.Excelitas.LoadPreset());
 
     case 1550
 Channel_Wavelength = 1550;                                    %signal wavelength in nm
 Repetition_Rate = 1;                                              %signal rep rate in Hz
 Time_Gate = 1;                                                   %time gate width in s
-Spectral_Filter_Width = 10;                                          %spectral filter width in nm
-HOGS_Detector = Perfect_Detector(Channel_Wavelength,Repetition_Rate,...
-    Time_Gate,Spectral_Filter_Width);
+Spectral_Filter = SpectralFilter('input_file',['spectral filters',filesep(),'FBH1550-12.xlsx']);
+HOGS_Detector = Detector(Channel_Wavelength,Repetition_Rate,...
+    Time_Gate,Spectral_Filter,Preset=DetectorPresets.Excelitas.LoadPreset());
 end
 
 %beacon camera
@@ -61,10 +61,10 @@ Spectral_Filter_Width = 10;
 HOGS_Camera = AC4040(Camera_Telescope,Exposure_Time,Spectral_Filter_Width);%this is a constructor for the ATIK camera we use
 
 %uplink beacon
-Beacon_Power = 10E-3;                                                           %power of uplink beacon in W
+Beacon_Power = 40E-3;                                                           %power of uplink beacon in W
 Beacon_Wavelength = 850;                                                        %uplink beacon wavelength in nm
 BeaconPointingPrecision = 1E-6;                                                 %beacon pointing precision (coarse pointing precision) in rads
-Beacon_Beam_Divergence = 49.9E-6;
+Beacon_Beam_Divergence = 0.0070;%49.9E-6; %7mrad = 0.5 deg is the divergence of RAL's uplink beacon system. 50urad is out uplink beacon divergence
 Beacon_Telescope = SetWavelength(HOGS_Telescope,Beacon_Wavelength);
 Beacon_Telescope = SetFOV(Beacon_Telescope,Beacon_Beam_Divergence);
 %initially, uncertainty in satellite position is 5km and range is roughly
@@ -75,11 +75,13 @@ HOGSBeacon = Gaussian_Beacon(Beacon_Telescope,Beacon_Power,Beacon_Wavelength,...
                    'Power_Efficiency',BeaconEfficiency);
 
 %% construct OGS at Errol
-HOGS=Errol_OGS(HOGS_Telescope,...
+HOGS=Ground_Station(HOGS_Telescope,...
                 'Detector',HOGS_Detector,...
                 'Camera',HOGS_Camera,...
                 'Beacon',HOGSBeacon,...
                 'Atmosphere_File_Location',['SMARTS_connection',filesep,'SMARTS cache',filesep,'Errol_Atmosphere_Visibility_10km_winter_times.mat'],...
-                'Sky_Brightness_Store_Location',['orbit modelling resources',filesep,'background count rate files',filesep,'Errol_Experimental_Sky_Brightness_Store.mat']);%choose a midnight simulation so that time is night );
+                'Sky_Brightness_Store_Location',['orbit modelling resources',filesep,'background count rate files',filesep,'Errol_Experimental_Sky_Brightness_Store.mat'],...
+                'LLA',[55.909723,-3.319995,10],...
+                'name','Heriot Watt');%choose a midnight simulation so that time is night );
 end
 
