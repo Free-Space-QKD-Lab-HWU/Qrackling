@@ -11,10 +11,17 @@ classdef source
                 options.File {mustBeFile}
                 options.Unit {mustBeMember(options.Unit, {'per_nm', 'per_cm-1'})}
             end
+
             s.Type= type;
-            for f = fieldnames(options)'
-                s.(f{1}) = options.(f{1});
+
+            if contains(fieldnames(options), 'File')
+                s.File = adduserpath(options.File);
             end
+
+            if contains(fieldnames(options), 'Unit')
+                s.Unit = options.Unit;
+            end
+
         end
     end
 end

@@ -57,5 +57,7 @@ end
 %% simulate a pass
 Pass=PassSimulation(Sat,Prot,OGS,'Visibility',VisString,'Turbulence',TurbulenceString);
 Pass=Simulate(Pass);
+
+%% plot a pass
 plot(Pass,'Range','Elevation','XAxis','Time') %plot elevation window only
 %Play(Pass);

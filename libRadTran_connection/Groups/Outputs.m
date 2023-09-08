@@ -78,7 +78,7 @@ classdef Outputs < handle
 
             fields = fieldnames(options);
             if any(contains(fields, 'File'))
-                out.File = output_file(options.File);
+                out.File = output_file(adduserpath(options.File));
             end
             if any(contains(fields, 'Format'))
                 out.Format = output_format(options.Format);

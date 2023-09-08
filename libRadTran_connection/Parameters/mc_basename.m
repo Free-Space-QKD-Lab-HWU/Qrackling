@@ -7,7 +7,8 @@ classdef mc_basename
             arguments
                 name {mustBeText}
             end
-            mc.Name = name;
+            disp(name)
+            mc.Name = adduserpath(name);
         end
     end
 end

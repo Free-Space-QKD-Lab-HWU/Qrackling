@@ -585,6 +585,7 @@ classdef Ground_Station < Located_Object & QKD_Receiver & QKD_Transmitter
                 % has the correct hour
 
                 %first, we scan the .mat file to see what's in it
+                disp(Ground_Station.Atmosphere_File_Location)
                 matObj = matfile(Ground_Station.Atmosphere_File_Location);
                 %check the included variables
                 Variables = who(matObj);

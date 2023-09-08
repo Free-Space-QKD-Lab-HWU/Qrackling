@@ -37,14 +37,14 @@ classdef Atmosphere_Spectral_Filter < SpectralFilter
             ASF = repmat(ASF,sz);
 
             %% iterating over the different types of atmosphere simulated
-            Visibilities=unique(Visibility);
+            Visibilities=unique(Visibility{:});
             for Visibility=Visibilities(:)
                     %get visibility tag out
                     Visibility = Visibility{:}; %#ok<FXSET> 
                     %% load data
                     switch Visibility
                         case 'clear'
-                            Data=load('Elevation_Wavelength_Atmospheric_Transmittance.mat');
+                            Data=load('Elevation_Wavelength_Atmospheric_Transmittanceclear.mat');
                         case '50km'
                             Data=load('Elevation_Wavelength_Atmospheric_Transmittance50km.mat');
                         case '20km'

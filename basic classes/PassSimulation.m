@@ -103,29 +103,39 @@ classdef PassSimulation
 
 
     methods
-        function PassSimulation = PassSimulation(QKD_Transmitter, Protocol, QKD_Receiver, varargin)
+        function PassSimulation = PassSimulation( ...
+            QKD_Transmitter, Protocol, QKD_Receiver, options)
             %PASSSIMULATION Construct an instance of a PassSimulation
 
-            %% create and use an input parser
-            P = inputParser();
-            %required inputs
-            addRequired(P, 'QKD_Transmitter');
-            addRequired(P, 'Protocol');
-            addRequired(P, 'QKD_Receiver');
-            %optional inputs
-            addParameter(P, 'SMARTS', []);
-            addParameter(P, 'Background_Sources', []);
-            addParameter(P, 'Visibility', 'clear');
-            addParameter(P, 'Turbulence','HV5-7');
+            arguments
+            QKD_Transmitter
+            Protocol
+            QKD_Receiver
+            options.SMARTS = []
+            options.Background_Sources = []
+            options.Visibility_Defaults {mustBeMember( ...
+                options.Visibility_Defaults, {
+                    '1km', '10km', '100m', ...
+                    '2km', '20km', '200m', ...
+                    '5km', '50km', '500m', ...
+                    'clear', })} = 'clear'
+            options.Visibility = '' % Bring your own data
+            options.Turbulence {mustBeMember(options.Turbulence, { ...
+                'HV5-7', '2HV5-7', 'HV10-10', 'HV15-12'})}= 'HV5-7'
+            end
 
-            %parse inputs
-            parse(P, QKD_Transmitter, Protocol, QKD_Receiver, varargin{:});
+            PassSimulation.QKD_Transmitter = QKD_Transmitter;
+            PassSimulation.QKD_Receiver = QKD_Receiver;
+            PassSimulation.Protocol = Protocol;
+            PassSimulation.Turbulence = options.Turbulence;
 
-            PassSimulation.QKD_Transmitter = P.Results.QKD_Transmitter;
-            PassSimulation.QKD_Receiver = P.Results.QKD_Receiver;
-            PassSimulation.Protocol = P.Results.Protocol;
-            PassSimulation.Visibility = P.Results.Visibility;
-            PassSimulation.Turbulence = P.Results.Turbulence;
+
+            PassSimulation.Visibility = options.Visibility_Defaults;
+            if ~isempty(options.Visibility)
+                PassSimulation.Visibility = options.Visibility;
+            end
+
+            disp(PassSimulation.Visibility)
 
             % assert(IsSourceCompatible(Protocol, QKD_Transmitter.Source), ...
             %     'satellite source is not compatible with %s protocol', Protocol.Name);
@@ -146,10 +156,10 @@ classdef PassSimulation
                     error('must have transmitter and receiver cover both of Satellite and Ground_Station')
                 end
             %if background sources are provided, add them
-            PassSimulation.Background_Sources = P.Results.Background_Sources;
+            PassSimulation.Background_Sources = options.Background_Sources;
 
-            if ~isempty(P.Results.SMARTS)
-                PassSimulation.smarts_configuration = P.Results.SMARTS;
+            if ~isempty(options.SMARTS)
+                PassSimulation.smarts_configuration = options.SMARTS;
             end
         end
 

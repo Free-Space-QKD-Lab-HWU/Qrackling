@@ -346,8 +346,15 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
                 % Third case: same as above except we have received an array of
                 % kepler elements rather than TLE data
 
-                [sma, ecc, inc, raan, aop, ta] = ...
-                        utils.splat(p.Results.KeplerElements);
+                % [sma, ecc, inc, raan, aop, ta] = ...
+                %         utils.splat(p.Results.KeplerElements);
+
+                sma = p.Results.KeplerElements(1);
+                ecc = p.Results.KeplerElements(2);
+                inc = p.Results.KeplerElements(3);
+                raan = p.Results.KeplerElements(4);
+                aop = p.Results.KeplerElements(5);
+                ta = p.Results.KeplerElements(6);
 
                 sc_sat = satellite(p.Results.scenario, sma, ecc, inc, ...
                                    raan, aop, ta, "Name", Satellite.Name, ...

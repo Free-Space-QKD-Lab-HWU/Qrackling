@@ -1,4 +1,7 @@
 classdef libRadtran < handle
+    properties (Access = protected)
+        lrt_root {mustBeFolder} = getenv("HOME");
+    end
     properties
         Aerosol_Settings Aerosol
         Cloud_Settings Clouds
@@ -12,8 +15,9 @@ classdef libRadtran < handle
         Output_Settings Outputs
     end
     methods
-        function lrt = libRadtran(options)
+        function lrt = libRadtran(libRadtran_Path, options)
             arguments
+                libRadtran_Path {mustBeFolder}
                 options.solver_type {mustBeMember(options.solver_type, { ...
                     'disort',     'twostr',      'fdisort1',             ...
                     'fdisort2',   'sdisort',     'spsdisort',            ...
@@ -22,6 +26,9 @@ classdef libRadtran < handle
                     'sslidar',    'sos',         'montecarlo',           ...
                     'mystic',     'tzs',         'sss'})}
             end
+
+            lrt.lrt_root = libRadtran_Path;
+
             if numel(fieldnames(options)) > 0
                 lrt.Solver_Settings = Solver(solver_type, "lrtConfiguration", lrt);
             end
@@ -171,7 +178,7 @@ classdef libRadtran < handle
             end
         end
 
-        function str = ConfigString(lrt)
+        function str = StringFromConfiguration(lrt)
             arguments
                 lrt libRadtran
             end
@@ -190,6 +197,95 @@ classdef libRadtran < handle
                 str = [str, details];
             end
         end
+
+        function configuration_file_path = SaveConfigurationString(lrt, ...
+            file_path, file_name, options)
+
+            arguments (Input)
+                lrt libRadtran
+                file_path {mustBeFolder}
+                file_name {mustBeText}
+                options.Configuration_String {mustBeText} = ''
+            end
+            arguments (Output)
+                configuration_file_path {mustBeFile}
+            end
+
+            configuration = '';
+            if ~isempty(options.Configuration_String)
+                configuration = options.Configuration_String;
+            else
+                configuration = lrt.StringFromConfiguration();
+            end
+
+            path_delimiter = '/';
+            if ispc()
+                path_delimiter = '\';
+            end
+
+            if ~contains(lower(file_name(end-3:end)), '.txt')
+                file_name = strjoin(file_name, '.txt');
+            end
+
+            configuration_file_path = strjoin({file_path, path_delimiter, file_name}, '');
+            configuration_file_path = adduserpath(configuration_file_path);
+
+            % Check to make sure there are no instances of '//' or '\\'
+            configuration_file_path = replace( ...
+                configuration_file_path, ...
+                [path_delimiter, path_delimiter], ...
+                path_delimiter);
+
+            disp(configuration_file_path);
+            fd = fopen(configuration_file_path, 'w');
+            written_bytes = fprintf(fd, configuration);
+            assert(written_bytes > 0, 'Nothing written, something has gone wrong');
+        end
+
+        function output_file = RunConfiguration(lrt, file_path, file_name, options)
+            arguments (Input)
+                lrt libRadtran
+                file_path {mustBeFolder}
+                file_name {mustBeText}
+                options.Configuration_String {mustBeText} = ''
+                options.Verbosity {mustBeMember( ...
+                    options.Verbosity, {'Quiet', 'Verbose'})} = 'Quiet'
+            end
+            arguments (Output)
+                output_file
+            end
+
+            output_file = lrt.OutputSettings.File.File;
+            assert(~isempty(output_file), 'Output file must be set');
+
+            input_path = lrt.SaveConfigurationString(file_path, ...
+                file_name, "Configuration_String", options.Configuration_String);
+
+            path_delimiter = '/';
+            if ispc()
+                path_delimiter = '\';
+            end
+
+            lrt_directory = strjoin({char(lrt.lrt_root), 'examples'}, path_delimiter);
+            uvspec_path = 'uvspec';
+
+            call_str = strjoin({uvspec_path, '<', input_path, '>', output_file});
+
+            current_directory = cd(lrt_directory);
+
+            disp([newline, call_str, newline])
+
+            switch options.Verbosity
+                case 'Quiet'
+                    [~,~] = system(call_str);
+                case 'Verbose'
+                    info = system(call_str);
+            end
+
+            [~] = cd(current_directory);
+
+        end
+
     end
 
     methods (Access = private)
