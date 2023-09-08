@@ -62,6 +62,7 @@ classdef Geometry < handle
                 angles {mustBeNumeric}
                 unit Angle
             end
+            % TODO: Conversion causes errors when running configuration
             cosines = cosd(unit.ToDegrees(angles));
             g.output_polar_angle_cosines = umu(cosines);
         end

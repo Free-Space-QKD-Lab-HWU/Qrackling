@@ -2,7 +2,7 @@ classdef libRadtran < handle
     properties (Access = protected)
         lrt_root {mustBeFolder} = getenv("HOME");
     end
-    properties
+    properties 
         Aerosol_Settings Aerosol
         Cloud_Settings Clouds
         General_Atmosphere_Settings GeneralAtmosphere
