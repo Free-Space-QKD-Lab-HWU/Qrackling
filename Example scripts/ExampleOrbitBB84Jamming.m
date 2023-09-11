@@ -57,4 +57,4 @@ Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'Background_Sou
 %3.2 run simulation
 Pass=Simulate(Pass);
 %3.3 plot results
-plot(Pass);
+plot(Pass,'Range','Elevation');
