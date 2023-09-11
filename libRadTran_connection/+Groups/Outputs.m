@@ -4,11 +4,11 @@ classdef Outputs < handle
     end
 
    properties (SetAccess = protected)
-        Columns output_user
-        Quantity output_quantity
-        Process output_process
-        File output_file
-        Format output_format
+        Columns Parameters.output_user
+        Quantity Parameters.output_quantity
+        Process Parameters.output_process
+        File Parameters.output_file
+        Format Parameters.output_format
    end
 
    methods
@@ -24,7 +24,7 @@ classdef Outputs < handle
 
         function out = OutputColumns(out, label)
             arguments
-                out Outputs
+                out Groups.Outputs
             end
             arguments (Repeating)
                 label {mustBeMember(label, { ...
@@ -47,56 +47,56 @@ classdef Outputs < handle
                     'mmr_HCHO', 'vmr_HCHO',   'n_O4',   'rho_O4',   ...
                     'mmr_O4',   'vmr_O4'})}
             end
-            out.Columns = output_user(label{1:end});
+            out.Columns = Parameters.output_user(label{1:end});
         end
 
         function out = OutputQuantity(out, label)
             arguments
-                out Outputs
+                out Groups.Outputs
                 label {mustBeMember(label, {'brightness', 'reflectivity', ...
                     'transmittance'})}
             end
-            out.Quantity = output_quantity(label{1:end});
+            out.Quantity = Parameters.output_quantity(label{1:end});
         end
 
 
         function out = PostProcessing(out, label)
             arguments
-                out Outputs
+                out Groups.Outputs
                 label {mustBeMember(label, {'sum', 'integrate', 'per_nm', ...
                     'per_cm-1', 'per_band', 'none'})}
             end
-            out.Process = output_process(label{1:end});
+            out.Process = Parameters.output_process(label{1:end});
         end
 
         function out = FileAndFormat(out, options)
             arguments
-                out Outputs
+                out Groups.Outputs
                 options.File {mustBeText}
                 options.Format {mustBeMember(options.Format, {'ascii', 'flexstor'})}
             end
 
             fields = fieldnames(options);
             if any(contains(fields, 'File'))
-                out.File = output_file(adduserpath(options.File));
+                out.File = Parameters.output_file(adduserpath(options.File));
             end
             if any(contains(fields, 'Format'))
-                out.Format = output_format(options.Format);
+                out.Format = Parameters.output_format(options.Format);
             end
 
             % for opt = fieldnames(options)
             %     switch opt{1}
             %         case "File"
-            %             out.File = output_file(options.File{1:end});
+            %             out.File = Parameters.output_file(options.File{1:end});
             %         case "Format"
-            %             out.Format = output_format(options.Format{1:end});
+            %             out.Format = Parameters.output_format(options.Format{1:end});
             %     end
             % end
         end
 
         function str = ConfigString(out)
             arguments
-                out Outputs
+                out Groups.Outputs
             end
             linebreak = newline;
             if ispc

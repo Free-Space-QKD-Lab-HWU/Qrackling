@@ -3,29 +3,29 @@ classdef Mystic < handle
         lrt_config libRadtran
     end
     properties (SetAccess = protected)
-        azimuth_old mc_azimuth_old
-        backward_increment mc_backward_increment
-        backward mc_backward
-        backward_output mc_backward_output
-        backward_writeback mc_backward_writeback
-        basename mc_basename
-        boxairmass mc_boxairmass
-        escape mc_escape
-        forward_output mc_forward_output
-        max_scatters mc_maxscatters
-        min_photons mc_minphotons
-        min_scatters mc_minscatters
-        nca mc_nca
-        photons_file mc_photons_file
-        photons mc_photons
-        polarisation mc_polarisation
-        rad_alpha mc_rad_alpha
-        random_seed mc_randomseed
-        sensor_direction mc_sensordirection
-        spectral_is mc_spectral_is
-        spherical mc_spherical
-        surface_reflectalways mc_surface_reflectalways
-        vroom mc_vroom
+        azimuth_old Parameters.mc_azimuth_old
+        backward Parameters.mc_backward
+        backward_increment Parameters.mc_backward_increment
+        backward_output Parameters.mc_backward_output
+        backward_writeback Parameters.mc_backward_writeback
+        basename Parameters.mc_basename
+        boxairmass Parameters.mc_boxairmass
+        escape Parameters.mc_escape
+        forward_output Parameters.mc_forward_output
+        max_scatters Parameters.mc_maxscatters
+        min_photons Parameters.mc_minphotons
+        min_scatters Parameters.mc_minscatters
+        nca Parameters.mc_nca
+        photons_file Parameters.mc_photons_file
+        photons Parameters.mc_photons
+        polarisation Parameters.mc_polarisation
+        rad_alpha Parameters.mc_rad_alpha
+        random_seed Parameters.mc_randomseed
+        sensor_direction Parameters.mc_sensordirection
+        spectral_is Parameters.mc_spectral_is
+        spherical Parameters.mc_spherical
+        surface_reflectalways Parameters.mc_surface_reflectalways
+        vroom Parameters.mc_vroom
     end
 
     methods
@@ -40,24 +40,24 @@ classdef Mystic < handle
 
         function m = AzimuthOld(m, state)
             arguments
-                m Mystic
+                m Groups.Mystic
                 state matlab.lang.OnOffSwitchState = "off"
             end
-            m.azimuth_old = mc_azimuth_old(state);
+            m.azimuth_old = Parameters.mc_azimuth_old(state);
         end
 
         function m = BackwardIncrement(m, X, Y)
             arguments
-                m Mystic
+                m Groups.Mystic
                 X {mustBeNumeric}
                 Y {mustBeNumeric}
             end
-            m.backward_increment = mc_backward_increment(X, Y);
+            m.backward_increment = Parameters.mc_backward_increment(X, Y);
         end
 
         function m = Backward(m, options)
             arguments
-                m Mystic
+                m Groups.Mystic
                 options.start_x
                 options.start_y
                 options.stop_x
@@ -70,12 +70,12 @@ classdef Mystic < handle
                     args = [args, f{1}, options.(f{1})];
                 end
             end
-            m.backward = mc_backward(args{:});
+            m.backward = Parameters.mc_backward(args{:});
         end
 
         function m = BackwardOutput(m, label, options)
             arguments
-                m Mystic
+                m Groups.Mystic
             end
             arguments (Repeating)
                 label {mustBeMember(label, {'edir', 'edn',  'eup', 'exp', ...
@@ -95,107 +95,107 @@ classdef Mystic < handle
                 index = reshape(1:numel(options), [3, numel(options)/3])';
                 args = [args, optionals(index(1:end))];
             end
-            m.backward_output = mc_backward_output(label{:});
+            m.backward_output = Parameters.mc_backward_output(label{:});
         end
 
         function m = BackwardWriteback(m, state)
             arguments
-                m Mystic
+                m Groups.Mystic
                 state {mustBeNumericOrLogical}
             end
-            m.backward_writeback = mc_backward_writeback(state);
+            m.backward_writeback = Parameters.mc_backward_writeback(state);
         end
 
         function m = Basename(m, name)
             arguments
-                m Mystic
+                m Groups.Mystic
                 name {mustBeText}
             end
-            m.basename = mc_basename(name);
+            m.basename = Parameters.mc_basename(name);
         end
 
         function m = Boxairmass(m, state)
             arguments
-                m Mystic
+                m Groups.Mystic
                 state {mustBeNumericOrLogical}
             end
-            m.boxairmass = mc_boxairmass(state);
+            m.boxairmass = Parameters.mc_boxairmass(state);
         end
 
         function m = Escape(m, state)
             arguments
-                m Mystic
+                m Groups.Mystic
                 state matlab.lang.OnOffSwitchState
             end
-            m.escape = mc_escape(state);
+            m.escape = Parameters.mc_escape(state);
         end
 
         function m = ForwardOutput(m, quantity, options)
             arguments
-                m Mystic
+                m Groups.Mystic
                 quantity {mustBeMember(quantity, { ...
                     'absorption', 'actinic', 'emission', 'heating'})}
                 options.unit {mustBeMember(options.unit, { ...
                     'W_per_m2_and_dz', 'W_per_m3', 'K_per_day'})}
             end
             if numel(options) > 0
-                m.forward_output = mc_forward_output(quantity, "unit", options.unit);
+                m.forward_output = Parameters.mc_forward_output(quantity, "unit", options.unit);
                 return
             end
-            m.forward_output = mc_forward_output(quantity);
+            m.forward_output = Parameters.mc_forward_output(quantity);
         end
 
         function m = Maxscatters(m, state)
             arguments
-                m Mystic
+                m Groups.Mystic
                 state matlab.lang.OnOffSwitchState
             end
-            m.max_scatters = mc_maxscatters(state);
+            m.max_scatters = Parameters.mc_maxscatters(state);
         end
 
         function m = Minphotons(m, value)
             arguments
-                m Mystic
+                m Groups.Mystic
                 value {mustBeNumeric}
             end
-            m.min_photons = mc_minphotons(value);
+            m.min_photons = Parameters.mc_minphotons(value);
         end
 
         function m = Minscatters(m, state)
             arguments
-                m Mystic
+                m Groups.Mystic
                 state matlab.lang.OnOffSwitchState
             end
-            m.min_scatters = mc_minscatters(state);
+            m.min_scatters = Parameters.mc_minscatters(state);
         end
 
         function m = Nca(m, state)
             arguments
-                m Mystic
+                m Groups.Mystic
                 state matlab.lang.OnOffSwitchState
             end
-            m.nca = mc_nca(state);
+            m.nca = Parameters.mc_nca(state);
         end
 
         function m = PhotonsFile(m, file)
             arguments
-                m Mystic
+                m Groups.Mystic
                 file {mustBeFile}
             end
-            m.photons_file = mc_photons_file(file);
+            m.photons_file = Parameters.mc_photons_file(file);
         end
 
         function m = Photons(m, value)
             arguments
-                m Mystic
+                m Groups.Mystic
                 value {mustBeNumeric}
             end
-            m.photons = mc_photons(value);
+            m.photons = Parameters.mc_photons(value);
         end
 
         function m = Polarisation(m, value)
             arguments
-                m Mystic
+                m Groups.Mystic
                 value {mustBeMember(value, { ...
                     '(0) (1,0,0,0) (default)', ...
                     '(1) (1,1,0,0)', ...
@@ -206,65 +206,65 @@ classdef Mystic < handle
                     '(-3) (1,0,0,-1)', ...
                     '( 4) Random'})}
             end
-            m.polarisation = mc_polarisation(value);
+            m.polarisation = Parameters.mc_polarisation(value);
         end
 
         function m = RadAlpha(m, value)
             arguments
-                m Mystic
+                m Groups.Mystic
                 value {mustBeNumeric}
             end
-            m.rad_alpha = mc_rad_alpha(value);
+            m.rad_alpha = Parameters.mc_rad_alpha(value);
         end
 
         function m = Randomseed(m, value)
             arguments
-                m Mystic
+                m Groups.Mystic
                 value {mustBeNumeric}
             end
-            m.random_seed = mc_randomseed(value);
+            m.random_seed = Parameters.mc_randomseed(value);
         end
 
         function m = SensorDirection(m, x, y, z)
             arguments
-                m Mystic
+                m Groups.Mystic
                 x {mustBeNumeric}
                 y {mustBeNumeric}
                 z {mustBeNumeric}
             end
-            m.sensor_direction = mc_sensordirection(x, y, z);
+            m.sensor_direction = Parameters.mc_sensordirection(x, y, z);
         end
 
         function m = SpectralIs(m, value)
             arguments
-                m Mystic
+                m Groups.Mystic
                 value {mustBeNumeric}
             end
-            m.spectral_is = mc_spectral_is(value);
+            m.spectral_is = Parameters.mc_spectral_is(value);
         end
 
         function m = Spherical(m, label)
             arguments
-                m Mystic
+                m Groups.Mystic
                 label {mustBeMember(label, {'1D'})}
             end
-            m.spherical = mc_spherical(label);
+            m.spherical = Parameters.mc_spherical(label);
         end
 
         function m = SurfaceReflectalways(m, state)
             arguments
-                m Mystic
+                m Groups.Mystic
                 state matlab.lang.OnOffSwitchState
             end
-            m.surface_reflectalways = mc_surface_reflectalways(state);
+            m.surface_reflectalways = Parameters.mc_surface_reflectalways(state);
         end
 
         function m = Vroom(m, state)
             arguments
-                m Mystic
+                m Groups.Mystic
                 state matlab.lang.OnOffSwitchState
             end
-            m.vroom = mc_vroom(state);
+            m.vroom = Parameters.mc_vroom(state);
         end
 
     end

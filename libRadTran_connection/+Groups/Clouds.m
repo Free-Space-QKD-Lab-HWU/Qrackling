@@ -4,20 +4,20 @@ classdef Clouds < handle
     end
 
     properties (SetAccess = protected)
-        water_cloud_file wc_file
-        water_cloud_modifications wc_modify
-        water_cloud_properties wc_properties
-        ice_cloud_file ic_file
-        ice_cloud_radius_definition ic_fu
-        ice_cloud_delta_scaling ic_fu
-        ice_cloud_parameterisation ic_habit
-        ice_cloud_Yang_parametersiation ic_habit_yang2013
-        ice_cloud_modifications ic_modify
-        ice_cloud_properties ic_properties
-        water_cloud_cover cloudcover
-        ice_cloud_cover cloudcover
-        cloud_fraction_profile cloud_fraction_file
-        overlap cloud_overlap
+        water_cloud_file Parameters.wc_file
+        water_cloud_modifications Parameters.wc_modify
+        water_cloud_properties Parameters.wc_properties
+        ice_cloud_file Parameters.ic_file
+        ice_cloud_radius_definition Parameters.ic_fu
+        ice_cloud_delta_scaling Parameters.ic_fu
+        ice_cloud_parameterisation Parameters.ic_habit
+        ice_cloud_Yang_parametersiation Parameters.ic_habit_yang2013
+        ice_cloud_modifications Parameters.ic_modify
+        ice_cloud_properties Parameters.ic_properties
+        water_cloud_cover Parameters.cloudcover
+        ice_cloud_cover Parameters.cloudcover
+        cloud_fraction_profile Parameters.cloud_fraction_file
+        overlap Parameters.cloud_overlap
     end
 
     methods
@@ -33,16 +33,16 @@ classdef Clouds < handle
 
         function c = WaterCloudFile(c, type, file)
             arguments
-                c Clouds
+                c Groups.Clouds
                 type {mustBeMember(type, {'1D', 'ipa_files', 'moments'})}
                 file {mustBeFile}
             end
-            c.water_cloud_file = wc_file(type, file);
+            c.water_cloud_file = Parameters.wc_file(type, file);
         end
 
         function c = ModifyWaterCloud(c, variable, type, value)
             arguments
-                c Clouds
+                c Groups.Clouds
             end
             arguments (Repeating)
                 variable {mustBeMember(variable, {'gg', 'ssa', 'tau', 'tau550'})}
@@ -52,47 +52,47 @@ classdef Clouds < handle
             args = [variable, type, value];
             index = reshape(1:numel(d), [3, numel(d)/3])';
             args = args(index(1:end));
-            c.water_cloud_modifications = wc_modify(args{:});
+            c.water_cloud_modifications = Parameters.wc_modify(args{:});
         end
 
         function c = WaterCloudOpticalProperties(c, property, options)
             arguments
-                c Clouds
+                c Groups.Clouds
             end
             arguments
                 property {mustBeMember(property, {'hu', 'echam4', 'mie', 'filename'})}
                 options.interpolate matlab.lang.OnOffSwitchState
             end
             if numel(fieldnames(options)) ~= 0
-                c.water_cloud_properties = wc_properties(property, "interpolate", options.interpolate);
+                c.water_cloud_properties = Parameters.wc_properties(property, "interpolate", options.interpolate);
                 return
             end
-            c.water_cloud_properties = wc_properties(property);
+            c.water_cloud_properties = Parameters.wc_properties(property);
         end
 
         function c = IceCloudFile(c, type, file)
             arguments
-                c Clouds
+                c Groups.Clouds
                 type {mustBeMember(type, {'ic', 'wc'})}
                 file {mustBeFile}
             end
-            c.ice_cloud_file = ic_file(type, file);
+            c.ice_cloud_file = Parameters.ic_file(type, file);
         end
 
         function c = IceCloudRadiusDefinition(c, state)
             arguments
-                c Clouds
+                c Groups.Clouds
                 state matlab.lang.OnOffSwitchState
             end
-            c.ice_cloud_radius_definition = ic_fu("reff_deff", state);
+            c.ice_cloud_radius_definition = Parameters.ic_fu("reff_deff", state);
         end
 
         function c = IceCloudDeltaScaling(c, state)
             arguments
-                c Clouds
+                c Groups.Clouds
                 state matlab.lang.OnOffSwitchState
             end
-            c.ice_cloud_radius_definition = ic_fu("deltascaling", state);
+            c.ice_cloud_radius_definition = Parameters.ic_fu("deltascaling", state);
         end
 
         function c = IceCrystalParameterisation(c, type)
@@ -103,13 +103,13 @@ classdef Clouds < handle
                     'rosette-4',    'rosette-6',     'plate', ...
                     'droxtal',      'dendrite',      'spheroid'})}
             end
-            c.ice_cloud_parameterisation = ic_habit(type);
-            warning("Clouds.ice_cloud_properties must be set to one of {key, yang, hey}")
+            c.ice_cloud_parameterisation = Parameters.ic_habit(type);
+            warning("Groups.Clouds.ice_cloud_properties must be set to one of {key, yang, hey}")
         end
 
         function c = IceCrystalParameterisationYang(c, type)
             arguments
-                c Clouds
+                c Groups.Clouds
                 type {mustBeMember(type, {...
                     'column_8elements',      'droxtal', ...
                     'hollow_bullet_rosette', 'hollow_column', ...
@@ -117,13 +117,13 @@ classdef Clouds < handle
                     'plate_5elements',       'solid_bullet_rosette', ...
                     'solid_column'})}
             end
-            warning("Clouds.ice_cloud_properties must be set to {yang_2013}")
-            c.ice_cloud_Yang_parametersiation = ic_habit_yang2013(type);
+            warning("Groups.Clouds.ice_cloud_properties must be set to {yang_2013}")
+            c.ice_cloud_Yang_parametersiation = Parameters.ic_habit_yang2013(type);
         end
 
         function c = ModifyIceCloud(c, variable, type, value)
             arguments
-                c Clouds
+                c Groups.Clouds
             end
             arguments (Repeating)
                 variable {mustBeMember(variable, {'gg', 'ssa', 'tau', 'tau550'})}
@@ -133,23 +133,23 @@ classdef Clouds < handle
             args = [variable, type, value];
             index = reshape(1:numel(d), [3, numel(d)/3])';
             args = args(index(1:end));
-            c.ice_cloud_modifications = ic_modify(args{:});
+            c.ice_cloud_modifications = Parameters.ic_modify(args{:});
         end
 
-        function c = WaterCloudCover(c, value)
+        function c = WaterParameters.cloudcover(c, value)
             arguments
                 c Cloud
                 value {mustBeNumeric}
             end
-            c.water_cloud_cover = cloudcover("wc", value);
+            c.water_cloud_cover = Parameters.cloudcover("wc", value);
         end
 
-        function c = IceCloudCover(c, value)
+        function c = IceParameters.cloudcover(c, value)
             arguments
                 c Cloud
                 value {mustBeNumeric}
             end
-            c.ice_cloud_cover = cloudcover("ic", value);
+            c.ice_cloud_cover = Parameters.cloudcover("ic", value);
         end
 
         function c = CloudFractionProfile(c, file)
@@ -157,7 +157,7 @@ classdef Clouds < handle
                 c Cloud
                 file {mustBeFile}
             end
-            c.cloud_fraction_profile = cloud_fraction_file(file);
+            c.cloud_fraction_profile = Parameters.cloud_fraction_file(file);
         end
 
         function c = Overlap(c, type)
@@ -165,7 +165,7 @@ classdef Clouds < handle
                 c Cloud
                 type {mustBeMember(type, {'rand', 'maxrand', 'max', 'off'})}
             end
-            c.overlap = cloud_overlap(type);
+            c.overlap = Parameters.cloud_overlap(type);
         end
     end
 end
