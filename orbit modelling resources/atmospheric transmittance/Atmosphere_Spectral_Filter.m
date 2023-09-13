@@ -37,61 +37,64 @@ classdef Atmosphere_Spectral_Filter < SpectralFilter
             ASF = repmat(ASF,sz);
 
             %% iterating over the different types of atmosphere simulated
-            Visibilities=unique(Visibility{:});
+            if 1 == numel(Visibility)
+                Visibilities = Visibility;
+            else
+                Visibilities = unique(Visibility{:});
+            end
+
             for Visibility=Visibilities(:)
-                    %get visibility tag out
-                    Visibility = Visibility{:}; %#ok<FXSET> 
-                    %% load data
-                    switch Visibility
-                        case 'clear'
-                            Data=load('Elevation_Wavelength_Atmospheric_Transmittanceclear.mat');
-                        case '50km'
-                            Data=load('Elevation_Wavelength_Atmospheric_Transmittance50km.mat');
-                        case '20km'
-                            Data=load('Elevation_Wavelength_Atmospheric_Transmittance20km.mat');
-                        case '10km'
-                            Data=load('Elevation_Wavelength_Atmospheric_Transmittance10km.mat');
-                        case '5km'
-                            Data=load('Elevation_Wavelength_Atmospheric_Transmittance5km.mat');
-                        case '2km'
-                            Data=load('Elevation_Wavelength_Atmospheric_Transmittance2km.mat');
-                        case '1km'
-                            Data=load('Elevation_Wavelength_Atmospheric_Transmittance1km.mat');
-                        case '500m'
-                            Data=load('Elevation_Wavelength_Atmospheric_Transmittance500m.mat');
-                        case '200m'
-                            Data=load('Elevation_Wavelength_Atmospheric_Transmittance200m.mat');
-                        case '100m'
-                            Data=load('Elevation_Wavelength_Atmospheric_Transmittance100m.mat');
-                        otherwise
-                            error(sprintf(['Visibility must be one of the following:\n', ...
-                                '50km\n', ...
-                                '20km\n', ...
-                                '10km\n', ...
-                                '5km\n', ...
-                                '2km\n', ...
-                                '1km\n', ...
-                                '500m\n', ...
-                                '200m\n', ...
-                                '100m\n']));
-                    end
+                %get visibility tag out
+                Visibility = Visibility{:}; %#ok<FXSET> 
+                %% load data
+                switch Visibility
+                    case 'clear'
+                        Data=load('Elevation_Wavelength_Atmospheric_Transmittanceclear.mat');
+                    case '50km'
+                        Data=load('Elevation_Wavelength_Atmospheric_Transmittance50km.mat');
+                    case '20km'
+                        Data=load('Elevation_Wavelength_Atmospheric_Transmittance20km.mat');
+                    case '10km'
+                        Data=load('Elevation_Wavelength_Atmospheric_Transmittance10km.mat');
+                    case '5km'
+                        Data=load('Elevation_Wavelength_Atmospheric_Transmittance5km.mat');
+                    case '2km'
+                        Data=load('Elevation_Wavelength_Atmospheric_Transmittance2km.mat');
+                    case '1km'
+                        Data=load('Elevation_Wavelength_Atmospheric_Transmittance1km.mat');
+                    case '500m'
+                        Data=load('Elevation_Wavelength_Atmospheric_Transmittance500m.mat');
+                    case '200m'
+                        Data=load('Elevation_Wavelength_Atmospheric_Transmittance200m.mat');
+                    case '100m'
+                        Data=load('Elevation_Wavelength_Atmospheric_Transmittance100m.mat');
+                    otherwise
+                        error(sprintf(['Visibility must be one of the following:\n', ...
+                            '50km\n', ...
+                            '20km\n', ...
+                            '10km\n', ...
+                            '5km\n', ...
+                            '2km\n', ...
+                            '1km\n', ...
+                            '500m\n', ...
+                            '200m\n', ...
+                            '100m\n']));
+                end
         
-                    %% interpolate to correct elevation
-                    %if no wavelength provided, import value
-                    if nargin<2||isempty(Wavelength)
-                    Wavelength = Data.Wavelength;
-                    end
+                %% interpolate to correct elevation
+                %if no wavelength provided, import value
+                if nargin<2||isempty(Wavelength)
+                Wavelength = Data.Wavelength;
+                end
 
-                    %if elevation is below minimum simulated (nominally 10
-                    %degrees) then set to this limit
-                    Elevation(Elevation<min(Data.Elevation))=min(Data.Elevation);
+                %if elevation is below minimum simulated (nominally 10
+                %degrees) then set to this limit
+                Elevation(Elevation<min(Data.Elevation))=min(Data.Elevation);
 
-                    %interpolate
-                    Transmittance = interp2(Data.Elevation,Data.Wavelength,Data.Transmittance,Elevation,Wavelength);
-                    %deal with negative elevations- making them have zero transmittance
-                    Transmittance(isnan(Transmittance))=0;
-                   
-
+                %interpolate
+                Transmittance = interp2(Data.Elevation,Data.Wavelength,Data.Transmittance,Elevation,Wavelength);
+                %deal with negative elevations- making them have zero transmittance
+                Transmittance(isnan(Transmittance))=0;
 
                 for i=1:sz(2) %iterating over all elevation values,
                     % but only altering ones with this visibility tag

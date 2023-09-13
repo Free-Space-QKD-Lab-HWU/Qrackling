@@ -26,36 +26,45 @@ classdef Source
     end
 
     methods
-        function obj  =  Source(Wavelength, varargin)
-            %%SOURCE construct a source object
+        % function obj  =  Source(Wavelength, varargin)
+        %     %%SOURCE construct a source object
 
-            %% create and use inputParser
-            p = inputParser();
-            %required inputs
-            addRequired(p, 'Wavelength');
-            %optional inputs- use default from object as default value
-            addParameter(p, 'Repetition_Rate', obj.Repetition_Rate);
-            addParameter(p, 'Efficiency', obj.Efficiency);
-            addParameter(p, 'Mean_Photon_Number', obj.Mean_Photon_Number);
-            addParameter(p, 'State_Prep_Error', obj.State_Prep_Error);
-            addParameter(p, 'g2', obj.g2);
-            addParameter(p, 'State_Probabilities', obj.State_Probabilities);
-            %parse inputs
-            parse(p, Wavelength, varargin{:});
+        function obj = Source(Wavelength, options)
+            arguments (Input)
+                Wavelength
+                options.Wavelength_Scale OrderOfMagnitude = "nano"
+                options.Repetition_Rate = 1e9
+                options.Efficiency = 1
+                options.Mean_Photon_Number = 0.01
+                options.State_Prep_Error = 0.01
+                options.g2 = 0.01
+                options.State_Probabilities = 1
+            end
 
-            %% distribute values
-            obj = SetWavelength(obj, p.Results.Wavelength);
-            obj = SetRepetitionRate(obj, p.Results.Repetition_Rate);
-            obj.Efficiency = p.Results.Efficiency;
-            obj.Mean_Photon_Number = p.Results.Mean_Photon_Number;
-            obj.State_Prep_Error = p.Results.State_Prep_Error;
-            obj.g2 = p.Results.g2;
-            obj.State_Probabilities = p.Results.State_Probabilities;
+            for option = fieldnames(options)
+                opt = option{1};
+                switch opt
+                    case 'Wavelength_Scale'
+                        obj = obj.SetWavelength(Wavelength, ...
+                            "Wavelength_Scale", options.Wavelength_Scale);
+                    case 'Repetition_Rate'
+                        obj = obj.SetRepetitionRate(options.Repetition_Rate);
+                    otherwise
+                        obj.(opt) = options.(opt);
+                end
+            end
+
         end
 
-        function Source = SetWavelength(Source, Wavelength)
+        function Source = SetWavelength(Source, Wavelength, options)
+            arguments
+                Source
+                Wavelength
+                options.Wavelength_Scale OrderOfMagnitude = OrderOfMagnitude.nano
+            end
             %%SETWAVELENGTH set the wavelength (nm) of the source
-            Source.Wavelength = Wavelength;
+            factor = 10 ^ OrderOfMagnitude.Ratio("nano", options.Wavelength_Scale);
+            Source.Wavelength = Wavelength * factor;
         end
 
         function Source = SetRepetitionRate(Source, Repetition_Rate)

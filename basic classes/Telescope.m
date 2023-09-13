@@ -40,58 +40,65 @@ classdef Telescope
     end
 
     methods
-        function obj = Telescope(Diameter,varargin)
-            %%TELESCOPE construct a telescope object
-
-            %% allow empty default creation
-            if nargin==0
-                return
+        function obj = Telescope(Diameter, options)
+            arguments (Input)
+                Diameter
+				options.Wavelength = []
+                options.Wavelength_Scale OrderOfMagnitude = "nano"
+				options.Optical_Efficiency = 1 - (0.3 ^ 2)
+				options.Far_Field_Divergence_Coefficient = 1
+				options.Pointing_Jitter = 1e-6
+				options.F_Number = 12
+				options.Eyepiece_Focal_Length = 0.076
+				options.FOV
+				options.Focal_Length
+            end
+            arguments (Output)
+                obj Telescope
             end
 
-            %% create and use input parser
-            P=inputParser();
-            %required inputs
-            addRequired(P,'Diameter')
+            obj.Diameter = Diameter;
+            obj.F_Number = options.F_Number;
+            obj.Focal_Length = obj.F_Number * obj.Diameter;
 
-            %optional inputs
-            addParameter(P,'Wavelength',[])
-            addParameter(P,'Optical_Efficiency', obj.Optical_Efficiency);
-            addParameter(P,'Far_Field_Divergence_Coefficient', ...
-                obj.Far_Field_Divergence_Coefficient);
-            addParameter(P,'Pointing_Jitter',obj.Pointing_Jitter);
-            addParameter(P,'FOV',[])
-            addParameter(P,'Focal_Length',[]);
-            addParameter(P,'F_Number',obj.F_Number);
-            addParameter(P,'Eyepiece_Focal_Length',obj.Eyepiece_Focal_Length);
-            %parse inputs
-            parse(P,Diameter,varargin{:});
+            % Loop over fields that we have and apply specific case
+            for option = fieldnames(options)
+                opt = option{1};
+                switch opt
+                    case 'FOV'
+                        obj = obj.SetFOV(options.FOV);
 
-            %% set values
-            obj.Diameter=P.Results.Diameter;
-            obj.Far_Field_Divergence_Coefficient = ...
-                P.Results.Far_Field_Divergence_Coefficient;
-            obj.Optical_Efficiency=P.Results.Optical_Efficiency;
-            obj=SetPointingJitter(obj,P.Results.Pointing_Jitter);
-            obj=SetWavelength(obj,P.Results.Wavelength);
-            if ~isempty(P.Results.FOV)
-                obj=SetFOV(obj,P.Results.FOV);
+                    case 'Focal_Length'
+                        obj.Focal_Length = options.Focal_Length;
+                        obj.F_Number = obj.Focal_Length / obj.Diameter;
+
+                    case 'Pointing_Jitter'
+                        obj = obj.SetPointingJitter(options.Pointing_Jitter);
+
+                    case 'Wavelength'
+                        obj = obj.SetWavelength(options.Wavelength);
+
+                    otherwise
+                        % Our default case is to just lookup the property by
+                        % name in the class and the options struct and set it
+                        obj.(opt) = options.(opt);
+                end
             end
 
-            if ~isempty(P.Results.Focal_Length)
-                obj.Focal_Length = P.Results.Focal_Length;
-                obj.F_Number = obj.Focal_Length/obj.Diameter;
-            else
-                obj.F_Number = P.Results.F_Number;
-                obj.Focal_Length = obj.F_Number * obj.Diameter;
-            end
-            obj.Eyepiece_Focal_Length = P.Results.Eyepiece_Focal_Length;
-            %record magnification
-            obj.Magnification = obj.Focal_Length/obj.Eyepiece_Focal_Length;
+            obj.Magnification = obj.Focal_Length / obj.Eyepiece_Focal_Length;
+
         end
 
-        function Telescope=SetWavelength(Telescope,Wavelength)
+
+        function Telescope=SetWavelength(Telescope, Wavelength, options)
+            arguments
+                Telescope
+                Wavelength
+                options.Wavelength_Scale OrderOfMagnitude = 'nano'
+            end
             %%SETWAVELENGTH set the wavelength (nm) of the transmitter
-            Telescope.Wavelength=Wavelength;
+            factor = 10 ^ OrderOfMagnitude.Ratio("nano", options.Wavelength_Scale);
+            Telescope.Wavelength = Wavelength * factor;
         end
         
         function Telescope=SetFarFieldDivergenceCoefficient(Telescope,FOV,Wavelength,Diameter)

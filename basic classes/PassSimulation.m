@@ -410,11 +410,18 @@ classdef PassSimulation
         end
 
         function Up_Time = GetUpTime(PassSimulation)
-            %%GETUPTIME return the total time in which communication occurs
+            %%GETUPTIME return the total time (s) in which communication occurs
 
-            Time_Intervals = PassSimulation.Times(2:end)-PassSimulation.Times(1:end-1);
-            Communicating_Time_Intervals = Time_Intervals(PassSimulation.Communicating_Flags(1:end));
+            Time_Intervals = PassSimulation.Times(2:end) ...
+                - PassSimulation.Times(1:end-1);
+
+            Communicating_Time_Intervals = ...
+                Time_Intervals(PassSimulation.Communicating_Flags(1:end));
+
             Up_Time = sum(Communicating_Time_Intervals);
+
+            % HACK: Setting to return in seconds
+            Up_Time = seconds(Up_Time);
         end
 
         function Loss_dB = GetLinkLossdB(PassSimulation)
@@ -465,7 +472,14 @@ classdef PassSimulation
 
             %% Compute background count rate and link heading and elevation
             [Headings, Elevations, Ranges] = RelativeHeadingAndElevation(Satellite, Ground_Station);
-            [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate(Ground_Station, Background_Sources, Satellite, Headings, Elevations, smarts_configuration);
+            [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate( ...
+                Ground_Station, ...
+				Background_Sources, ...
+				Satellite, ...
+				Headings, ...
+				Elevations, ...
+				smarts_configuration);
+
             PassSimulation.QKD_Receiver = Ground_Station; %need to store OGS for beaconing
             %% Check elevation limit
             Line_Of_Sight_Flags = Elevations>0;

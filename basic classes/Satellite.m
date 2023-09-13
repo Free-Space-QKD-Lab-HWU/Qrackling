@@ -49,6 +49,11 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
     end
 
     methods
+        % FIX: Input validation here is a mess, clean up
+        % TODO: Arguments block
+        % TODO: Simplify kepler elements arguments
+        % TODO: Replace 'LLAT', 'TLE', and kepler elements with a {mustbemember}
+        % TODO: Why is there still 'ToolBoxSatellite', 'scenario' and 'useSatCommsToolbox' ?
         function [Satellite, varargout] = Satellite(Telescope, varargin)
 
             % SATELLITE Construct an instance of satellite using an orbital

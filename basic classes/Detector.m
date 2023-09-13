@@ -66,24 +66,20 @@ classdef  Detector
                 Repetition_Rate double
                 Time_Gate_Width double
                 Spectral_Filter
+                options.Wavelength_Scale OrderOfMagnitude = 'nano'
                 options.Polarisation_Error double = asind(1 / 280)
                 options.Preset DetectorPreset
-
                 options.Dark_Count_Rate { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Dark_Count_Rate, 0)}
-
                 options.Dead_Time { ...
-                    mustBeNumeric, mustBeGreaterThanOrEqual(options.Dead_Time, 0)}
-
+                    mustBeNumeric, ...
+                    mustBeGreaterThanOrEqual(options.Dead_Time, 0)}
                 options.Jitter_Histogram { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Jitter_Histogram, 0)}
-
                 options.Histogram_Bin_Width {mustBeNumeric, mustBePositive}
-
-                options.Wavelength_Range {mustBeNumeric}
-
+                options.Wavelength_Range {mustBeNumeric} %FIX: Has this been deprecated?
                 options.Efficiencies { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Efficiencies, 0), ...
@@ -119,21 +115,30 @@ classdef  Detector
                 end
             end
 
-            %% implement detector properties
-            Detector.Wavelength = Wavelength;
-            Detector.Time_Gate_Width = Time_Gate_Width;
+            if contains(optionFields, 'Wavelength_Range')
+                factor = 10 ^ OrderOfMagnitude.Ratio("nano", options.Wavelength_Scale);
+                Detector.Wavelength_Range = options.Wavelength_Range .* factor;
+            end
 
+            %% implement detector properties
+            Detector = Detector.SetWavelength(Wavelength, ...
+                "Wavelength_Scale", options.Wavelength_Scale);
+
+            Detector.Time_Gate_Width = Time_Gate_Width;
 
             %two cases for spectral filter, either width in nm (in which
             %case need to create a SF) or a spectral filter object.
             if isa(Spectral_Filter,'SpectralFilter')
-            Detector.Spectral_Filter = Spectral_Filter;
+                Detector.Spectral_Filter = Spectral_Filter;
             elseif isnumeric(Spectral_Filter)
-            Detector.Spectral_Filter=IdealBPFilter(Detector.Wavelength,Spectral_Filter);
+                Detector.Spectral_Filter = IdealBPFilter( ...
+                    Detector.Wavelength, ...
+                    Spectral_Filter, ...
+                    "Wavelength_Scale", options.Wavelength_Scale);
             else
                 error('Spectral_Filter can be either a SpectralFilter object or a filter width in nm')
             end
-            
+
             Detector.Repetition_Rate = Repetition_Rate;
  
             % compute jitter qber and loss
@@ -179,10 +184,16 @@ classdef  Detector
             Detector = SetJitterPerformance(Detector, Detector.Repetition_Rate);
         end
 
-        function Detector = SetWavelength(Detector, Wavelength)
+        function Detector = SetWavelength(Detector, Wavelength, options)
+            arguments
+                Detector
+                Wavelength
+                options.Wavelength_Scale OrderOfMagnitude = 'nano'
+            end
             %%SETWAVELENGTH set wavelength at which the detector is
             %%operating- which will determine detection efficiency
-            Detector.Wavelength = Wavelength;
+            factor = 10 ^ OrderOfMagnitude.Ratio("nano", options.Wavelength_Scale);
+            Detector.Wavelength = Wavelength .* factor;
         end
 
         function Detector = SetDeadTime(Detector, Dead_Time)
