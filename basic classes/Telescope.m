@@ -100,7 +100,7 @@ classdef Telescope
             factor = 10 ^ OrderOfMagnitude.Ratio("nano", options.Wavelength_Scale);
             Telescope.Wavelength = Wavelength * factor;
         end
-        
+
         function Telescope=SetFarFieldDivergenceCoefficient(Telescope,FOV,Wavelength,Diameter)
             %%SETFARFIELDDIVERGENCECOEFFICIENT set the FFDC required to
             %%maintain a given FOV at a given wavelegngth
@@ -109,8 +109,7 @@ classdef Telescope
                 Telescope.Far_Field_Divergence_Coefficient=1;
                 return
             end
-            
-               
+
             Far_Field_Divergence_Coefficient=FOV/(2.44 *( Wavelength * 10^-9 )/ Diameter);
 
             %check that this farfield divergence coeff is not impossible

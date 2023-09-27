@@ -24,8 +24,8 @@ Spectral_Filter_Width=1;
 Wavelength=850;
 % Excelitas_Detector_Factory=Excelitas_Detector_Factory();
 
-Transmitter_Telescope=Telescope(Transmitter_Diameter);
-Receiver_Telescope=Telescope(Receiver_Diameter);
+Transmitter_Telescope = Telescope(Transmitter_Diameter);
+Receiver_Telescope = Telescope(Receiver_Diameter);
 
 %BB84_S=BB84_Source(Wavelength);
 

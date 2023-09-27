@@ -153,6 +153,7 @@ classdef Constellation
         function Constellation = initialiseSatelliteObjects(Constellation, ...
                                                             scenario, ...
                                                             telescope)
+            disp(telescope)
             for i= 1:Constellation.N
                 tb_sat = scenario.Satellites(i);
                 % we wont store the scenario.Satellite but we should hold the 

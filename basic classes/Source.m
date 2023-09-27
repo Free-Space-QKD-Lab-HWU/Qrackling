@@ -41,7 +41,9 @@ classdef Source
                 options.State_Probabilities = 1
             end
 
-            for option = fieldnames(options)
+            % BUG: Why is Wavelength assigned to anything
+
+            for option = fieldnames(options)'
                 opt = option{1};
                 switch opt
                     case 'Wavelength_Scale'

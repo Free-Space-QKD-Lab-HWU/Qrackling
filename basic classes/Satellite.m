@@ -114,7 +114,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
             ta = p.Results.trueAnomaly;
 
             hasVelocity = false;
-            
+
             %store kepler elements
             if (~any(isnan(arrayfun(@isnan, [sma, ecc, inc, raan, aop, ta]))) ...
                     & isempty(p.Results.KeplerElements))
@@ -123,7 +123,7 @@ classdef Satellite < Located_Object & QKD_Receiver & QKD_Transmitter
                 KeplerElements = p.Results.KeplerElements;
             end
             Satellite.Kepler_Elements = KeplerElements;
-            
+
             %store name
             if ~isempty(p.Results.Name)
                 Satellite.Name = p.Results.Name;

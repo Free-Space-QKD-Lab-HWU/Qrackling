@@ -18,8 +18,8 @@ function SF = IdealBPFilter(Centre_Wavelength, Spectral_Width, ...
     %create a set of wavelength
     Change_Width = 1/Steepness;
 
-    %detect and correct and error where if the Spectral_Width is less than or equal to the
-    %change width the points will not be unique and ordered
+    % detect and correct and error where if the Spectral_Width is less than or
+    % equal to the change width the points will not be unique and ordered
     if Spectral_Width <= Change_Width
         Change_Width = Spectral_Width / 10;
         warning('had to increase default steepness of spectral filter edges to cope with narrowness of filter')
