@@ -15,6 +15,8 @@ classdef Source
         Mean_Photon_Number{mustBeVector, mustBeNonnegative} = 0.01;
 
         %convolution of errors due to state preparation (as a fraction)
+        % NOTE: Error when encoding polariation, i.e. accidentally encoding 'H'
+        % when trying to encode 'V'
         State_Prep_Error{mustBeScalarOrEmpty, mustBeNonnegative} = 0.01;
 
         %normalised autocorrelation of emitted photon at zero delay
@@ -22,6 +24,9 @@ classdef Source
 
         %probability of emitting the different states used (for decoyBB84 and COW)
         State_Probabilities{mustBeNumeric,  mustBeNonnegative,  mustBeLessThanOrEqual(State_Probabilities,  1)} = 1;
+
+        % Coincidence window in seconds
+        Coincidence_Window {mustBeNumeric, mustBeNonnegative, mustBeNonzero} = 1e-9
 
     end
 
@@ -39,21 +44,32 @@ classdef Source
                 options.State_Prep_Error = 0.01
                 options.g2 = 0.01
                 options.State_Probabilities = 1
+                options.Coincidence_Window = 1
+                options.Timing_Scale OrderOfMagnitude = OrderOfMagnitude.nano
             end
 
-            % BUG: Why is Wavelength assigned to anything
+            obj = obj.SetWavelength( ...
+                Wavelength, ...
+                "Wavelength_Scale", options.Wavelength_Scale);
 
-            for option = fieldnames(options)'
+            % for option = fieldnames(options)'
+            props = properties(obj)';
+            props = props(2:end)
+            for option = props
+                disp(option{1})
                 opt = option{1};
+
                 switch opt
-                    case 'Wavelength_Scale'
-                        obj = obj.SetWavelength(Wavelength, ...
-                            "Wavelength_Scale", options.Wavelength_Scale);
-                    case 'Repetition_Rate'
-                        obj = obj.SetRepetitionRate(options.Repetition_Rate);
-                    otherwise
-                        obj.(opt) = options.(opt);
+                case 'Repetition_Rate'
+                    obj = obj.SetRepetitionRate(options.Repetition_Rate);
+                case 'Coincidence_Window'
+                    obj = obj.SetCoincidenceWindow( ...
+                        options.Coincidence_Window, ...
+                        Timing_Scale = options.Timing_Scale);
+                otherwise
+                    obj.(opt) = options.(opt);
                 end
+
             end
 
         end
@@ -72,6 +88,16 @@ classdef Source
         function Source = SetRepetitionRate(Source, Repetition_Rate)
             %%SETREPETITIONRATE set the repetition rate (Hz) of the source
             Source.Repetition_Rate = Repetition_Rate;
+        end
+
+        function Source = SetCoincidenceWindow(Source, Coincidence_Window, options)
+            arguments
+                Source
+                Coincidence_Window
+                options.Timing_Scale OrderOfMagnitude = OrderOfMagnitude.nano
+            end
+            ratio = OrderOfMagnitude.Ratio("none", options.Timing_Scale);
+            Source.Coincidence_Window = Coincidence_Window * (10 ^ ratio);
         end
 
         function Source = SetEfficiency(Source, Efficiency)
