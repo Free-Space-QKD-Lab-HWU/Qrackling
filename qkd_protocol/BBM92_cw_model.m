@@ -7,14 +7,17 @@ function [secret_key_rate, qber, sifted_key_rate] = ...
 
     arguments
         source Source
+        % TODO: is "dark_count_probability" here the way we get the counts from
+        % atmospheric / solar background?
         dark_count_probability {mustBeNumeric}
         loss {mustBeNumeric}
         protocol_efficiency {mustBeNumeric}
         detector Detector
     end
 
-    % TODO: Need to add a coincidence window property somewhere
-    % Should it go in Source or Detector, that is the question?
+    % FIX: Ideally we need to separate bit-flip and phase error for correct
+    % calculation of secret key rate, this raises the question of whether eq17
+    % or eq19 from the source paper is more suitable
 
     % HACK: Brightness for a downconversion source might require a little bit
     % more information than just mean photon number and repetition rate, for 
@@ -40,7 +43,8 @@ function [secret_key_rate, qber, sifted_key_rate] = ...
         AccidentalProbability(singles_alice_measured, singles_bob_measured));
     windowing_loss = LossFromCoincidenceWindow(t_cc, timing_imprecision);
 
-    coincidences_measured = (windowing_loss .* coincidences) + coincidences_accidental;
+    coincidences_measured = (windowing_loss .* coincidences) ...
+        + coincidences_accidental;
     coincidences_erroneous = ErroneousCoincidences(windowing_loss, ...
         coincidences, source.State_Prep_Error, coincidences_accidental);
 
