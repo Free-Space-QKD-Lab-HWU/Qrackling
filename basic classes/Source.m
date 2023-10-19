@@ -6,10 +6,10 @@ classdef Source
         Wavelength{mustBeScalarOrEmpty, mustBePositive};
 
         %number of photon pulses per s (Hz)
-        Repetition_Rate{mustBeScalarOrEmpty, mustBeNonnegative} = 10^9;
+        Repetition_Rate{mustBeScalarOrEmpty, mustBeNonnegative} %= 10^9;
 
         %transmitter power efficiency
-        Efficiency{mustBeScalarOrEmpty, mustBePositive} = 1;
+        Efficiency{mustBeScalarOrEmpty, mustBePositive} %= 1;
 
         %average number of photons per pulse
         Mean_Photon_Number{mustBeVector, mustBeNonnegative} = 0.01;
@@ -17,16 +17,18 @@ classdef Source
         %convolution of errors due to state preparation (as a fraction)
         % NOTE: Error when encoding polariation, i.e. accidentally encoding 'H'
         % when trying to encode 'V'
-        State_Prep_Error{mustBeScalarOrEmpty, mustBeNonnegative} = 0.01;
+        State_Prep_Error{mustBeScalarOrEmpty, mustBeNonnegative} %= 0.01;
 
         %normalised autocorrelation of emitted photon at zero delay
-        g2{mustBeScalarOrEmpty, mustBeNonnegative} = 0.01;
+        g2{mustBeScalarOrEmpty, mustBeNonnegative} %= 0.01;
 
         %probability of emitting the different states used (for decoyBB84 and COW)
-        State_Probabilities{mustBeNumeric,  mustBeNonnegative,  mustBeLessThanOrEqual(State_Probabilities,  1)} = 1;
+        State_Probabilities{mustBeNumeric,  mustBeNonnegative,  mustBeLessThanOrEqual(State_Probabilities,  1)} %= 1;
 
         % Coincidence window in seconds
-        Coincidence_Window {mustBeNumeric, mustBeNonnegative, mustBeNonzero} = 1e-9
+        Coincidence_Window {mustBeNumeric, mustBeNonnegative, mustBeNonzero} %= 1e-9
+
+        %Brightness {mustBeNumeric}
 
     end
 
@@ -46,6 +48,7 @@ classdef Source
                 options.State_Probabilities = 1
                 options.Coincidence_Window = 1
                 options.Timing_Scale OrderOfMagnitude = OrderOfMagnitude.nano
+                %options.Brightness
             end
 
             obj = obj.SetWavelength( ...
@@ -54,9 +57,8 @@ classdef Source
 
             % for option = fieldnames(options)'
             props = properties(obj)';
-            props = props(2:end)
+            props = props(2:end);
             for option = props
-                disp(option{1})
                 opt = option{1};
 
                 switch opt
@@ -139,6 +141,85 @@ classdef Source
             %%being prepared incorrectly
             Source.State_Prep_Error = State_Prep_Error;
         end
+
+
+        function result = HasRepetitionRate(source)
+            arguments
+                source Source
+            end
+            if isempty(source.Repetition_Rate) || isnan(source.Repetition_Rate)
+                result = false;
+                return
+            end
+            result = true;
+        end
+
+        function result = HasEfficiency(source)
+            arguments
+                source Source
+            end
+            if isempty(source.Efficiency) || isnan(source.Efficiency)
+                result = false;
+                return
+            end
+            result = true;
+        end
+
+        function result = HasMeanPhotonNumber(source)
+            arguments
+                source Source
+            end
+            if isempty(source.Mean_Photon_Number) || isnan(source.Mean_Photon_Number)
+                result = false;
+                return
+            end
+            result = true;
+        end
+
+        function result = HasStatePrepError(source)
+            arguments
+                source Source
+            end
+            if isempty(source.State_Prep_Error) || isnan(source.State_Prep_Error)
+                result = false;
+                return
+            end
+            result = true;
+        end
+
+        function result = Hasg2(source)
+            arguments
+                source Source
+            end
+            if isempty(source.g2) || isnan(source.g2)
+                result = false;
+                return
+            end
+            result = true;
+        end
+
+        function result = HasStateProbabilities(source)
+            arguments
+                source Source
+            end
+            if isempty(source.State_Probabilities) || isnan(source.State_Probabilities)
+                result = false;
+                return
+            end
+            result = true;
+        end
+
+        function result = HasCoincidenceWindow(source)
+            arguments
+                source Source
+            end
+            if isempty(source.Coincidence_Window) || isnan(source.Coincidence_Window)
+                result = false;
+                return
+            end
+            result = true;
+        end
+
 
     end
 end

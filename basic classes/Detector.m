@@ -443,5 +443,75 @@ classdef  Detector
             end
 
         end
+
+
+
+        function result = HasTimeGateWidth(detector)
+            arguments
+                detector Detector
+            end
+            if isempty(detector.Time_Gate_Width) || isnan(detector.Time_Gate_Width)
+                result = false;
+                return
+            end
+            result = true;
+        end
+
+        function result = HasRepetitionRate(detector)
+            arguments
+                detector Detector
+            end
+            if isempty(detector.Repetition_Rate) || isnan(detector.Repetition_Rate)
+                result = false;
+                return
+            end
+            result = true;
+        end
+
+        function result = HasPolarisationError(detector)
+            arguments
+                detector Detector
+            end
+            if isempty(detector.Polarisation_Error) || isnan(detector.Polarisation_Error)
+                result = false;
+                return
+            end
+            result = true;
+        end
+
+        function result = HasDeadTime(detector)
+            arguments
+                detector Detector
+            end
+            if isempty(detector.Dead_Time) || isnan(detector.Dead_Time)
+                result = false;
+                return
+            end
+            result = true;
+        end
+
+        function result = HasDarkCountRate(detector)
+            arguments
+                detector Detector
+            end
+            if isempty(detector.Dark_Count_Rate) || isnan(detector.Dark_Count_Rate)
+                result = false;
+                return
+            end
+            result = true;
+        end
+
+        function result = HasVisibility(detector)
+            arguments
+                detector Detector
+            end
+            if isempty(detector.Visibility) || isnan(detector.Visibility)
+                result = false;
+                return
+            end
+            result = true;
+        end
+
+
     end
 end

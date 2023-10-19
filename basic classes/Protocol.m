@@ -97,7 +97,7 @@ classdef Protocol
         source_requirements = {};
         detector_requirements = {};
         efficiency double {mustBeLessThanOrEqual(efficiency,1),mustBeNonnegative}
-        Evaluation_Function function_handle {mustBeScalarOrEmpty}=function_handle.empty;
+        Evaluation_Function function_handle {mustBeScalarOrEmpty} = function_handle.empty;
    end
 
    methods
