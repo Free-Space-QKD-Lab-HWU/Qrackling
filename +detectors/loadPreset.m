@@ -1,4 +1,4 @@
-function loaded = loadPreset(preset)
+function result = loadPreset(preset)
     arguments (Input)
         preset {mustBeMember( preset, { ...
             'Excelitas', 'Hamamatsu', ...
@@ -9,7 +9,7 @@ function loaded = loadPreset(preset)
             })}
     end
 
-    [path, ~] = fileparts(which('sensors.detectors.loadPreset'));
+    [path, ~] = fileparts(which('detectors.loadPreset'));
     file_path = [path, [filesep, 'presets', filesep, preset, '.mat']];
-    loaded = sensors.detectors.DetectorPresetBuilder().loadPreset(file_path);
+    result = detectors.DetectorPresetBuilder().loadPreset(file_path);
 end
