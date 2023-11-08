@@ -104,7 +104,7 @@ classdef Constellation
 
             assert(6 == size(kepler_elements) * [0, 1]');
 
-            lengths = utils.lengths(sma, ecc, inc, raan, aop, ta);
+            lengths = utilities.lengths(sma, ecc, inc, raan, aop, ta);
             %this logic is not quite right, this shouldnt be reached if the above test passes
             %if ~isnan(all(lengths == lengths(1)))
             %    apply_kepler = true;
@@ -190,7 +190,7 @@ classdef Constellation
                                                         names)
 
             if 1 == Constellation.N
-                [sma, ecc, inc, raan, aop, ta] = utils.splat(kepler_mat);
+                [sma, ecc, inc, raan, aop, ta] = utilities.splat(kepler_mat);
                 
                 if isempty(names)
                     names = '';
@@ -209,8 +209,8 @@ classdef Constellation
                 end
 
                 for i = 1 : Constellation.N
-                    %[sma, ecc, inc, raan, aop, ta] = utils.splat(kepler_mat(i,:));
-                    %[sma, ecc, inc, raan, aop, ta] = utils.splat(kepler_mat(i,:));
+                    %[sma, ecc, inc, raan, aop, ta] = utilities.splat(kepler_mat(i,:));
+                    %[sma, ecc, inc, raan, aop, ta] = utilities.splat(kepler_mat(i,:));
                     sma = kepler_mat(i, 1);
                     ecc = kepler_mat(i, 2);
                     inc = kepler_mat(i, 3);
@@ -231,12 +231,12 @@ classdef Constellation
 
         function [sma, ecc, inc, raan, aop, ta] = elementsFromScenario(self, scenario)
             orbitalElements = scenario.orbitalElements;
-            sma = utils.meanmotion2semimajoraxis(orbitalElements.MeanMotion);
+            sma = utilities.meanmotion2semimajoraxis(orbitalElements.MeanMotion);
             ecc = orbitalElements.Eccentricity;
             inc = orbitalElements.Inclination;
             raan = orbitalElements.RightAscensionOfAscendingNode;
             aop = orbitalElements.ArgumentOfPeriapsis;
-            ta = utils.eccentricity2trueAnomaly(ecc, orbitalElements.MeanAnomaly);
+            ta = utilities.eccentricity2trueAnomaly(ecc, orbitalElements.MeanAnomaly);
         end
     end
 end
