@@ -1,4 +1,4 @@
-classdef detectorPresetBuilder
+classdef DetectorPresetBuilder
     % Class to build a detector preset (DetectorPreset.m).
     %
     % # Example of making a preset and saving it
@@ -12,7 +12,7 @@ classdef detectorPresetBuilder
     % MyDetector.writePreset('path/to/save/preset/to.mat')
 
     properties(SetAccess=protected, GetAccess=protected)
-        preset = DetectorPreset
+        preset = sensors.detectors.DetectorPreset
     end
 
     methods
@@ -20,7 +20,7 @@ classdef detectorPresetBuilder
         function builder = addName(builder, Name)
             % Add a name to a preset
             arguments
-                builder detectorPresetBuilder
+                builder sensors.detectors.DetectorPresetBuilder
                 Name {mustBeText}
             end
             builder.preset.Name = Name;
@@ -29,7 +29,7 @@ classdef detectorPresetBuilder
         function builder = addDarkCountRate(builder, DarkCountRate)
             % Add a dark count rate to a preset
             arguments
-                builder detectorPresetBuilder
+                builder sensors.detectors.DetectorPresetBuilder
                 DarkCountRate { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(DarkCountRate, 0)}
@@ -41,7 +41,7 @@ classdef detectorPresetBuilder
         function builder = addDeadTime(builder, DeadTime)
             % Add a detector dead time (reset time) to a preset
             arguments
-                builder detectorPresetBuilder
+                builder sensors.detectors.DetectorPresetBuilder
                 DeadTime {mustBeNumeric, mustBeGreaterThanOrEqual(DeadTime, 0)}
             end
 
@@ -53,7 +53,7 @@ classdef detectorPresetBuilder
             % Histogram should be an array and BinWidth should be a double (
             % probably 1 ps (1e-12) or something similar)
             arguments
-                builder detectorPresetBuilder
+                builder sensors.detectors.DetectorPresetBuilder
                 Histogram { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(Histogram, 0)}
@@ -69,7 +69,7 @@ classdef detectorPresetBuilder
             % Add an array of possible wavelengths and corresponding 
             % efficiencies for a detector to a preset
             arguments
-                builder detectorPresetBuilder
+                builder sensors.detectors.DetectorPresetBuilder
                 Wavelengths
                 Efficiencies { ...
                     mustBeGreaterThanOrEqual(Efficiencies, 0) ...
@@ -111,7 +111,7 @@ classdef detectorPresetBuilder
 
         function preset = loadPreset(builder, presetFilePath)
             arguments
-                builder detectorPresetBuilder
+                builder sensors.detectors.DetectorPresetBuilder
                 presetFilePath {mustBeFile}
             end
             % Load a preset from presetFilePath. The loaded preset is contained
@@ -124,12 +124,12 @@ classdef detectorPresetBuilder
         function presetBuilder = BuildPresetFromDetector(builder, name, detector)
             % Build a preset from a name and a Detector object.
             arguments
-                builder detectorPresetBuilder
+                builder sensors.detectors.DetectorPresetBuilder
                 name {mustBeText}
                 detector Detector
             end
 
-            presetBuilder = detectorPresetBuilder() ...
+            presetBuilder = DetectorPresetBuilder() ...
                 .addName(name) ...
                 .addDarkCountRate(detector.Dark_Count_Rate) ...
                 .addDeadTime(detector.Dead_Time) ...
