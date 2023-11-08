@@ -326,3 +326,8 @@ lrt.Spectral_Settings.wavelength_range
 spec.WavelengthRange(500, 1050)
 lrt.Spectral_Settings.wavelength_range
 
+
+%%
+clear all
+close all
+

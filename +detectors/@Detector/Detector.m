@@ -68,7 +68,7 @@ classdef  Detector
                 Spectral_Filter
                 options.Wavelength_Scale OrderOfMagnitude = 'nano'
                 options.Polarisation_Error double = asind(1 / 280)
-                options.Preset DetectorPreset
+                options.Preset detectors.DetectorPreset
                 options.Dark_Count_Rate { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Dark_Count_Rate, 0)}
@@ -97,7 +97,7 @@ classdef  Detector
 
             if any(contains(optionFields, 'Preset'))
                 Preset = options.Preset;
-                for f = fieldnames(DetectorPreset)' % Have to transpose to iterate it
+                for f = fieldnames(detectors.DetectorPreset)' % Have to transpose to iterate it
                     if strcmp(f{1}, 'Name') % We don't need this field here
                         continue
                     end

@@ -12,7 +12,7 @@ classdef DetectorPresetBuilder
     % MyDetector.writePreset('path/to/save/preset/to.mat')
 
     properties(SetAccess=protected, GetAccess=protected)
-        preset
+        preset detectors.DetectorPreset
     end
 
     methods
@@ -90,7 +90,7 @@ classdef DetectorPresetBuilder
         function preset = makeDetectorPreset(builder)
             % Only way of accessing the "preset" property. This way only valid
             % DetectorPreset objects can be created
-            fields = fieldnames(DetectorPreset);
+            fields = fieldnames(detectors.DetectorPreset);
             for i = 1:numel(fields)
                 field = fields{i};
                 value = builder.preset.(field);
@@ -105,8 +105,8 @@ classdef DetectorPresetBuilder
             % by outputPath. This calls makeDetectorPreset() ensuring that the
             % requirements for a valid detector preset have been met.
             outputPath = adduserpath(outputPath);
-            new_preset = builder.makeDetectorPreset();
-            save(outputPath, 'new_preset');
+            preset = builder.makeDetectorPreset();
+            save(outputPath, 'preset');
         end
 
         function preset = loadPreset(builder, presetFilePath)
@@ -136,6 +136,26 @@ classdef DetectorPresetBuilder
                 .addJitterHistogram(detector.Jitter_Histogram, detector.Histogram_Bin_Width) ...
                 .addDetectorEfficiencyArray(detector.Wavelength_Range, detector.Efficiencies);
         end
+
+        % function convert(builder, old_preset_path)
+        %     arguments
+        %         builder detectors.DetectorPresetBuilder
+        %         old_preset_path {mustBeFile}
+        %     end
+        %     old_preset = builder.loadPreset(old_preset_path);
+        %     builder.new_preset = detectors.DetectorPreset;
+        %     builder.new_preset.Name = old_preset.Name;
+        %     builder.new_preset.Efficiencies = old_preset.Efficiencies;
+        %     builder.new_preset.Dark_Count_Rate = old_preset.Dark_Count_Rate;
+        %     builder.new_preset.Dead_Time = old_preset.Dead_Time;
+        %     builder.new_preset.Jitter_Histogram = old_preset.Jitter_Histogram;
+        %     builder.new_preset.Histogram_Bin_Width = old_preset.Histogram_Bin_Width;
+        %     builder.new_preset.Wavelength_Range = old_preset.Wavelength_Range;
+        %     builder.new_preset.Efficiencies = old_preset.Efficiencies;
+        %     disp(builder.new_preset)
+        %     preset = builder.new_preset;
+        %     save(old_preset_path, 'preset');
+        % end
 
     end
 end
