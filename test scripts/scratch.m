@@ -258,7 +258,6 @@ out_file_path = lrt.RunConfiguration( ...
     Verbosity = 'Quiet');
 
 
-
 %% 
 clear all
 close all
@@ -311,3 +310,18 @@ out_file_path = lrt.RunConfiguration( ...
     '~/Documents/conference_data', 'test.txt', ...
     Verbosity = 'Quiet');
 
+%%
+
+clear all
+close all
+lrt = libRadtran("~/libRadtran-2.0.4");
+atmos = lrt.GeneralAtmosphereSettings();
+
+spec = Groups.Spectral()
+spec.WavelengthRange(500, 950)
+
+lrt.Spectral_Settings = spec
+
+lrt.Spectral_Settings.wavelength_range
+spec.WavelengthRange(500, 1050)
+lrt.Spectral_Settings.wavelength_range

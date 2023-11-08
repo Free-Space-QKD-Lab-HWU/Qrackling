@@ -15,6 +15,8 @@ classdef Source
         Mean_Photon_Number{mustBeVector, mustBeNonnegative} = 0.01;
 
         %convolution of errors due to state preparation (as a fraction)
+        % NOTE: Error when encoding polariation, i.e. accidentally encoding 'H'
+        % when trying to encode 'V'
         State_Prep_Error{mustBeScalarOrEmpty, mustBeNonnegative} = 0.01;
 
         %normalised autocorrelation of emitted photon at zero delay
@@ -41,7 +43,7 @@ classdef Source
                 options.State_Probabilities = 1
             end
 
-            % BUG: Why is Wavelength assigned to anything
+            % BUG: Why isn't Wavelength assigned to anything
 
             for option = fieldnames(options)'
                 opt = option{1};

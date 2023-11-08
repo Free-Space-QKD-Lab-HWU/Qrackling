@@ -43,15 +43,15 @@ classdef Telescope
         function obj = Telescope(Diameter, options)
             arguments (Input)
                 Diameter
-				options.Wavelength = []
+                options.Wavelength = []
                 options.Wavelength_Scale OrderOfMagnitude = "nano"
-				options.Optical_Efficiency = 1 - (0.3 ^ 2)
-				options.Far_Field_Divergence_Coefficient = 1
-				options.Pointing_Jitter = 1e-6
-				options.F_Number = 12
-				options.Eyepiece_Focal_Length = 0.076
-				options.FOV
-				options.Focal_Length
+                options.Optical_Efficiency = 1 - (0.3 ^ 2)
+                options.Far_Field_Divergence_Coefficient = 1
+                options.Pointing_Jitter = 1e-6
+                options.F_Number = 12
+                options.Eyepiece_Focal_Length = 0.076
+                options.FOV
+                options.Focal_Length
             end
             arguments (Output)
                 obj Telescope
@@ -61,10 +61,19 @@ classdef Telescope
             obj.F_Number = options.F_Number;
             obj.Focal_Length = obj.F_Number * obj.Diameter;
 
+            props = properties(obj);
+            hasProp = @(prop) any(contains(props, prop));
             % Loop over fields that we have and apply specific case
-            for option = fieldnames(options)
+            for option = fieldnames(options)'
                 opt = option{1};
+                if ~hasProp(opt)
+                    continue
+                end
                 switch opt
+                    case 'Wavelength'
+                        obj = obj.SetWavelength(options.Wavelength, ...
+                            "Wavelength_Scale", options.Wavelength_Scale);
+
                     case 'FOV'
                         obj = obj.SetFOV(options.FOV);
 
@@ -74,9 +83,6 @@ classdef Telescope
 
                     case 'Pointing_Jitter'
                         obj = obj.SetPointingJitter(options.Pointing_Jitter);
-
-                    case 'Wavelength'
-                        obj = obj.SetWavelength(options.Wavelength);
 
                     otherwise
                         % Our default case is to just lookup the property by
@@ -90,15 +96,15 @@ classdef Telescope
         end
 
 
-        function Telescope=SetWavelength(Telescope, Wavelength, options)
+        function obj = SetWavelength(obj, Wavelength, options)
             arguments
-                Telescope
+                obj Telescope
                 Wavelength
                 options.Wavelength_Scale OrderOfMagnitude = 'nano'
             end
             %%SETWAVELENGTH set the wavelength (nm) of the transmitter
             factor = 10 ^ OrderOfMagnitude.Ratio("nano", options.Wavelength_Scale);
-            Telescope.Wavelength = Wavelength * factor;
+            obj.Wavelength = Wavelength * factor;
         end
 
         function Telescope=SetFarFieldDivergenceCoefficient(Telescope,FOV,Wavelength,Diameter)
