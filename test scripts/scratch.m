@@ -331,3 +331,24 @@ lrt.Spectral_Settings.wavelength_range
 clear all
 close all
 
+detectors.loadPreset("Excelitas")
+detectors.DetectorPresetBuilder
+
+detectors.Detector(785, 1, 1, 1, "Preset", detectors.loadPreset("Hamamatsu"))
+
+detectors.DetectorPresetBuilder().convert('~/Projects/QKD_Sat_Link/adaptive_optics/+detectors/presets/Excelitas.mat')
+detectors.DetectorPresetBuilder().convert('~/Projects/QKD_Sat_Link/adaptive_optics/+detectors/presets/Hamamatsu.mat')
+detectors.DetectorPresetBuilder().convert('~/Projects/QKD_Sat_Link/adaptive_optics/+detectors/presets/ID_Qube_NIR.mat')
+detectors.DetectorPresetBuilder().convert('~/Projects/QKD_Sat_Link/adaptive_optics/+detectors/presets/PerkinElmer.mat')
+detectors.DetectorPresetBuilder().convert('~/Projects/QKD_Sat_Link/adaptive_optics/+detectors/presets/LaserComponents.mat')
+detectors.DetectorPresetBuilder().convert('~/Projects/QKD_Sat_Link/adaptive_optics/+detectors/presets/MicroPhotonDevices.mat')
+detectors.DetectorPresetBuilder().convert('~/Projects/QKD_Sat_Link/adaptive_optics/+detectors/presets/QuantumOpus1550_RoomTempAmplifier.mat')
+detectors.DetectorPresetBuilder().convert('~/Projects/QKD_Sat_Link/adaptive_optics/+detectors/presets/QuantumOpus1550_CryogenicAmplifier.mat')
+
+%% 
+
+units.Angle.Degrees
+units.Angle.ToDegrees("Radians", pi/2)
+units.Angle.ToRadians("Degrees", 90)
+
+units.Magnitude.Convert("micro", "nano", 1.55)

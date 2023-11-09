@@ -81,11 +81,11 @@ classdef StandardAtmosphere
             arguments
                 StdAtm StandardAtmosphere
                 Wavelength
-                options.WavelengthUnit OrderOfMagnitude = OrderOfMagnitude.micro
+                options.WavelengthUnit units.Magnitude = units.Magnitude.micro
             end
 
-            exponent = OrderOfMagnitude.Ratio(options.WavelengthUnit, "micro");
-            Wavelength = Wavelength .* (10 ^ exponent);
+            Wavelength = units.Magnitude.Convert( ...
+                options.WavelengthUnit, "micro", Wavelength);
 
             wl = (1 ./ Wavelength).^2;
             dispersion = 8342.54 ...
@@ -98,11 +98,11 @@ classdef StandardAtmosphere
                 StdAtm StandardAtmosphere
                 Wavelength
                 Altitudes
-                options.WavelengthUnit OrderOfMagnitude = OrderOfMagnitude.micro
+                options.WavelengthUnit units.Magnitude = "micro"
             end
 
-            exponent = OrderOfMagnitude.Ratio(options.WavelengthUnit, "micro");
-            Wavelength = Wavelength .* (10 ^ exponent);
+            Wavelength = units.Magnitude.Convert( ...
+                options.WavelengthUnit, "micro", Wavelength);
 
             PascalFromMbar = @(mbar) mbar .* 100;
             CelciusFromKelvin = @(kelvin) kelvin - 273.15;
@@ -130,11 +130,11 @@ classdef StandardAtmosphere
                 StdAtm StandardAtmosphere
                 Wavelength
                 Altitudes
-                options.WavelengthUnit OrderOfMagnitude = OrderOfMagnitude.micro
+                options.WavelengthUnit units.Magnitude = "micro"
             end
 
-            exponent = OrderOfMagnitude.Ratio(options.WavelengthUnit, "micro");
-            Wavelength = Wavelength .* (10 ^ exponent);
+            Wavelength = units.Magnitude.Convert( ...
+                options.WavelengthUnit, "micro", Wavelength);
 
             n = StdAtm.AtmosphericRefractiveIndex(Wavelength, Altitudes);
             delta = StdAtm.AltitudeDifference(Altitudes);

@@ -30,12 +30,12 @@ classdef FriedParameter
                 Slant_Range {mustBeNumeric}
                 Zenith_Angle {mustBeNumeric}
                 Wavelength {mustBeNumeric}
-                options.Range_Unit OrderOfMagnitude = OrderOfMagnitude.Kilo
-                options.Wavelength_Unit OrderOfMagnitude = OrderOfMagnitude.nano
+                options.Range_Unit units.Magnitude = "Kilo"
+                options.Wavelength_Unit units.Magnitude = "nano"
             end
 
-            exponent = 10 ^ OrderOfMagnitude.Ratio(options.Range_Unit, "Kilo");
-            range = Slant_Range .* exponent;
+            range = units.Magnitude.Factor( ...
+                options.Range_Unit, "Kilo", Slant_Range);
 
             switch FP.Link_Direction
                 case LinkDirection.Downlink
@@ -53,8 +53,12 @@ classdef FriedParameter
                         );
             end
 
-            exponent = 10 ^ OrderOfMagnitude.Ratio(options.Wavelength_Unit, "micro");
-            wavenumber = (Wavelength .* exponent) ./ (2 * pi);
+            wavenumber = ...
+                units.Magnitude.Convert( ...
+                    options.Wavelength_Unit, ...
+                    "micro", ...
+                    Wavelength) ...
+                ./ (2 * pi);
 
             r0 = ( ...
                   0.423 ...

@@ -79,12 +79,12 @@ classdef HufnagelValley
                 HV HufnagelValley
                 altitude double
                 options.Prefactor double = 1
-                options.AltitudeUnit OrderOfMagnitude = OrderOfMagnitude.Kilo
+                options.AltitudeUnit units.Magnitude = "Kilo"
             end
 
             % We probably want to work in kilometres for altitudes however our
             % internal values for heights (h and H) are in metres...
-            exponent = OrderOfMagnitude.Ratio(options.AltitudeUnit, "none");
+            exponent = units.Magnitude.Ratio(options.AltitudeUnit, "none");
 
             ghv = HufnagelValley.HvCalculation( ...
                 altitude .* (10^exponent), ...

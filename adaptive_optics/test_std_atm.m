@@ -15,7 +15,7 @@ title('Pressure')
 plot(p, A)
 xlim([-50, 800])
 
-o = OrderOfMagnitude.nano;
+o = units.Magnitude.nano;
 n = stdatm.AtmosphericRefractiveIndex(840, A, WavelengthUnit=o);
 refr = (n-1) .* (1e5);
 figure
@@ -48,7 +48,7 @@ N = 10;
 A = [5, 7, 11, 15, 20, 32, 47, 51, 71, 84.8];
 % A = linspace(0, 84.8, 10);
 
-o = OrderOfMagnitude.nano;
+o = units.Magnitude.nano;
 n = stdatm.AtmosphericRefractiveIndex(840, A, WavelengthUnit=o);
 % n = ([27340, 14660, 11142, 6141, 3268, 1485, 235, 34, 21, 1, 0.1] ./ (1e8)) + 1;
 % n = ([14660, 11142, 6141, 3268, 1485, 235, 34, 21, 1, 0.1] ./ (1e8)) + 1;

@@ -6,11 +6,10 @@ function r0 = AtmosphericTurbulenceTest(Link_Direction, ...
         Slant_Range {mustBeNumeric}
         Zenith_Angle {mustBeNumeric}
         Wavenumber {mustBeNumeric}
-        Range_Unit OrderOfMagnitude = OrderOfMagnitude.Kilo
+        Range_Unit units.Magnitude = "Kilo"
     end
 
-    exponent = OrderOfMagnitude.Ratio(Range_Unit, "Kilo");
-    range = Slant_Range .* (10 ^ exponent);
+    range = units.Magnitude.Convert(Range_Unit, "Kilo", Slant_Range);
 
     switch Link_Direction
         case LinkDirection.Downlink

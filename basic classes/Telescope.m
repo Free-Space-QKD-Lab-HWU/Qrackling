@@ -44,7 +44,7 @@ classdef Telescope
             arguments (Input)
                 Diameter
                 options.Wavelength = []
-                options.Wavelength_Scale OrderOfMagnitude = "nano"
+                options.Wavelength_Scale units.Magnitude = "nano"
                 options.Optical_Efficiency = 1 - (0.3 ^ 2)
                 options.Far_Field_Divergence_Coefficient = 1
                 options.Pointing_Jitter = 1e-6
@@ -100,11 +100,13 @@ classdef Telescope
             arguments
                 obj Telescope
                 Wavelength
-                options.Wavelength_Scale OrderOfMagnitude = 'nano'
+                options.Wavelength_Scale units.Magnitude = 'nano'
             end
             %%SETWAVELENGTH set the wavelength (nm) of the transmitter
-            factor = 10 ^ OrderOfMagnitude.Ratio("nano", options.Wavelength_Scale);
-            obj.Wavelength = Wavelength * factor;
+            obj.Wavelength = units.Magnitude.Factor( ...
+                options.Wavelength_Scale, ...
+                "nano", ...
+                Wavelength);
         end
 
         function Telescope=SetFarFieldDivergenceCoefficient(Telescope,FOV,Wavelength,Diameter)

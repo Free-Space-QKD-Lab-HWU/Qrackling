@@ -34,7 +34,7 @@ classdef Source
         function obj = Source(Wavelength, options)
             arguments (Input)
                 Wavelength
-                options.Wavelength_Scale OrderOfMagnitude = "nano"
+                options.Wavelength_Scale units.Magnitude = "nano"
                 options.Repetition_Rate = 1e9
                 options.Efficiency = 1
                 options.Mean_Photon_Number = 0.01
@@ -64,11 +64,11 @@ classdef Source
             arguments
                 Source
                 Wavelength
-                options.Wavelength_Scale OrderOfMagnitude = OrderOfMagnitude.nano
+                options.Wavelength_Scale units.Magnitude = "nano"
             end
             %%SETWAVELENGTH set the wavelength (nm) of the source
-            factor = 10 ^ OrderOfMagnitude.Ratio("nano", options.Wavelength_Scale);
-            Source.Wavelength = Wavelength * factor;
+            Source.Wavelength = units.Magnitude.Convert( ...
+                options.Wavelength_Scale, "nano", Wavelength);
         end
 
         function Source = SetRepetitionRate(Source, Repetition_Rate)

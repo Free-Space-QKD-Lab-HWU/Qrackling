@@ -94,7 +94,7 @@ classdef AFGL_Plus
                 Altitudes
                 WindModel
                 AtmosphereProfile StandardAtmosphere
-                options.AltitudeUnit OrderOfMagnitude = OrderOfMagnitude.Kilo
+                options.AltitudeUnit units.Magnitude = "Kilo"
             end
 
             % temperature = options.AtmosphereProfile.Temperature(Altitudes);
@@ -105,7 +105,7 @@ classdef AFGL_Plus
                 error('Aerospce toolbox is not installed, needed for atmoshwm')
             end
 
-            exponent = OrderOfMagnitude.Ratio(options.AltitudeUnit, "none");
+            exponent = units.Magnitude.Ratio(options.AltitudeUnit, "none");
             altitudes_metres = Altitudes .* (10^exponent);
 
             latitudes = 48 .* ones(fliplr(size(altitudes_metres)));

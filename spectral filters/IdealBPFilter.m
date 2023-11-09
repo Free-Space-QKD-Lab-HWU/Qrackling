@@ -12,7 +12,7 @@ function SF = IdealBPFilter(Centre_Wavelength, Spectral_Width, ...
         Max_Wavelength {mustBePositive,mustBeScalarOrEmpty} = 1E4;
         %what's the max wavelength mapped to by the spectral filter. default is
         %10um
-        options.Wavelength_Scale OrderOfMagnitude = 'nano'
+        options.Wavelength_Scale units.Magnitude = 'nano'
     end
 
     %create a set of wavelength

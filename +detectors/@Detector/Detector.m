@@ -66,7 +66,7 @@ classdef  Detector
                 Repetition_Rate double
                 Time_Gate_Width double
                 Spectral_Filter
-                options.Wavelength_Scale OrderOfMagnitude = 'nano'
+                options.Wavelength_Scale units.Magnitude = 'nano'
                 options.Polarisation_Error double = asind(1 / 280)
                 options.Preset detectors.DetectorPreset
                 options.Dark_Count_Rate { ...
@@ -116,8 +116,10 @@ classdef  Detector
             end
 
             if contains(optionFields, 'Wavelength_Range')
-                factor = 10 ^ OrderOfMagnitude.Ratio("nano", options.Wavelength_Scale);
-                Detector.Wavelength_Range = options.Wavelength_Range .* factor;
+                Detector.Wavelength = units.Magnitude.Convert( ...
+                    options.Wavelength_Scale, ...
+                    "nano", ...
+                    options.Wavelength_Range);
             end
 
             %% implement detector properties
@@ -188,12 +190,14 @@ classdef  Detector
             arguments
                 Detector
                 Wavelength
-                options.Wavelength_Scale OrderOfMagnitude = 'nano'
+                options.Wavelength_Scale units.Magnitude = 'nano'
             end
             %%SETWAVELENGTH set wavelength at which the detector is
             %%operating- which will determine detection efficiency
-            factor = 10 ^ OrderOfMagnitude.Ratio("nano", options.Wavelength_Scale);
-            Detector.Wavelength = Wavelength .* factor;
+            Detector.Wavelength = units.Magnitude.Convert(...
+                options.Wavelength_Scale, ...
+                "nano", ...
+                Wavelength);
         end
 
         function Detector = SetDeadTime(Detector, Dead_Time)

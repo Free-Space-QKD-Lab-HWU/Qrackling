@@ -16,7 +16,7 @@ classdef SpectralFilter < matlab.mixin.Heterogeneous
             addParameter(p, 'input_file', []);
             addParameter(p, 'wavelengths', []);
             addParameter(p, 'transmission', []);
-            addParameter(p, 'Wavelength_Scale', OrderOfMagnitude.nano);
+            addParameter(p, 'Wavelength_Scale', units.Magnitude.nano);
             parse(p, varargin{:});
 
             %% all matlab classes must support an empty constructor of some kind
@@ -35,9 +35,7 @@ classdef SpectralFilter < matlab.mixin.Heterogeneous
                     newline, char(9), 'wavelength and transmission data for a single filter']);
             end
 
-            factor = 10 ^ OrderOfMagnitude.Ratio( ...
-                "nano", ...
-                p.Results.Wavelength_Scale);
+            factor = units.Magnitude.Factor("nano", p.Results.Wavelength_Scale);
 
             if ~(isempty(p.Results.wavelengths)&&isempty(p.Results.transmission))
                 SpectralFilter.wavelengths = p.Results.wavelengths .* factor;

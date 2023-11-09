@@ -3,15 +3,15 @@ classdef Angle
         Degrees, Radians
     end
 
-    methods
+    methods(Static)
 
         function out = ToDegrees(Convention, Angles)
             arguments
-                Convention Angle
+                Convention units.Angle
                 Angles {mustBeNumeric}
             end
 
-            if Convention == Angle.Degrees
+            if Convention == units.Angle.Degrees
                 out = Angles;
                 return
             end
@@ -21,11 +21,11 @@ classdef Angle
 
         function out = ToRadians(Convention, Angles)
             arguments
-                Convention Angle
+                Convention units.Angle
                 Angles {mustBeNumeric}
             end
 
-            if Convention == Angle.Radians
+            if Convention == units.Angle.Radians
                 out = Angles;
                 return
             end

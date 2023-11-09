@@ -13,6 +13,5 @@ function result = loadPreset(preset)
     %file_path = strjoin(path, ); %, "presets", filesep, preset, ".mat"];
     file_name = strjoin([preset, 'mat'], ".");
     file_path = strjoin([path, 'presets', file_name], filesep);
-    disp(file_path)
     result = detectors.DetectorPresetBuilder().loadPreset(file_path);
 end
