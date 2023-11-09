@@ -264,6 +264,8 @@ close all
 clc
 lrt = libRadtran("~/libRadtran-2.0.4/");
 
+libradtran.libRadtran("~/libRadtran-2.0.4/")
+
 atm = lrt.GeneralAtmosphereSettings() ...
     .Atmosphere("Default", "midlatitude_summer");
 
@@ -352,3 +354,71 @@ units.Angle.ToDegrees("Radians", pi/2)
 units.Angle.ToRadians("Degrees", 90)
 
 units.Magnitude.Convert("micro", "nano", 1.55)
+
+%%
+clear all
+close all
+clc
+
+ContentsOfDirectory = @(DirPath) {dir(adduserpath(DirPath)).name};
+
+FilterFiles = @(DirectoryContents, Query) ...
+    {DirectoryContents{cellfun( ...
+        @(fp) contains(fp, Query), ...
+        DirectoryContents)} ...
+    };
+
+in_target_path = '~/Documents/tqi_data/inputs/';
+
+in_radianceFiles = FilterFiles( ...
+    ContentsOfDirectory(in_target_path), ...
+    '__radiance');
+
+disp(in_radianceFiles')
+
+in_file = strjoin({in_target_path, in_radianceFiles{3}}, '');
+
+%%
+path = "/home/bp38/Documents/tqi_data/inputs/time_2023_02_24_09_00_00__visibility_50__radiance.inp";
+[keys, data] = libRadtran.read_input_file(path);
+numel(keys)
+numel(data)
+is_key = contains(keys, 'output_file')
+sum(is_key) == 1
+any(is_key)
+[v, l] = max(is_key)
+
+numel(is_key)
+numel(data)
+
+path = "/home/bp38/Documents/MATLAB/DOP_800/mysticumu_-0.5__phi_8.0899.inp";
+libRadtran.dop_data(path)
+
+result_path = libRadtran.input_has_dop_data(path)
+
+data = readtable(result_path, "FileType", "delimitedtext");
+
+table2array(data(1:4:end, end))
+
+[a, b, ext] = fileparts(result_path)
+all(ext == '.spc')
+[a, b, ext2] = fileparts(b)
+[ext2, ext]
+
+stokes = libRadtran.read_dop_file(libRadtran.input_has_dop_data(path))
+
+lrt = libRadtran("~/libRadtran-2.0.4")
+
+libradtran.input_has_dop_data(path)
+
+[stokes, wvl] = libradtran.read_dop_file(libradtran.input_has_dop_data(path), "extract_wavelength", "on");
+
+figure
+hold on
+plot(wvl, stokes.I)
+plot(wvl, stokes.Q)
+plot(wvl, stokes.U)
+plot(wvl, stokes.V)
+
+table = readtable(libradtran.input_has_dop_data(path), "FileType", "delimitedtext")
+unique(table2array(table(:, 1)))
