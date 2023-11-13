@@ -360,7 +360,7 @@ clear all
 close all
 clc
 
-ContentsOfDirectory = @(DirPath) {dir(adduserpath(DirPath)).name};
+ContentsOfDirectory = @(DirPath) {dir(utilities.addUserPath(DirPath)).name};
 
 FilterFiles = @(DirectoryContents, Query) ...
     {DirectoryContents{cellfun( ...
@@ -422,3 +422,16 @@ plot(wvl, stokes.V)
 
 table = readtable(libradtran.input_has_dop_data(path), "FileType", "delimitedtext")
 unique(table2array(table(:, 1)))
+
+%% dopFromStokes.m
+path = "/home/bp38/Documents/MATLAB/DOP_800/mysticumu_-0.5__phi_8.0899.inp";
+stokes = libradtran.extractStokesParameters(libradtran.inputHasDopData(path));
+
+dop = libradtran.dopFromStokes(stokes.I, stokes.Q, stokes.U, stokes.V, "Full");
+utilities.equalDimensions(stokes.I, dop)
+dop = libradtran.dopFromStokes(stokes.I, stokes.Q, stokes.U, stokes.V, "Linear");
+utilities.equalDimensions(stokes.I, dop)
+dop = libradtran.dopFromStokes(stokes.I, stokes.Q, stokes.U, stokes.V, "Circular");
+utilities.equalDimensions(stokes.I, dop)
+
+[f, c, l] = libradtran.dopFromStokes(stokes.I, stokes.Q, stokes.U, stokes.V, "Full", "Circular", "Linear")

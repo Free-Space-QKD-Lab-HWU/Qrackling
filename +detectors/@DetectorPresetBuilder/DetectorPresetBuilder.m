@@ -104,7 +104,7 @@ classdef DetectorPresetBuilder
             % Write the preset contained within the builder to a file specified
             % by outputPath. This calls makeDetectorPreset() ensuring that the
             % requirements for a valid detector preset have been met.
-            outputPath = adduserpath(outputPath);
+            outputPath = utilities.addUserPath(outputPath);
             preset = builder.makeDetectorPreset();
             save(outputPath, 'preset');
         end
