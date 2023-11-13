@@ -1,10 +1,10 @@
-classdef dop_data
+classdef dopData
     properties (SetAccess = protected)
         file_path string
     end
 
     methods
-        function dop_data = dop_data(lrt_input_file)
+        function dop_data = dopData(lrt_input_file)
             arguments
                 lrt_input_file {mustBeFile}
             end

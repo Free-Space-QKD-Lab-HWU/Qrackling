@@ -1,9 +1,9 @@
-function file_path = input_has_dop_data(lrt_input_file_path)
+function file_path = inputHasDopData(lrt_input_file_path)
     arguments
         lrt_input_file_path {mustBeFile}
     end
 
-    [keys, data] = libradtran.read_input_file(lrt_input_file_path);
+    [keys, data] = libradtran.readInputFile(lrt_input_file_path);
     is_key = contains(keys, 'mc_basename');
 
     assert(any(is_key), [ ...

@@ -1,4 +1,4 @@
-function [keys, data] = read_input_file(lrt_input_file_path)
+function [keys, data] = readInputFile(lrt_input_file_path)
     arguments
         lrt_input_file_path {mustBeFile}
     end
