@@ -15,7 +15,7 @@ classdef source
             s.Type= type;
 
             if contains(fieldnames(options), 'File')
-                s.File = adduserpath(options.File);
+                s.File = utilities.addUserPath(options.File);
             end
 
             if contains(fieldnames(options), 'Unit')

@@ -228,7 +228,7 @@ classdef libRadtran < handle
             end
 
             configuration_file_path = strjoin({file_path, path_delimiter, file_name}, '');
-            configuration_file_path = adduserpath(configuration_file_path);
+            configuration_file_path = utilities.addUserPath(configuration_file_path);
 
             % Check to make sure there are no instances of '//' or '\\'
             configuration_file_path = replace( ...

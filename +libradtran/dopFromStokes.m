@@ -7,12 +7,12 @@ function varargout = dopFromStokes(i_data, q_data, u_data, v_data, direction)
 % If no direction is supplied then the full degree of polarisation is 
 % calculated, otherwise the specific cases are returned in the order they are 
 % specified in the function call.
-%
+% ----
 % Performs: 
 %   "Direction" {I[], Q[], U[], V[]} -> Direction[]
 %   "Direction1, Direction2" {I[], Q[], U[], V[]} -> {Direction1[], Direction2[]}
 %   etc, etc.
-%
+% ----
 % Example usage:
 % full = libradtran.dopFromStokes(I, Q, U, V);
 % full = libradtran.dopFromStokes(I, Q, U, V, "Full");

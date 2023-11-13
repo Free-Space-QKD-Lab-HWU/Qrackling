@@ -78,7 +78,7 @@ classdef Outputs < handle
 
             fields = fieldnames(options);
             if any(contains(fields, 'File'))
-                out.File = Parameters.output_file(adduserpath(options.File));
+                out.File = Parameters.output_file(utilities.addUserPath(options.File));
             end
             if any(contains(fields, 'Format'))
                 out.Format = Parameters.output_format(options.Format);

@@ -8,7 +8,7 @@ classdef mc_basename
                 name {mustBeText}
             end
             disp(name)
-            mc.Name = adduserpath(name);
+            mc.Name = utilities.addUserPath(name);
         end
     end
 end
