@@ -197,7 +197,7 @@
 
 cosd(90)
 
-%%
+%% libradtran.m testing
 clear all
 lrt = libRadtran("~/libRadtran-2.0.4/");
 
@@ -258,7 +258,7 @@ out_file_path = lrt.RunConfiguration( ...
     Verbosity = 'Quiet');
 
 
-%% 
+%% libradtran.m test and run
 clear all
 close all
 clc
@@ -312,24 +312,7 @@ out_file_path = lrt.RunConfiguration( ...
     '~/Documents/conference_data', 'test.txt', ...
     Verbosity = 'Quiet');
 
-%%
-
-clear all
-close all
-lrt = libRadtran("~/libRadtran-2.0.4");
-atmos = lrt.GeneralAtmosphereSettings();
-
-spec = Groups.Spectral()
-spec.WavelengthRange(500, 950)
-
-lrt.Spectral_Settings = spec
-
-lrt.Spectral_Settings.wavelength_range
-spec.WavelengthRange(500, 1050)
-lrt.Spectral_Settings.wavelength_range
-
-
-%%
+%% detector preset recreation after error
 clear all
 close all
 
@@ -347,7 +330,7 @@ detectors.DetectorPresetBuilder().convert('~/Projects/QKD_Sat_Link/adaptive_opti
 detectors.DetectorPresetBuilder().convert('~/Projects/QKD_Sat_Link/adaptive_optics/+detectors/presets/QuantumOpus1550_RoomTempAmplifier.mat')
 detectors.DetectorPresetBuilder().convert('~/Projects/QKD_Sat_Link/adaptive_optics/+detectors/presets/QuantumOpus1550_CryogenicAmplifier.mat')
 
-%% 
+%% angles
 
 units.Angle.Degrees
 units.Angle.ToDegrees("Radians", pi/2)
@@ -355,30 +338,7 @@ units.Angle.ToRadians("Degrees", 90)
 
 units.Magnitude.Convert("micro", "nano", 1.55)
 
-%%
-clear all
-close all
-clc
-
-ContentsOfDirectory = @(DirPath) {dir(utilities.addUserPath(DirPath)).name};
-
-FilterFiles = @(DirectoryContents, Query) ...
-    {DirectoryContents{cellfun( ...
-        @(fp) contains(fp, Query), ...
-        DirectoryContents)} ...
-    };
-
-in_target_path = '~/Documents/tqi_data/inputs/';
-
-in_radianceFiles = FilterFiles( ...
-    ContentsOfDirectory(in_target_path), ...
-    '__radiance');
-
-disp(in_radianceFiles')
-
-in_file = strjoin({in_target_path, in_radianceFiles{3}}, '');
-
-%%
+%% stokes parameters and degree of polarisation
 path = "/home/bp38/Documents/tqi_data/inputs/time_2023_02_24_09_00_00__visibility_50__radiance.inp";
 [keys, data] = libRadtran.read_input_file(path);
 numel(keys)
@@ -425,7 +385,9 @@ unique(table2array(table(:, 1)))
 
 %% dopFromStokes.m
 path = "/home/bp38/Documents/MATLAB/DOP_800/mysticumu_-0.5__phi_8.0899.inp";
-stokes = libradtran.extractStokesParameters(libradtran.inputHasDopData(path));
+[stokes, wvl] = libradtran.extractStokesParameters( ...
+    libradtran.inputHasDopData(path), ...
+    "extract_wavelength", "on");
 
 dop = libradtran.dopFromStokes(stokes.I, stokes.Q, stokes.U, stokes.V, "Full");
 utilities.equalDimensions(stokes.I, dop)
@@ -435,3 +397,45 @@ dop = libradtran.dopFromStokes(stokes.I, stokes.Q, stokes.U, stokes.V, "Circular
 utilities.equalDimensions(stokes.I, dop)
 
 [f, c, l] = libradtran.dopFromStokes(stokes.I, stokes.Q, stokes.U, stokes.V, "Full", "Circular", "Linear")
+
+figure
+hold on
+plot(wvl, f)
+plot(wvl, c)
+plot(wvl, l)
+
+%% radiance_file.m testing
+clear all
+clc
+
+ContentsOfDirectory = @(DirPath) {dir(utilities.addUserPath(DirPath)).name};
+
+FilterFiles = @(DirectoryContents, Query) ...
+    {DirectoryContents{cellfun( ...
+        @(fp) contains(fp, Query), ...
+        DirectoryContents)} ...
+    };
+
+in_target_path = '~/Documents/tqi_data/inputs/';
+
+in_radianceFiles = FilterFiles( ...
+    ContentsOfDirectory(in_target_path), ...
+    '__radiance');
+
+disp(in_radianceFiles')
+
+file_path = [in_target_path, in_radianceFiles{1}];
+
+data = libradtran.outputFromInputFile(file_path);
+numel(data.uu)
+data
+
+a = linspace(1, 4, 4)
+b = linspace(5, 10, 6)
+
+[A, B] = meshgrid(a, b)
+for rec = [A(:), B(:)]'
+    hd = rec(1);
+    tl = rec(2);
+    disp([hd, tl])
+end

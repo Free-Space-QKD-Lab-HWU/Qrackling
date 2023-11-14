@@ -68,7 +68,7 @@ classdef  Detector
                 Spectral_Filter
                 options.Wavelength_Scale units.Magnitude = 'nano'
                 options.Polarisation_Error double = asind(1 / 280)
-                options.Preset DetectorPreset
+            options.Preset DetectorPreset %FIX: change this to defaults for our supplied data, and data for end user supplied
                 options.Dark_Count_Rate { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Dark_Count_Rate, 0)}

@@ -51,7 +51,7 @@ function varargout = dopFromStokes(i_data, q_data, u_data, v_data, direction)
     idx = linspace(1, n_dirs, n_dirs);
     out_arg_idx = @(d) max(contains(cellstr(direction), d) .* idx);
     for d = directions'
-        i = out_arg_idx(d{1});
+        i = out_arg_idx(d{1}); % ensure output and directions order match
         switch d{1}
         case 'Full'
             tmp{i} = fullDegreeOfPolarisation(i_data, q_data, u_data, v_data);
@@ -66,6 +66,7 @@ function varargout = dopFromStokes(i_data, q_data, u_data, v_data, direction)
 end
 
 function p = fullDegreeOfPolarisation(i, q, u, v)
+% Performs: p = \frac{sqrt{Q^2 + U^2 + V^2}}{I}
     arguments
         i {mustBeNumeric}
         q {mustBeNumeric}
@@ -81,6 +82,7 @@ function p = fullDegreeOfPolarisation(i, q, u, v)
 end
 
 function p_lin = linearDegreeOfPolarisation(i, q, u)
+% Performs: p = \frac{sqrt{Q^2 + U^2}}{I}
     arguments
         i {mustBeNumeric}
         q {mustBeNumeric}
@@ -94,6 +96,7 @@ function p_lin = linearDegreeOfPolarisation(i, q, u)
 end
 
 function p_circ = circularDegreeOfPolarisation(i, v)
+% Performs: p = \frac{sqrt{V^2}}{I}
     arguments
         i {mustBeNumeric}
         v {mustBeNumeric}
