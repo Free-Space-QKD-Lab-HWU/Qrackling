@@ -10,8 +10,6 @@ function data = outputFromInputFile(lrt_input_file_path)
         "Input file doesn't specificy an output file");
     output_path = values{output_path_mask};
 
-    wavelengths = wavelengthsFromOuputFile(output_path);
-    disp(wavelengths)
 
     outputs = values{contains(keys, 'output_user')};
     output_elems = strsplit(outputs, ' ');
@@ -33,20 +31,46 @@ function data = outputFromInputFile(lrt_input_file_path)
         offsets = indexOfOutputValueInLine(output_elems);
     end
 
-    wavelengths = {};
-    i = 1;
+    data_labels = cellfun( ...
+        @(elem) labelFromKey(elem), ...
+        output_elems, ...
+        "UniformOutput", false);
+
+    data.labels = cell([1, numel(output_elems)]);
+
+    for i = 1:numel(data_labels)
+        pair = {output_elems{i}, data_labels{i}};
+        data.labels{i} = pair;
+        if contains(output_elems{i}, 'uu')
+            data.(output_elems{i}) = double.empty([0, radiance_shape]);
+        else
+            data.(output_elems{i}) = [];
+        end
+    end
 
     fd = fopen(output_path);
     line = fgetl(fd);
-    if has_radiance
-        data = extractDataFromLine( ...
-            offsets, ...
-            output_elems, ...
-            line, ...
-            "radiance_shape", radiance_shape);
-        %wavelengths{i} = data.lambda;
-    else
-        data = extractDataFromLine(offsets, output_elems, line);
+    i = 1;
+    while ischar(line)
+        if has_radiance
+            tmp = extractDataFromLine( ...
+                offsets, ...
+                output_elems, ...
+                line, ...
+                "radiance_shape", radiance_shape);
+        else
+            tmp = extractDataFromLine(offsets, output_elems, line);
+        end
+
+        for elem = output_elems
+            if ~contains(elem, 'uu')
+                data.(elem{1})(i) = tmp.(elem{1});
+            else
+                data.(elem{1})(i, :, :) = tmp.(elem{1});
+            end
+        end
+        i = i + 1;
+        line = fgetl(fd);
     end
     fclose(fd);
 

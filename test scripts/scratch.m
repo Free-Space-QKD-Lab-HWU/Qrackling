@@ -427,15 +427,4 @@ disp(in_radianceFiles')
 file_path = [in_target_path, in_radianceFiles{1}];
 
 data = libradtran.outputFromInputFile(file_path);
-numel(data.uu)
-data
-
-a = linspace(1, 4, 4)
-b = linspace(5, 10, 6)
-
-[A, B] = meshgrid(a, b)
-for rec = [A(:), B(:)]'
-    hd = rec(1);
-    tl = rec(2);
-    disp([hd, tl])
-end
+disp(data)
