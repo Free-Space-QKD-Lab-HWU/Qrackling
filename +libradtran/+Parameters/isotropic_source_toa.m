@@ -1,6 +1,6 @@
 classdef isotropic_source_toa
     properties (SetAccess = protected)
-        Tag TagEnum = TagEnum.IsCondition
+        Tag = libradtran.TagEnum.IsCondition
         state matlab.lang.OnOffSwitchState
     end
     methods

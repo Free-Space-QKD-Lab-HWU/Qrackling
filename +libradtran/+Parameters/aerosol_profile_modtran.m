@@ -1,6 +1,6 @@
 classdef aerosol_profile_modtran
     properties (SetAccess = protected)
-        Tag TagEnum = TagEnum.IsValue
+        Tag = libradtran.TagEnum.IsValue
         on matlab.lang.OnOffSwitchState
     end
 

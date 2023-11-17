@@ -1,6 +1,6 @@
 classdef aerosol_default
     properties
-        Tag TagEnum = TagEnum.IsCondition
+        Tag = libradtran.TagEnum.IsCondition
         Value matlab.lang.OnOffSwitchState
     end
 

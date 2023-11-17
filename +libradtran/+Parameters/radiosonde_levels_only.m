@@ -1,6 +1,6 @@
 classdef radiosonde_levels_only
     properties
-        Tag = TagEnum.IsCondition
+        Tag = libradtran.TagEnum.IsCondition
         State matlab.lang.OnOffSwitchState
     end
     methods

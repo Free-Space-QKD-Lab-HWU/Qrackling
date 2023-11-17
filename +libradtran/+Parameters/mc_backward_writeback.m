@@ -1,6 +1,6 @@
 classdef mc_backward_writeback
     properties
-        Tag TagEnum = TagEnum.IsValue
+        Tag = libradtran.TagEnum.IsValue
         state {mustBeNumericOrLogical} = false
     end
     methods

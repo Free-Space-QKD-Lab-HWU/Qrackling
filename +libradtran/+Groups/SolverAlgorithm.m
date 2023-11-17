@@ -1,33 +1,33 @@
 classdef SolverAlgorithm < handle
     properties (SetAccess = protected)
-        lrt_config libRadtran
+        lrt_config libradtran.libRadtran
     end
 
     properties (SetAccess = protected)
-        pseudospherical_geometry Parameters.pseudospherical
-        disort_intensity_correction Parameters.disort_intcor
-        top_of_atmosphere_isotropic_illumination Parameters.isotropic_source_toa
-        raman_scattering Parameters.raman
-        solver Parameters.rte_solver
-        streams Parameters.number_of_streams
-        polradtran_opts Parameters.polradtran
-        quad_type Parameters.polradtran_quad_type
-        max_delta_tau Parameters.polradtran_max_delta_tau
-        s_disort Parameters.sdisort
+        pseudospherical_geometry libradtran.Parameters.pseudospherical
+        disort_intensity_correction libradtran.Parameters.disort_intcor
+        top_of_atmosphere_isotropic_illumination libradtran.Parameters.isotropic_source_toa
+        raman_scattering libradtran.Parameters.raman
+        solver libradtran.Parameters.rte_solver
+        streams libradtran.Parameters.number_of_streams
+        polradtran_opts libradtran.Parameters.polradtran
+        quad_type libradtran.Parameters.polradtran_quad_type
+        max_delta_tau libradtran.Parameters.polradtran_max_delta_tau
+        s_disort libradtran.Parameters.sdisort
         % sos has parameter sos_nscat, but its undocumented
-        delta_m_scaling Parameters.deltam
-        single_scattering_lidar_parameters Parameters.sslidar
-        single_scattering_lidar_range Parameters.sslidar_nranges
-        single_scattering_lidar_polarisation Parameters.sslidar_polarisation
-        top_height_of_blackbody_clouds Parameters.tzs_cloud_top_height
-        cloud_fraction_split_scale Parameters.twomaxrnd3c_scale_cf
+        delta_m_scaling libradtran.Parameters.deltam
+        single_scattering_lidar_parameters libradtran.Parameters.sslidar
+        single_scattering_lidar_range libradtran.Parameters.sslidar_nranges
+        single_scattering_lidar_polarisation libradtran.Parameters.sslidar_polarisation
+        top_height_of_blackbody_clouds libradtran.Parameters.tzs_cloud_top_height
+        cloud_fraction_split_scale libradtran.Parameters.twomaxrnd3c_scale_cf
     end
 
     methods
 
         function s = SolverAlgorithm(options)
             arguments
-                options.lrtConfiguration libRadtran
+                options.lrtConfiguration libradtran.libRadtran
             end
             if numel(fieldnames(options)) > 0
                 s.lrt_config = options.lrtConfiguration;
@@ -36,7 +36,7 @@ classdef SolverAlgorithm < handle
 
         function s = Solver(s, label)
             arguments
-                s Groups.SolverAlgorithm
+                s libradtran.Groups.SolverAlgorithm
                 label {mustBeMember(label, { ...
                     'disort',     'twostr',      'fdisort1',             ...
                     'fdisort2',   'sdisort',     'spsdisort',            ...
@@ -45,62 +45,62 @@ classdef SolverAlgorithm < handle
                     'sslidar',    'sos',         'montecarlo',           ...
                     'mystic',     'tzs',         'sss'})}
             end
-            s.solver = Parameters.rte_solver(label);
+            s.solver = libradtran.Parameters.rte_solver(label);
         end
 
         function rte = Pseudospherical(rte, state)
             arguments
-                rte Groups.SolverAlgorithm
+                rte libradtran.Groups.SolverAlgorithm
                 state matlab.lang.OnOffSwitchState
             end
             rte = rte.validFor("disort", "twostr");
-            rte.pseudospherical_geometry = Parameters.pseudospherical(state);
+            rte.pseudospherical_geometry = libradtran.Parameters.pseudospherical(state);
         end
 
         function rte = DisortIntensityCorrection(rte, val)
             arguments
-                rte Groups.SolverAlgorithm
+                rte libradtran.Groups.SolverAlgorithm
                 val {mustBeMember(val, {'phase', 'moments', 'off'})};
             end
             rte = rte.validFor('disort');
-            rte.disort_intensity_correction = Parameters.disort_intcor(val);
+            rte.disort_intensity_correction = libradtran.Parameters.disort_intcor(val);
         end
 
         function rte = TopOfAtmosphereIsotropicIllumination(rte, state)
             arguments
-                rte Groups.SolverAlgorithm
+                rte libradtran.Groups.SolverAlgorithm
                 state matlab.lang.OnOffSwitchState
             end
             rte = rte.validFor("disort", "twostr");
-            rte.top_of_atmosphere_isotropic_illumination = Parameters.isotropic_source_toa(state);
+            rte.top_of_atmosphere_isotropic_illumination = libradtran.Parameters.isotropic_source_toa(state);
         end
 
         function rte = RamanScattering(rte, state, options)
             arguments
-                rte Groups.SolverAlgorithm
+                rte libradtran.Groups.SolverAlgorithm
                 state matlab.lang.OnOffSwitchState
                 options.label {mustBeMember(options.label, {'original'})}
             end
             rte = rte.validFor("disort");
             if numel(fieldnames(options)) > 0
-                rte.raman_scattering = Parameters.raman(state, "label", options.label);
+                rte.raman_scattering = libradtran.Parameters.raman(state, "label", options.label);
                 return
             end
-            rte.raman_scattering = Parameters.raman(state);
+            rte.raman_scattering = libradtran.Parameters.raman(state);
         end
 
         function rte = Streams(rte, n)
             arguments
-                rte Groups.SolverAlgorithm
+                rte libradtran.Groups.SolverAlgorithm
                 n {mustBeInteger}
             end
-            rte = rte.validFor(["disort", "Parameters.polradtran"]);
-            rte.streams = Parameters.number_of_streams(n);
+            rte = rte.validFor(["disort", "libradtran.Parameters.polradtran"]);
+            rte.streams = libradtran.Parameters.number_of_streams(n);
         end
 
-        function rte = Parameters.polradtran(rte, label, value, options)
+        function rte = libradtran.Parameters.polradtran(rte, label, value, options)
             arguments
-                rte Groups.SolverAlgorithm
+                rte libradtran.Groups.SolverAlgorithm
                 label {mustBeMember(label, {'Gaussian', 'Double Gaussian', ...
                     'Lobatto', 'Extra-angle(s)'})}
                 value {mustBeNumeric}
@@ -110,16 +110,16 @@ classdef SolverAlgorithm < handle
                 options.src_code {mustBeNumeric, mustBeInteger, ...
                     mustBeInRange(options.src_code, 0, 3)}
             end
-            rte = rte.validFor("Parameters.polradtran");
-            args = Groups.SolverAlgorithm.expandArguments(options);
-            rte.polradtran_opts = Parameters.polradtran(args{:});
-            rte.quad_type = Parameters.polradtran_quad_type(label);
-            rte.max_delta_tau = Parameters.polradtran_max_delta_tau(value);
+            rte = rte.validFor("libradtran.Parameters.polradtran");
+            args = libradtran.Groups.SolverAlgorithm.expandArguments(options);
+            rte.polradtran_opts = libradtran.Parameters.polradtran(args{:});
+            rte.quad_type = libradtran.Parameters.polradtran_quad_type(label);
+            rte.max_delta_tau = libradtran.Parameters.polradtran_max_delta_tau(value);
         end
 
         function rte = SDisort(rte, label)
             arguments
-                rte Groups.SolverAlgorithm
+                rte libradtran.Groups.SolverAlgorithm
                 label {mustBeMember(label, { ...
                     'single scattering', ...
                     'multiple scattering', ...
@@ -128,21 +128,21 @@ classdef SolverAlgorithm < handle
                     'slow refraction (accurate)'})}
             end
             rte = rte.validFor("sdisort");
-            rte.s_disort = Parameters.sdisort(label);
+            rte.s_disort = libradtran.Parameters.sdisort(label);
         end
 
         function rte = deltamScaling(rte, state)
             arguments
-                rte Groups.SolverAlgorithm
+                rte libradtran.Groups.SolverAlgorithm
                 state matlab.lang.OnOffSwitchState
             end
             rte = rte.validFor("disort", "twostr");
-            rte.delta_m_scaling = Parameters.deltam(state);
+            rte.delta_m_scaling = libradtran.Parameters.deltam(state);
         end
 
         function rte = SingleScatterinLidar(rte, variable, value, range, state)
             arguments
-                rte Groups.SolverAlgorithm
+                rte libradtran.Groups.SolverAlgorithm
                 variable {mustBeMember(variable, {'area', 'E0', 'eff', ...
                     'position', 'range'})}
                 value {mustBeNumeric}
@@ -150,34 +150,34 @@ classdef SolverAlgorithm < handle
                 state matlab.lang.OnOffSwitchState
             end
             rte = rte.validFor("sslidar");
-            rte.single_scattering_lidar_parameters = Parameters.sslidar(variable, value);
-            rte.single_scattering_lidar_range = Parameters.sslidar_nranges(range);
-            rte.single_scattering_lidar_polarisation = Parameters.sslidar_polarisation(state);
+            rte.single_scattering_lidar_parameters = libradtran.Parameters.sslidar(variable, value);
+            rte.single_scattering_lidar_range = libradtran.Parameters.sslidar_nranges(range);
+            rte.single_scattering_lidar_polarisation = libradtran.Parameters.sslidar_polarisation(state);
         end
 
         function rte = HeightOfBlackBodyClouds(rte, value)
             arguments
-                rte Groups.SolverAlgorithm
+                rte libradtran.Groups.SolverAlgorithm
                 value {mustBeNumeric}
             end
             rte = rte.validFor('tzs');
-            rte.top_height_of_blackbody_clouds = Parameters.tzs_cloud_top_height(value);
+            rte.top_height_of_blackbody_clouds = libradtran.Parameters.tzs_cloud_top_height(value);
         end
 
         function rte = ScaleFactorForCloudFractionSplit(rte, value)
             arguments
-                rte Groups.SolverAlgorithm
+                rte libradtran.Groups.SolverAlgorithm
                 value {mustBeNumeric}
             end
             rte = rte.validFor("twomaxrnd3C");
-            rte.cloud_fraction_split_scale = Parameters.twomaxrnd3c_scale_cf(value);
+            rte.cloud_fraction_split_scale = libradtran.Parameters.twomaxrnd3c_scale_cf(value);
         end
     end
 
     methods (Access = private)
         function s = validFor(s, possible_solvers)
             arguments
-                s Groups.SolverAlgorithm
+                s libradtran.Groups.SolverAlgorithm
             end
             arguments (Repeating)
                 possible_solvers {mustBeMember(possible_solvers, { ...

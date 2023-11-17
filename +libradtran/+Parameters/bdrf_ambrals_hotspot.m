@@ -1,6 +1,6 @@
 classdef bdrf_ambrals_hotspot
     properties (SetAccess = protected)
-        Tag TagEnum = TagEnum.IsValue
+        Tag = libradtran.TagEnum.IsValue
         on {mustBeNumericOrLogical}
     end
     methods

@@ -53,11 +53,8 @@ function data = outputFromInputFile(lrt_input_file_path)
     i = 1;
     while ischar(line)
         if has_radiance
-            tmp = extractDataFromLine( ...
-                offsets, ...
-                output_elems, ...
-                line, ...
-                "radiance_shape", radiance_shape);
+            tmp = extractDataFromLine( offsets, output_elems, line, ...
+                "radiance_shape", radiance_shape );
         else
             tmp = extractDataFromLine(offsets, output_elems, line);
         end
@@ -210,5 +207,4 @@ function label = labelFromKey(key)
     keys = key_label_map(1:2:end);
     labels = key_label_map(2:2:end);
     label = labels{contains(keys, key)};
-
 end

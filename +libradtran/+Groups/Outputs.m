@@ -1,20 +1,20 @@
 classdef Outputs < handle
     properties (SetAccess = protected)
-        lrt_config libRadtran
+        lrt_config libradtran.libRadtran
     end
 
    properties (SetAccess = protected)
-        Columns Parameters.output_user
-        Quantity Parameters.output_quantity
-        Process Parameters.output_process
-        File Parameters.output_file
-        Format Parameters.output_format
+        Columns libradtran.Parameters.output_user
+        Quantity libradtran.Parameters.output_quantity
+        Process libradtran.Parameters.output_process
+        File libradtran.Parameters.output_file
+        Format libradtran.Parameters.output_format
    end
 
    methods
         function out = Outputs(options)
             arguments
-                options.lrtConfiguration libRadtran
+                options.lrtConfiguration libradtran.libRadtran
             end
             if numel(fieldnames(options)) > 0
                 out.lrt_config = options.lrtConfiguration;
@@ -24,7 +24,7 @@ classdef Outputs < handle
 
         function out = OutputColumns(out, label)
             arguments
-                out Groups.Outputs
+                out libradtran.Groups.Outputs
             end
             arguments (Repeating)
                 label {mustBeMember(label, { ...
@@ -47,56 +47,56 @@ classdef Outputs < handle
                     'mmr_HCHO', 'vmr_HCHO',   'n_O4',   'rho_O4',   ...
                     'mmr_O4',   'vmr_O4'})}
             end
-            out.Columns = Parameters.output_user(label{1:end});
+            out.Columns = libradtran.Parameters.output_user(label{1:end});
         end
 
         function out = OutputQuantity(out, label)
             arguments
-                out Groups.Outputs
+                out libradtran.Groups.Outputs
                 label {mustBeMember(label, {'brightness', 'reflectivity', ...
                     'transmittance'})}
             end
-            out.Quantity = Parameters.output_quantity(label{1:end});
+            out.Quantity = libradtran.Parameters.output_quantity(label{1:end});
         end
 
 
         function out = PostProcessing(out, label)
             arguments
-                out Groups.Outputs
+                out libradtran.Groups.Outputs
                 label {mustBeMember(label, {'sum', 'integrate', 'per_nm', ...
                     'per_cm-1', 'per_band', 'none'})}
             end
-            out.Process = Parameters.output_process(label{1:end});
+            out.Process = libradtran.Parameters.output_process(label{1:end});
         end
 
         function out = FileAndFormat(out, options)
             arguments
-                out Groups.Outputs
+                out libradtran.Groups.Outputs
                 options.File {mustBeText}
                 options.Format {mustBeMember(options.Format, {'ascii', 'flexstor'})}
             end
 
             fields = fieldnames(options);
             if any(contains(fields, 'File'))
-                out.File = Parameters.output_file(utilities.addUserPath(options.File));
+                out.File = libradtran.Parameters.output_file(utilities.addUserPath(options.File));
             end
             if any(contains(fields, 'Format'))
-                out.Format = Parameters.output_format(options.Format);
+                out.Format = libradtran.Parameters.output_format(options.Format);
             end
 
             % for opt = fieldnames(options)
             %     switch opt{1}
             %         case "File"
-            %             out.File = Parameters.output_file(options.File{1:end});
+            %             out.File = libradtran.Parameters.output_file(options.File{1:end});
             %         case "Format"
-            %             out.Format = Parameters.output_format(options.Format{1:end});
+            %             out.Format = libradtran.Parameters.output_format(options.Format{1:end});
             %     end
             % end
         end
 
         function str = ConfigString(out)
             arguments
-                out Groups.Outputs
+                out libradtran.Groups.Outputs
             end
             linebreak = newline;
             if ispc

@@ -3,16 +3,16 @@ classdef libRadtran < handle
         lrt_root {mustBeFolder} = getenv("HOME");
     end
     properties
-        Aerosol_Settings Groups.Aerosol
-        Cloud_Settings Groups.Clouds
-        General_Atmosphere_Settings Groups.GeneralAtmosphere
-        Geometry_Settings Groups.Geometry
-        Molecule_Settings Groups.Molecular
-        Surface_Settings Groups.Surfaces
-        Mystic_Settings Groups.Mystic
-        Spectral_Settings Groups.Spectral
-        Solver_Settings Groups.SolverAlgorithm
-        Output_Settings Groups.Outputs
+        Aerosol_Settings libradtran.Groups.Aerosol
+        Cloud_Settings libradtran.Groups.Clouds
+        General_Atmosphere_Settings libradtran.Groups.GeneralAtmosphere
+        Geometry_Settings libradtran.Groups.Geometry
+        Molecule_Settings libradtran.Groups.Molecular
+        Surface_Settings libradtran.Groups.Surfaces
+        Mystic_Settings libradtran.Groups.Mystic
+        Spectral_Settings libradtran.Groups.Spectral
+        Solver_Settings libradtran.Groups.SolverAlgorithm
+        Output_Settings libradtran.Groups.Outputs
     end
     methods
         function lrt = libRadtran(libRadtran_Path, options)
@@ -30,128 +30,143 @@ classdef libRadtran < handle
             lrt.lrt_root = libRadtran_Path;
 
             if numel(fieldnames(options)) > 0
-                lrt.Solver_Settings = Groups.Solver(solver_type, "lrtConfiguration", lrt);
+                lrt.Solver_Settings = libradtran.Groups.Solver(solver_type, "lrtConfiguration", lrt);
             end
         end
 
         function aerosol = AerosolSettings(lrt)
+            arguments (Input)
+                lrt libradtran.libRadtran
+            end
             arguments (Output)
-                aerosol Groups.Aerosol
+                aerosol libradtran.Groups.Aerosol
             end
             if isempty(lrt.Aerosol_Settings)
-                lrt.Aerosol_Settings = Groups.Aerosol(lrtConfiguration = lrt);
+                lrt.Aerosol_Settings = libradtran.Groups.Aerosol(lrtConfiguration = lrt);
             end
             aerosol = lrt.Aerosol_Settings;
         end
 
         function clouds = CloudsSettings(lrt)
+            arguments (Input)
+                lrt libradtran.libRadtran
+            end
             arguments (Output)
-                clouds Groups.Clouds
+                clouds libradtran.Groups.Clouds
             end
             if isempty(lrt.Cloud_Settings)
-                lrt.Cloud_Settings = Groups.Clouds(lrtConfiguration = lrt);
+                lrt.Cloud_Settings = libradtran.Groups.Clouds(lrtConfiguration = lrt);
             end
             clouds = lrt.Cloud_Settings;
         end
 
         function general = GeneralAtmosphereSettings(lrt)
+            arguments (Input)
+                lrt libradtran.libRadtran
+            end
             arguments (Output)
-                general Groups.GeneralAtmosphere
+                general libradtran.Groups.GeneralAtmosphere
             end
             if isempty(lrt.General_Atmosphere_Settings)
-                lrt.General_Atmosphere_Settings = Groups.GeneralAtmosphere("lrtConfiguration", lrt);
+                lrt.General_Atmosphere_Settings = libradtran.Groups.GeneralAtmosphere("lrtConfiguration", lrt);
             end
             general = lrt.General_Atmosphere_Settings;
         end
 
         function geo = GeometrySettings(lrt)
+            arguments (Input)
+                lrt libradtran.libRadtran
+            end
             arguments (Output)
-                geo Groups.Geometry
+                geo libradtran.Groups.Geometry
             end
             if isempty(lrt.Geometry_Settings)
-                lrt.Geometry_Settings = Groups.Geometry("lrtConfiguration", lrt);
+                lrt.Geometry_Settings = libradtran.Groups.Geometry("lrtConfiguration", lrt);
             end
             geo = lrt.Geometry_Settings;
         end
 
         function mol = MoleculeSettings(lrt)
             arguments (Input)
-                lrt
+                lrt libradtran.libRadtran
             end
             arguments (Output)
-                mol Groups.Molecular
+                mol libradtran.Groups.Molecular
             end
             if isempty(lrt.Molecule_Settings)
-                lrt.Molecule_Settings = Groups.Molecular("lrtConfiguration", lrt);
+                lrt.Molecule_Settings = libradtran.Groups.Molecular("lrtConfiguration", lrt);
             end
             mol = lrt.Molecule_Settings;
         end
 
         function s = SurfaceSettings(lrt)
             arguments (Input)
-                lrt libRadtran
+                lrt libradtran.libRadtran
             end
             arguments (Output)
-                s Groups.Surfaces
+                s libradtran.Groups.Surfaces
             end
             if isempty(lrt.Surface_Settings)
-                lrt.Surface_Settings = Groups.Surfaces("lrtConfiguration", lrt);
+                lrt.Surface_Settings = libradtran.Groups.Surfaces("lrtConfiguration", lrt);
             end
             s = lrt.Surface_Settings;
         end
 
         function mc = MysticsSettings(lrt)
             arguments (Input)
-                lrt libRadtran
+                lrt libradtran.libRadtran
             end
             arguments (Output)
-                mc Groups.Mystic
+                mc libradtran.Groups.Mystic
             end
             if isempty(lrt.Mystic_Settings)
-                lrt.Mystic_Settings = Groups.Mystic("lrtConfiguration", lrt);
+                lrt.Mystic_Settings = libradtran.Groups.Mystic("lrtConfiguration", lrt);
             end
             mc = lrt.Mystic_Settings;
         end
 
         function spectral = SpectralSettings(lrt)
             arguments (Input)
-                lrt
+                lrt libradtran.libRadtran
             end
             arguments (Output)
-                spectral Groups.Spectral
+                spectral libradtran.Groups.Spectral
             end
             if isempty(lrt.Spectral_Settings)
-                lrt.Spectral_Settings = Groups.Spectral("lrtConfiguration", lrt);
+                lrt.Spectral_Settings = libradtran.Groups.Spectral("lrtConfiguration", lrt);
             end
             spectral = lrt.Spectral_Settings;
         end
 
         function solver = SolverSettings(lrt)
+            arguments (Input)
+                lrt libradtran.libRadtran
+            end
             arguments (Output)
-                solver Groups.SolverAlgorithm
+                solver libradtran.Groups.SolverAlgorithm
             end
             if isempty(lrt.Solver_Settings)
-                lrt.Solver_Settings = Groups.SolverAlgorithm(lrtConfiguration = lrt);
+                lrt.Solver_Settings = libradtran.Groups.SolverAlgorithm(lrtConfiguration = lrt);
             end
             solver = lrt.Solver_Settings;
         end
 
         function outputs = OutputSettings(lrt)
             arguments (Input)
-                lrt libRadtran
+                lrt libradtran.libRadtran
             end
             arguments (Output)
-                outputs Groups.Outputs
+                outputs libradtran.Groups.Outputs
             end
             if isempty(lrt.Output_Settings)
-                lrt.Output_Settings = Groups.Outputs("lrtConfiguration", lrt);
+                lrt.Output_Settings = libradtran.Groups.Outputs("lrtConfiguration", lrt);
             end
             outputs = lrt.Output_Settings;
         end
 
         function lrt = ReplaceSettings(lrt, setting, value)
             arguments (Input)
-                lrt libRadtran
+                lrt libradtran.libRadtran
             end
             arguments (Input, Repeating)
                 setting {mustBeMember(setting, { ...
@@ -179,8 +194,8 @@ classdef libRadtran < handle
         end
 
         function str = StringFromConfiguration(lrt)
-            arguments
-                lrt libRadtran
+            arguments (Input)
+                lrt libradtran.libRadtran
             end
             linebreak = newline;
             if ispc
@@ -202,7 +217,7 @@ classdef libRadtran < handle
             file_path, file_name, options)
 
             arguments (Input)
-                lrt libRadtran
+                lrt libradtran.libRadtran
                 file_path {mustBeFolder}
                 file_name {mustBeText}
                 options.Configuration_String {mustBeText} = ''
@@ -244,7 +259,7 @@ classdef libRadtran < handle
 
         function output_file = RunConfiguration(lrt, file_path, file_name, options)
             arguments (Input)
-                lrt libRadtran
+                lrt libradtran.libRadtran
                 file_path {mustBeFolder}
                 file_name {mustBeText}
                 options.Configuration_String {mustBeText} = ''
@@ -292,7 +307,7 @@ classdef libRadtran < handle
 
         function str = GroupString(lrt, group_name)
             arguments
-                lrt libRadtran
+                lrt libradtran.libRadtran
                 group_name {mustBeMember(group_name, { ...
                     'Aerosol_Settings', 'Cloud_Settings',  ...
                     'General_Atmosphere_Settings', 'Geometry_Settings',  ...
@@ -338,9 +353,9 @@ classdef libRadtran < handle
                     tag_prop = props(idx(hasTag));
                     tag = param.(tag_prop{1});
                     switch tag
-                        case TagEnum.IsCondition
+                        case libradtran.TagEnum.IsCondition
                             str = [str, newline, class(param)];
-                        case TagEnum.IsValue
+                        case libradtran.TagEnum.IsValue
                             str = [str, newline, class(param)];
                         otherwise
                             error('Unimplemented')

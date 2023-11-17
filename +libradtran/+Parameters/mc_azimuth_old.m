@@ -1,6 +1,6 @@
 classdef mc_azimuth_old
     properties
-        Tag TagEnum = TagEnum.IsValue
+        Tag = libradtran.TagEnum.IsValue
         state matlab.lang.OnOffSwitchState
     end
     methods

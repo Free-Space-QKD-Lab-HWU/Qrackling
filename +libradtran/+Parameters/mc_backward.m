@@ -1,6 +1,6 @@
 classdef mc_backward
     properties (SetAccess = protected)
-        Tag TagEnum = TagEnum.IsValue
+        Tag = libradtran.TagEnum.IsValue
         State matlab.lang.OnOffSwitchState
         Start_X
         Start_Y

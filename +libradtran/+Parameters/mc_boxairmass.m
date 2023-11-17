@@ -1,6 +1,6 @@
 classdef mc_boxairmass
     properties
-        Tag TagEnum = TagEnum.IsValue
+        Tag = libradtran.TagEnum.IsValue
         state {mustBeNumericOrLogical} = false
     end
     methods

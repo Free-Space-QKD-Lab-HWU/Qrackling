@@ -4,7 +4,7 @@ function range = slant_range(altitude, elevation, options)
         elevation
         options.geo_centre_ground_station = 0
         options.earth_radius = 6378e3
-        options.angle_unit = Angle.Radians
+        options.angle_unit = units.Angle.Radians
     end
 
     geo_centre_ground_station = ...

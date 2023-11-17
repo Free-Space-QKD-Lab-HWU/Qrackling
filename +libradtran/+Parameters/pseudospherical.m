@@ -1,6 +1,6 @@
 classdef pseudospherical
     properties (SetAccess = protected)
-        Tag = TagEnum.IsCondition
+        Tag = libradtran.TagEnum.IsCondition
         State matlab.lang.OnOffSwitchState
     end
     methods
