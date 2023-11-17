@@ -11,6 +11,13 @@ function [keys, data] = readInputFile(lrt_input_file_path)
     while ischar(line)
         tokens = strsplit(line, ' ');
         key = tokens(1);
+
+        % if the line starts with '#' then its a comment, skip it
+        if startsWith(key, '#')
+            line = fgetl(fd);
+            continue
+        end
+
         keys = [keys, key{1}];
 
         rest_of_line = strjoin(tokens(2:end), ' ');

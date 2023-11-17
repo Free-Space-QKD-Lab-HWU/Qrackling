@@ -14,6 +14,9 @@ classdef libRadtran < handle
         Solver_Settings libradtran.Groups.SolverAlgorithm
         Output_Settings libradtran.Groups.Outputs
     end
+    properties (SetAccess = protected)
+        File
+    end
     methods
         function lrt = libRadtran(libRadtran_Path, options)
             arguments
@@ -208,6 +211,7 @@ classdef libRadtran < handle
                     continue
                 end
                 str = [str, linebreak, linebreak, '# ', group_name];
+                disp(group_name)
                 details = lrt.GroupString(group_name);
                 str = [str, details];
             end
@@ -298,6 +302,7 @@ classdef libRadtran < handle
             end
 
             [~] = cd(current_directory);
+            lrt.File = input_path;
 
         end
 
@@ -346,6 +351,9 @@ classdef libRadtran < handle
             hasTag = contains(types, 'TagEnum');
             hasOnOff = contains(types, 'matlab.lang.OnOffSwitchState');
 
+            takeLast = @(ARRAYLIKE) ARRAYLIKE{end};
+            nameFromClass = @(CLASSNAME) takeLast(strsplit(CLASSNAME, '.'));
+
             if any(hasTag) && any(hasOnOff)
                 idx = 1:numel(types);
                 switch_prop = props(idx(hasOnOff));
@@ -354,9 +362,11 @@ classdef libRadtran < handle
                     tag = param.(tag_prop{1});
                     switch tag
                         case libradtran.TagEnum.IsCondition
-                            str = [str, newline, class(param)];
+                            % str = [str, newline, class(param)];
+                            str = [str, newline, nameFromClass(class(param))];
                         case libradtran.TagEnum.IsValue
-                            str = [str, newline, class(param)];
+                            % str = [str, newline, class(param)];
+                            str = [str, newline, nameFromClass(class(param))];
                         otherwise
                             error('Unimplemented')
                     end
@@ -365,7 +375,7 @@ classdef libRadtran < handle
                 return
             end
 
-            str = [str, newline, class(param)];
+            str = [str, newline, nameFromClass(class(param))];
             for p = properties(param)'
                 variable = param.(p{1});
                 if isempty(variable)
@@ -401,6 +411,7 @@ classdef libRadtran < handle
                         disp(param)
                         error('Unimplemented')
                 end
+
             end
         end
 

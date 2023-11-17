@@ -4,10 +4,11 @@ function data = ReadData(lrt)
     end
 
     [keys, values] = libradtran.readInputFile(lrt.File);
-    for i = numel(keys)
-        msg = [keys{i}, " --> ", values{1}];
-        disp(msg)
+    for i = 1:numel(keys)
+        disp(keys{i})
     end
+
+    
 
     % data = libradtran.outputFromInputFile(lrt.File);
 end
