@@ -317,8 +317,6 @@ clear all
 close all
 
 detectors.loadPreset("Excelitas")
-detectors.DetectorPresetBuilder
-
 detectors.Detector(785, 1, 1, 1, "Preset", detectors.loadPreset("Hamamatsu"))
 
 detectors.DetectorPresetBuilder().convert('~/Projects/QKD_Sat_Link/adaptive_optics/+detectors/presets/Excelitas.mat')
@@ -484,4 +482,11 @@ out_file_path = lrt.RunConfiguration( ...
 
 disp(lrt.File)
 
+clc
 libradtran.ReadData(lrt)
+
+clc
+[k, d] = libradtran.readInputFile(lrt.File);
+
+numel(k)
+numel(d)

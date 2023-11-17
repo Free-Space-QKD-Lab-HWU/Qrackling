@@ -12,8 +12,14 @@ function [keys, data] = readInputFile(lrt_input_file_path)
         tokens = strsplit(line, ' ');
         key = tokens(1);
 
+        % the line could be empty, if it is, skip it
+        if numel(line) == 0
+            line = fgetl(fd);
+            continue
+        end
+
         % if the line starts with '#' then its a comment, skip it
-        if startsWith(key, '#')
+        if startsWith(line, '#')
             line = fgetl(fd);
             continue
         end
