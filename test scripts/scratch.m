@@ -409,10 +409,7 @@ clc
 ContentsOfDirectory = @(DirPath) {dir(utilities.addUserPath(DirPath)).name};
 
 FilterFiles = @(DirectoryContents, Query) ...
-    {DirectoryContents{cellfun( ...
-        @(fp) contains(fp, Query), ...
-        DirectoryContents)} ...
-    };
+    {DirectoryContents{cellfun( @(fp) contains(fp, Query), DirectoryContents)}};
 
 in_target_path = '~/Documents/tqi_data/inputs/';
 
@@ -488,5 +485,13 @@ libradtran.ReadData(lrt)
 clc
 [k, d] = libradtran.readInputFile(lrt.File);
 
+[path, name, extension] = fileparts(lrt.File)
+
+strjoin({strjoin({path, name}, filesep), '.rad.spc'}, '')
+
 numel(k)
 numel(d)
+
+data = libradtran.ReadData(lrt);
+data.reflectivity
+
