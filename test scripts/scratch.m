@@ -495,3 +495,18 @@ numel(d)
 data = libradtran.ReadData(lrt);
 data.reflectivity
 
+
+%% beacon class
+% clear all
+% clc
+
+a = linspace(1, 10, 10)
+numel(a)
+
+Telescope(1,"Wavelength", 785, "Wavelength_Scale", "nano")
+
+Telescope(1,"Wavelength", 785, "Wavelength_Scale", "nano"
+
+%% 
+rx = components.Telescope(1, "Wavelength", 780)
+cam = components.Camera(rx)

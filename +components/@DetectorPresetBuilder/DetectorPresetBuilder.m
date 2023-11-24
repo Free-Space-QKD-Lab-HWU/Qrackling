@@ -12,7 +12,7 @@ classdef DetectorPresetBuilder
     % MyDetector.writePreset('path/to/save/preset/to.mat')
 
     properties(SetAccess=protected, GetAccess=protected)
-        preset detectors.DetectorPreset
+        preset components.DetectorPreset
     end
 
     methods
@@ -20,7 +20,7 @@ classdef DetectorPresetBuilder
         function builder = addName(builder, Name)
             % Add a name to a preset
             arguments
-                builder detectors.DetectorPresetBuilder
+                builder components.DetectorPresetBuilder
                 Name {mustBeText}
             end
             builder.preset.Name = Name;
@@ -29,7 +29,7 @@ classdef DetectorPresetBuilder
         function builder = addDarkCountRate(builder, DarkCountRate)
             % Add a dark count rate to a preset
             arguments
-                builder detectors.DetectorPresetBuilder
+                builder components.DetectorPresetBuilder
                 DarkCountRate { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(DarkCountRate, 0)}
@@ -41,7 +41,7 @@ classdef DetectorPresetBuilder
         function builder = addDeadTime(builder, DeadTime)
             % Add a detector dead time (reset time) to a preset
             arguments
-                builder detectors.DetectorPresetBuilder
+                builder components.DetectorPresetBuilder
                 DeadTime {mustBeNumeric, mustBeGreaterThanOrEqual(DeadTime, 0)}
             end
 
@@ -53,7 +53,7 @@ classdef DetectorPresetBuilder
             % Histogram should be an array and BinWidth should be a double (
             % probably 1 ps (1e-12) or something similar)
             arguments
-                builder detectors.DetectorPresetBuilder
+                builder components.DetectorPresetBuilder
                 Histogram { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(Histogram, 0)}
@@ -69,7 +69,7 @@ classdef DetectorPresetBuilder
             % Add an array of possible wavelengths and corresponding 
             % efficiencies for a detector to a preset
             arguments
-                builder detectors.DetectorPresetBuilder
+                builder components.DetectorPresetBuilder
                 Wavelengths
                 Efficiencies { ...
                     mustBeGreaterThanOrEqual(Efficiencies, 0) ...
@@ -90,7 +90,7 @@ classdef DetectorPresetBuilder
         function preset = makeDetectorPreset(builder)
             % Only way of accessing the "preset" property. This way only valid
             % DetectorPreset objects can be created
-            fields = fieldnames(detectors.DetectorPreset);
+            fields = fieldnames(components.DetectorPreset);
             for i = 1:numel(fields)
                 field = fields{i};
                 value = builder.preset.(field);
@@ -111,7 +111,7 @@ classdef DetectorPresetBuilder
 
         function preset = loadPreset(builder, presetFilePath)
             arguments
-                builder detectors.DetectorPresetBuilder
+                builder components.DetectorPresetBuilder
                 presetFilePath {mustBeFile}
             end
             % Load a preset from presetFilePath. The loaded preset is contained
@@ -124,7 +124,7 @@ classdef DetectorPresetBuilder
         function presetBuilder = BuildPresetFromDetector(builder, name, detector)
             % Build a preset from a name and a Detector object.
             arguments
-                builder detectors.DetectorPresetBuilder
+                builder components.DetectorPresetBuilder
                 name {mustBeText}
                 detector Detector
             end
@@ -139,11 +139,11 @@ classdef DetectorPresetBuilder
 
         % function convert(builder, old_preset_path)
         %     arguments
-        %         builder detectors.DetectorPresetBuilder
+        %         builder components.DetectorPresetBuilder
         %         old_preset_path {mustBeFile}
         %     end
         %     old_preset = builder.loadPreset(old_preset_path);
-        %     builder.new_preset = detectors.DetectorPreset;
+        %     builder.new_preset = components.DetectorPreset;
         %     builder.new_preset.Name = old_preset.Name;
         %     builder.new_preset.Efficiencies = old_preset.Efficiencies;
         %     builder.new_preset.Dark_Count_Rate = old_preset.Dark_Count_Rate;

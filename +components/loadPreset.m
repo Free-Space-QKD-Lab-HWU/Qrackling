@@ -9,9 +9,9 @@ function result = loadPreset(preset)
             })}
     end
 
-    [path, ~] = fileparts(which('detectors.loadPreset'));
+    [path, ~] = fileparts(which('components.loadPreset'));
     %file_path = strjoin(path, ); %, "presets", filesep, preset, ".mat"];
     file_name = strjoin([preset, 'mat'], ".");
     file_path = strjoin([path, 'presets', file_name], filesep);
-    result = detectors.DetectorPresetBuilder().loadPreset(file_path);
+    result = components.DetectorPresetBuilder().loadPreset(file_path);
 end

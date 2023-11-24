@@ -7,43 +7,49 @@ classdef(Abstract) Beacon
     properties
         %optical power sent by the beacon in W
         Power(1,1) double {mustBeNonnegative}
+
         %wavelength of the optical signal in nm
         Wavelength (1,1) double {mustBeNonnegative}
+
         %efficiency of the power conversion to laser light
-        Power_Efficiency (1,1) double {mustBeNonnegative,mustBeLessThanOrEqual(Power_Efficiency,1)}=1;
+        Power_Efficiency (1,1) double { ...
+            mustBeNonnegative, ...
+            mustBeLessThanOrEqual(Power_Efficiency,1)} = 1;
+
         %total efficiency including laser and telescope
-        Total_Efficiency (1,1) double {mustBeNonnegative,mustBeLessThanOrEqual(Total_Efficiency,1)}
+        Total_Efficiency (1,1) double { ...
+            mustBeNonnegative, ...
+            mustBeLessThanOrEqual(Total_Efficiency,1)}
+
         %pointing jitter of beacon (i.e. coarse pointing precision)
         Pointing_Jitter (1,1) double {mustBeNonnegative}
+
         %Telescope which beacon uses
-        Telescope (1,1) Telescope =[];
+        Telescope (1,1) Telescope = [];
     end
 
     methods
-        function Beacon = Beacon(Telescope, Power, Wavelength, varargin)
+        function Beacon = Beacon(Telescope, Power, Wavelength, ...
+            Power_Efficiency, Pointing_Jitter)
             %%BEACON construct a beacon class
-            
-           %% use inputparser
-           p=inputParser();
-           addRequired(p,'Telescope')
-           addRequired(p,'Power');
-           addRequired(p,'Wavelength');
-           addParameter(p,'Power_Efficiency',1);
-           addParameter(p,'Pointing_Jitter',1E-3)
-           parse(p,Telescope,Power,Wavelength,varargin{:});
 
-           %optional
-           Beacon.Power_Efficiency=p.Results.Power_Efficiency;
-           %we need not set pointing jitter, as this is stored in the telescope
-           %object
+            arguments
+                Telescope
+                Power
+                Wavelength
+                Power_Efficiency = 1
+                Pointing_Jitter = 1E-3
+            end
 
-           %required
-           Beacon.Power = p.Results.Power;
-           Beacon.Wavelength = p.Results.Wavelength;
-           %store pointing jitter
-           Telescope = SetWavelength(p.Results.Telescope,p.Results.Wavelength);
-           Telescope = SetPointingJitter(Telescope,p.Results.Pointing_Jitter);
-           Beacon.Telescope = Telescope;
+            Beacon.Power = Power;
+            Beacon.Wavelength = Wavelength;
+            Beacon.Power_Efficiency = Power_Efficiency;
+            Beacon.Pointing_Jitter = Pointing_Jitter;
+
+            %store pointing jitter
+            Telescope = SetWavelength(Telescope, Wavelength);
+            Telescope = SetPointingJitter(Telescope, Pointing_Jitter);
+            Beacon.Telescope = Telescope;
         end
     end
     methods (Abstract = true)
@@ -69,11 +75,13 @@ classdef(Abstract) Beacon
 
     methods
         function Pointing_Jitter =  get.Pointing_Jitter(Beacon)
-                    Pointing_Jitter = Beacon.Telescope.Pointing_Jitter;
+            Pointing_Jitter = Beacon.Telescope.Pointing_Jitter;
         end
 
         function Total_Efficiency = get.Total_Efficiency(Beacon)
-                    Total_Efficiency = Beacon.Telescope.Optical_Efficiency*Beacon.Power_Efficiency;
+            Total_Efficiency = ...
+                Beacon.Telescope.Optical_Efficiency ...
+                * Beacon.Power_Efficiency;
         end
     end
 end

@@ -1,4 +1,4 @@
-classdef (Abstract) QKD_Transmitter < Optical_Node
+classdef (Abstract) QKD_Transmitter < node.Optical_Node
     %QKD_Transmitter an abstract class implementing all of the behaviour that a
     %transmitter requires (whether satellite or OGS).
 

@@ -8,6 +8,7 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
         Link_Loss_dB;                                                      %link loss measured in dB
         Shadow_Flag;                                                       %flag describing when the link is shadowed
     end
+    % NOTE: Which of these need to be stored really?
     properties (SetAccess=protected)
         Geometric_Loss=nan;                                                %geometric loss in absolute terms
         Geometric_Loss_dB=nan;                                             %geometric loss in dB
@@ -65,45 +66,52 @@ classdef(Abstract) Satellite_Link_Model < Link_Model
         function Link_Models = SetLinkGeometry(Link_Models,Satellite,Ground_Station)
             %%SETLINKGEOMETRY simultaneously set link length and elevation
 
-            [Heading,Elevation,Length]=RelativeHeadingAndElevation(Satellite,Ground_Station);
-            Link_Models.Heading=Heading;
-            Link_Models.Elevation=Elevation;
-            Link_Models.Length=Length;
+            % [Heading,Elevation,Length]=RelativeHeadingAndElevation(Satellite,Ground_Station);
+            % Link_Models.Heading=Heading;
+            % Link_Models.Elevation=Elevation;
+            % Link_Models.Length=Length;
+
+            [ ...
+                Link_Models.Heading, ...
+                Link_Models.Elevation, ...
+                Link_Models.Length ...
+            ] =  RelativeHeadingAndElevation(Satellite, Ground_Station);
         end
 
 
-        function Geometric_Loss_dB=GetGeometricLossdB(Satellite_Link_Model)
-            %%GETGEOMETRICLOSSDB return an array of geometric losses in dB the same dimensions as the satellite link model
+        % FIX: DELETE, fields are visible, don't need getters
+        % function Geometric_Loss_dB=GetGeometricLossdB(Satellite_Link_Model)
+        %     %%GETGEOMETRICLOSSDB return an array of geometric losses in dB the same dimensions as the satellite link model
 
-            Geometric_Loss_dB=Satellite_Link_Model.Geometric_Loss_dB;
-        end
+        %     Geometric_Loss_dB=Satellite_Link_Model.Geometric_Loss_dB;
+        % end
 
-        function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Link_Model)
-            %%GETATMOSPHERICLOSSDB return an array of atmospheric losses in dB the
-            %same dimensions as the satellite link model
-            Atmospheric_Loss_dB=Satellite_Link_Model.Atmospheric_Loss_dB;
-        end
+        % function Atmospheric_Loss_dB=GetAtmosphericLossdB(Satellite_Link_Model)
+        %     %%GETATMOSPHERICLOSSDB return an array of atmospheric losses in dB the
+        %     %same dimensions as the satellite link model
+        %     Atmospheric_Loss_dB=Satellite_Link_Model.Atmospheric_Loss_dB;
+        % end
 
-        function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Satellite_Link_Model)
-            %%GETEFFICIENCYLOSSDB return an array of efficiency losses in dB the
-            % same dimensions as the satellite link model
+        % function OpticalEfficiency_Loss_dB=GetOpticalEfficiencyLossdB(Satellite_Link_Model)
+        %     %%GETEFFICIENCYLOSSDB return an array of efficiency losses in dB the
+        %     % same dimensions as the satellite link model
 
-            OpticalEfficiency_Loss_dB = Satellite_Link_Model.Optical_Efficiency_Loss_dB;
-        end
+        %     OpticalEfficiency_Loss_dB = Satellite_Link_Model.Optical_Efficiency_Loss_dB;
+        % end
 
-        function APT_Loss_dB=GetAPTLossdB(Satellite_Link_Model)
-            %%GETAPTLOSSDB return an array of acquistition, pointing and tracking
-            % losses in dB the same dimensions as the satellite link model
+        % function APT_Loss_dB=GetAPTLossdB(Satellite_Link_Model)
+        %     %%GETAPTLOSSDB return an array of acquistition, pointing and tracking
+        %     % losses in dB the same dimensions as the satellite link model
 
-            APT_Loss_dB=Satellite_Link_Model.APT_Loss_dB;
-        end
+        %     APT_Loss_dB=Satellite_Link_Model.APT_Loss_dB;
+        % end
 
-        function Turbulence_Loss_dB=GetTurbulenceLossdB(Satellite_Link_Model)
-            %%GETAPTLOSSDB return an array of acquistition, pointing and tracking
-            % losses in dB the same dimensions as the satellite link model
+        % function Turbulence_Loss_dB=GetTurbulenceLossdB(Satellite_Link_Model)
+        %     %%GETAPTLOSSDB return an array of acquistition, pointing and tracking
+        %     % losses in dB the same dimensions as the satellite link model
 
-            Turbulence_Loss_dB=Satellite_Link_Model.Turbulence_Loss_dB;
-        end
+        %     Turbulence_Loss_dB=Satellite_Link_Model.Turbulence_Loss_dB;
+        % end
 
         function Satellite_Link_Model = SetVisibility(Satellite_Link_Model,Visibility)
             %%SETVISIBILITY set the visibility tag of this link model

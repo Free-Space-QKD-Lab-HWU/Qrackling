@@ -1,8 +1,11 @@
+% NOTE: Is this something that should be reduced to a set of methods that return
+% data? All of the control needed here is defined in the link models anyway.
 classdef PassSimulation
     %PassSimulation Simulation of a QKD satellite pass
     %   an object which contains all of the contents of a simulation of a
     %   satellite pass
 
+    % FIX: add types
     properties (SetAccess = protected, Hidden = false)
         %satellite simulation object
         QKD_Transmitter QKD_Transmitter = Satellite.empty;

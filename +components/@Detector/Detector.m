@@ -5,7 +5,7 @@ classdef  Detector
         %wavelength (nm) used for communication
         Wavelength{mustBeScalarOrEmpty, mustBePositive};
 
-        %QBER contribution due to detectors' timing jitters
+        %QBER contribution due to components. timing jitters
         QBER_Jitter{ ...
             mustBeNonnegative, ...
             mustBeScalarOrEmpty, ...
@@ -68,7 +68,7 @@ classdef  Detector
                 Spectral_Filter
                 options.Wavelength_Scale units.Magnitude = 'nano'
                 options.Polarisation_Error double = asind(1 / 280)
-                options.Preset detectors.DetectorPreset
+                options.Preset components.DetectorPreset
                 options.Dark_Count_Rate { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Dark_Count_Rate, 0)}
@@ -97,7 +97,7 @@ classdef  Detector
 
             if any(contains(optionFields, 'Preset'))
                 Preset = options.Preset;
-                for f = fieldnames(detectors.DetectorPreset)' % Have to transpose to iterate it
+                for f = fieldnames(components.DetectorPreset)' % Have to transpose to iterate it
                     if strcmp(f{1}, 'Name') % We don't need this field here
                         continue
                     end
@@ -206,7 +206,7 @@ classdef  Detector
 
         function Detector = DensityFunctions(Detector)
             % Calculate the probability density function and cumulative density
-            % function for the detectors derived from the jitter histogram
+            % function for the components.derived from the jitter histogram
             assert(~isempty(Detector.Jitter_Histogram), ...
                 [inputname(1), '.Jitter_Histogram, must not be empty']);
 

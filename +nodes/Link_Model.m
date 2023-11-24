@@ -28,20 +28,21 @@ classdef (Abstract=true) Link_Model
         %%PLOT plot link loss over a given x axis
     end
 
-    methods (Access=public,Abstract=false)
-        function Link_Loss_dB=GetLinkLossdB(Link_Model)
-            %%GETLINKLOSSDB return an array of link losses in dB
+    % FIX: MARKING FOR DELETION
+    % methods (Access=public,Abstract=false)
+    %     function Link_Loss_dB=GetLinkLossdB(Link_Model)
+    %         %%GETLINKLOSSDB return an array of link losses in dB
 
-            %% output Link loss db array
-            Link_Loss_dB = Link_Model.Link_Loss_dB;
-        end
+    %         %% output Link loss db array
+    %         Link_Loss_dB = Link_Model.Link_Loss_dB;
+    %     end
 
-        function Link_Loss=GetLinkLoss(Link_Model)
-            %%GETLINKLOSS return an array of link losses
-            
-            %% output Link loss db array
-            Link_Loss = Link_Model.Link_Loss;
-        end
-    end
+    %     function Link_Loss=GetLinkLoss(Link_Model)
+    %         %%GETLINKLOSS return an array of link losses
+    %         
+    %         %% output Link loss db array
+    %         Link_Loss = Link_Model.Link_Loss;
+    %     end
+    % end
 
 end

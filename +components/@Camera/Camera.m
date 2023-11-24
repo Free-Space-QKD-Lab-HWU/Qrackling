@@ -10,7 +10,7 @@ classdef Camera
     % gate.
 
     properties (SetAccess=protected, GetAccess=public)
-        Telescope (1,1) Telescope =[];
+        Telescope (1,1) components.Telescope =[];
         Collecting_Area (1,1) double {mustBeNonnegative}                        %the optics area which collects beacon light, usually the telescope effective area
         Detector_Diameter (1,1) double {mustBeNonnegative}=0.001                %the physical size of the camera's detector area
         Focal_Length (1,1) double {mustBeNonnegative}=0.0125;                   %focal length (in m) of the lens focussing onto the camera's sensor
@@ -33,28 +33,9 @@ classdef Camera
         c=2.998E8;                                                              %speed of light in m/s
     end
     methods
-        % function C = Camera(telescope, Quantum_Efficiency, Exposure_Time, ...
-        %         Spectral_Filter_Width, Detector_Diameter, Focal_Length, ...
-        %         Readout_Noise, Dark_Current, Full_Well_Capacity, ...
-        %         Wavelength, Pixels)
         function C = Camera(telescope, options)
-            %CAMERA Construct an instance of a beacon camera
-            %% using inputParser
-            % arguments
-            %     telescope Telescope
-            %     Quantum_Efficiency = 1
-            %     Exposure_Time =  0.001
-            %     Spectral_Filter_Width = 10
-            %     Detector_Diameter = 1
-            %     Focal_Length = 0.03
-            %     Readout_Noise =  1.3E-11
-            %     Dark_Current =  0
-            %     Full_Well_Capacity = 2E-9
-            %     Wavelength = telescope.Wavelength
-            %     Pixels = [1080,1080]
-            % end
             arguments
-                telescope Telescope
+                telescope components.Telescope
                 options.Quantum_Efficiency = 1
                 options.Exposure_Time =  0.001
                 options.Spectral_Filter_Width = 10
@@ -68,8 +49,10 @@ classdef Camera
             end
 
             %get outputs
-            %C.Telescope = SetWavelength(telescope,Wavelength);%make sure telescope has input wavelength
-            C.Telescope = telescope.SetWavelength(options.Wavelength) ;%make sure telescope has input wavelength
+            if contains(fieldnames(options), 'Telescope')
+                %make sure telescope has input wavelength
+                C.Telescope = telescope.SetWavelength(options.Wavelength);
+            end
             C.Quantum_Efficiency = options.Quantum_Efficiency;
             C.Exposure_Time = options.Exposure_Time;
             C.Spectral_Filter_Width = options.Spectral_Filter_Width;

@@ -1,4 +1,4 @@
-classdef (Abstract) QKD_Receiver < Optical_Node
+classdef (Abstract) QKD_Receiver < nodes.Optical_Node
     %QKD_Receiver an abstract class containing function templates for any
     %receiver architecture
 

@@ -53,9 +53,9 @@ classdef Telescope
                 options.FOV
                 options.Focal_Length
             end
-            arguments (Output)
-                obj Telescope
-            end
+            % arguments (Output)
+            %     obj Telescope
+            % end
 
             obj.Diameter = Diameter;
             obj.F_Number = options.F_Number;
@@ -98,12 +98,12 @@ classdef Telescope
 
         function obj = SetWavelength(obj, Wavelength, options)
             arguments
-                obj Telescope
+                obj components.Telescope
                 Wavelength
                 options.Wavelength_Scale units.Magnitude = 'nano'
             end
             %%SETWAVELENGTH set the wavelength (nm) of the transmitter
-            obj.Wavelength = units.Magnitude.Factor( ...
+            obj.Wavelength = units.Magnitude.Convert( ...
                 options.Wavelength_Scale, ...
                 "nano", ...
                 Wavelength);
