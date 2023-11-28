@@ -9,7 +9,8 @@
 %       velocity between two objects, especially useful for apparent satellite
 %       motion relative to a ground station
 
-classdef (Abstract=true)Located_Object
+%classdef (Abstract=true)Located_Object
+classdef Located_Object
     %object containing latitude, longitude and altitude position data,
     %possibly for many time stamps
 

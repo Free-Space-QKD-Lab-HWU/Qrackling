@@ -1,4 +1,4 @@
-classdef Satellite_Downlink_Model < Satellite_Link_Model
+classdef Satellite_Downlink_Model < nodes.Satellite_Link_Model
     %SATELLITE_DOWNLINK_MODEL a link model specific to satellite to OGS downlink
 
     methods (Access=protected)

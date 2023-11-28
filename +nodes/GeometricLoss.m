@@ -1,7 +1,9 @@
-function loss = GeometricLoss(transmitter, receiver, link_length)
+function loss = GeometricLoss(receiver, transmitter, link_length)
     arguments
-        transmitter {mustBeA(transmitter, "nodes.QKD_Transmitter")}
-        receiver {mustBeA(receiver, "nodes.QKD_Receiver")}
+        % receiver {mustBeA(receiver, "nodes.QKD_Receiver")}
+        % transmitter {mustBeA(transmitter, "nodes.QKD_Transmitter")}
+        receiver nodes.FreeSpaceReceiver
+        transmitter nodes.FreeSpaceTransmitter
         link_length
     end
 
@@ -13,12 +15,8 @@ function loss = GeometricLoss(transmitter, receiver, link_length)
     loss = (sqrt(pi) / 8) * (receiver.Telescope.Diameter ./ spot_size) .^2;
     loss = min(loss, 1); %make sure loss cannot be positive
 
-    %compute when earth shadowing of link is present
-    rx_tx = [receiver, transmitter];
-
-    shadowed = nodes.InEarthsShadow( ...
-        rx_tx(isa(rx_tx, "nodes.Satellite")), ...
-        rx_tx(isa(rx_tx, "nodes.Ground_Station")) );
+    %compute whether or not the earth is obstructing the link between rx and tx
+    shadowed = nodes.InEarthsShadow(reciever, transmitter);
 
     loss(shadowed) = 0;
 

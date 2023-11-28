@@ -519,3 +519,42 @@ clc
 isa(nodes.Satellite,'nodes.QKD_Receiver')
 isa(nodes.Satellite,'nodes.QKD_Transmitter')
 
+
+%%
+clear all
+clc
+
+path = '~/Projects/QKD_Sat_Link/adaptive_optics/orbit modelling resources/orbit LLAT files/500kmSSOrbitLLAT.txt';
+
+fd = fopen(path);
+
+data = fscanf(fd, '%f, %f, %f, %f', [4, inf]);
+fclose(fd);
+
+lat = data(1,:);
+lon = data(2,:);
+alt = data(3,:) * 1000; %conversion to m from km
+t = datetime( data(4,:), 'ConvertFrom', 'epochtime', 'Epoch', datetime(2023, 1, 1, 0, 0, 0));
+
+obj = nodes.Located_Object()
+obj = obj.SetPosition( ...
+    'Latitude', lat, ...
+    'Longitude', lon, ...
+    'Altitude', alt)
+
+ogs = nodes.Located_Object().SetPosition(LLA=[55.911420,-3.322424,84])
+
+all(nodes.InEarthsShadow(obj, ogs) == nodes.InEarthsShadow(ogs, obj))
+
+obj.RelativeHeadingAndElevation(ogs)
+fliplr(ogs.RelativeHeadingAndElevation(obj))
+
+elev1 = ogs.RelativeHeadingAndElevation(obj);
+elev1(~nodes.InEarthsShadow(obj, ogs))
+
+elev2 = obj.RelativeHeadingAndElevation(ogs);
+elev2(~nodes.InEarthsShadow(obj, ogs))
+
+all(obj.RelativeHeadingAndElevation(ogs) == fliplr(ogs.RelativeHeadingAndElevation(obj)))
+
+unique(obj.Altitude > ogs.Altitude)

@@ -1,9 +1,9 @@
 % TODO: need control on reciever and transmitter to determine the type of beam
 % they should have, either gaussian or flat-top
-function loss = APTLoss(transmitter, receiver)
+function loss = APTLoss(receiver, transmitter)
     arguments
-        transmitter {mustBeA(transmitter, "components.Telescope")}
-        receiver {mustBeA(receiver, "components.Telescope")}
+        receiver nodes.FreeSpaceReceiver
+        transmitter nodes.FreeSpaceTransmitter
     end
 
     %% Acquisition, pointing and tracking loss
