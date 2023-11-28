@@ -68,27 +68,27 @@ classdef (Abstract) QKD_Receiver < nodes.Optical_Node
             %%MOTIONPHASESHIFT compute the phase shift which relative
             %%motion between transmitter and receiver causes between pulses
            
-            c=2.998E8;%speed of light
-            Wavelength = QKD_Transmitter.Source.Wavelength*1E-9;
-            Rep_Rate = QKD_Transmitter.Source.Repetition_Rate;
+           c=2.998E8;%speed of light
+           Wavelength = QKD_Transmitter.Source.Wavelength*1E-9;
+           Rep_Rate = QKD_Transmitter.Source.Repetition_Rate;
 
-            % get distance between receiver and transmitter over time
-            Distances = ComputeDistanceBetween(QKD_Receiver,QKD_Transmitter);
-            %get time stamps
-            if isa(QKD_Receiver,'Satellite')
-                Times = QKD_Receiver.Times;
-            elseif isa(QKD_Transmitter,'Satellite')
-                Times = QKD_Transmitter.Times;
-            else
-                error('one of transmitter or receiver must be a satellite')
-            end
-            %differentiate wrt time
-            Relative_Velocity = (Distances(2:end)-Distances(1:end-1))./seconds(Times(2:end)-Times(1:end-1));
-            %append last result to fill end slot
-            Relative_Velocity = [Relative_Velocity,Relative_Velocity(end)];
+           % get distance between receiver and transmitter over time
+           Distances = ComputeDistanceBetween(QKD_Receiver,QKD_Transmitter);
+           %get time stamps
+           if isa(QKD_Receiver,'Satellite')
+               Times = QKD_Receiver.Times;
+           elseif isa(QKD_Transmitter,'Satellite')
+               Times = QKD_Transmitter.Times;
+           else
+               error('one of transmitter or receiver must be a satellite')
+           end
+           %differentiate wrt time
+           Relative_Velocity = (Distances(2:end)-Distances(1:end-1))./seconds(Times(2:end)-Times(1:end-1));
+           %append last result to fill end slot
+           Relative_Velocity = [Relative_Velocity,Relative_Velocity(end)];
 
-            %% compute phase shift
-            Phi = -2*pi*(c/(Wavelength*Rep_Rate))*(Relative_Velocity./(Relative_Velocity+c));
+           %% compute phase shift
+           Phi = -2*pi*(c/(Wavelength*Rep_Rate))*(Relative_Velocity./(Relative_Velocity+c));
         end
 
     

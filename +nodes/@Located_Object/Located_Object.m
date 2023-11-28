@@ -22,12 +22,16 @@ classdef (Abstract=true)Located_Object
         Velocity_Up(:,1){mustBeNumeric} = nan;
         Location_Name = "";
         useSatCommsToolbox{mustBeNumericOrLogical} = false;
-    end
-    properties(SetAccess=protected, Hidden=true)
         % Length of Latitude, Longitude, Altitude arrays
         % (must all be same length)
         N_Position{mustBeInteger, mustBePositive} = 1;
     end
+    % FIX: redundant, delete?
+    % properties(SetAccess=protected, Hidden=true)
+    %     % Length of Latitude, Longitude, Altitude arrays
+    %     % (must all be same length)
+    %     N_Position{mustBeInteger, mustBePositive} = 1;
+    % end
     properties(Constant=true, Hidden=true)
         % radius of the earth in m (used to compute shadowing)
         Earth_Radius = earthRadius()

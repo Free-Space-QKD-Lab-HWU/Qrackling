@@ -9,7 +9,7 @@ classdef FriedParameter
 
         function FP = FriedParameter(Link_Direction, options)
             arguments
-                Link_Direction LinkDirection
+                Link_Direction nodes.Link_Direction
                 options.Hufnagel_Valley HufnagelValley
                 options.AirForceGeophysicsLab AFGL_Plus
             end

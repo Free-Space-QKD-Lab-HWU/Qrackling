@@ -1,14 +1,18 @@
-function [loss, beam_width, r0] = turbulenceLoss(receiver, transmitter, ...
-    elevation, link_length, turbulence)
+function [loss, beam_width, r0] = turbulenceLoss(transmitter, receiver, ...
+    elevation, link_length, fried_parameter)
     arguments
-        receiver nodes.QKD_Receiver
-        transmitter nodes.QKD_Transmitter
+        % minimally, transmitter must inherit nodes.QKD_Transmitter and receiver
+        % must inherit from nodes.QKD_Receiver
+        transmitter {mustBeA(transmitter, "nodes.QKD_Transmitter")}
+        receiver {mustBeA(receiver, "nodes.QKD_Receiver")}
         elevation % something something numeric...
         link_length
-        turbulence % something something numeric...
+        fried_parameter FriedParameter
     end
 
+    % wavelength must come from a source, this will be in nm
     wavelength = units.Magnitude.Convert("nano", "none", transmitter.Wavelength);
+    %wavelength = transmitter.Wavelength;
     wavenumber = 2 * pi / wavelength;
 
     elevation_flags = elevation > 0;
@@ -17,8 +21,8 @@ function [loss, beam_width, r0] = turbulenceLoss(receiver, transmitter, ...
     altitude = altitude_from_nodes([receiver, transmitter]);
     altitude = altitude(elevation_flags);
 
-    r0 = atmospheric_turbulence_coherence_length_downlink( ...
-            wavenumber, zenith, altitude, ghv_defaults('Standard', turbulence));
+    r0 = fried_parameter.AtmosphericTurbulenceCoherenceLength( ...
+        altitude, zenith, wavelength, "Wavelength_Unit", "none");
 
     spot_size = Geo_Spot_Size(Elevation_Flags);
 

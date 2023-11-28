@@ -510,3 +510,12 @@ Telescope(1,"Wavelength", 785, "Wavelength_Scale", "nano"
 %% 
 rx = components.Telescope(1, "Wavelength", 780)
 cam = components.Camera(rx)
+
+%%
+clear all
+clc
+
+
+isa(nodes.Satellite,'nodes.QKD_Receiver')
+isa(nodes.Satellite,'nodes.QKD_Transmitter')
+

@@ -6,6 +6,9 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
 
     %hide large or uninteresting properties, not abstract for this reason
     properties (SetAccess=protected, Hidden=true)
+
+        % Kind {mustBeA(Kind, "nodes.Optical_Node")}
+
         N_Steps{mustBeScalarOrEmpty, mustBePositive}
         Times {mustBeA(Times,'datetime')} = datetime.empty  %not sure what this would need to be for datetimes
 
