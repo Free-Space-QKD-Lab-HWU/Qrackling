@@ -12,10 +12,14 @@ classdef DetectorPresetBuilder
     % MyDetector.writePreset('path/to/save/preset/to.mat')
 
     properties(SetAccess=protected, GetAccess=protected)
-        preset components.DetectorPreset
+        preset = components.DetectorPreset()
     end
 
     methods
+
+        function builder = DetectorPresetBuilder()
+            builder.preset = components.DetectorPreset();
+        end
 
         function builder = addName(builder, Name)
             % Add a name to a preset
@@ -137,25 +141,26 @@ classdef DetectorPresetBuilder
                 .addDetectorEfficiencyArray(detector.Wavelength_Range, detector.Efficiencies);
         end
 
-        % function convert(builder, old_preset_path)
-        %     arguments
-        %         builder components.DetectorPresetBuilder
-        %         old_preset_path {mustBeFile}
-        %     end
-        %     old_preset = builder.loadPreset(old_preset_path);
-        %     builder.new_preset = components.DetectorPreset;
-        %     builder.new_preset.Name = old_preset.Name;
-        %     builder.new_preset.Efficiencies = old_preset.Efficiencies;
-        %     builder.new_preset.Dark_Count_Rate = old_preset.Dark_Count_Rate;
-        %     builder.new_preset.Dead_Time = old_preset.Dead_Time;
-        %     builder.new_preset.Jitter_Histogram = old_preset.Jitter_Histogram;
-        %     builder.new_preset.Histogram_Bin_Width = old_preset.Histogram_Bin_Width;
-        %     builder.new_preset.Wavelength_Range = old_preset.Wavelength_Range;
-        %     builder.new_preset.Efficiencies = old_preset.Efficiencies;
-        %     disp(builder.new_preset)
-        %     preset = builder.new_preset;
-        %     save(old_preset_path, 'preset');
-        % end
+        function convert(builder, old, old_preset_path)
+            arguments
+                builder components.DetectorPresetBuilder
+                old detectors.DetectorPreset
+                old_preset_path {mustBeFile}
+            end
+            %old_preset = detectors.loadPreset(old_preset_path);
+            builder.preset = components.DetectorPreset;
+            builder.preset.Name = old.Name;
+            builder.preset.Efficiencies = old.Efficiencies;
+            builder.preset.Dark_Count_Rate = old.Dark_Count_Rate;
+            builder.preset.Dead_Time = old.Dead_Time;
+            builder.preset.Jitter_Histogram = old.Jitter_Histogram;
+            builder.preset.Histogram_Bin_Width = old.Histogram_Bin_Width;
+            builder.preset.Wavelength_Range = old.Wavelength_Range;
+            builder.preset.Efficiencies = old.Efficiencies;
+            disp(builder.preset)
+            preset = builder.preset;
+            save(old_preset_path, 'preset');
+        end
 
     end
 end

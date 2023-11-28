@@ -1,4 +1,4 @@
-classdef Gaussian_Beacon < Beacon
+classdef Gaussian_Beacon < beacon.Beacon
     %Gaussian_Beacon a pointing beacon with a gaussian intensity distribution
 
     properties
@@ -20,9 +20,8 @@ classdef Gaussian_Beacon < Beacon
             end
 
             %construct abstract beacon class
-            Gaussian_Beacon@Beacon(Telescope, Power, Wavelength, ...
-                "Power_Efficiency", Power_Efficiency, ...
-                "Pointing_Jitter", Pointing_Jitter);
+            Gaussian_Beacon@beacon.Beacon(Telescope, Power, Wavelength, ...
+                Power_Efficiency, Pointing_Jitter);
 
             %% check to see if flat top beacon half angle is provided, if not use telescope
             % p=inputParser();

@@ -25,12 +25,11 @@ classdef(Abstract) Beacon
         Pointing_Jitter (1,1) double {mustBeNonnegative}
 
         %Telescope which beacon uses
-        Telescope (1,1) Telescope = [];
+        Telescope (1,1) components.Telescope = [];
     end
 
     methods
-        function Beacon = Beacon(Telescope, Power, Wavelength, ...
-            Power_Efficiency, Pointing_Jitter)
+        function Beacon = Beacon(Telescope, Power, Wavelength, Power_Efficiency, Pointing_Jitter)
             %%BEACON construct a beacon class
 
             arguments

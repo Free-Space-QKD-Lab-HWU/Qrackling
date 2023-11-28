@@ -316,8 +316,35 @@ out_file_path = lrt.RunConfiguration( ...
 clear all
 close all
 
-detectors.loadPreset("Excelitas")
+
+preset = detectors.loadPreset("Excelitas")
 detectors.Detector(785, 1, 1, 1, "Preset", detectors.loadPreset("Hamamatsu"))
+
+components.DetectorPresetBuilder().convert(detectors.loadPreset("Excelitas"), '~/Projects/QKD_Sat_Link/adaptive_optics/+components/presets/Excelitas.mat')
+components.DetectorPresetBuilder().convert(detectors.loadPreset("Hamamatsu"), '~/Projects/QKD_Sat_Link/adaptive_optics/+components/presets/Hamamatsu.mat')
+components.DetectorPresetBuilder().convert(detectors.loadPreset("ID_Qube_NIR"), '~/Projects/QKD_Sat_Link/adaptive_optics/+components/presets/ID_Qube_NIR.mat')
+components.DetectorPresetBuilder().convert(detectors.loadPreset("PerkinElmer"), '~/Projects/QKD_Sat_Link/adaptive_optics/+components/presets/PerkinElmer.mat')
+components.DetectorPresetBuilder().convert(detectors.loadPreset("LaserComponents"), '~/Projects/QKD_Sat_Link/adaptive_optics/+components/presets/LaserComponents.mat')
+components.DetectorPresetBuilder().convert(detectors.loadPreset("MicroPhotonDevices"), '~/Projects/QKD_Sat_Link/adaptive_optics/+components/presets/MicroPhotonDevices.mat')
+components.DetectorPresetBuilder().convert(detectors.loadPreset("QuantumOpus1550_RoomTempAmplifier"), '~/Projects/QKD_Sat_Link/adaptive_optics/+components/presets/QuantumOpus1550_RoomTempAmplifier.mat')
+components.DetectorPresetBuilder().convert(detectors.loadPreset("QuantumOpus1550_CryogenicAmplifier"), '~/Projects/QKD_Sat_Link/adaptive_optics/+components/presets/QuantumOpus1550_CryogenicAmplifier.mat')
+
+clear all
+clc
+
+components.loadPreset("PerkinElmer")
+
+detectors.Detector(785, 1, 1, 1, "Preset", components.loadPreset("Excelitas"))
+
+components.Detector(785, 1, 1, 1, "Preset", components.loadPreset("Excelitas"))
+
+components.DetectorPreset()
+
+new_preset = components.DetectorPresetBuilder();
+new_preset = new_preset.addName(preset.Name)
+new_preset = new_preset.addDeadTime(preset.Dead_Time)
+
+components.DetectorPresetBuilder().convert(
 
 detectors.DetectorPresetBuilder().convert('~/Projects/QKD_Sat_Link/adaptive_optics/+detectors/presets/Excelitas.mat')
 detectors.DetectorPresetBuilder().convert('~/Projects/QKD_Sat_Link/adaptive_optics/+detectors/presets/Hamamatsu.mat')
@@ -558,3 +585,7 @@ elev2(~nodes.InEarthsShadow(obj, ogs))
 all(obj.RelativeHeadingAndElevation(ogs) == fliplr(ogs.RelativeHeadingAndElevation(obj)))
 
 unique(obj.Altitude > ogs.Altitude)
+
+%% testing new link model
+
+

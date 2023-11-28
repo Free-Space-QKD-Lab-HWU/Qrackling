@@ -415,7 +415,7 @@ classdef  Detector
             % det.SetDetectionEfficiency(Efficiency=0.8)
             % det.SetDetectionEfficiency(Wavelength=1550)
             arguments
-                Det Detector
+                Det components.Detector
                 options.Efficiency double { ...
                     mustBeNonnegative, mustBeLessThanOrEqual(options.Efficiency, 1)}
                 options.Wavelength double {mustBeNonnegative}

@@ -263,6 +263,35 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             Satellite.Detector = p.Results.Detector;
         end
 
+        function fs_tx = MakeFreeSpaceTransmitter(satellite)
+            arguments
+                satellite Satellite
+            end
+            % FIX: Satellite.m should use Located_Object.m via composition
+            % instead of inheritance
+            location = nodes.Located_Object();
+            location = location.SetPosition( ...
+                'Latitude', satellite.Latitude, ...
+                'Longitude', satellite.Longitude, ...
+                'Altitude', satellite.Altitude);
+            fs_tx = nodes.FreeSpaceTransmitter( ...
+                satellite.Source, satellite.Telescope, location );
+        end
+
+        function fs_rx = MakeFreeSpaceReceiver(satellite)
+            arguments
+                satellite Satellite
+            end
+            % FIX: Satellite.m should use Located_Object.m via composition
+            % instead of inheritance
+            location = nodes.Located_Object();
+            location = location.SetPosition( ...
+                'Latitude', satellite.Latitude, ...
+                'Longitude', satellite.Longitude, ...
+                'Altitude', satellite.Altitude);
+            fs_rx = nodes.FreeSpaceReceiver( ...
+                satellite.Detector, satellite.Telescope, location );
+        end
 
         function [Satellite, lat, lon, alt, t] = ReadOrbitLLATFile(Satellite, ...
                 Orbit_Data_File_Location)

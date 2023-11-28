@@ -1,7 +1,7 @@
 classdef new_link_model
     properties (SetAccess = protected)
-        receiver
-        transmitter
+        receiver nodes.FreeSpaceReceiver
+        transmitter nodes.FreeSpaceTransmitter
     end
     methods
 
@@ -17,19 +17,19 @@ classdef new_link_model
             end
 
             if contains(Receiver, 'Satellite')
-                new_link_model.receiver = satellite;
+                new_link_model.receiver = satellite.MakeFreeSpaceReceiver();
             end
 
             if contains(Receiver, 'Ground Station')
-                new_link_model.receiver = groundstation;
+                new_link_model.receiver = groundstation.MakeFreeSpaceReceiver();
             end
 
             if contains(Transmitter, 'Satellite')
-                new_link_model.transmitter = satellite;
+                new_link_model.transmitter = satellite.MakeFreeSpaceTransmitter();
             end
 
             if contains(Transmitter, 'Ground Station')
-                new_link_model.transmitter = groundstation;
+                new_link_model.transmitter = groundstation.MakeFreeSpaceTransmitter();
             end
 
         end
@@ -39,18 +39,27 @@ classdef new_link_model
                 link_model new_link_model
             end
 
-            %TODO: Now we need to develop the methods that will convert our
-            % satellite and ground stations to recievers or transmitters, see:
-            % nodes.FreeSpaceReceiver and nodes.FreeSpaceTransmitter
+            geo = nodes.GeometricLoss(link_model.receiver, link_model.transmitter);
+            eff = nodes.OpticalEfficiencyLoss(link_model.receiver, link_model.transmitter);
+            apt = nodes.APTLoss(link_model.receiver, link_model.transmitter);
+            turb = nodes.TurbulenceLoss(link_model.receiver, link_model.transmitter);
+            atmos = nodes.AtmosphericLoss(link_model.receiver, link_model.transmitter);
 
-            rx = link_model.receiver.as_receiver....
-            tx = link_model.transmitter.as_tranmitter...
+        end
 
-            geo = nodes.GeometricLoss(rx, tx);
-            eff = nodes.OpticalEfficiencyLoss(rx, tx);
-            apt = nodes.APTLoss(rx, tx);
-            turb = nodes.TurbulenceLoss(rx, tx);
-            atmos = nodes.AtmosphericLoss(rx, tx);
+        function total = TotalLoss(link_model, options)
+            arguments
+                link_model new_link_model
+                options.dB logical = false
+            end
+
+            [geo, eff, apt, turb, atmos] = link_model.LinkLosses();
+
+            total = prod( [geo', eff', apt', turb', atmos'], 2)';
+
+            if options.dB
+                total = utilities.decibelFromPercentLoss(total);
+            end
 
         end
 
