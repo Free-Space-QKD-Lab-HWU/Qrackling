@@ -33,9 +33,6 @@ classdef LinkDirection
 
             Earth_Radius = 6371; % km
 
-            size(Slant_Range)
-            size(Xi)
-            size(Earth_Radius)
             ratio = (Slant_Range .* Xi) ./ Earth_Radius;
 
             h = (Earth_Radius ...

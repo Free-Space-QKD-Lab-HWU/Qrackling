@@ -1,7 +1,7 @@
+% TODO: add optional inputs -> link length save recomputing it
+% TODO: add optional outputs -> return the spot size
 function loss = GeometricLoss(receiver, transmitter)
     arguments
-        % receiver {mustBeA(receiver, "nodes.QKD_Receiver")}
-        % transmitter {mustBeA(transmitter, "nodes.QKD_Transmitter")}
         receiver nodes.FreeSpaceReceiver
         transmitter nodes.FreeSpaceTransmitter
     end
@@ -27,7 +27,8 @@ function loss = GeometricLoss(receiver, transmitter)
     end
     if isscalar(loss)
         %if provided a scalar, put this into everywhere in the array 
-        loss = loss*ones(1, Link_Models.N);
+        n = max(receiver.location.N_Position, transmitter.location.N_Position);
+        loss = loss * ones(1, n);
     elseif isrow(loss)
     elseif iscolumn(loss)
         loss = loss'; %can transpose lengths to match dimensions of Link_Models

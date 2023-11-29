@@ -43,7 +43,7 @@ function loss = AtmosphericLoss(receiver, transmitter, options)
     %   RelativeHeadingAndElevation(Satellite, Ground_Station);
     rx_tx = {receiver, transmitter};
     [~, elevations, ~] = ...
-        rx_tx{sat_index}.location.RelativeHeadingAndElevation(rx_tx{ogs_index});
+        rx_tx{sat_index}.location.RelativeHeadingAndElevation(rx_tx{ogs_index}.location);
 
     % FIX: 'Atmosphere_Spectral_Filter.m' needs replacing
     atmosphere_spectral_filter = Atmosphere_Spectral_Filter( ...
@@ -58,7 +58,8 @@ function loss = AtmosphericLoss(receiver, transmitter, options)
     end
     if isscalar(loss)
         %if provided a scalar, put this into everywhere in the array 
-        loss = loss*ones(1, Link_Models.N);
+        n = max(receiver.location.N_Position, transmitter.location.N_Position);
+        loss = loss * ones(1, n);
     elseif isrow(loss)
     elseif iscolumn(loss)
         loss = loss'; %can transpose lengths to match dimensions of Link_Models

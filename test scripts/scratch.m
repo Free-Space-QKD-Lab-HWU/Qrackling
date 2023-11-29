@@ -598,5 +598,9 @@ tx.location
 rx = nodes.freeSpaceReceiverFrom("Ground_Station", hogs)
 rx.location
 
+
 link = nodes.new_link_model(spoqc, hogs, "Ground_Station", "Satellite");
-link.LinkLosses()
+[geo, eff, apt, turb, atmos] = link.LinkLosses();
+
+
+
