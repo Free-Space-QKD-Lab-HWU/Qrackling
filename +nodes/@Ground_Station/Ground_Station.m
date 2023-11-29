@@ -211,36 +211,6 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
             Ground_Station.Sky_Brightness_Store_Location = p.Results.Sky_Brightness_Store_Location;
         end
 
-        function fs_tx = MakeFreeSpaceTransmitter(groundstation)
-            arguments
-                groundstation Ground_Station
-            end
-            % FIX: groundstation.m should use Located_Object.m via composition
-            % instead of inheritance
-            location = nodes.Located_Object();
-            location = location.SetPosition( ...
-                'Latitude', groundstation.Latitude, ...
-                'Longitude', groundstation.Longitude, ...
-                'Altitude', groundstation.Altitude);
-            fs_tx = nodes.FreeSpaceTransmitter( ...
-                groundstation.Source, groundstation.Telescope, location );
-        end
-
-        function fs_rx = MakeFreeSpaceReceiver(groundstation)
-            arguments
-                groundstation Ground_Station
-            end
-            % FIX: groundstation.m should use Located_Object.m via composition
-            % instead of inheritance
-            location = nodes.Located_Object();
-            location = location.SetPosition( ...
-                'Latitude', groundstation.Latitude, ...
-                'Longitude', groundstation.Longitude, ...
-                'Altitude', groundstation.Altitude);
-            fs_rx = nodes.FreeSpaceReceiver( ...
-                groundstation.Detector, groundstation.Telescope, location );
-        end
-
         function [Background_Rates, Background_Rates_sr_nm] = GetLightPollutionCountRate(Ground_Station, Headings, Elevations)
             % GETLIGHTPOLLUTIONCOUNTRATE return the background count rate
             % values closest to the input headings and elevations in an

@@ -5,7 +5,7 @@ function shifted_wavelength = Doppler_Shift(receiver, transmitter)
     end
 
     assert(~isempty(transmitter.timestamps), ...
-        ["transmitter { ", inputnames(2), " } does not have any timestamps"]);
+        ["transmitter { ", inputname(2), " } does not have any timestamps"]);
 
     distances = receiver.location.ComputeDistanceBetween(transmitter.location);
     times = transmitter.timestamps;
@@ -19,6 +19,7 @@ function shifted_wavelength = Doppler_Shift(receiver, transmitter)
     % append last result to fill end slot
     doppler_velocity = [doppler_velocity, doppler_velocity(end)];
 
+    c = 2.998E8; %speed of light in m/s
     shifted_wavelength = ( 1 + (doppler_velocity / c) ) .* wavelength;
 
 end

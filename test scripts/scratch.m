@@ -591,5 +591,12 @@ clear all
 clc
 
 hogs = new_HOGS(808);
-spoqc = new_spoqc(808, '25/12/2022, 08:44, 14:50, 16:22, 17:55')
+spoqc = new_spoqc(808, '25/12/2022, 08:44, 14:50, 16:22, 17:55');
 
+tx = nodes.freeSpaceTransmitterFrom("Satellite", spoqc)
+tx.location
+rx = nodes.freeSpaceReceiverFrom("Ground_Station", hogs)
+rx.location
+
+link = nodes.new_link_model(spoqc, hogs, "Ground_Station", "Satellite");
+link.LinkLosses()

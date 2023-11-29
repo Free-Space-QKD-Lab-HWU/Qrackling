@@ -1,5 +1,5 @@
 function [loss, beam_width, r0] = TurbulenceLoss(receiver, transmitter, ...
-    link_length, fried_parameter, options)
+    fried_parameter, options)
     arguments
         receiver nodes.FreeSpaceReceiver
         transmitter nodes.FreeSpaceTransmitter
@@ -7,8 +7,10 @@ function [loss, beam_width, r0] = TurbulenceLoss(receiver, transmitter, ...
         options.Elevations
     end
 
+    link_length = receiver.location.ComputeDistanceBetween(transmitter.location);
+
     % wavelength must come from a source, this will be in nm
-    wavelength = units.Magnitude.Convert("nano", "none", transmitter.Wavelength);
+    wavelength = units.Magnitude.Convert("nano", "none", transmitter.source.Wavelength);
     %wavelength = transmitter.Wavelength;
     wavenumber = 2 * pi / wavelength;
 
@@ -43,29 +45,29 @@ function [loss, beam_width, r0] = TurbulenceLoss(receiver, transmitter, ...
     %   RelativeHeadingAndElevation(Satellite, Ground_Station);
     rx_tx = {receiver, transmitter};
     [~, elevations, ~] = ...
-        rx_tx{sat_index}.location.RelativeHeadingAndElevation(rx_tx{ogs_index});
+        rx_tx{sat_index}.location.RelativeHeadingAndElevation(rx_tx{ogs_index}.location);
 
-    elevation_flags = elevation > 0;
-    zenith = 90 - elevation(elevation_flags);
+    elevation_flags = elevations > 0;
+    zenith = 90 - elevations(elevation_flags);
 
     % altitude = altitude_from_nodes([receiver, transmitter]);
     % altitude = altitude(elevation_flags);
     % FIX: again this uses the hack to determine which the satellite
-    altitude = rx_tx{sat_index}.Altitude;
+    altitude = rx_tx{sat_index}.location.Altitude(elevation_flags)';
 
     r0 = fried_parameter.AtmosphericTurbulenceCoherenceLength( ...
         altitude, zenith, wavelength, "Wavelength_Unit", "none");
 
-    spot_size = Geo_Spot_Size(Elevation_Flags);
+    spot_size = Geo_Spot_Size(elevation_flags);
 
     beam_width(~elevation_flags) = 0;
     beam_width(elevation_flags) = long_term_gaussian_beam_width( ...
-        spot_size, link_length(Elevation_Flags), wavenumber, r0);
+        spot_size, link_length(elevation_flags), wavenumber, r0);
 
-    loss(~Elevation_Flags) = 0;
-    loss(Elevation_Flags) = ( ...
-        beam_width(Elevation_Flags) ...
-        ./ Geo_Spot_Size(Elevation_Flags) ) .^ (-2);
+    loss(~elevation_flags) = 0;
+    loss(elevation_flags) = ( ...
+        beam_width(elevation_flags) ...
+        ./ spot_size(elevation_flags) ) .^ (-2);
 
     %% input validation
     if ~all(isreal(loss) & loss >= 0)
@@ -73,7 +75,8 @@ function [loss, beam_width, r0] = TurbulenceLoss(receiver, transmitter, ...
     end
     if isscalar(loss)
         %if provided a scalar, put this into everywhere in the array
-        loss = loss*ones(1, Link_Models.N); % probably length of elevations?
+        n = max(receiver.location.N_Position, transmitter.location.N_Position);
+        loss = loss * ones(1, n);
     elseif isrow(loss)
     elseif iscolumn(loss)
         loss = loss'; %can transpose lengths to match dimensions of Link_Models

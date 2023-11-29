@@ -10,7 +10,6 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
         % Kind {mustBeA(Kind, "nodes.Optical_Node")}
 
         N_Steps{mustBeScalarOrEmpty, mustBePositive}
-        Times {mustBeA(Times,'datetime')} = datetime.empty  %not sure what this would need to be for datetimes
 
         % If using TLE or KeplerElements to define satellite path we will
         % store the satelliteScenario object as well as the corresponding
@@ -34,6 +33,8 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
         Name{mustBeText} = '';
         %File location for Latitude, Longitude, Altitude and Time data
         Orbit_Data_File_Location{mustBeText} = '';
+
+        Times {mustBeA(Times,'datetime')} = datetime.empty  %not sure what this would need to be for datetimes
 
         %% information about protocol
         % protocol used (BB84,BBN92,...)
@@ -261,36 +262,6 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
 
             %% add detector if wanted
             Satellite.Detector = p.Results.Detector;
-        end
-
-        function fs_tx = MakeFreeSpaceTransmitter(satellite)
-            arguments
-                satellite Satellite
-            end
-            % FIX: Satellite.m should use Located_Object.m via composition
-            % instead of inheritance
-            location = nodes.Located_Object();
-            location = location.SetPosition( ...
-                'Latitude', satellite.Latitude, ...
-                'Longitude', satellite.Longitude, ...
-                'Altitude', satellite.Altitude);
-            fs_tx = nodes.FreeSpaceTransmitter( ...
-                satellite.Source, satellite.Telescope, location );
-        end
-
-        function fs_rx = MakeFreeSpaceReceiver(satellite)
-            arguments
-                satellite Satellite
-            end
-            % FIX: Satellite.m should use Located_Object.m via composition
-            % instead of inheritance
-            location = nodes.Located_Object();
-            location = location.SetPosition( ...
-                'Latitude', satellite.Latitude, ...
-                'Longitude', satellite.Longitude, ...
-                'Altitude', satellite.Altitude);
-            fs_rx = nodes.FreeSpaceReceiver( ...
-                satellite.Detector, satellite.Telescope, location );
         end
 
         function [Satellite, lat, lon, alt, t] = ReadOrbitLLATFile(Satellite, ...

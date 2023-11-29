@@ -17,7 +17,7 @@ function sat = new_spoqc(wavelength, example_times, which, n_samples)
     start_time = pass - minutes(30);
     stop_time = pass + minutes(30);
 
-    sample_time = seconds(minutes(60));
+    sample_time = seconds(1);
     if ~isnan(n_samples)
         sample_time = (stop_time - start_time) / n_samples;
     end

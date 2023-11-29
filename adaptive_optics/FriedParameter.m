@@ -1,7 +1,7 @@
 classdef FriedParameter
 
     properties
-        Link_Direction LinkDirection
+        Link_Direction nodes.LinkDirection
         Cn2_Model
     end
 
@@ -9,7 +9,7 @@ classdef FriedParameter
 
         function FP = FriedParameter(Link_Direction, options)
             arguments
-                Link_Direction nodes.Link_Direction
+                Link_Direction nodes.LinkDirection
                 options.Hufnagel_Valley HufnagelValley
                 options.AirForceGeophysicsLab AFGL_Plus
             end
@@ -34,18 +34,18 @@ classdef FriedParameter
                 options.Wavelength_Unit units.Magnitude = "nano"
             end
 
-            range = units.Magnitude.Factor( ...
+            range = units.Magnitude.Convert( ...
                 options.Range_Unit, "Kilo", Slant_Range);
 
             switch FP.Link_Direction
-                case LinkDirection.Downlink
+                case nodes.LinkDirection.Downlink
                     kernel = @(Xi) ...
                         FP.Cn2_Model.Calculate( ...
                             FP.Link_Direction.Height(range, Zenith_Angle, Xi) ...
                             .* (Xi.^(5/3)) ...
                         );
 
-                case LinkDirection.Uplink
+                case nodes.LinkDirection.Uplink
                     kernel = @(Xi) ...
                         FP.Cn2_Model.Calculate( ...
                             FP.Link_Direction.Height(range, Zenith_Angle, Xi) ...
