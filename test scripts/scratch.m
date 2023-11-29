@@ -587,5 +587,9 @@ all(obj.RelativeHeadingAndElevation(ogs) == fliplr(ogs.RelativeHeadingAndElevati
 unique(obj.Altitude > ogs.Altitude)
 
 %% testing new link model
+clear all
+clc
 
+hogs = new_HOGS(808);
+spoqc = new_spoqc(808, '25/12/2022, 08:44, 14:50, 16:22, 17:55')
 

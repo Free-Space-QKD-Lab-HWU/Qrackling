@@ -1,4 +1,4 @@
-classdef Flat_Top_Beacon < Beacon
+classdef Flat_Top_Beacon < beacon.Beacon
     %Flat_Top_Beacon a pointing beacon with a uniform intensity distribution
 
     properties
@@ -11,7 +11,7 @@ classdef Flat_Top_Beacon < Beacon
                                                    Wavelength,...
                                                    Limit_Half_Angle)
             arguments
-                telescope Telescope
+                telescope components.Telescope
                 Power
                 Wavelength
                 Limit_Half_Angle = telescope.FOV/2
@@ -19,7 +19,7 @@ classdef Flat_Top_Beacon < Beacon
             %%Gaussian_Beacon Construct an instance of this class
             
             %construct abstract beacon class
-            Flat_Top_Beacon@Beacon(telescope, Power, Wavelength);
+            Flat_Top_Beacon@beacon.Beacon(telescope, Power, Wavelength);
 
             %% check to see if flat top beacon half angle is provided, if not use telescope
             % p=inputParser();
