@@ -554,10 +554,14 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
         %                                   + Dark_Counts;
         % end
 
+        % function [Total_Background_Count_Rate, Ground_Station, Headings, Elevations] = ...
+        %         ComputeTotalBackgroundCountRate( ...
+        %         Ground_Station, Background_Sources, Satellite, ...
+        %         Headings, Elevations, SMARTS_Configuration)
         function [Total_Background_Count_Rate, Ground_Station, Headings, Elevations] = ...
                 ComputeTotalBackgroundCountRate( ...
                 Ground_Station, Background_Sources, Satellite, ...
-                Headings, Elevations, SMARTS_Configuration)
+                Headings, Elevations)
 
             % COMPUTETOTALBACKGROUNDCOUNTRATE return the total count rate
             % at the given headings and elevations
@@ -651,7 +655,7 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
                 end
 
 
-                Ground_Station.smarts_results = Atmosphere_Sweep_Data;
+                % Ground_Station.smarts_results = Atmosphere_Sweep_Data;
                 Ground_Station.Wavelengths = Wavelengths;
                 Ground_Station.Sky_Irradiance = Sky_Irradiance;
                 Ground_Station.Sky_Radiance = Sky_Radiance;
@@ -668,29 +672,29 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
                 %add sky photons to OGS background count rate sum
                 Light_Pollution_Count_Rate = sky_photon_rate';
 
-            elseif ~isempty(SMARTS_Configuration)
-                %% Run smarts
-                % If 'smarts_configuration' contains a 'SMARTS_input' object run a
-                % SMARTS simulation *ONLY* on the azimuth (heading) and elevation
-                % positions that correspond to where 'Line_Of_Sight_Flags' is set
-                % to true. (this is so that beaconing noise is simulated)
-                [smarts_results, Wavelengths, Sky_Irradiance, Sky_Radiance, ...
-                    Sky_Photons, sky_photon_rate] = ...
-                    smartsSimForPass(SMARTS_Configuration, ...
-                    Headings, Elevations, ...
-                    Satellite.Times, ...
-                    Simulate_Flags, ...
-                    Ground_Station);
+            % elseif ~isempty(SMARTS_Configuration)
+            %     %% Run smarts
+            %     % If 'smarts_configuration' contains a 'SMARTS_input' object run a
+            %     % SMARTS simulation *ONLY* on the azimuth (heading) and elevation
+            %     % positions that correspond to where 'Line_Of_Sight_Flags' is set
+            %     % to true. (this is so that beaconing noise is simulated)
+            %     [smarts_results, Wavelengths, Sky_Irradiance, Sky_Radiance, ...
+            %         Sky_Photons, sky_photon_rate] = ...
+            %         smartsSimForPass(SMARTS_Configuration, ...
+            %         Headings, Elevations, ...
+            %         Satellite.Times, ...
+            %         Simulate_Flags, ...
+            %         Ground_Station);
 
-                Ground_Station.smarts_results = smarts_results;
-                Ground_Station.Wavelengths = Wavelengths;
-                Ground_Station.Sky_Irradiance = Sky_Irradiance;
-                Ground_Station.Sky_Radiance = Sky_Radiance;
-                Ground_Station.Sky_Photons = Sky_Photons;
-                Ground_Station.Sky_Photon_Rate = sky_photon_rate;
+            %     Ground_Station.smarts_results = smarts_results;
+            %     Ground_Station.Wavelengths = Wavelengths;
+            %     Ground_Station.Sky_Irradiance = Sky_Irradiance;
+            %     Ground_Station.Sky_Radiance = Sky_Radiance;
+            %     Ground_Station.Sky_Photons = Sky_Photons;
+            %     Ground_Station.Sky_Photon_Rate = sky_photon_rate;
 
-                %add sky photons to OGS background count rate sum
-                Light_Pollution_Count_Rate = sky_photon_rate';
+            %     %add sky photons to OGS background count rate sum
+            %     Light_Pollution_Count_Rate = sky_photon_rate';
 
             elseif ~isequal(Ground_Station.Sky_Brightness_Store_Location,'none')
                 % if we have a radiance map lets use that instead of anything else

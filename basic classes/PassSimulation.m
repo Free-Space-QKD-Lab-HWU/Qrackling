@@ -8,13 +8,13 @@ classdef PassSimulation
     % FIX: add types
     properties (SetAccess = protected, Hidden = false)
         %satellite simulation object
-        QKD_Transmitter QKD_Transmitter = Satellite.empty;
+        QKD_Transmitter nodes.QKD_Transmitter = nodes.Satellite.empty;
 
         %protocol to be used for QKD
         Protocol;
 
         %receiver simulation object
-        QKD_Receiver QKD_Receiver = Ground_Station.empty;
+        QKD_Receiver nodes.QKD_Receiver = nodes.Ground_Station.empty;
 
         %object which holds link properties over the pass
         Link_Model (1, 1);   %must be singular
@@ -93,7 +93,7 @@ classdef PassSimulation
 
 
         % SMARTS configuration
-        smarts_configuration SMARTS_input;
+        % smarts_configuration SMARTS_input;
 
         %Link direction flag
         % TODO Change this to make use of an enum and update other flags accordingly
@@ -132,7 +132,6 @@ classdef PassSimulation
             PassSimulation.Protocol = Protocol;
             PassSimulation.Turbulence = options.Turbulence;
 
-
             PassSimulation.Visibility = options.Visibility_Defaults;
             if ~isempty(options.Visibility)
                 PassSimulation.Visibility = options.Visibility;
@@ -151,9 +150,9 @@ classdef PassSimulation
             assert(isequal(QKD_Transmitter.Source.Wavelength, QKD_Receiver.Detector.Wavelength), ...
                 'satellite and ground station must use the same wavelength');
                 %decide on direction
-                if isa(QKD_Transmitter, 'Satellite')&&isa(QKD_Receiver, 'Ground_Station')
+                if isa(QKD_Transmitter, 'nodes.Satellite')&&isa(QKD_Receiver, 'nodes.Ground_Station')
                     PassSimulation.Link_Direction = 'Down';
-                elseif isa(QKD_Transmitter, 'Ground_Station')&&isa(QKD_Receiver, 'Satellite')
+                elseif isa(QKD_Transmitter, 'nodes.Ground_Station')&&isa(QKD_Receiver, 'nodes.Satellite')
                     PassSimulation.Link_Direction = 'Up';
                 else
                     error('must have transmitter and receiver cover both of Satellite and Ground_Station')
@@ -161,9 +160,9 @@ classdef PassSimulation
             %if background sources are provided, add them
             PassSimulation.Background_Sources = options.Background_Sources;
 
-            if ~isempty(options.SMARTS)
-                PassSimulation.smarts_configuration = options.SMARTS;
-            end
+            % if ~isempty(options.SMARTS)
+            %     PassSimulation.smarts_configuration = options.SMARTS;
+            % end
         end
 
         function PassSimulation = setExtraCounts(PassSimulation, extra_counts)
@@ -457,9 +456,13 @@ classdef PassSimulation
 
             %%SIMULATEDOWNLINK simulate a pass assuming a downlink configuration
 
+            % %% break out components
+            %  [Satellite, Protocol, Ground_Station,...
+            %     Background_Sources, smarts_configuration,...
+            %     Visibility,Turbulence] = Unpack(PassSimulation); %#ok<*PROP> 
             %% break out components
              [Satellite, Protocol, Ground_Station,...
-                Background_Sources, smarts_configuration,...
+                Background_Sources,...
                 Visibility,Turbulence] = Unpack(PassSimulation); %#ok<*PROP> 
 
             %% check that correct hardware is in place
@@ -471,17 +474,23 @@ classdef PassSimulation
             N_Steps = Satellite.N_Steps;
             Times = Satellite.Times;
             %% set number of steps in simulation
-            Downlink_Model = Satellite_Downlink_Model(N_Steps, Visibility,Turbulence);
+            Downlink_Model = nodes.Satellite_Downlink_Model(N_Steps, Visibility,Turbulence);
 
             %% Compute background count rate and link heading and elevation
             [Headings, Elevations, Ranges] = RelativeHeadingAndElevation(Satellite, Ground_Station);
+            % [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate( ...
+            %     Ground_Station, ...
+			% 	Background_Sources, ...
+			% 	Satellite, ...
+			% 	Headings, ...
+			% 	Elevations, ...
+			% 	smarts_configuration);
             [Background_Count_Rates, Ground_Station] = ComputeTotalBackgroundCountRate( ...
                 Ground_Station, ...
 				Background_Sources, ...
 				Satellite, ...
 				Headings, ...
-				Elevations, ...
-				smarts_configuration);
+				Elevations);
 
             PassSimulation.QKD_Receiver = Ground_Station; %need to store OGS for beaconing
             %% Check elevation limit
@@ -545,8 +554,11 @@ classdef PassSimulation
 
 
             %% return components
+            %PassSimulation=Pack(PassSimulation,Satellite,Protocol,Ground_Station,...
+            %                        Background_Sources,smarts_configuration,Visibility,Turbulence);
+
             PassSimulation=Pack(PassSimulation,Satellite,Protocol,Ground_Station,...
-                                    Background_Sources,smarts_configuration,Visibility,Turbulence);
+                                    Background_Sources,Visibility,Turbulence);
             %store data
             PassSimulation.Times=Times;
             PassSimulation.Headings=Headings;
@@ -569,9 +581,13 @@ classdef PassSimulation
         function PassSimulation = SimulateUplink(PassSimulation)
             %%SIMULATEUPLINK simulate a pass assuming an uplink configuration
 
+            % %% break out components
+            %  [Ground_Station, Protocol, Satellite,...
+            %     Background_Sources, smarts_configuration,...
+            %     Visibility,Turbulence] = Unpack(PassSimulation); %#ok<*PROP> 
             %% break out components
              [Ground_Station, Protocol, Satellite,...
-                Background_Sources, smarts_configuration,...
+                Background_Sources,...
                 Visibility,Turbulence] = Unpack(PassSimulation); %#ok<*PROP> 
 
             %% check that correct hardware is in place
@@ -583,7 +599,7 @@ classdef PassSimulation
             N_Steps = Satellite.N_Steps;
             Times = Satellite.Times;
             %% set number of steps in simulation
-            Uplink_Model = Satellite_Uplink_Model(N_Steps, Visibility, Turbulence);
+            Uplink_Model = nodes.Satellite_Uplink_Model(N_Steps, Visibility, Turbulence);
 
             %% Compute background count rate and link heading and elevation
             [Headings, Elevations, Ranges] = RelativeHeadingAndElevation(Satellite, Ground_Station);
@@ -670,8 +686,12 @@ classdef PassSimulation
             PassSimulation.Total_Secret_Key=Total_Secret_Key;
         end
         
+        %function [QKD_Transmitter, Protocol, QKD_Receiver,...
+        %        Background_Sources, smarts_configuration,...
+        %        Visibility,Turbulence] = Unpack(PassSimulation)
+        %        %%UNPACK return the component objects of a pass simulation
         function [QKD_Transmitter, Protocol, QKD_Receiver,...
-                Background_Sources, smarts_configuration,...
+                Background_Sources,...
                 Visibility,Turbulence] = Unpack(PassSimulation)
                 %%UNPACK return the component objects of a pass simulation
 
@@ -679,17 +699,24 @@ classdef PassSimulation
                 Protocol = PassSimulation.Protocol;
                 QKD_Receiver = PassSimulation.QKD_Receiver;
                 Background_Sources = PassSimulation.Background_Sources;
-                smarts_configuration = PassSimulation.smarts_configuration;
+                %smarts_configuration = PassSimulation.smarts_configuration;
                 Visibility = PassSimulation.Visibility;
                 Turbulence = PassSimulation.Turbulence;
         end
 
+        %function PassSimulation = Pack(PassSimulation,...
+        %                                QKD_Transmitter,...
+        %                                Protocol,...
+        %                                QKD_Receiver,...
+        %                                Background_Sources,...
+        %                                smarts_configuration,...
+        %                                Visibility,...
+        %                                Turbulence)
         function PassSimulation = Pack(PassSimulation,...
                                         QKD_Transmitter,...
                                         Protocol,...
                                         QKD_Receiver,...
                                         Background_Sources,...
-                                        smarts_configuration,...
                                         Visibility,...
                                         Turbulence)
             %%PACK return all of the component objects to a PassSimulation
@@ -698,7 +725,7 @@ classdef PassSimulation
             PassSimulation.Protocol=Protocol;
             PassSimulation.QKD_Receiver=QKD_Receiver;
             PassSimulation.Background_Sources=Background_Sources;
-            PassSimulation.smarts_configuration=smarts_configuration;
+            % PassSimulation.smarts_configuration=smarts_configuration;
             PassSimulation.Visibility=Visibility;
             PassSimulation.Turbulence = Turbulence;
         end
@@ -709,11 +736,11 @@ classdef PassSimulation
             switch PassSimulation.Link_Direction
                 case 'Down'
             [Satellite, ~, Ground_Station, ...
-                Background_Sources, smarts_configuration, ...
+                Background_Sources, ...
                 Visibility] = Unpack(PassSimulation);
                 case 'Up'
             [Ground_Station, ~, Satellite, ...
-                Background_Sources, smarts_configuration, ...
+                Background_Sources, ...
                 Visibility] = Unpack(PassSimulation);
             end
             N_Steps = Satellite.N_Steps;
@@ -722,11 +749,13 @@ classdef PassSimulation
             Downlink_Beacon_Flag = ~isempty(Satellite.Beacon)&&~isempty(Ground_Station.Camera);
             PassSimulation.Downlink_Beacon_Flag = Downlink_Beacon_Flag;
 
+            smarts_configuration = [];
+
             %% Downlink beacon modelling
             if Downlink_Beacon_Flag
                 % if a beacon is present, simulate the beacon channel
                 [Beacon_Downlink_model,DownlinkBeaconLossdB] =...
-                    Compute_Link_Loss(Beacon_Downlink_Model(N_Steps,Visibility,PassSimulation.Turbulence),...
+                    Compute_Link_Loss(beacon.Beacon_Downlink_Model(N_Steps,Visibility,PassSimulation.Turbulence),...
                     Satellite,...
                     Ground_Station);
                 %compute beacon received power
@@ -767,7 +796,7 @@ classdef PassSimulation
             if Uplink_Beacon_Flag
                 % if a beacon is present, simulate the beacon channel
                 [Beacon_Uplink_model,UplinkBeaconLossdB] =...
-                    Compute_Link_Loss(Beacon_Uplink_Model(N_Steps,Visibility,PassSimulation.Turbulence),...
+                    Compute_Link_Loss(beacon.Beacon_Uplink_Model(N_Steps,Visibility,PassSimulation.Turbulence),...
                     Satellite,...
                     Ground_Station);
                 %compute beacon received power

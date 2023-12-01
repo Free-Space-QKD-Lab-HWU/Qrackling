@@ -43,34 +43,34 @@ classdef new_link_model
 
         end
 
-        function [geo, eff, apt, turb, atmos] = LinkLosses(link_model)
+        function [geo, eff, apt, turb, atmos] = LinkLosses(lm)
             arguments
-                link_model nodes.new_link_model
+                lm nodes.new_link_model
             end
 
-            geo = nodes.GeometricLoss(link_model.receiver, link_model.transmitter);
-            eff = nodes.OpticalEfficiencyLoss(link_model.receiver, link_model.transmitter);
-            apt = nodes.APTLoss(link_model.receiver, link_model.transmitter);
+            geo = nodes.GeometricLoss(lm.receiver, lm.transmitter);
+            eff = nodes.OpticalEfficiencyLoss(lm.receiver, lm.transmitter);
+            apt = nodes.APTLoss(lm.receiver, lm.transmitter);
 
             fried_param = FriedParameter( ...
-                link_model.direction, ...
-                "Hufnagel_Valley", HufnagelValley.HV5_7);
+                lm.direction, ...
+                "Hufnagel_Valley", HufnagelValley.HV10_10);
 
             turb = nodes.TurbulenceLoss( ...
-                link_model.receiver, ...
-                link_model.transmitter, ...
+                lm.receiver, ...
+                lm.transmitter, ...
                 fried_param);
-            atmos = nodes.AtmosphericLoss(link_model.receiver, link_model.transmitter);
+            atmos = nodes.AtmosphericLoss(lm.receiver, lm.transmitter);
 
         end
 
-        function total = TotalLoss(link_model, options)
+        function total = TotalLoss(lm, options)
             arguments
-                link_model nodes.new_link_model
+                lm nodes.new_link_model
                 options.dB logical = false
             end
 
-            [geo, eff, apt, turb, atmos] = link_model.LinkLosses();
+            [geo, eff, apt, turb, atmos] = lm.LinkLosses();
 
             total = prod( [geo', eff', apt', turb', atmos'], 2)';
 

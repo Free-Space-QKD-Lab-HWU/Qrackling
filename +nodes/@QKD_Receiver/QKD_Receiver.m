@@ -48,9 +48,9 @@ classdef (Abstract) QKD_Receiver < nodes.Optical_Node
             % get distance between receiver and transmitter over time
             Distances = ComputeDistanceBetween(QKD_Receiver,QKD_Transmitter);
             %get time stamps
-            if isa(QKD_Receiver,'Satellite')
+            if isa(QKD_Receiver,'nodes.Satellite')
                 Times = QKD_Receiver.Times;
-            elseif isa(QKD_Transmitter,'Satellite')
+            elseif isa(QKD_Transmitter,'nodes.Satellite')
                 Times = QKD_Transmitter.Times;
             else
                 error('one of transmitter or receiver must be a satellite')
@@ -75,9 +75,9 @@ classdef (Abstract) QKD_Receiver < nodes.Optical_Node
            % get distance between receiver and transmitter over time
            Distances = ComputeDistanceBetween(QKD_Receiver,QKD_Transmitter);
            %get time stamps
-           if isa(QKD_Receiver,'Satellite')
+           if isa(QKD_Receiver,'nodes.Satellite')
                Times = QKD_Receiver.Times;
-           elseif isa(QKD_Transmitter,'Satellite')
+           elseif isa(QKD_Transmitter,'nodes.Satellite')
                Times = QKD_Transmitter.Times;
            else
                error('one of transmitter or receiver must be a satellite')

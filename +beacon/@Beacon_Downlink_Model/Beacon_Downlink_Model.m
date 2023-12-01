@@ -1,4 +1,4 @@
-classdef Beacon_Downlink_Model < Satellite_Link_Model
+classdef Beacon_Downlink_Model < nodes.Satellite_Link_Model
         %Beacon_Downlink_Model a link model specific to satellite to OGS downlink
 %{
     properties (SetAccess=protected,Abstract=false)
@@ -28,6 +28,7 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
 
     methods (Access = public)
         function Beacon_Downlink_Model=Beacon_Downlink_Model(N,Visibility,Turbulence)
+            disp(['VISIBILITY HERE IS... ', Visibility])
             %%BEACON_DOWNLINK_MODEL construct an instance of Beacon_Downlink_Model with the indicated number of modelled points
             if nargin==0
                 return
@@ -244,6 +245,7 @@ classdef Beacon_Downlink_Model < Satellite_Link_Model
 
         %% atmospheric loss
 
+            disp(['I AM USING THIS VISIBILITY: ', Link_Models.Visibility])
         %format spectral filters which correspond to these elevation angles
         Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Link_Models.Elevation,Satellite.Beacon.Wavelength,{Link_Models.Visibility});
         Atmos_Loss = ComputeTransmission(Atmospheric_Spectral_Filter,Satellite.Beacon.Wavelength);

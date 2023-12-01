@@ -1,4 +1,4 @@
-classdef Beacon_Uplink_Model < Satellite_Link_Model
+classdef Beacon_Uplink_Model < nodes.Satellite_Link_Model
         %Beacon_Uplink_Model a link model specific to satellite to OGS downlink
 
         %{

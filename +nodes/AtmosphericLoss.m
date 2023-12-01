@@ -6,7 +6,7 @@ function loss = AtmosphericLoss(receiver, transmitter, options)
         transmitter nodes.FreeSpaceTransmitter
         % FIX: should be an array of visibilities, this is current form due to
         % the specifics of the 'Atmosphere_Spectral_Filter' class
-        options.Visibility {mustBeText} = 'clear'
+        options.Visibility {mustBeText} = '50km'
     end
 
     % so we need to determine which of our two inputs, { receiver, transmitter }

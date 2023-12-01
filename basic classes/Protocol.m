@@ -116,7 +116,7 @@ classdef Protocol
         %%required for the current protocol
             arguments
                 proto Protocol
-                source Source
+                source components.Source
             end
 
             check = false;
@@ -143,7 +143,7 @@ classdef Protocol
         %%required for the current protocol
             arguments
                 proto Protocol
-                detector Detector
+                detector components.Detector
             end
 
             check = false;
@@ -172,8 +172,8 @@ classdef Protocol
 
             arguments
                 proto Protocol
-                source Source
-                detector Detector
+                source components.Source
+                detector components.Detector
                 Link_Loss_dB
                 Background_Count_Rate
             end

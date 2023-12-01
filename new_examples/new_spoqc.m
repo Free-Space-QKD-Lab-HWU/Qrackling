@@ -17,6 +17,11 @@ function sat = new_spoqc(wavelength, example_times, which, n_samples)
     start_time = pass - minutes(30);
     stop_time = pass + minutes(30);
 
+    start_time = datetime(2022,12,25,6,0,0);
+    stop_time = datetime(2022,12,25,7,0,0);
+    %vis_string = '50km';
+    %turbulence_string = 'HV10-10';
+
     sample_time = seconds(1);
     if ~isnan(n_samples)
         sample_time = (stop_time - start_time) / n_samples;

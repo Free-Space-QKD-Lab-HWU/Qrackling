@@ -587,8 +587,8 @@ all(obj.RelativeHeadingAndElevation(ogs) == fliplr(ogs.RelativeHeadingAndElevati
 unique(obj.Altitude > ogs.Altitude)
 
 %% testing new link model
-clear all
-clc
+% clear all
+% clc
 
 hogs = new_HOGS(808);
 spoqc = new_spoqc(808, '25/12/2022, 08:44, 14:50, 16:22, 17:55');
@@ -603,4 +603,11 @@ link = nodes.new_link_model(spoqc, hogs, "Ground_Station", "Satellite");
 [geo, eff, apt, turb, atmos] = link.LinkLosses();
 
 
-
+figure
+hold on
+plot(utilities.decibelFromPercentLoss(geo))
+plot(utilities.decibelFromPercentLoss(eff))
+plot(utilities.decibelFromPercentLoss(apt))
+plot(utilities.decibelFromPercentLoss(turb))
+plot(utilities.decibelFromPercentLoss(atmos))
+legend("geo", "opt", "apt", "turb", "atmos")

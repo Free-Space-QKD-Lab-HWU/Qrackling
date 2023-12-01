@@ -48,11 +48,13 @@ classdef Camera
                 options.Pixels = [1080,1080]
             end
 
+            C.Telescope = telescope.SetWavelength(options.Wavelength);
+
             %get outputs
-            if contains(fieldnames(options), 'Telescope')
-                %make sure telescope has input wavelength
-                C.Telescope = telescope.SetWavelength(options.Wavelength);
-            end
+            % if contains(fieldnames(options), 'telescope')
+            %     %make sure telescope has input wavelength
+            %     C.Telescope = telescope.SetWavelength(options.Wavelength);
+            % end
             C.Quantum_Efficiency = options.Quantum_Efficiency;
             C.Exposure_Time = options.Exposure_Time;
             C.Spectral_Filter_Width = options.Spectral_Filter_Width;
