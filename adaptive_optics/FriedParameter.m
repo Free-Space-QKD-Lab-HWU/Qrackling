@@ -23,7 +23,7 @@ classdef FriedParameter
         end
 
         function r0 = AtmosphericTurbulenceCoherenceLength(FP, ...
-            Slant_Range, Zenith_Angle, Wavelength,  options)
+            Slant_Range, Zenith_Angle, Wavelength, options)
 
             arguments
                 FP FriedParameter
@@ -54,32 +54,30 @@ classdef FriedParameter
                 options.Range_Unit, "Kilo", Slant_Range);
 
             integrals = zeros(size(range));
-            for i = 1:numel(integrals)
-                integrals(i) = integral(@(x) kernel(range(i), Zenith_Angle(i), x), 0, 1);
+            fun = @(x, alt) FP.Cn2_Model.Calculate(x) .* (1 - (x ./ alt) .^ (5/3));
+
+            switch FP.Link_Direction
+            case nodes.LinkDirection.Downlink
+                for i = 1:numel(integrals)
+                    % integrals(i) = integral(@(x) kernel(range(i), Zenith_Angle(i), x), 0, 1) / numel(range);
+                    integrals(i) = integral(@(x) -fun(x, range(i)), range(i), 0);
+
+                end
+            case nodes.LinkDirection.Uplink
+                for i = 1:numel(integrals)
+                    % integrals(i) = integral(@(x) kernel(range(i), Zenith_Angle(i), x), 0, 1) / numel(range);
+                    integrals(i) = integral(@(x) -fun(x, range(i)), 0, range(i));
+                end
             end
 
-            wavenumber = ...
-                units.Magnitude.Convert( ...
-                    options.Wavelength_Unit, ...
-                    "micro", ...
-                    Wavelength) ...
-                ./ (2 * pi);
-
-            % r0 = ( ...
-            %       0.423 ...
-            %       .* (wavenumber ^ 2) ...
-            %       .* secd(Zenith_Angle) ...
-            %       .* integral(kernel, 0, 1) ...
-            %     ) .^ (-3/5);
+            wavenumber = 2 * pi ...
+                / units.Magnitude.Convert( ...
+                    options.Wavelength_Unit, "none", Wavelength);
 
             r0 = (0.423 ...
                 .* (wavenumber ^ 2) ...
                 .* secd(Zenith_Angle) ...
                 .* integrals') .^ (-3/5);
-
-            disp(["num integrals: ", num2str(size(integrals))])
-            disp(["num wavenumber: ", num2str(size(wavenumber))])
-            disp(["num r0: ", num2str(size(r0))])
 
         end
 

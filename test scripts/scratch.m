@@ -627,7 +627,7 @@ e = [lower - lower(end), fliplr(upper - upper(end))];
 
 figure
 hold on
-area(e, [ ...
+area(Pass.Times(mask), [ ...
     geo_db(mask)', ...
     eff_db(mask)', ...
     apt_db(mask)', ...
@@ -637,8 +637,35 @@ area(e, [ ...
 size(e)
 size(geo_db(mask))
 
+new_total = sum([ ...
+    geo_db(mask)', eff_db(mask)', apt_db(mask)', ...
+    turb_db(mask)', atmos_db(mask)']');
+figure
+hold on
+plot(Pass.Times(mask), Pass.Link_Model.Link_Loss_dB(mask))
+plot(Pass.Times(mask), new_total)
+legend("old", "new")
 
 
+% figure
+% plot(Pass.Times(mask), Pass.Link_Model.Geometric_Loss_dB(mask) - geo_db(mask))
+% legend("geo")
+
+% figure
+% plot(Pass.Times(mask), Pass.Link_Model.Optical_Efficiency_Loss(mask) - eff(mask))
+% legend("opt")
+
+%figure
+%plot(Pass.Times(mask), Pass.Link_Model.APT_Loss_dB(mask) - apt_db(mask))
+%legend("apt")
+
+figure
+plot(Pass.Times(mask), Pass.Link_Model.Turbulence_Loss_dB(mask) - turb_db(mask))
+legend("turb")
+
+% figure
+% plot(Pass.Times(mask), Pass.Link_Model.Atmospheric_Loss_dB(mask) - atmos_db(mask))
+% legend("atmos")
 
 % % atmospheric models match
 % all(utilities.decibelFromPercentLoss(atmos) == Pass.Link_Model.Atmospheric_Loss_dB)
@@ -683,3 +710,29 @@ size(geo_db(mask))
 % 
 % figure
 % plot(Pass.Link_Model.r0)
+
+%% 
+
+wavelength = 785;
+wavenumber = 2 * pi / (wavelength * (1e-9));
+num2str(wavenumber)
+zeniths = linspace(0, 90, 10);
+old_r0 = atmospheric_turbulence_coherence_length_downlink( ...
+    wavenumber, zeniths, 600, ghv_defaults('Standard', 'HV10-10'));
+range = slant_range(600, 90-zeniths, "angle_unit", units.Angle.Degrees);
+fried_param = FriedParameter(nodes.LinkDirection.Downlink, ...
+    "Hufnagel_Valley", HufnagelValley.HV10_10);
+r0 = fried_param.AtmosphericTurbulenceCoherenceLength(600, zeniths, wavelength);
+figure
+hold on
+plot(zeniths, old_r0)
+plot(zeniths, r0)
+legend("old", "new")
+
+old_r0
+r0
+
+r0 .* 10
+
+
+nodes.LinkDirection.Height(range, zeniths, 0.1)

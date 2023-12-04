@@ -1,6 +1,8 @@
 function atm_turb_cor_len = atmospheric_turbulence_coherence_length_downlink( ...
                     wavenumber, zenith_angle, satellite_altitude, ghv_args)
 
+    disp(['Wavenumber: ', num2str(wavenumber)])
+
     fun = @(x,sat_alt) (generalised_hufnagel_valley(ghv_args, x) ...
                     .* (1-(x ./ sat_alt) .^ (5/3)));
     

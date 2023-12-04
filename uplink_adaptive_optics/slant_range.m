@@ -11,7 +11,8 @@ function range = slant_range(altitude, elevation, options)
         options.geo_centre_ground_station + options.earth_radius;
     orbit_radius = altitude + options.earth_radius;
 
-    elevation_rad = options.angle_unit.ToRadians(elevation);
+    %elevation_rad = options.angle_unit.ToRadians(elevation);
+    elevation_rad = units.Angle.ToRadians(options.angle_unit, elevation);
 
     rcosz = geo_centre_ground_station .* cos(elevation_rad);
 
