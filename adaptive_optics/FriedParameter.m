@@ -75,7 +75,12 @@ classdef FriedParameter
             r0 = (0.423 ...
                 .* (wavenumber ^ 2) ...
                 .* secd(Zenith_Angle) ...
-                .* integrals) .^ (-3/5);
+                .* integrals') .^ (-3/5);
+
+            disp(["num integrals: ", num2str(size(integrals))])
+            disp(["num wavenumber: ", num2str(size(wavenumber))])
+            disp(["num r0: ", num2str(size(r0))])
+
         end
 
     end

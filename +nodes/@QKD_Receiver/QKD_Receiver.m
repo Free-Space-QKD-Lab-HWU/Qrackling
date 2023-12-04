@@ -108,8 +108,13 @@ classdef (Abstract) QKD_Receiver < nodes.Optical_Node
             Phi = ComputeMotionPhaseShift(QKD_Receiver,QKD_Transmitter);
 
             %% compute visibility
-            Received_Phase_Offset = 2*pi*delta_Wavelengths*c/(QKD_Transmitter.Source.Repetition_Rate*(QKD_Transmitter.Source.Wavelength*1E-9)^2) + Phi;
-            Visibility = abs(cos(Received_Phase_Offset)-cos(Received_Phase_Offset+pi))./(2+cos(Received_Phase_Offset)+cos(Received_Phase_Offset+pi));
+            Received_Phase_Offset = ...
+                (2*pi*delta_Wavelengths*c) ...
+                / ( QKD_Transmitter.Source.Repetition_Rate ...
+                  *(QKD_Transmitter.Source.Wavelength * 1E-9) ^ 2) + Phi;
+
+            Visibility = abs( cos(Received_Phase_Offset)-cos(Received_Phase_Offset+pi) ) ...
+                ./ (2+cos(Received_Phase_Offset)+cos(Received_Phase_Offset+pi));
         end
     end
 end

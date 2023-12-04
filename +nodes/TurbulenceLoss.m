@@ -15,9 +15,8 @@ function [loss, beam_width, r0] = TurbulenceLoss(receiver, transmitter, ...
         * transmitter.telescope.FOV);
 
     % wavelength must come from a source, this will be in nm
-    wavelength = units.Magnitude.Convert("nano", "none", transmitter.source.Wavelength);
-    %wavelength = transmitter.Wavelength;
-    wavenumber = 2 * pi / wavelength;
+    % wavelength = units.Magnitude.Convert("nano", "none", transmitter.source.Wavelength);
+    wavelength = transmitter.source.Wavelength;
 
     if contains(fieldnames(options), 'Elevations')
         error('UNIMPLEMENTED: we should be able to pass elevations in, currently we have to determine which of the inputs is the satellite and which is the ground station.');
@@ -36,21 +35,23 @@ function [loss, beam_width, r0] = TurbulenceLoss(receiver, transmitter, ...
     % then we can assume that the receiver is the satellite, otherwise we can
     % assume that the satellite is the transmitter
 
-    if 1 == unique(chk)
-        sat_index = 1;
-        ogs_index = 2;
-    else
-        sat_index = 2;
-        ogs_index = 1;
-    end
+    % if 1 == unique(chk)
+    %     sat_index = 1;
+    %     ogs_index = 2;
+    % else
+    %     sat_index = 2;
+    %     ogs_index = 1;
+    % end
 
     % When we look at the original Satellite_Link_Model.m we can see that 
     % regardless of whether we are working with a downlink or uplink model the
     % elevations that we want to capture are always produced with:
     %   RelativeHeadingAndElevation(Satellite, Ground_Station);
-    rx_tx = {receiver, transmitter};
-    [~, elevations, ~] = ...
-        rx_tx{sat_index}.location.RelativeHeadingAndElevation(rx_tx{ogs_index}.location);
+    % rx_tx = {receiver, transmitter};
+    % [~, elevations, ~] = ...
+    %     rx_tx{sat_index}.location.RelativeHeadingAndElevation(rx_tx{ogs_index}.location);
+
+    [~, elevations, ~] = transmitter.location.RelativeHeadingAndElevation(receiver.location);
 
     elevation_flags = elevations > 0;
     zenith = 90 - elevations(elevation_flags);
@@ -58,10 +59,13 @@ function [loss, beam_width, r0] = TurbulenceLoss(receiver, transmitter, ...
     % altitude = altitude_from_nodes([receiver, transmitter]);
     % altitude = altitude(elevation_flags);
     % FIX: again this uses the hack to determine which the satellite
-    altitude = rx_tx{sat_index}.location.Altitude(elevation_flags)';
+    %altitude = rx_tx{sat_index}.location.Altitude(elevation_flags)';
+    altitude = transmitter.location.Altitude(elevation_flags);
 
     r0 = fried_parameter.AtmosphericTurbulenceCoherenceLength( ...
         altitude, zenith, wavelength, "Wavelength_Unit", "none");
+
+    wavenumber = 2 * pi / (wavelength * (1e-9));
 
     beam_width(~elevation_flags) = 0;
     beam_width(elevation_flags) = long_term_gaussian_beam_width( ...

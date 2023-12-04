@@ -5,14 +5,14 @@ function phi = PhaseShiftFromRelativeMotion(receiver, transmitter)
     end
 
     assert(~isempty(transmitter.timestamps), ...
-        ["transmitter { ", inputnames(2), " } does not have any timestamps"]);
+        ["transmitter { ", inputname(2), " } does not have any timestamps"]);
 
     distances = receiver.location.ComputeDistanceBetween(transmitter.location);
     times = transmitter.timestamps;
 
     c=2.998E8;
 
-    wavelength = transmitter.source.Wavelength;
+    wavelength = transmitter.source.Wavelength * (1e-9);
     rep_rate = transmitter.source.Repetition_Rate;
 
     % differentiate wrt time

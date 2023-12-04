@@ -590,19 +590,16 @@ unique(obj.Altitude > ogs.Altitude)
 % clear all
 % clc
 
-hogs = new_HOGS(808);
-spoqc = new_spoqc(808, '25/12/2022, 08:44, 14:50, 16:22, 17:55');
+hogs = new_HOGS(785);
+spoqc = new_spoqc(785, '25/12/2022, 08:44, 14:50, 16:22, 17:55');
 
 tx = nodes.freeSpaceTransmitterFrom("Satellite", spoqc)
 tx.location
 rx = nodes.freeSpaceReceiverFrom("Ground_Station", hogs)
 rx.location
 
-
 link = nodes.new_link_model(spoqc, hogs, "Ground_Station", "Satellite");
 [geo, eff, apt, turb, atmos] = link.LinkLosses();
-
-
 figure
 hold on
 plot(utilities.decibelFromPercentLoss(geo))
@@ -611,3 +608,78 @@ plot(utilities.decibelFromPercentLoss(apt))
 plot(utilities.decibelFromPercentLoss(turb))
 plot(utilities.decibelFromPercentLoss(atmos))
 legend("geo", "opt", "apt", "turb", "atmos")
+title("new link model")
+ylim([0, 50])
+
+
+geo_db = utilities.decibelFromPercentLoss(geo);
+eff_db = utilities.decibelFromPercentLoss(eff);
+apt_db = utilities.decibelFromPercentLoss(apt);
+turb_db = utilities.decibelFromPercentLoss(turb);
+atmos_db = utilities.decibelFromPercentLoss(atmos);
+
+mask = Pass.Elevation_Limit_Flags;
+elevs = Pass.Elevations(mask);
+[v, i] = max(elevs)
+lower = elevs(1:i-1);
+upper = elevs(i:end);
+e = [lower - lower(end), fliplr(upper - upper(end))];
+
+figure
+hold on
+area(e, [ ...
+    geo_db(mask)', ...
+    eff_db(mask)', ...
+    apt_db(mask)', ...
+    turb_db(mask)', ...
+    atmos_db(mask)'])
+
+size(e)
+size(geo_db(mask))
+
+
+
+
+% % atmospheric models match
+% all(utilities.decibelFromPercentLoss(atmos) == Pass.Link_Model.Atmospheric_Loss_dB)
+% 
+% figure
+% plot(utilities.decibelFromPercentLoss(geo) - Pass.Link_Model.Geometric_Loss_dB)
+% 
+% mean(utilities.decibelFromPercentLoss(geo) == Pass.Link_Model.Geometric_Loss_dB)
+% 
+% vis = nodes.Visibility(rx, tx);
+% elevs = Pass.Elevations(Pass.Elevation_Limit_Flags);
+% [v, i] = max(elevs)
+% lower = elevs(1:i-1);
+% upper = elevs(i:end);
+% e = [lower - lower(end), fliplr(upper - upper(end))];
+% figure
+% hold on
+% plot(e, Pass.QKD_Receiver.Detector.Visibility)
+% plot(e, vis(Pass.Elevation_Limit_Flags))
+% legend("old", "new")
+% 
+% figure
+% plot(e, Pass.QKD_Receiver.Detector.Visibility - vis(Pass.Elevation_Limit_Flags))
+% 
+% phi = nodes.PhaseShiftFromRelativeMotion(rx, tx);
+% Phi = Pass.QKD_Receiver.ComputeMotionPhaseShift(Pass.QKD_Transmitter);
+% figure
+% hold on
+% plot(Phi)
+% plot(phi)
+% legend("old", "new")
+% 
+% shift = nodes.Doppler_Shift(rx, tx);
+% Shift = Pass.QKD_Receiver.DopplerShift(Pass.QKD_Transmitter);
+% figure
+% hold on
+% plot(Shift)
+% plot(shift)
+% legend("old", "new")
+% 
+% utilities.decibelFromPercentLoss(turb)
+% 
+% figure
+% plot(Pass.Link_Model.r0)
