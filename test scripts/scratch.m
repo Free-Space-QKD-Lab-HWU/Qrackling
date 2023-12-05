@@ -587,36 +587,73 @@ all(obj.RelativeHeadingAndElevation(ogs) == fliplr(ogs.RelativeHeadingAndElevati
 unique(obj.Altitude > ogs.Altitude)
 
 %% testing new link model
-% clear all
-% clc
+clear all
+clc
+ExampleHOGS
 
 hogs = new_HOGS(785);
 spoqc = new_spoqc(785, '25/12/2022, 08:44, 14:50, 16:22, 17:55');
 
-tx = nodes.freeSpaceTransmitterFrom("Satellite", spoqc)
+mustBeA(hogs, ["nodes.Satellite", "nodes.Ground_Station"])
+
+isa(spoqc, "nodes.Satellite")
+
+nodes.mustBeSatelliteOrGroundStation(hogs)
+
+isa(spoqc, 'nodes.Satellite')
+
+class(spoqc)
+
+tx = nodes.freeSpaceTransmitterFrom(spoqc)
 tx.location
-rx = nodes.freeSpaceReceiverFrom("Ground_Station", hogs)
+rx = nodes.freeSpaceReceiverFrom(hogs)
 rx.location
 
-link = nodes.new_link_model(spoqc, hogs, "Ground_Station", "Satellite");
-[geo, eff, apt, turb, atmos] = link.LinkLosses();
+link = nodes.new_link_model(spoqc, hogs);
+losses = link.LinkLosses("apt", "optical", "geometric", "turbulence", "atmospheric")
 figure
 hold on
-plot(utilities.decibelFromPercentLoss(geo))
-plot(utilities.decibelFromPercentLoss(eff))
-plot(utilities.decibelFromPercentLoss(apt))
-plot(utilities.decibelFromPercentLoss(turb))
-plot(utilities.decibelFromPercentLoss(atmos))
-legend("geo", "opt", "apt", "turb", "atmos")
+plot(utilities.decibelFromPercentLoss(losses.apt))
+plot(utilities.decibelFromPercentLoss(losses.optical))
+plot(utilities.decibelFromPercentLoss(losses.geometric))
+plot(utilities.decibelFromPercentLoss(losses.turbulence))
+plot(utilities.decibelFromPercentLoss(losses.atmospheric))
+legend("apt", "opt", "geo", "turb", "atmos")
 title("new link model")
 ylim([0, 50])
 
+all_losses = utilities.decibelFromPercentLoss(cell2mat(struct2cell(losses)))
+mask = Pass.Elevation_Limit_Flags;
 
-geo_db = utilities.decibelFromPercentLoss(geo);
-eff_db = utilities.decibelFromPercentLoss(eff);
-apt_db = utilities.decibelFromPercentLoss(apt);
-turb_db = utilities.decibelFromPercentLoss(turb);
-atmos_db = utilities.decibelFromPercentLoss(atmos);
+figure
+area( ...
+    spoqc.Times(mask), ...
+    all_losses(:, mask)')
+
+link.lossStackPlot("mask", mask)
+
+
+losses = link.LinkLosses("apt", "optical", "geometric", "turbulence", "atmospheric", "apt")
+
+loss_db = link.TotalLoss("dB", true)
+
+figure
+plot(loss_db)
+
+prod(cell2mat(struct2cell(losses)), 1)
+
+arrayfun(@(fn) losses.(fn{1})', fieldnames(losses)', UniformOutput=false)'
+
+keys = {'apt', 'optical', 'geometric', 'turbulence', 'atmospheric', 'apt'}
+
+[uc, ~, idx] = unique(keys)
+
+
+geo_db   = utilities.decibelFromPercentLoss(losses.apt);
+eff_db   = utilities.decibelFromPercentLoss(losses.optical);
+apt_db   = utilities.decibelFromPercentLoss(losses.geometric);
+turb_db  = utilities.decibelFromPercentLoss(losses.turbulence);
+atmos_db = utilities.decibelFromPercentLoss(losses.atmospheric);
 
 mask = Pass.Elevation_Limit_Flags;
 elevs = Pass.Elevations(mask);
@@ -647,25 +684,25 @@ plot(Pass.Times(mask), new_total)
 legend("old", "new")
 
 
-% figure
-% plot(Pass.Times(mask), Pass.Link_Model.Geometric_Loss_dB(mask) - geo_db(mask))
-% legend("geo")
+figure
+plot(Pass.Times(mask), Pass.Link_Model.Geometric_Loss_dB(mask) - geo_db(mask))
+legend("geo")
 
-% figure
-% plot(Pass.Times(mask), Pass.Link_Model.Optical_Efficiency_Loss(mask) - eff(mask))
-% legend("opt")
+figure
+plot(Pass.Times(mask), Pass.Link_Model.Optical_Efficiency_Loss(mask) - eff(mask))
+legend("opt")
 
-%figure
-%plot(Pass.Times(mask), Pass.Link_Model.APT_Loss_dB(mask) - apt_db(mask))
-%legend("apt")
+figure
+plot(Pass.Times(mask), Pass.Link_Model.APT_Loss_dB(mask) - apt_db(mask))
+legend("apt")
 
 figure
 plot(Pass.Times(mask), Pass.Link_Model.Turbulence_Loss_dB(mask) - turb_db(mask))
 legend("turb")
 
-% figure
-% plot(Pass.Times(mask), Pass.Link_Model.Atmospheric_Loss_dB(mask) - atmos_db(mask))
-% legend("atmos")
+figure
+plot(Pass.Times(mask), Pass.Link_Model.Atmospheric_Loss_dB(mask) - atmos_db(mask))
+legend("atmos")
 
 % % atmospheric models match
 % all(utilities.decibelFromPercentLoss(atmos) == Pass.Link_Model.Atmospheric_Loss_dB)
@@ -729,6 +766,12 @@ plot(zeniths, old_r0)
 plot(zeniths, r0)
 legend("old", "new")
 
+close all
+
+
+generalised_hufnagel_valley(ghv_defaults('Standard', 'HV10-10'), 600)
+HufnagelValley.HV10_10.Calculate(600)
+
 old_r0
 r0
 
@@ -736,3 +779,11 @@ r0 .* 10
 
 
 nodes.LinkDirection.Height(range, zeniths, 0.1)
+
+
+%% 
+keys = {'geometric', 'optical', 'apt', 'turbulence', 'atmospheric'}
+for k = keys
+    disp(k)
+    break
+end

@@ -6,62 +6,65 @@ classdef new_link_model
     end
     methods
 
-        function new_link_model = new_link_model(satellite, groundstation, ...
-                Receiver, Transmitter)
-            % TODO: change the entry point here. Instead of taking satellite and
-            % ground station, we should instead take receiver and transmitter,
-            % ensure that each of these is a Satellite.m or Ground_Station.m
-            % and use the order of arguments to correctly produce the free-space
-            % receiver and transmitter objects
+        function new_link_model = new_link_model(Transmitter, Receiver)
             arguments
-                satellite nodes.Satellite
-                groundstation nodes.Ground_Station
-                Receiver {mustBeMember(Receiver, ...
-                    {'Satellite', 'Ground_Station'})}
-                Transmitter {mustBeMember(Transmitter, ...
-                    {'Satellite', 'Ground_Station'})}
+                Transmitter {mustBeA(Transmitter, ...
+                    ["nodes.Satellite", "nodes.Ground_Station"])}
+                Receiver {mustBeA(Receiver, ...
+                    ["nodes.Satellite", "nodes.Ground_Station"])}
             end
 
-            disp(Receiver)
+            new_link_model.receiver = nodes.freeSpaceReceiverFrom(Receiver);
+            new_link_model.transmitter = nodes.freeSpaceTransmitterFrom(Transmitter);
 
-            % NOTE: This is maybe a bit cryptic and also places dependency on 
-            % the argument names in nodes.freeSpaceReceiverFrom and in 
-            % nodes.freeSpaceTransmitterFrom
-            rx_tx = {satellite, groundstation};
-            rx_idx = contains({'Satellite', 'Ground_Station'}, Receiver);
-            tx_idx = contains({'Satellite', 'Ground_Station'}, Transmitter);
-            new_link_model.receiver = nodes.freeSpaceReceiverFrom(string(Receiver), rx_tx{rx_idx});
-            new_link_model.transmitter = nodes.freeSpaceTransmitterFrom(string(Transmitter), rx_tx{tx_idx});
-
-            if strcmp(Receiver, 'Satellite') && strcmp(Transmitter, 'Ground_Station')
+            if isa(Receiver, "nodes.Satellite") && isa(Transmitter, "nodes.Ground_Station")
                 new_link_model.direction = nodes.LinkDirection.Uplink;
             end
 
-            if strcmp(Receiver, 'Ground_Station') && strcmp(Transmitter, 'Satellite')
+            if isa(Transmitter, "nodes.Satellite") && isa(Receiver, "nodes.Ground_Station")
                 new_link_model.direction = nodes.LinkDirection.Downlink;
             end
 
         end
 
-        function [geo, eff, apt, turb, atmos] = LinkLosses(lm)
+        function losses = LinkLosses(lm, loss)
             arguments
                 lm nodes.new_link_model
             end
+            arguments (Repeating)
+                loss {mustBeMember(loss, { ...
+                    'geometric', 'optical', 'apt', ...
+                    'turbulence', 'atmospheric'})}
+            end
 
-            geo = nodes.GeometricLoss(lm.receiver, lm.transmitter);
-            eff = nodes.OpticalEfficiencyLoss(lm.receiver, lm.transmitter);
-            apt = nodes.APTLoss(lm.receiver, lm.transmitter);
+            losses = struct();
 
-            fried_param = FriedParameter( ...
-                lm.direction, ...
-                "Hufnagel_Valley", HufnagelValley.HV10_10);
+            for l = loss
+                label = l{1};
 
-            turb = nodes.TurbulenceLoss( ...
-                lm.receiver, ...
-                lm.transmitter, ...
-                fried_param);
-            atmos = nodes.AtmosphericLoss(lm.receiver, lm.transmitter);
+                % only compute loss if label is not already present in losses,
+                % skip if label is already present
+                if any(contains(fieldnames(losses), label))
+                    continue
+                end
 
+                switch label
+                case 'geometric'
+                    res = nodes.GeometricLoss(lm.receiver, lm.transmitter);
+                case 'optical'
+                    res = nodes.OpticalEfficiencyLoss(lm.receiver, lm.transmitter);
+                case 'apt'
+                    res = nodes.APTLoss(lm.receiver, lm.transmitter);
+                case 'turbulence'
+                    fried_param = FriedParameter(lm.direction, ...
+                        "Hufnagel_Valley", HufnagelValley.HV10_10);
+                    res = nodes.TurbulenceLoss( ...
+                        lm.receiver, lm.transmitter, fried_param);
+                case 'atmospheric'
+                    res = nodes.AtmosphericLoss(lm.receiver, lm.transmitter);
+                end
+                losses.(label) = res;
+            end
         end
 
         function total = TotalLoss(lm, options)
@@ -70,13 +73,55 @@ classdef new_link_model
                 options.dB logical = false
             end
 
-            [geo, eff, apt, turb, atmos] = lm.LinkLosses();
+            losses = lm.LinkLosses("apt", "optical", "geometric", ...
+                "turbulence", "atmospheric");
 
-            total = prod( [geo', eff', apt', turb', atmos'], 2)';
+
+            %total = prod( [geo', eff', apt', turb', atmos'], 2)';
+            total = prod(cell2mat(struct2cell(losses)), 1);
 
             if options.dB
                 total = utilities.decibelFromPercentLoss(total);
             end
+        end
+
+        function fig = lossStackPlot(lm, options)
+            arguments
+                lm nodes.new_link_model
+                options.mask
+            end
+
+            losses = lm.LinkLosses("apt", "optical", "geometric", ...
+                "turbulence", "atmospheric");
+
+            labels = fieldnames(losses);
+
+            losses = cell2mat(struct2cell(losses));
+            if contains(fieldnames(options), 'mask')
+                losses = losses(:, options.mask);
+            end
+
+            losses_db = utilities.decibelFromPercentLoss(losses);
+
+            timestamps = [];
+            if any(contains(properties(lm.receiver), 'timestamps'))
+                timestamps = lm.receiver.timestamps;
+            end
+
+            if isempty(timestamps) && any(contains(properties(lm.transmitter), 'timestamps'))
+                timestamps = lm.transmitter.timestamps;
+            else
+                error("No timestamps in either receiver or transmitter");
+            end
+
+            if contains(fieldnames(options), 'mask')
+                timestamps = timestamps(options.mask);
+            end
+
+            fig = figure();
+            hold on
+            area(timestamps, losses_db')
+            legend(labels)
 
         end
 

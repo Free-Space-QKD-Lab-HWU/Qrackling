@@ -34,6 +34,8 @@ classdef FriedParameter
                 options.Wavelength_Unit units.Magnitude = "nano"
             end
 
+            % FIX: why does this produce r0 values that are 10 times to big?
+            % For now, we wont use this method, see loop below
             switch FP.Link_Direction
             case nodes.LinkDirection.Downlink
                 kernel = @(Range, Zenith, Xi) ...
