@@ -1,26 +1,31 @@
-function [loss, beam_width, r0] = TurbulenceLoss(receiver, transmitter, ...
-    fried_parameter, options)
+%HACK: both the loss model here and the loss model for the qkd links is in 
+% essense the same, these should be merged and placed behind a flag.
+%TODO: add input argument "kind" that must be either beacon or qkd, and merge
+% loss functions.
+function loss = TurbulenceLoss(Receiver, Transmitter, fried_parameter, options)
     arguments
-        receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
-        transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
+        Receiver {mustBeA(Receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
+        Transmitter {mustBeA(Transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
         fried_parameter FriedParameter
         options.Elevations
     end
 
-    link_length = receiver.ComputeDistanceBetween(transmitter);
-
-    spot_size = (ones(size(link_length)) ...
-        * transmitter.Telescope.Diameter ...
-        + link_length ...
-        * transmitter.Telescope.FOV);
-
-    % wavelength must come from a source, this will be in nm
-    % wavelength = units.Magnitude.Convert("nano", "none", transmitter.source.Wavelength);
-    wavelength = transmitter.Source.Wavelength;
-
     if contains(fieldnames(options), 'Elevations')
         error('UNIMPLEMENTED: we should be able to pass elevations in, currently we have to determine which of the inputs is the satellite and which is the ground station.');
     end
+
+    if isempty(Transmitter.Beacon)
+        error(['Transmitter.Beacon of ', inputname(1), ' must not be empty'])
+    end
+
+    if isempty(Receiver.Camera)
+        error(['Receiver.Camera of ', inputname(2), ' must not be empty'])
+    end
+
+    % wavelength must come from a source, this will be in nm
+    % wavelength = units.Magnitude.Convert("nano", "none", transmitter.source.Wavelength);
+    wavelength = Transmitter.Beacon.Wavelength;
+
 
     % When we look at the original Satellite_Link_Model.m we can see that 
     % regardless of whether we are working with a downlink or uplink model the
@@ -55,6 +60,10 @@ function [loss, beam_width, r0] = TurbulenceLoss(receiver, transmitter, ...
         wavenumber, zenith, altitude', ...
         ghv_defaults('Standard', 'HV10-10'));
 
+    link_length = receiver.ComputeDistanceBetween(transmitter);
+
+    [~, spot_size] = Transmitter.Beacon.GetGeoLoss(link_length, Receiver.Camera);
+
     beam_width(~elevation_flags) = 0;
     beam_width(elevation_flags) = long_term_gaussian_beam_width( ...
         spot_size(elevation_flags), link_length(elevation_flags), wavenumber, r0);
@@ -64,6 +73,6 @@ function [loss, beam_width, r0] = TurbulenceLoss(receiver, transmitter, ...
         beam_width(elevation_flags) ...
         ./ spot_size(elevation_flags) ) .^ (-2);
 
-    n = max(receiver.N_Position, transmitter.N_Position);
+    n = max(Receiver.N_Position, Transmitter.N_Position);
     loss = utilities.validateLoss(loss, n);
 end

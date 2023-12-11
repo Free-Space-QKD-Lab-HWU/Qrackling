@@ -64,7 +64,6 @@ function result = new_PassSimulation(Transmitter, Receiver, proto, options)
     qber(~elevation_limit_mask) = nan;
     communicating = ~( isnan(secret) || (secret <= 0) );
 
-
     time_windows = times([false, communicating(1:end-1)]) - times(communicating);
     assert(~isempty(time_windows), "no time windows"); % not sure what correct error should be
 

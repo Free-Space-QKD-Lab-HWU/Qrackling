@@ -1,15 +1,15 @@
 function shifted_wavelength = Doppler_Shift(receiver, transmitter)
     arguments
-        receiver nodes.FreeSpaceReceiver
-        transmitter nodes.FreeSpaceTransmitter
+        receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
+        transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
     end
 
-    assert(~isempty(transmitter.timestamps), ...
+    assert(~isempty(transmitter.Times), ...
         ["transmitter { ", inputname(2), " } does not have any timestamps"]);
 
-    distances = receiver.location.ComputeDistanceBetween(transmitter.location);
-    times = transmitter.timestamps;
-    wavelength = receiver.telescope.Wavelength;
+    distances = receiver.ComputeDistanceBetween(transmitter);
+    times = transmitter.Times;
+    wavelength = receiver.Telescope.Wavelength;
 
     % differentiate wrt time
     doppler_velocity = ...

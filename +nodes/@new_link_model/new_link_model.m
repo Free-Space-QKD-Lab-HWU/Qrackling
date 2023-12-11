@@ -1,40 +1,48 @@
 classdef new_link_model
-    properties (SetAccess = protected)
-        receiver nodes.FreeSpaceReceiver
-        transmitter nodes.FreeSpaceTransmitter
-        direction nodes.LinkDirection
-    end
-    methods
+    % properties (SetAccess = protected)
+    %     receiver nodes.FreeSpaceReceiver
+    %     transmitter nodes.FreeSpaceTransmitter
+    %     direction nodes.LinkDirection
+    % end
+    methods (Static = true)
 
-        function new_link_model = new_link_model(Transmitter, Receiver)
+        % function new_link_model = new_link_model(Transmitter, Receiver)
+        %     arguments
+        %         Transmitter {mustBeA(Transmitter, ...
+        %             ["nodes.Satellite", "nodes.Ground_Station"])}
+        %         Receiver {mustBeA(Receiver, ...
+        %             ["nodes.Satellite", "nodes.Ground_Station"])}
+        %     end
+
+        %     new_link_model.receiver = nodes.freeSpaceReceiverFrom(Receiver);
+        %     new_link_model.transmitter = nodes.freeSpaceTransmitterFrom(Transmitter);
+
+        %     if isa(Receiver, "nodes.Satellite") && isa(Transmitter, "nodes.Ground_Station")
+        %         new_link_model.direction = nodes.LinkDirection.Uplink;
+        %     end
+
+        %     if isa(Transmitter, "nodes.Satellite") && isa(Receiver, "nodes.Ground_Station")
+        %         new_link_model.direction = nodes.LinkDirection.Downlink;
+        %     end
+
+        % end
+
+        function losses = LinkLosses(receiver, transmitter, loss)
             arguments
-                Transmitter {mustBeA(Transmitter, ...
-                    ["nodes.Satellite", "nodes.Ground_Station"])}
-                Receiver {mustBeA(Receiver, ...
-                    ["nodes.Satellite", "nodes.Ground_Station"])}
-            end
-
-            new_link_model.receiver = nodes.freeSpaceReceiverFrom(Receiver);
-            new_link_model.transmitter = nodes.freeSpaceTransmitterFrom(Transmitter);
-
-            if isa(Receiver, "nodes.Satellite") && isa(Transmitter, "nodes.Ground_Station")
-                new_link_model.direction = nodes.LinkDirection.Uplink;
-            end
-
-            if isa(Transmitter, "nodes.Satellite") && isa(Receiver, "nodes.Ground_Station")
-                new_link_model.direction = nodes.LinkDirection.Downlink;
-            end
-
-        end
-
-        function losses = LinkLosses(lm, loss)
-            arguments
-                lm nodes.new_link_model
+                receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
+                transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
             end
             arguments (Repeating)
                 loss {mustBeMember(loss, { ...
                     'geometric', 'optical', 'apt', ...
                     'turbulence', 'atmospheric'})}
+            end
+
+            switch class(receiver)
+            case "nodes.Ground_Station"
+                direction = nodes.LinkDirection.Downlink;
+            case "nodes.Satellite"
+                direction = nodes.LinkDirection.Uplink;
             end
 
             losses = struct();
@@ -50,31 +58,33 @@ classdef new_link_model
 
                 switch label
                 case 'geometric'
-                    res = nodes.GeometricLoss(lm.receiver, lm.transmitter);
+                    res = nodes.GeometricLoss(receiver, transmitter);
                 case 'optical'
-                    res = nodes.OpticalEfficiencyLoss(lm.receiver, lm.transmitter);
+                    res = nodes.OpticalEfficiencyLoss(receiver, transmitter);
                 case 'apt'
-                    res = nodes.APTLoss(lm.receiver, lm.transmitter);
+                    res = nodes.APTLoss(receiver, transmitter);
                 case 'turbulence'
-                    fried_param = FriedParameter(lm.direction, ...
+                    fried_param = FriedParameter(direction, ...
                         "Hufnagel_Valley", HufnagelValley.HV10_10);
                     res = nodes.TurbulenceLoss( ...
-                        lm.receiver, lm.transmitter, fried_param);
+                        receiver, transmitter, fried_param);
                 case 'atmospheric'
-                    res = nodes.AtmosphericLoss(lm.receiver, lm.transmitter);
+                    res = nodes.AtmosphericLoss(receiver, transmitter);
                 end
                 losses.(label) = res;
             end
         end
 
-        function total = TotalLoss(lm, options)
+        function total = TotalLoss(receiver, transmitter, options)
             arguments
-                lm nodes.new_link_model
+                receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
+                transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
                 options.dB logical = false
             end
 
-            losses = lm.LinkLosses("apt", "optical", "geometric", ...
-                "turbulence", "atmospheric");
+            losses = nodes.new_link_model.LinkLosses( ...
+                receiver, transmitter, ...
+                "apt", "optical", "geometric", "turbulence", "atmospheric");
 
 
             %total = prod( [geo', eff', apt', turb', atmos'], 2)';
@@ -85,14 +95,16 @@ classdef new_link_model
             end
         end
 
-        function fig = lossStackPlot(lm, options)
+        function fig = lossStackPlot(receiver, transmitter, options)
             arguments
-                lm nodes.new_link_model
+                receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
+                transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
                 options.mask
             end
 
-            losses = lm.LinkLosses("apt", "optical", "geometric", ...
-                "turbulence", "atmospheric");
+            losses = nodes.new_link_model.LinkLosses( ...
+                receiver, transmitter, ...
+                "apt", "optical", "geometric", "turbulence", "atmospheric");
 
             labels = fieldnames(losses);
 
@@ -104,12 +116,12 @@ classdef new_link_model
             losses_db = utilities.decibelFromPercentLoss(losses);
 
             timestamps = [];
-            if any(contains(properties(lm.receiver), 'timestamps'))
-                timestamps = lm.receiver.timestamps;
+            if any(contains(properties(receiver), 'Times'))
+                timestamps = lm.receiver.Times;
             end
 
-            if isempty(timestamps) && any(contains(properties(lm.transmitter), 'timestamps'))
-                timestamps = lm.transmitter.timestamps;
+            if isempty(timestamps) && any(contains(properties(transmitter), 'Times'))
+                timestamps = lm.transmitter.Times;
             else
                 error("No timestamps in either receiver or transmitter");
             end

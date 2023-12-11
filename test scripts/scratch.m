@@ -594,22 +594,13 @@ ExampleHOGS
 hogs = new_HOGS(785);
 spoqc = new_spoqc(785, '25/12/2022, 08:44, 14:50, 16:22, 17:55');
 
-mustBeA(hogs, ["nodes.Satellite", "nodes.Ground_Station"])
 
-isa(spoqc, "nodes.Satellite")
+tx = nodes.freeSpaceTransmitterFrom(spoqc);
+rx = nodes.freeSpaceReceiverFrom(hogs);
 
 
-isa(spoqc, 'nodes.Satellite')
-
-class(spoqc)
-
-tx = nodes.freeSpaceTransmitterFrom(spoqc)
-tx.location
-rx = nodes.freeSpaceReceiverFrom(hogs)
-rx.location
-
-link = nodes.new_link_model(spoqc, hogs);
-losses = link.LinkLosses("apt", "optical", "geometric", "turbulence", "atmospheric")
+losses = nodes.new_link_model.LinkLosses(hogs, spoqc, ...
+    "apt", "optical", "geometric", "turbulence", "atmospheric" );
 figure
 hold on
 plot(utilities.decibelFromPercentLoss(losses.apt))
@@ -621,7 +612,7 @@ legend("apt", "opt", "geo", "turb", "atmos")
 title("new link model")
 ylim([0, 50])
 
-all_losses = utilities.decibelFromPercentLoss(cell2mat(struct2cell(losses)))
+all_losses = utilities.decibelFromPercentLoss(cell2mat(struct2cell(losses)));
 mask = Pass.Elevation_Limit_Flags;
 
 figure
@@ -632,21 +623,16 @@ area( ...
 link.lossStackPlot("mask", mask)
 
 
-losses = link.LinkLosses("apt", "optical", "geometric", "turbulence", "atmospheric", "apt")
+losses = nodes.new_link_model.LinkLosses(hogs, spoqc, ...
+    "apt", "optical", "geometric", "turbulence", "atmospheric" );
 
-loss_db = link.TotalLoss("dB", true)
+loss_db = link.TotalLoss("dB", true);
 
 figure
 plot(loss_db)
 
-prod(cell2mat(struct2cell(losses)), 1)
-
-arrayfun(@(fn) losses.(fn{1})', fieldnames(losses)', UniformOutput=false)'
-
-keys = {'apt', 'optical', 'geometric', 'turbulence', 'atmospheric', 'apt'}
-
-[uc, ~, idx] = unique(keys)
-
+keys = {'apt', 'optical', 'geometric', 'turbulence', 'atmospheric', 'apt'};
+[uc, ~, idx] = unique(keys);
 
 geo_db   = utilities.decibelFromPercentLoss(losses.apt);
 eff_db   = utilities.decibelFromPercentLoss(losses.optical);
@@ -672,16 +658,6 @@ area(Pass.Times(mask), [ ...
 
 size(e)
 size(geo_db(mask))
-
-new_total = sum([ ...
-    geo_db(mask)', eff_db(mask)', apt_db(mask)', ...
-    turb_db(mask)', atmos_db(mask)']');
-figure
-hold on
-plot(Pass.Times(mask), Pass.Link_Model.Link_Loss_dB(mask))
-plot(Pass.Times(mask), new_total)
-legend("old", "new")
-
 
 figure
 plot(Pass.Times(mask), Pass.Link_Model.Geometric_Loss_dB(mask) - geo_db(mask))
@@ -788,4 +764,5 @@ for k = keys
 end
 
 %%
-% some issues with repo...
+
+
