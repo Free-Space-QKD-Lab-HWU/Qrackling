@@ -598,7 +598,6 @@ mustBeA(hogs, ["nodes.Satellite", "nodes.Ground_Station"])
 
 isa(spoqc, "nodes.Satellite")
 
-nodes.mustBeSatelliteOrGroundStation(hogs)
 
 isa(spoqc, 'nodes.Satellite')
 
@@ -689,7 +688,7 @@ plot(Pass.Times(mask), Pass.Link_Model.Geometric_Loss_dB(mask) - geo_db(mask))
 legend("geo")
 
 figure
-plot(Pass.Times(mask), Pass.Link_Model.Optical_Efficiency_Loss(mask) - eff(mask))
+plot(Pass.Times(mask), Pass.Link_Model.Optical_Efficiency_Loss(mask) - losses.optical(mask))
 legend("opt")
 
 figure
