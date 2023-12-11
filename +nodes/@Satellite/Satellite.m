@@ -453,7 +453,9 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             %OrbitDetails{:})
          
             OrbitDetails = timetable(Satellite.Times',[Satellite.Latitude,Satellite.Longitude,Satellite.Altitude]);
-            OrbitDetails = {OrbitDetails,'CoordinateFrame','geographic','Name',Satellite.Name};
+            OrbitDetails = {OrbitDetails,...
+                            'CoordinateFrame','geographic',...
+                            'Name',Satellite.Name};
         end
     
 
@@ -496,6 +498,19 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             end
                     
             Doppler_Wavelength = Wavelength*(1+Relative_Velocity/c);
+        end
+    
+        function [Satellite_Scenario,Sim_Sat] = AddSimulatorSatellite(Satellite,Satellite_Scenario)
+            %%ADDSIMULATORSATELLITE add a MATLAB simulator representation of this satellite to
+            %%the existing satelliteScenario
+
+            %% get details of satellite
+            SatDetails = GetOrbitDetails(Satellite);
+            %include satellite
+            Sim_Sat = satellite(Satellite_Scenario, SatDetails{:});
+            %modify labelling
+            Sim_Sat.LabelFontSize = 25;
+            Sim_Sat.MarkerSize = 12;
         end
     end
 end

@@ -870,5 +870,18 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
                 'MinElevationAngle',Ground_Station.Elevation_Limit,...
                 'Name',Ground_Station.Location_Name};
         end
+
+        function [Satellite_Scenario,Sim_OGS] = AddSimulatorOGS(Ground_Station,Satellite_Scenario)
+            %%ADDSIMULATOROGS add a MATLAB satellite simulator
+            %%representation of the current OGS to the satellite scenario
+
+           %% get details of OGS
+            OGSDetails = GetOGSDetails(Ground_Station);
+            %include OGS
+            Sim_OGS = groundStation(Satellite_Scenario, OGSDetails{:});
+            %modify labelling
+            Sim_OGS.LabelFontSize = 25;
+            Sim_OGS.MarkerSize = 12;
+        end
     end
 end

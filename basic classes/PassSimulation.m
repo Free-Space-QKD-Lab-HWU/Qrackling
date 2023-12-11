@@ -844,7 +844,7 @@ classdef PassSimulation
             end
         end
 
-        function [SatelliteScenario, AccessIntervals] = Scenario(PassSimulation)
+        function [Satellite_Scenario, AccessIntervals] = Scenario(PassSimulation)
             %% output a SatelliteScenario which can be simulated and viewed by MATLAB
 %the structure of transmitter and receiver doesn't matter here. The link is just a visual indicator of the pass duration
 
@@ -855,20 +855,13 @@ classdef PassSimulation
             %ensure these are datetime, datetime, double respectively.
             assert(isdatetime(StartTime), 'can only simulate passes using datetime format');
             %initialise
-            SatelliteScenario = satelliteScenario(StartTime, StopTime, SampleTime);
+            Satellite_Scenario = satelliteScenario(StartTime, StopTime, SampleTime);
             
+            %% add satellite to the scenario
+            [Satellite_Scenario,SatSimObj] = AddSimulatorSatellite(PassSimulation.Satellite,Satellite_Scenario);
 
-            %% get details of satellite
-            SatDetails = GetOrbitDetails(PassSimulation.Satellite);
-            %include satellite
-            SatSimObj = satellite(SatelliteScenario, SatDetails{:});
-
-
-            %% get details of OGS
-            OGSDetails = GetOGSDetails(PassSimulation.Ground_Station);
-            %include OGS
-            OGSSimObj = groundStation(SatelliteScenario, OGSDetails{:});
-
+            %% add OGS to scenario
+            [Satellite_Scenario,OGSSimObj] = AddSimulatorOGS(PassSimulation.Ground_Station,Satellite_Scenario);
 
             %% produce access object for analysis
             Access = access(OGSSimObj, SatSimObj);

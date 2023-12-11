@@ -1,6 +1,6 @@
 classdef libRadtran < handle
     properties (Access = protected)
-        lrt_root {mustBeFolder} = getenv("HOME");
+        lrt_root
     end
     properties
         Aerosol_Settings libradtran.Groups.Aerosol
