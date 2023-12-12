@@ -54,11 +54,6 @@ classdef Flat_Top_Beacon < beacon.Beacon
         end
         GeoSpotDiameter = (2*Flat_Top_Beacon.Limit_Half_Angle*Range);
 
-            disp("WHAT ARE THE SIZES OF THESE THINGS")
-            size(Range)
-            size(Camera.Collecting_Area)
-            size(GeoSpotDiameter)
-
         GeoLoss = Camera.Collecting_Area./((pi/4)*GeoSpotDiameter.^2);
         end
     end

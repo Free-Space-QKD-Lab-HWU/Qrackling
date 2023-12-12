@@ -1,19 +1,19 @@
 classdef PassSimulationResult
     properties (SetAccess = protected)
-        heading
-        elevation
-        range
-        time
-        within_elevation_limit
-        communications
-        line_of_sight
-        losses
-        total_loss_db
-        sifted_rate
-        secure_rate
-        qber
-        total_sifted_rate
-        total_secure_rate
+        heading = []
+        elevation = []
+        range = []
+        time = []
+        within_elevation_limit = []
+        communications = []
+        line_of_sight = []
+        losses nodes.LossResult
+        total_loss_db = []
+        sifted_rate = []
+        secure_rate = []
+        qber = []
+        total_sifted_rate = []
+        total_secure_rate = []
     end
 
     methods

@@ -1,9 +1,7 @@
-function result = new_PassSimulation(Transmitter, Receiver, proto, options)
+function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
     arguments
-        Transmitter {mustBeA(Transmitter, ...
-            ["nodes.Satellite", "nodes.Ground_Station"])}
-        Receiver {mustBeA(Receiver, ...
-            ["nodes.Satellite", "nodes.Ground_Station"])}
+        Receiver {mustBeA(Receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
+        Transmitter {mustBeA(Transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
         proto Protocol
         options.Background_Sources
     end
@@ -22,14 +20,12 @@ function result = new_PassSimulation(Transmitter, Receiver, proto, options)
         elevation_limit_mask = elevations > Transmitter.Elevation_Limit;
     end
 
-    link = nodes.new_link_model(Transmitter, Receiver);
-
     % FIX: we need to properly define the assumptions around which element 
     % should have timestamps
-    if any(contains(properties(link.receiver), "timestamps"))
-        times = link.receiver.timestamps;
-    elseif any(contains(properties(link.transmitter), "timestamps"))
-        times = link.transmitter.timestamps;
+    if any(contains(properties(Receiver), "Times"))
+        times = Receiver.Times;
+    elseif any(contains(properties(Transmitter), "Times"))
+        times = Transmitter.Times;
     else
         error("no timestamps in either transmitter or reciever");
     end
@@ -46,12 +42,13 @@ function result = new_PassSimulation(Transmitter, Receiver, proto, options)
 
     line_of_sight = elevations > 0;
 
-    % beacon sim goes here...
-
-    total_loss_db = link.TotalLoss(dB = true);
-
+    % TODO: what is this?
     visibility = nodes.Visibility(link.receiver, link.transmitter);
     Receiver.Detector.Visibility = visibility(elevation_limit_mask);
+
+    [link_loss, link_extras] = nodes.linkLoss("qkd", hogs, spoqc, ...
+        "apt", "optical", "geometric", "turbulence", "atmospheric", "dB", true);
+    total_loss_db = link_extras.total_loss;
 
     [secret, qber, sifted] = proto.EvaluateQKDLink( ...
         Transmitter.Source, Receiver.Detector, ...
@@ -76,13 +73,10 @@ function result = new_PassSimulation(Transmitter, Receiver, proto, options)
         total_secret_key = dot(time_seconds, secret(communicating(1:end-1)));
     end
 
-    losses = link.LinkLosses("apt", "optical", "geometric", "turbulence", ...
-        "atmospheric", "apt");
-
     result = nodes.PassSimulationResult( ...
         headings,         elevations,           ranges,        ...
         times,            elevation_limit_mask, communicating, ...
-        line_of_sight,    losses,               total_loss_db, ...
+        line_of_sight,    link_loss,            total_loss_db, ...
         sifted,           secret,               qber,          ...
         total_sifted_key, total_secret_key);
 

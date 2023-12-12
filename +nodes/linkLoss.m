@@ -19,8 +19,12 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
     link_length = options.LinkLength;
 
     if any(contains(string(loss), "geometric"))
-        [losses.("geometric"), spot_size, link_length] = ...
+        [res, spot_size, link_length] = ...
             nodes.GeometricLoss(kind, receiver, transmitter);
+        if options.dB
+            res = utilities.decibelFromPercentLoss(res);
+        end
+        losses.("geometric") = res;
     end
 
     if any(contains(string(loss), "turbulence"))
@@ -33,10 +37,16 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
 
         fried_param = FriedParameter(direction, "Hufnagel_Valley", HufnagelValley.HV10_10);
 
-        [losses.("turbulence"), beam_width, r0] = nodes.TurbulenceLoss( ...
+        [res, beam_width, r0] = nodes.TurbulenceLoss( ...
             kind, receiver, transmitter, fried_param, ...
             "LinkLength", link_length, ...
             "SpotSize", spot_size);
+
+        if options.dB
+            res = utilities.decibelFromPercentLoss(res);
+        end
+
+        losses.("turbulence") = res;
     end
 
     for l = loss
@@ -70,6 +80,8 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
         unit = "decibel";
     end
 
+    % NOTE: is it worth moving this into a struct2kwargs function? would make it
+    % possible to convert structs to function args. might be nice for constructors
     loss_fields = fieldnames(losses);
     loss_values = struct2cell(losses);
     n_losses = length(loss_fields);

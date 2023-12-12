@@ -606,12 +606,48 @@ plot(Pass.Times(mask), ...
     - utilities.decibelFromPercentLoss(loss(mask)))
 
 
-[loss_result, extras] = nodes.linkLoss("qkd", hogs, spoqc, "apt", "optical", "geometric", "turbulence", "atmospheric")
+[loss_s_dl, extras_s_dl] = nodes.linkLoss("qkd", hogs, spoqc, "apt", "optical", "geometric", "turbulence", "atmospheric", "dB", true)
 
-[loss_result, extras] = nodes.linkLoss("beacon", hogs, spoqc, "apt", "optical", "geometric", "turbulence", "atmospheric")
+[loss_b_dl, extras_b_dl] = nodes.linkLoss("beacon", hogs, spoqc, "apt", "optical", "geometric", "turbulence", "atmospheric")
+
+[loss_b_ul, extras_b_ul] = nodes.linkLoss("beacon", spoqc, hogs, "apt", "optical", "geometric", "turbulence", "atmospheric")
+
+[loss_b_dl, extras_b_dl] = nodes.linkLoss("beacon", hogs, spoqc, "apt", "optical", "geometric", "turbulence", "atmospheric", "dB", true)
 
 
+beacon_loss_down = beacon.beaconSimulation(hogs, spoqc);
+figure
+hold on
+beacon_loss_down.plotLosses(spoqc.Times, "time (s)", "mask", Pass.Elevation_Limit_Flags)
 
+beacon_loss_up = beacon.beaconSimulation(spoqc, hogs);
+figure
+hold on
+beacon_loss_up.plotLosses(spoqc.Times, "time (s)", "mask", Pass.Elevation_Limit_Flags)
+
+figure
+hold on
+plot(utilities.decibelFromPercentLoss(beacon_loss.losses.geometric))
+
+[l, w] = nodes.GeometricLoss("beacon", hogs, spoqc);
+
+[loss_s_dl, extras_s_dl] = nodes.linkLoss("qkd", hogs, spoqc, "apt", "optical", "geometric", "turbulence", "atmospheric", "dB", true)
+mask = Pass.Elevation_Limit_Flags;
+figure
+hold on
+plot(spoqc.Times(mask), loss_s_dl.geometric(mask))
+plot(spoqc.Times(mask), Pass.Downlink_Beacon_Link_Model.Geometric_Loss_dB(mask))
+
+figure
+hold on
+plot(spoqc.Times(mask), beacon_loss.total_loss_db(mask))
+plot(spoqc.Times(mask), Pass.Downlink_Beacon_Link_Model.Link_Loss_dB(mask))
+
+props = properties(beacon_loss.losses)
+props = props(~contains(props, {'unit', 'kind'}))
+cell2mat(cellfun(@(p) beacon_loss.losses.(p), props, "UniformOutput", false))
+
+beacon_loss.losses
 
 tx = nodes.freeSpaceTransmitterFrom(spoqc);
 rx = nodes.freeSpaceReceiverFrom(hogs);

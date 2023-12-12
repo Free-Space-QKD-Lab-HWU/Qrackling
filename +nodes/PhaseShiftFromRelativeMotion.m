@@ -1,19 +1,19 @@
 function phi = PhaseShiftFromRelativeMotion(receiver, transmitter)
     arguments
-        receiver nodes.FreeSpaceReceiver
-        transmitter nodes.FreeSpaceTransmitter
+        receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
+        transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
     end
 
     assert(~isempty(transmitter.timestamps), ...
         ["transmitter { ", inputname(2), " } does not have any timestamps"]);
 
-    distances = receiver.location.ComputeDistanceBetween(transmitter.location);
-    times = transmitter.timestamps;
+    distances = receiver.ComputeDistanceBetween(transmitter);
+    times = transmitter.Times;
 
     c=2.998E8;
 
-    wavelength = transmitter.source.Wavelength * (1e-9);
-    rep_rate = transmitter.source.Repetition_Rate;
+    wavelength = transmitter.Source.Wavelength * (1e-9);
+    rep_rate = transmitter.Source.Repetition_Rate;
 
     % differentiate wrt time
     relative_velocity = ...
