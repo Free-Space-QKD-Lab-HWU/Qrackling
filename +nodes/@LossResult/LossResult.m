@@ -38,7 +38,57 @@ classdef LossResult
                     result.atmospheric = options.atmospheric;
                 end
             end
+        end
+
+        function plotLosses(result, x_axis, x_label, options)
+            arguments
+                result nodes.LossResult
+                x_axis
+                x_label
+                options.mask
+            end
+
+            have_mask = any(contains(fieldnames(options), "mask"));
+
+            loss_arrays = {};
+            props = properties(result);
+            labels = cell([1, length(props)]);
+            i = 1;
+            for property = props(~contains(props, {'unit', 'kind'}))'
+                if ~strcmp(result.unit, "decibel")
+                    loss = utilities.decibelFromPercentLoss(result.(property{1}));
+                else
+                    loss = result.(property{1});
+                end
+
+                if have_mask
+                    loss = loss(options.mask);
+                end
+
+                loss_arrays.(property{1}) = loss;
+
+                switch property{1}
+                case "geometric"
+                    labels{i} = "Geometric";
+                case "optical"
+                    labels{i} = "Optical";
+                case "apt"
+                    labels{i} = "Acquisition Pointing and Tracking";
+                case "turbulence"
+                    labels{i} = "Turbulence";
+                case "atmospheric"
+                    labels{i} = "Atmospheric";
+                end
+                i = i + 1;
+            end
+
+            area(x_axis(options.mask), cell2mat(struct2cell(loss_arrays))');
+            legend(labels(1:i-1), "Orientation", "horizontal", "Location", "south")
+            xlabel(x_label)
+            ylabel("Losses (dB)")
+            grid on
 
         end
+
     end
 end

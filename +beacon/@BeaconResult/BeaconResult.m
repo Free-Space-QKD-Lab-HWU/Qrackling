@@ -27,7 +27,7 @@ classdef BeaconResult
             result.snr_db = snr_db;
         end
 
-        function plotLosses(result, x_axis, x_label, options)
+        function fig = plot(result, x_axis, x_label, options)
             arguments
                 result beacon.BeaconResult
                 x_axis
@@ -37,43 +37,33 @@ classdef BeaconResult
 
             have_mask = any(contains(fieldnames(options), "mask"));
 
-            loss_arrays = {};
-            props = properties(result.losses);
-            labels = cell([1, length(props)]);
-            i = 1;
-            for property = props(~contains(props, {'unit', 'kind', 'turbulence'}))'
-                if ~strcmp(result.losses.unit, "decibel")
-                    loss = utilities.decibelFromPercentLoss(result.losses.(property{1}));
-                else
-                    loss = result.losses.(property{1});
-                end
-
-                if have_mask
-                    loss = loss(options.mask);
-                end
-
-                loss_arrays.(property{1}) = loss;
-
-                switch property{1}
-                case "geometric"
-                    labels{i} = "Geometric";
-                case "optical"
-                    labels{i} = "Optical";
-                case "apt"
-                    labels{i} = "Acquisition Pointing and Tracking";
-                case "turbulence"
-                    labels{i} = "Turbulence";
-                case "atmospheric"
-                    labels{i} = "Atmospheric";
-                end
-                i = i + 1;
+            fig = figure();
+            subplot(3, 1, 1)
+            if have_mask
+                plot(x_axis(options.mask), result.received_power(options.mask))
+            else
+                plot(x_axis, result.received_power)
             end
+            ylabel("Beacon Power (W)");
+            xlabel(x_label);
 
-            area(x_axis(options.mask), cell2mat(struct2cell(loss_arrays))');
-            legend(labels(1:i-1), "Orientation", "horizontal", "Location", "south")
-            xlabel(x_label)
-            ylabel("Losses (dB)")
-            grid on
+            subplot(3, 1, 2)
+            hold on
+            if have_mask
+                result.losses.plotLosses(x_axis, x_label, "mask", options.mask);
+            else
+                result.losses.plotLosses(x_axis, x_label);
+            end
+            hold off
+
+            subplot(3, 1, 3)
+            if have_mask
+                plot(x_axis(options.mask), result.snr_db(options.mask))
+            else
+                plot(x_axis, result.snr_db)
+            end
+            ylabel("SNR (dB)");
+            xlabel(x_label);
 
         end
 

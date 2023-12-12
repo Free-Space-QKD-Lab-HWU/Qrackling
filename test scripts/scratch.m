@@ -605,6 +605,7 @@ plot(Pass.Times(mask), ...
     Pass.Downlink_Beacon_Link_Model.Geometric_Loss_dB(mask) ...
     - utilities.decibelFromPercentLoss(loss(mask)))
 
+Pass.plot()
 
 [loss_s_dl, extras_s_dl] = nodes.linkLoss("qkd", hogs, spoqc, "apt", "optical", "geometric", "turbulence", "atmospheric", "dB", true)
 
@@ -616,14 +617,13 @@ plot(Pass.Times(mask), ...
 
 
 beacon_loss_down = beacon.beaconSimulation(hogs, spoqc);
-figure
-hold on
-beacon_loss_down.plotLosses(spoqc.Times, "time (s)", "mask", Pass.Elevation_Limit_Flags)
+beacon_loss_down.plot(spoqc.Times, "time (s)", "mask", Pass.Elevation_Limit_Flags)
 
 beacon_loss_up = beacon.beaconSimulation(spoqc, hogs);
-figure
-hold on
-beacon_loss_up.plotLosses(spoqc.Times, "time (s)", "mask", Pass.Elevation_Limit_Flags)
+beacon_loss_up.plot(spoqc.Times, "time (s)", "mask", Pass.Elevation_Limit_Flags)
+
+
+beacon_loss.losses.plotLosses(spoqc.Times, "time (s)", "mask", Pass.Elevation_Limit_Flags)
 
 figure
 hold on
