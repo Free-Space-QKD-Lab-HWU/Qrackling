@@ -13,7 +13,7 @@ function hogs = new_HOGS(wavelength)
         'Eyepiece_Focal_Length', 0.076);
 
 
-    filter_file = '~/Projects/QKD_Sat_Link/adaptive_optics/spectral filters';
+    filter_file = '~/Projects/QKD_Sat_Link/adaptive_optics/Example Data/spectral filters';
     %Detector
     switch wavelength
         case 785
@@ -61,7 +61,7 @@ function hogs = new_HOGS(wavelength)
         beacon_telescope, beacon_power, beacon_wavelength,...
         beacon_pointing_precision, beacon_efficiency);
 
-    sky_brightness = '~/Projects/QKD_Sat_Link/adaptive_optics/orbit modelling resources/background count rate files/Errol_Experimental_Sky_Brightness_Store.mat';
+    sky_brightness = '~/Projects/QKD_Sat_Link/adaptive_optics/Example Data/orbit modelling resources/background count rate files/Errol_Experimental_Sky_Brightness_Store.mat';
 
     hogs = nodes.Ground_Station(telescope,...
         'Detector', detector,...
