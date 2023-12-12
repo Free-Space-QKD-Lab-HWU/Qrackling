@@ -594,6 +594,24 @@ ExampleHOGS
 hogs = new_HOGS(785);
 spoqc = new_spoqc(785, '25/12/2022, 08:44, 14:50, 16:22, 17:55');
 
+loss = nodes.GeometricLoss("qkd", hogs, spoqc)
+loss = nodes.GeometricLoss("beacon", hogs, spoqc)
+
+mask = Pass.Elevation_Limit_Flags;
+
+figure
+hold on
+plot(Pass.Times(mask), ...
+    Pass.Downlink_Beacon_Link_Model.Geometric_Loss_dB(mask) ...
+    - utilities.decibelFromPercentLoss(loss(mask)))
+
+
+[loss_result, extras] = nodes.linkLoss("qkd", hogs, spoqc, "apt", "optical", "geometric", "turbulence", "atmospheric")
+
+[loss_result, extras] = nodes.linkLoss("beacon", hogs, spoqc, "apt", "optical", "geometric", "turbulence", "atmospheric")
+
+
+
 
 tx = nodes.freeSpaceTransmitterFrom(spoqc);
 rx = nodes.freeSpaceReceiverFrom(hogs);

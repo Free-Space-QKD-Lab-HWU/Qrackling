@@ -1,22 +1,32 @@
-function [loss, beam_width, r0] = TurbulenceLoss(receiver, transmitter, ...
-    fried_parameter, options)
+function varargout = TurbulenceLoss(kind, receiver, transmitter, fried_parameter, options)
     arguments
+        kind {mustBeMember(kind, ["beacon", "qkd"])}
         receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
         transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
+        % FIX: why does this produce different values to older method for r0?
         fried_parameter FriedParameter
         options.Elevations
+        options.LinkLength = []
+        options.GHV = ghv_defaults('Standard', 'HV10-10')
+        options.SpotSize = []
     end
-
-    link_length = receiver.ComputeDistanceBetween(transmitter);
-
-    spot_size = (ones(size(link_length)) ...
-        * transmitter.Telescope.Diameter ...
-        + link_length ...
-        * transmitter.Telescope.FOV);
 
     % wavelength must come from a source, this will be in nm
     % wavelength = units.Magnitude.Convert("nano", "none", transmitter.source.Wavelength);
-    wavelength = transmitter.Source.Wavelength;
+    switch kind
+    case "beacon"
+        if isempty(transmitter.Beacon)
+            error(['Transmitter.Beacon of ', inputname(1), ' must not be empty'])
+        end
+
+        if isempty(receiver.Camera)
+            error(['Receiver.Camera of ', inputname(2), ' must not be empty'])
+        end
+
+        wavelength = transmitter.Beacon.Wavelength;
+    case "qkd"
+        wavelength = transmitter.Source.Wavelength;
+    end
 
     if contains(fieldnames(options), 'Elevations')
         error('UNIMPLEMENTED: we should be able to pass elevations in, currently we have to determine which of the inputs is the satellite and which is the ground station.');
@@ -45,15 +55,32 @@ function [loss, beam_width, r0] = TurbulenceLoss(receiver, transmitter, ...
     case "nodes.Ground_Station"
         altitude = receiver.Altitude(elevation_flags);
     end
-    
+
     % r0 = fried_parameter.AtmosphericTurbulenceCoherenceLength( ...
     %     altitude, zenith, wavelength, "Wavelength_Unit", "none");
 
     wavenumber = 2 * pi / (wavelength * (1e-9));
 
     r0 = atmospheric_turbulence_coherence_length_downlink( ...
-        wavenumber, zenith, altitude', ...
-        ghv_defaults('Standard', 'HV10-10'));
+        wavenumber, zenith, altitude', options.GHV);
+
+    link_length = options.LinkLength;
+    if isempty(options.LinkLength)
+        link_length = receiver.ComputeDistanceBetween(transmitter);
+    end
+
+    spot_size = options.SpotSize;
+    if isempty(options.SpotSize)
+        switch kind
+        case "beacon"
+            [~, spot_size] = transmitter.Beacon.GetGeoLoss(link_length, receiver.Camera);
+        case "qkd"
+            spot_size = (ones(size(link_length)) ...
+                * transmitter.Telescope.Diameter ...
+                + link_length ...
+                * transmitter.Telescope.FOV);
+        end
+    end
 
     beam_width(~elevation_flags) = 0;
     beam_width(elevation_flags) = long_term_gaussian_beam_width( ...
@@ -66,4 +93,15 @@ function [loss, beam_width, r0] = TurbulenceLoss(receiver, transmitter, ...
 
     n = max(receiver.N_Position, transmitter.N_Position);
     loss = utilities.validateLoss(loss, n);
+
+    nargoutchk(0, 3)
+    varargout{1} = loss;
+
+    if 2 <= nargout()
+        varargout{2} = beam_width;
+    end
+
+    if 3 <= nargout()
+        varargout{3} = r0;
+    end
 end

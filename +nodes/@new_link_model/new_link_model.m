@@ -34,8 +34,7 @@ classdef new_link_model
             end
             arguments (Repeating)
                 loss {mustBeMember(loss, { ...
-                    'geometric', 'optical', 'apt', ...
-                    'turbulence', 'atmospheric'})}
+                    'geometric', 'optical', 'apt', 'turbulence', 'atmospheric'})}
             end
 
             switch class(receiver)
