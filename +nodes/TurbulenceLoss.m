@@ -92,7 +92,7 @@ function varargout = TurbulenceLoss(kind, receiver, transmitter, fried_parameter
         ./ spot_size(elevation_flags) ) .^ (-2);
 
     n = max(receiver.N_Position, transmitter.N_Position);
-    loss = utilities.validateLoss(loss, n);
+    loss = units.Loss("probability", "Turbulence", utilities.validateLoss(loss, n));
 
     nargoutchk(0, 3)
     varargout{1} = loss;

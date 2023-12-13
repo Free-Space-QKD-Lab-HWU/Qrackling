@@ -615,6 +615,8 @@ Pass.plot()
 
 [loss_b_dl, extras_b_dl] = nodes.linkLoss("beacon", hogs, spoqc, "apt", "optical", "geometric", "turbulence", "atmospheric", "dB", true)
 
+[new_loss, new_extras] = nodes.linkLoss("beacon", hogs, spoqc, "apt", "geometric", "optical", "turbulence", "atmospheric")
+
 
 beacon_loss_down = beacon.beaconSimulation(hogs, spoqc);
 beacon_loss_down.plot(spoqc.Times, "time (s)", "mask", Pass.Elevation_Limit_Flags)
@@ -628,6 +630,10 @@ beacon_loss.losses.plotLosses(spoqc.Times, "time (s)", "mask", Pass.Elevation_Li
 figure
 hold on
 plot(utilities.decibelFromPercentLoss(beacon_loss.losses.geometric))
+
+utilities.decibelFromProbabilityLoss(beacon_loss_up.losses.geometric(mask))
+utilities.probabilityFromDecibelLoss( utilities.decibelFromProbabilityLoss(beacon_loss_up.losses.geometric(mask)))
+beacon_loss_up.losses.geometric(mask)
 
 [l, w] = nodes.GeometricLoss("beacon", hogs, spoqc);
 

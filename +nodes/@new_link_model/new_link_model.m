@@ -90,7 +90,7 @@ classdef new_link_model
             total = prod(cell2mat(struct2cell(losses)), 1);
 
             if options.dB
-                total = utilities.decibelFromPercentLoss(total);
+                total = utilities.decibelFromProbabilityLoss(total);
             end
         end
 
@@ -112,7 +112,7 @@ classdef new_link_model
                 losses = losses(:, options.mask);
             end
 
-            losses_db = utilities.decibelFromPercentLoss(losses);
+            losses_db = utilities.decibelFromProbabilityLoss(losses);
 
             timestamps = [];
             if any(contains(properties(receiver), 'Times'))

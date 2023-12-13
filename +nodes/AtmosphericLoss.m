@@ -36,5 +36,5 @@ function loss = AtmosphericLoss(kind, receiver, transmitter, options)
     loss = atmosphere_spectral_filter.ComputeTransmission(wavelength);
 
     n = max(receiver.N_Position, transmitter.N_Position);
-    loss = utilities.validateLoss(loss, n);
+    loss = units.Loss("probability", "Atmospheric", utilities.validateLoss(loss, n));
 end

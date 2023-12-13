@@ -33,6 +33,5 @@ function eff = OpticalEfficiencyLoss(kind, receiver, transmitter)
     end
 
     n = max(receiver.N_Position, transmitter.N_Position);
-    eff = utilities.validateLoss(eff, n);
-
+    eff = units.Loss("probability", "Optical", utilities.validateLoss(eff, n));
 end

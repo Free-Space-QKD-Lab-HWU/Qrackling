@@ -1,4 +1,4 @@
-function db = decibelFromPercentLoss(loss)
+function db = decibelFromProbabilityLoss(loss)
     arguments
         loss {mustBeNumeric}
     end

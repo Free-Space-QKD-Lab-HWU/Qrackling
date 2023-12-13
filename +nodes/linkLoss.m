@@ -13,6 +13,11 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
         options.LinkLength = []
     end
 
+    unit = "probability";
+    if options.dB
+        unit = "dB";
+    end
+
     losses = {};
 
     spot_size = options.SpotSize;
@@ -21,10 +26,7 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
     if any(contains(string(loss), "geometric"))
         [res, spot_size, link_length] = ...
             nodes.GeometricLoss(kind, receiver, transmitter);
-        if options.dB
-            res = utilities.decibelFromPercentLoss(res);
-        end
-        losses.("geometric") = res;
+        losses.("geometric") = res.ConvertTo(unit);
     end
 
     if any(contains(string(loss), "turbulence"))
@@ -42,11 +44,7 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
             "LinkLength", link_length, ...
             "SpotSize", spot_size);
 
-        if options.dB
-            res = utilities.decibelFromPercentLoss(res);
-        end
-
-        losses.("turbulence") = res;
+        losses.("turbulence") = res.ConvertTo(unit);
     end
 
     for l = loss
@@ -66,19 +64,10 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
             res = nodes.AtmosphericLoss(kind, receiver, transmitter);
         end
 
-        if options.dB
-            res = utilities.decibelFromPercentLoss(res);
-        end
-
-        losses.(label) = res;
+        losses.(label) = res.ConvertTo(unit);
     end
 
     nargoutchk(0, 3)
-
-    unit = "percent";
-    if options.dB
-        unit = "decibel";
-    end
 
     % NOTE: is it worth moving this into a struct2kwargs function? would make it
     % possible to convert structs to function args. might be nice for constructors
@@ -88,19 +77,14 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
     kwargs = cell(2 * n_losses, 1);
     kwargs(1:2:end) = loss_fields;
     kwargs(2:2:end) = loss_values;
-    loss_result = nodes.LossResult(unit, kind, kwargs{:});
+    loss_result = nodes.LossResult(kind, kwargs{:});
     varargout{1} = loss_result;
 
     if 2 <= nargout()
         extras = {};
         extras.("turbulent_beam_width") = beam_width;
         extras.("r0") = r0;
-        if options.dB
-            total = sum(cell2mat(struct2cell(losses)), 1);
-        else
-            total = prod(cell2mat(struct2cell(losses)), 1);
-        end
-        extras.("total_loss") = total;
+        extras.("total_loss") = loss_result.TotalLoss(unit);
         varargout{2} = extras;
     end
 end

@@ -13,8 +13,8 @@ function result = beaconSimulation( Receiver,Transmitter)
     end
 
     [link_loss, link_extras] = nodes.linkLoss("beacon", Receiver, Transmitter, ...
-        "apt", "optical", "geometric", "turbulence", "atmospheric", "dB", true);
-    total_loss_db = link_extras.total_loss;
+        "apt", "optical", "geometric", "turbulence", "atmospheric", dB=true);
+    total_loss_db = link_loss.TotalLoss("dB");
 
     received_power = Transmitter.Beacon.Power * 10 .^ (-total_loss_db ./ 10);
 

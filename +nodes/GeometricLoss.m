@@ -41,7 +41,7 @@ function varargout = GeometricLoss(kind, receiver, transmitter, options)
     loss(shadowed) = 0;
 
     n = max(receiver.N_Position, transmitter.N_Position);
-    loss = utilities.validateLoss(loss, n);
+    loss = units.Loss("probability", "Geometric", utilities.validateLoss(loss, n));
 
     nargoutchk(0, 3);
     varargout{1} = loss;
