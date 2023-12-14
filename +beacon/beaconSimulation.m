@@ -14,9 +14,9 @@ function result = beaconSimulation( Receiver,Transmitter)
 
     [link_loss, link_extras] = nodes.linkLoss("beacon", Receiver, Transmitter, ...
         "apt", "optical", "geometric", "turbulence", "atmospheric", dB=true);
-    total_loss_db = link_loss.TotalLoss("dB");
 
-    received_power = Transmitter.Beacon.Power * 10 .^ (-total_loss_db ./ 10);
+    received_power = Transmitter.Beacon.Power .* link_loss.TotalLoss("probability").values;
+
 
     background_counts = [];
 
@@ -26,7 +26,6 @@ function result = beaconSimulation( Receiver,Transmitter)
         has_atm = ~isempty(Receiver.Atmosphere_File_Location);
     end
 
-    %if has_atm_file && has_atm
     if has_atm
     %computed beacon channel noise
         sky_radiance = interp1( ...
@@ -34,13 +33,13 @@ function result = beaconSimulation( Receiver,Transmitter)
             Receiver.Sky_Radiance', ...
             Transmitter.Beacon.Wavelength);
         background_counts = sky_radiance * Receiver.Camera.FOV;
-
         [snr, snr_db] = SNR(Receiver.Camera, received_power, background_counts);
+
     else
         [snr, snr_db] = SNR(Receiver.Camera, received_power);
     end
 
     result = beacon.BeaconResult( ...
-        link_loss, total_loss_db, background_counts, received_power, snr, snr_db);
+        link_loss, link_loss.TotalLoss("dB"), background_counts, received_power, snr, snr_db);
 
 end

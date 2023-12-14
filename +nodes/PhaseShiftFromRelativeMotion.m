@@ -4,7 +4,7 @@ function phi = PhaseShiftFromRelativeMotion(receiver, transmitter)
         transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
     end
 
-    assert(~isempty(transmitter.timestamps), ...
+    assert(~isempty(transmitter.Times), ...
         ["transmitter { ", inputname(2), " } does not have any timestamps"]);
 
     distances = receiver.ComputeDistanceBetween(transmitter);

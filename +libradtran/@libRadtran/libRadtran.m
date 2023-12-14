@@ -292,8 +292,6 @@ classdef libRadtran < handle
 
             current_directory = cd(lrt_directory);
 
-            disp([newline, call_str, newline])
-
             switch options.Verbosity
                 case 'Quiet'
                     [~,~] = system(call_str);

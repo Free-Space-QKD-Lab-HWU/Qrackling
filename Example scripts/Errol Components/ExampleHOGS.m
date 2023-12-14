@@ -62,14 +62,3 @@ Pass=Simulate(Pass);
 %% plot a pass
 plot(Pass,'Range','Elevation','XAxis','Time') %plot elevation window only
 %Play(Pass);
-
-figure
-hold on
-plot(Pass.Link_Model.Geometric_Loss_dB)
-plot(Pass.Link_Model.Optical_Efficiency_Loss_dB)
-plot(Pass.Link_Model.APT_Loss_dB)
-plot(Pass.Link_Model.Turbulence_Loss_dB)
-plot(Pass.Link_Model.Atmospheric_Loss_dB)
-legend("geo", "opt", "apt", "turb", "atmos")
-title("link model")
-ylim([0, 50])

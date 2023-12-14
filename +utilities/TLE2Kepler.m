@@ -21,8 +21,6 @@ function [name, kepler_elements] = TLE2Kepler(options)
     end
 
     n_tle = length(lines) / 3;
-    disp(n_tle);
-    disp(newline)
     if n_tle > 1
         name = cell.empty;
     end

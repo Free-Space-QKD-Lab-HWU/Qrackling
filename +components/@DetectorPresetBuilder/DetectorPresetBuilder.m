@@ -157,7 +157,6 @@ classdef DetectorPresetBuilder
             builder.preset.Histogram_Bin_Width = old.Histogram_Bin_Width;
             builder.preset.Wavelength_Range = old.Wavelength_Range;
             builder.preset.Efficiencies = old.Efficiencies;
-            disp(builder.preset)
             preset = builder.preset;
             save(old_preset_path, 'preset');
         end

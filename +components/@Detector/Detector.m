@@ -171,12 +171,12 @@ classdef  Detector
             peakLocation = bins(max(smoothed) == smoothed);
             waveformStart = mask(1);
             waveformEnd = mask(end);
-            disp([waveformStart, peakLocation, waveformEnd])
+            %disp([waveformStart, peakLocation, waveformEnd])
             riseTime = (peakLocation - waveformStart) * Detector.Histogram_Bin_Width;
             fallTime = (waveformEnd - peakLocation) * Detector.Histogram_Bin_Width;
             deadTime = fwhm(bins, Detector.Jitter_Histogram) * Detector.Histogram_Bin_Width;
 
-            disp([riseTime, fallTime, deadTime] .* 1e9)
+            %disp([riseTime, fallTime, deadTime] .* 1e9)
         end
 
         function Detector = SetHistogramBinWidth(Detector,Width)

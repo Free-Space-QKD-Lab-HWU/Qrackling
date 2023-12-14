@@ -588,7 +588,6 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
                 % has the correct hour
 
                 %first, we scan the .mat file to see what's in it
-                disp(Ground_Station.Atmosphere_File_Location)
                 matObj = matfile(Ground_Station.Atmosphere_File_Location);
                 %check the included variables
                 Variables = who(matObj);
@@ -773,6 +772,8 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
             % PLOTBACKGROUNDCOUNTRATES plot the background count rates
             % affecting the ground station
 
+            size(Plotting_Indices)
+            size(Ground_Station.Dark_Count_Rates)
             area(X_Axis(Plotting_Indices)', ...
                 [Ground_Station.Dark_Count_Rates(Plotting_Indices)', ...
                 Ground_Station.Reflection_Count_Rates(Plotting_Indices)', ...

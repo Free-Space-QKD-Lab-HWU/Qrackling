@@ -87,7 +87,6 @@ classdef Geometry < handle
             args = {hemisphere, deg};
             if numel(fieldnames(options)) > 0
                 for f = fieldnames(options)
-                    disp(f)
                     args = [args, f, options.(f{1})];
                 end
             end
@@ -105,7 +104,6 @@ classdef Geometry < handle
             args = {hemisphere, deg};
             if numel(fieldnames(options)) > 0
                 for f = fieldnames(options)
-                    disp(f)
                     args = [args, f, options.(f{1})];
                 end
             end

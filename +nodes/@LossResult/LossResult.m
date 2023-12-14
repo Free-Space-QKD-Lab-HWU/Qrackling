@@ -37,7 +37,8 @@ classdef LossResult
             end
         end
 
-        function total = TotalLoss(result, unit)
+        % TODO: add in optional argument for "extra losses"
+        function loss = TotalLoss(result, unit)
             arguments
                 result nodes.LossResult
                 unit {mustBeMember(unit, ["probability", "dB"])}
@@ -59,9 +60,11 @@ classdef LossResult
             case "dB"
                 total = zeros(size(result.(valid_props{1})));
                 for property = valid_props
-                    total = total .* result.(property{1}).As("dB");
+                    total = total + result.(property{1}).As("dB");
                 end
             end
+
+            loss = units.Loss(unit, "Total Loss", total);
         end
 
         function plotLosses(result, x_axis, x_label, options)
