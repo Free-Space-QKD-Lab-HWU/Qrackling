@@ -34,10 +34,42 @@ classdef Background_Source < Located_Object
             obj = SetElevationLimit(obj, P.Results.Elevation_Limit);
         end
 
-        function Total_Spectral_Pointance = GetRadiantEmission(Background_Source, Wavelength_Floor, Wavelength_Ceiling)
+        function Total_Spectral_Pointance = GetRadiantEmission(Background_Source, options)
             %GETRADIANTEMISSION output the total emission in a wavelength
             %range specified by its minimum and maximum
 
+            arguments
+                Background_Source (1,1)
+                options.Wavelength_Floor (1,1) {mustBeNonnegative}
+                options.Wavelength_Ceiling (1,1) {mustBeNonNegative}
+                options.Spectral_Filter (1,1)   SpectralFilter
+            end
+            
+
+
+            if ~isempty(options.Spectral_Filter)
+            %% if SpectralFilter is provided
+            Filter_Wavelengths = options.Spectral_Filter.wavelengths;
+            Filter_Transmittance = options.Spectral_Filter.transmission;
+
+            % compute radiance at each wavelength the filter is specified
+            % for
+            %find and store wavelength range and radiance
+            Wavelength_Limits = Background_Source.Wavelength_Limits; %#ok<*PROPLC>
+            Spectral_Pointance = Background_Source.Spectral_Pointance;
+            
+            %Interpolate Spectral_Pointance onto filter wavelengths
+            Spectral_Pointance_At_Filter_Wavelengths = interp1(Wavelength_Limits,[Spectral_Pointance,Spectral_Pointance(end)],Filter_Wavelengths);
+            %values outside filter range ar returned nan, these should be
+            %zero
+            Spectral_Pointance_At_Filter_Wavelengths(isnan(Spectral_Pointance_At_Filter_Wavelengths))=0;
+
+            %multiply with transmittance and total
+            Total_Spectral_Pointance = dot(Spectral_Pointance_At_Filter_Wavelengths,Filter_Transmittance);
+
+
+            elseif ~(isempty(options.Wavelength_Floor)||isempty(options.Wavelength_Ceiling))
+            %% if floor and ceiling are provided
             %% input validation
             if ~(isscalar(Wavelength_Floor)&&isscalar(Wavelength_Ceiling))
                 error('Wavelength_Floor and Wavelength_Ceiling must be scalar values')
@@ -102,7 +134,10 @@ classdef Background_Source < Located_Object
 
             %% compute total
             Total_Spectral_Pointance = Lower_Bound_Radiance+In_Range_Radiance+Upper_Bound_Radiance;
-
+            
+            else
+                error('Must provide either Wavelength_Floor and Wavelength_Ceiling arguments or a Spectral_Filter object')
+            end
         end
 
         function [Reflected_Count_Rate, Reflected_Power] = GetReflectedLightPollution( ...
@@ -114,13 +149,7 @@ classdef Background_Source < Located_Object
             c = 299792458; %speed of light
 
             %% compute emission inside the ground_Station wavelength filter width
-            Wavelength_Floor = Ground_Station.Detector.Wavelength ...
-                               -Ground_Station.Detector.Spectral_Filter_Width / 2;
-
-            Wavelength_Ceiling = Ground_Station.Detector.Wavelength ...
-                                 +Ground_Station.Detector.Spectral_Filter_Width / 2;
-
-            Radiant_Power = GetRadiantEmission(Background_Source, Wavelength_Floor, Wavelength_Ceiling);
+            Radiant_Power = GetRadiantEmission(Background_Source, 'Spectral_Filter',Ground_Station.Detector.Spectral_Filter);
 
             %% get reflective link loss
             Sat_Ref_Link_Model = Satellite_Reflection_Link_Model(Satellite.N_Steps);

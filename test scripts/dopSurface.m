@@ -4,7 +4,7 @@ clear all
 clc
 
 data_path = '~/Documents/MATLAB/DOP_wide';
-data_path = adduserpath(data_path)
+data_path = utilities.addUserPath(data_path)
 
 contents = dir(data_path);
 file_names = {contents.name};
@@ -74,7 +74,7 @@ end
 %%
 
 data_path = '~/Documents/MATLAB/DOP_wide/';
-data_path = adduserpath(data_path)
+data_path = utilities.addUserPath(data_path)
 directory_contents = dir(data_path);
 file_names = {directory_contents.name};
 mask = contains(file_names, '.rad.spc');
@@ -216,7 +216,7 @@ view([34, 24])
 %% Counts
 
 countsPath = '~/Documents/MATLAB/Counts/umu_-0.999__phi_40.out';
-counts = readtable(adduserpath(countsPath), FileType='delimitedtext');
+counts = readtable(utilities.addUserPath(countsPath), FileType='delimitedtext');
 
 wvls_counts = counts.Var1;
 

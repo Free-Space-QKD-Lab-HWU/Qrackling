@@ -35,7 +35,7 @@ SimSatellite=Satellite(Transmitter_Telescope,...
 
 %2.2 Ground station
 %2.2.1 Detector
-MPD_BB84_Detector=MPD_Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width);
+MPD_BB84_Detector=Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,'Preset',DetectorPresets.MicroPhotonDevices.LoadPreset());
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
 
@@ -57,4 +57,4 @@ Pass=PassSimulation(SimSatellite,BB84_protocol,SimGround_Station,'Background_Sou
 %3.2 run simulation
 Pass=Simulate(Pass);
 %3.3 plot results
-plot(Pass);
+plot(Pass,'Range','Elevation');

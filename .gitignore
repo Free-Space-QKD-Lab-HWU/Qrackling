@@ -4,6 +4,7 @@
 # exclude scripts for testing
 # /test scripts/
 **/SMARTS cache/*
+towards_a_quantum_internet/*
 
 # matlab likes to add a resources folder lets not push it
 resources/

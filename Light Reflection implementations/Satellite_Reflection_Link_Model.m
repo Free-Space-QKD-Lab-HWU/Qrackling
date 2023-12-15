@@ -75,8 +75,8 @@ classdef Satellite_Reflection_Link_Model < Link_Model
             Uplink_Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Uplink_Elevation_Angles,...
                                                                             Satellite.Source.Wavelength,...
                                                                             {Satellite_Reflection_Link_Model.Visibility});
-            Uplink_Atmos_Loss = computeTransmission(Uplink_Atmospheric_Spectral_Filter,Satellite.Source.Wavelength);
-            Uplink_Loss=Uplink_Loss.*Uplink_Atmos_Loss;
+            Uplink_Atmos_Loss = ComputeTransmission(Uplink_Atmospheric_Spectral_Filter,Satellite.Source.Wavelength);
+            Uplink_Loss=Uplink_Loss.*Uplink_Atmos_Loss';
 
              %is uplink from background source to satellite shadowed?
             Uplink_Loss(IsEarthShadowed(Satellite,Background_Source))=0;
@@ -102,8 +102,8 @@ classdef Satellite_Reflection_Link_Model < Link_Model
             Downlink_Atmospheric_Spectral_Filter = Atmosphere_Spectral_Filter(Downlink_Elevation_Angles,...
                                                                             Satellite.Source.Wavelength,...
                                                                             {Satellite_Reflection_Link_Model.Visibility});
-            Downlink_Atmos_Loss = computeTransmission(Downlink_Atmospheric_Spectral_Filter,Satellite.Source.Wavelength);
-            Downlink_Loss=Downlink_Loss.*Downlink_Atmos_Loss;
+            Downlink_Atmos_Loss = ComputeTransmission(Downlink_Atmospheric_Spectral_Filter,Satellite.Source.Wavelength);
+            Downlink_Loss=Downlink_Loss.*Downlink_Atmos_Loss';
              %is downlink from background source to satellite shadowed?
             Downlink_Loss(IsEarthShadowed(Satellite,Ground_Station))=0;
             Satellite_Reflection_Link_Model=SetDownlinkLoss(Satellite_Reflection_Link_Model,Downlink_Loss);

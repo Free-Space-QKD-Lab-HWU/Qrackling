@@ -16,6 +16,7 @@ classdef SpectralFilter < matlab.mixin.Heterogeneous
             addParameter(p, 'input_file', []);
             addParameter(p, 'wavelengths', []);
             addParameter(p, 'transmission', []);
+            addParameter(p, 'Wavelength_Scale', units.Magnitude.nano);
             parse(p, varargin{:});
 
             %% all matlab classes must support an empty constructor of some kind
@@ -34,8 +35,10 @@ classdef SpectralFilter < matlab.mixin.Heterogeneous
                     newline, char(9), 'wavelength and transmission data for a single filter']);
             end
 
+            factor = units.Magnitude.Factor("nano", p.Results.Wavelength_Scale);
+
             if ~(isempty(p.Results.wavelengths)&&isempty(p.Results.transmission))
-                SpectralFilter.wavelengths = p.Results.wavelengths;
+                SpectralFilter.wavelengths = p.Results.wavelengths .* factor;
                 SpectralFilter.transmission = p.Results.transmission;
                 %disp(1);
                 return
@@ -77,6 +80,57 @@ classdef SpectralFilter < matlab.mixin.Heterogeneous
             end
         end
 
+        % FIX: Is this new constructor correct compared to the original?
+        % function sf = SpectralFilter(options)
+        %     arguments (Input)
+        %         options.input_file {mustBeFile}
+        %         options.wavelengths = []
+        %         options.transmission = []
+        %         options.Wavelength_Scale OrderOfMagnitude = 'nano'
+        %     end
+
+        %     Factor = @(MAGNITUDE) 10 ^ OrderOfMagnitude.Ratio("nano", MAGNITUDE);
+        %     ScaledWavelength = @(WVL, MAG) WVL .* Factor(MAG);
+
+        %     if ~(isempty(options.wavelengths) && isempty(options.transmission))
+        %         sf.wavelengths = ScaledWavelength(options.wavelengths);
+        %         sf.transmission = options.transmission;
+        %         return
+        %     end
+
+        %     if ~iscell(options.input_file)
+        %         [sf, wl, tr] = read_file(sf, input_file=options.input_file);
+        %         sf.files{1} = options.input_file;
+        %         sf.wavelengths = wl;
+        %         sf.transmission = tr;
+        %         cache_wavelengths = wl;
+        %         cache_transmission = tr;
+        %     else
+        % PERF: Can the above loop (else branch) and the below loop be fused?
+        %         N = length(options.input_file);
+        %         cache_wavelengths = {};
+        %         cache_transmission = {};
+        %         for i = 1 : N
+        %             [sf, wl, tr] = read_file(sf, input_file=options.input_file{i});
+        %             sf.files{i} = options.input_file;
+        %             cache_wavelengths{i} = wl;
+        %             cache_transmission{i} = tr;
+        %         end
+        %     end
+        %     if 1 < sf.N
+        %         [sf, j] = maxStep(sf, cache_wavelengths);
+        %         max_step = max(sf.stepSize);
+        %         sf.wavelengths = cache_wavelengths{j};
+        %         sf.transmission = cache_transmission{j};
+
+        %         I = (1 : sf.N);
+        %         for i = I(~ismember(I, [j]))
+        %             sf = interpolate_onto(sf, cache_wavelengths{i}, cache_transmission{i});
+        %         end
+        %     end
+
+        % end
+
         function [SpectralFilter, wavelengths, transmission] = read_file(SpectralFilter, varargin)
             p = inputParser;
             addParameter(p, 'input_file', []);
@@ -101,7 +155,12 @@ classdef SpectralFilter < matlab.mixin.Heterogeneous
 
             transmission = get_column_from_name(SpectralFilter, ...
                 table, ...
-                p.Results.transmission) ./ 100;
+                p.Results.transmission);
+
+            %if any transmission is above 1, this is probably a percentage
+            if any(transmission>1)
+                transmission=transmission./100;
+            end
         end
 
         function column = get_column_from_name(self, table, column_name)
@@ -184,7 +243,7 @@ classdef SpectralFilter < matlab.mixin.Heterogeneous
 
         end
 
-        function Transmission  = computeTransmission(SpectralFilter,Wavelength)
+        function Transmission  = ComputeTransmission(SpectralFilter,Wavelength)
                 %%COMPUTETRANSMISSION return the transmission from a spectral
                 %%filter vector at the specified wavelengths
 
@@ -203,7 +262,7 @@ classdef SpectralFilter < matlab.mixin.Heterogeneous
                 for i=1:numel(SpectralFilter)
 
                     %% two cases, either wavelength is already set correctly or interpolation is required
-                    if SpectralFilter(i).wavelengths==Wavelength
+                    if numel(SpectralFilter(i).wavelengths)==1&&SpectralFilter(i).wavelengths==Wavelength
                         Transmission(:,i)=SpectralFilter(i).transmission;
                     else
                     %interpolate onto spectral filter data

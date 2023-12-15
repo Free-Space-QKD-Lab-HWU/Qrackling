@@ -1,3 +1,5 @@
+% FIX: isn't this just the 'vecnorm' function?
+% TODO: replace all instances of this wil vecnorm
 function Row_Norms= Row2Norms(Array)
 %%ROW2NORMS return a column vector which contains the 2 norm of each row in
 %%the 2d array Array

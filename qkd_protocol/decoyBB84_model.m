@@ -40,7 +40,7 @@ function [SKR_decoyBB84, QBER, Sifted_Key_Rate] = decoyBB84_model( ...
     state_prep_error = Source.State_Prep_Error;
 
     %% get variables from detector object
-    det_eff = Detector.Efficiency;
+    det_eff = Detector.Detection_Efficiency;
     QBER_jitter = Detector.QBER_Jitter;
     %QBER due to polarisation misalignment (in degrees)
     QBER_polarisation_error = sind(Detector.Polarisation_Error);

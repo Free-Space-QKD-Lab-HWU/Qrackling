@@ -1,30 +1,24 @@
-function range = slant_range(altitude, elevation) 
-    geo_centre_ground_station = 0;
-    earth_radius = 6378e3;
-    geo_centre_ground_station = geo_centre_ground_station + earth_radius;
-    orbit_radius = altitude + earth_radius;
-    
-    elevation_rad = deg2rad(elevation);
-    
-    %B = earth_radius;
-    %orbit_radius = altitude + earth_radius;
-    %range = sqrt(((B + cosd(elevation)) .^ 2) + (orbit_radius ^2) ...
-    %              - (B ^ 2)) - (B .* cosd(elevation));
+function range = slant_range(altitude, elevation, options)
+    arguments
+        altitude
+        elevation
+        options.geo_centre_ground_station = 0
+        options.earth_radius = 6378e3
+        options.angle_unit = units.Angle.Radians
+    end
 
-    range = ( ...
-        sqrt(((geo_centre_ground_station .* cos(elevation_rad)) .^ 2) ...
-              + (orbit_radius .^ 2) - (geo_centre_ground_station .^ 2)) ...
-        - (geo_centre_ground_station .* cos(elevation_rad)) ...
-    );
-    % a = 2 * (earth_radius ^ 2);
-    % b = 2 * (orbit_radius ^ 2);
-    % c = 2 * earth_radius * orbit_radius;
-    % el_cos = cos(deg2rad(fliplr(elevation)));
+    geo_centre_ground_station = ...
+        options.geo_centre_ground_station + options.earth_radius;
+    orbit_radius = altitude + options.earth_radius;
 
-    % d = (elevation .* el_cos) - a + (b .* el_cos);
-    % e = c .* ((2 .* el_cos) - 1);
-    % Gamma = (2 * pi * c) - acos(d / e);
+    %elevation_rad = options.angle_unit.ToRadians(elevation);
+    elevation_rad = units.Angle.ToRadians(options.angle_unit, elevation);
 
-    % range_sq = (orbit_radius ^ 2) + (earth_radius ^2 ) - (c .* cos(Gamma));
-    % range = sqrt(range_sq);
+    rcosz = geo_centre_ground_station .* cos(elevation_rad);
+
+    range = sqrt( ...
+        (rcosz .^ 2) ...
+        + (orbit_radius .^ 2) ...
+        - (geo_centre_ground_station .^ 2)) ...
+        - rcosz;
 end

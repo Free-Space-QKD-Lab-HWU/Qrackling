@@ -80,7 +80,7 @@ classdef Protocol
                     ...%efficiency
                     1,...
                 ...%evaluation function to compute SKR,QBER etc
-                function_handle.empty);%DPS is missing a function!
+                @DPS_Model);%DPS is missing a function!
 
        %% the CV enumeration
         CV(...%Source requirements
@@ -90,7 +90,7 @@ classdef Protocol
                     ...%efficiency
                     0,...
                 ...%evaluation function to compute SKR,QBER etc
-                @CV_model);%DPS is missing a function!
+                @CV_model);%this is a placeholder function
     end
 
    properties(SetAccess = immutable)
@@ -116,7 +116,7 @@ classdef Protocol
         %%required for the current protocol
             arguments
                 proto Protocol
-                source Source
+                source components.Source
             end
 
             check = false;
@@ -143,7 +143,7 @@ classdef Protocol
         %%required for the current protocol
             arguments
                 proto Protocol
-                detector Detector
+                detector components.Detector
             end
 
             check = false;
@@ -172,8 +172,8 @@ classdef Protocol
 
             arguments
                 proto Protocol
-                source Source
-                detector Detector
+                source components.Source
+                detector components.Detector
                 Link_Loss_dB
                 Background_Count_Rate
             end

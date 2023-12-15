@@ -18,12 +18,12 @@ OGS=HOGS(Wavelength);%current HOGS model
 % or using custom start, stop and interval times
 
 %best case pass: 0423 to 0426 31 jan 2023, 50km visibility
-%%{
+% %{
 StartTime = datetime(2022,12,25,6,0,0);
 StopTime = datetime(2022,12,25,7,0,0);
 VisString = '50km';
 TurbulenceString = 'HV10-10';
-%}
+% %}
 %ok pass: 0610 to 0655 christmas day 2022, 10km visibility
 %{
 StartTime = datetime(2023,2,6,3,0,0);
@@ -34,9 +34,9 @@ TurbulenceString = 'HV5-7';
 
 %worst case pass: 0330 to 0333 4 feb 2023, 2km visibility
 %{
-StartTime = datetime(2023,1,31,4,0,0);
-StopTime = datetime(2023,1,31,5,0,0);
-VisString = '2km';
+% StartTime = datetime(2023,1,31,4,0,0);
+% StopTime = datetime(2023,1,31,5,0,0);
+VisString = '5km';
 TurbulenceString = '2HV5-7';
 %}
 SampleTime = seconds(1);
@@ -55,7 +55,10 @@ end
 
 
 %% simulate a pass
-Pass=PassSimulation(Sat,Prot,OGS,'Visibility',VisString,'Turbulence',TurbulenceString);
+%Pass=PassSimulation(Sat,Prot,OGS,'Visibility_Defaults',VisString,'Turbulence',TurbulenceString);
+Pass = PassSimulation(Sat, Prot, OGS, "Visibility_Defaults", "50km", "Turbulence", "HV10-10");
 Pass=Simulate(Pass);
+
+%% plot a pass
 plot(Pass,'Range','Elevation','XAxis','Time') %plot elevation window only
 %Play(Pass);

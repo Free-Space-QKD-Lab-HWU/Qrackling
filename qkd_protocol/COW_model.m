@@ -52,7 +52,7 @@ function [SKR_COW_2008, QBER, Sifted_Key_Rate] = COW_model( ...
     Xcow = QBER + (1 - QBER).*H((1 + eps(MPN, Detector.Visibility))/2);
 
     % Secure key rate
-    SKR_COW_2008 = R_sifted.*(1 - f*H(QBER) - Xcow).*(1-decoy_prob)*protocol_efficiency;
+    SKR_COW_2008 = Sifted_Key_Rate.*(1 - f*H(QBER) - Xcow).*(1-decoy_prob)*protocol_efficiency;
     % SKR cannot be negative
     SKR_COW_2008(SKR_COW_2008<0)=0;
 end

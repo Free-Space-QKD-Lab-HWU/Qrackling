@@ -57,19 +57,13 @@ function [smarts_results, Wavelengths, Sky_Irradiance, Sky_Radiance, ...
                                         Wavelengths', 1, 1);
     end
 
-    solar_scatter_wavlength_bounds = Ground_Station.Detector.Wavelength + (...
-                    Ground_Station.Detector.Spectral_Filter_Width ...
-                    .* ([-1, 1] ./ 2) );
-
-    solar_scatter_wavlength_idx = ...
-        ( Wavelengths > solar_scatter_wavlength_bounds(1) ) ...
-        & ( Wavelengths < solar_scatter_wavlength_bounds(2) );
 
 
     %for now, without wavelength parallelisation, sum all counts inside the
     %filter bounds
     %sky photons has units of photons/nm.s
-    sky_photon_rate = sum(Sky_Photons(:, solar_scatter_wavlength_idx),2);
+    Filter_Transmission = ComputeTransmission(Ground_Station.Detector.Spectral_Filter,Wavelengths);
+    sky_photon_rate = Sky_Photons*Filter_Transmission;
 
 
     %turn back on warning about renaming table variables
