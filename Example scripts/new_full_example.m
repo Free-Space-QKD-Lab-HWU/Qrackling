@@ -3,6 +3,13 @@ clear all
 close all
 clc
 
+switch filesep
+case "/"
+    path_converter = @(path) replace(path, "\", filesep);
+case "\"
+    path_converter = @(path) replace(path, "/", filesep);
+end
+
 %% make a ground station
 
 telescope = components.Telescope( ...
@@ -13,10 +20,13 @@ telescope = components.Telescope( ...
     'Eyepiece_Focal_Length', 0.076);
 
 filter_file = '~/Projects/QKD_Sat_Link/adaptive_optics/Example Data/spectral filters';
-        channel_wavelength = 785;
-        repetition_rate = 1E8;
-        time_gate = 2E-9;
-        spectral_filter = SpectralFilter('input_file',[filter_file, filesep(),'FBH780-10.xlsx']);
+filter_file = utilities.nativePathFrom(filter_file);
+channel_wavelength = 785;
+repetition_rate = 1E8;
+time_gate = 2E-9;
+filter_path = utilities.nativePathFrom([filter_file, filesep(),'FBH780-10.xlsx']);
+spectral_filter = SpectralFilter('input_file', [filter_file, filesep(),'FBH780-10.xlsx']);
+
 
 detector = components.Detector( channel_wavelength, repetition_rate, ...
     time_gate, spectral_filter, ...
@@ -44,6 +54,7 @@ gaussian_beacon = beacon.Gaussian_Beacon( ...
     beacon_pointing_precision, beacon_efficiency);
 
 sky_brightness = '~/Projects/QKD_Sat_Link/adaptive_optics/Example Data/orbit modelling resources/background count rate files/Errol_Experimental_Sky_Brightness_Store.mat';
+sky_brightness = utilities.nativePathFrom(sky_brightness);
 
 hogs = nodes.Ground_Station(telescope,...
     'Detector', detector,...

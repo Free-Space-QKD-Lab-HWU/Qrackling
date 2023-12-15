@@ -7,11 +7,8 @@ function path = addUserPath(in_path)
 
     delim = filesep();
 
-    if ~isempty(home)
-        idx = 1;
-        if startsWith(in_path, '~/')
-            idx = 1;
-        end
+    if startsWith(in_path, '~')
+        idx = 2;
         n = numel(in_path);
         in_path = strjoin({ home, extractAfter(in_path(idx:n), 1) }, delim);
     end
