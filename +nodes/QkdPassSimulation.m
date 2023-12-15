@@ -6,12 +6,13 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
         options.Background_Sources = []
     end
 
-
+%{
     takeFirst = @(array) array{end};
     node_string = @(node_obj) replace(takeFirst(strsplit(class(node_obj), ".")), "_", " ");
     node_name = @(node_obj) [node_string(node_obj), ': ' char(node_obj.Location_Name)];
-    transmitter_name = node_name(Transmitter);
-    receiver_name = node_name(Receiver);
+%}
+    transmitter_name = utilities.node_name(Transmitter);
+    receiver_name = utilities.node_name(Receiver);
 
     direction = nodes.LinkDirection.DetermineLinkDirection(Receiver, Transmitter);
 

@@ -64,7 +64,7 @@ classdef PassSimulationResult
                 receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
                 transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
                 options.mask {mustBeMember(options.mask, { ...
-                    'Elevation', 'Communication', 'Line of sight', 'None'})} = 'Elevation'
+                    'Elevation', 'Communication', 'Line of sight', 'None'})} = "Elevation"
                 options.Background_Sources = [] %HACK: make a "noise result" type instead
             end
 
@@ -79,7 +79,7 @@ classdef PassSimulationResult
                 mask = true(size(result.communications));
             end
 
-            fig = figure("Name", [result.protocol_name, ' Simulation from ', ...
+            fig = figure("Name", [result.protocol_name, ' simulation from ', ...
                 result.transmitter_name, ' to ', result.receiver_name], ...
                 "WindowState", "maximized");
 
@@ -113,7 +113,7 @@ classdef PassSimulationResult
             hold('on');
             %then plot flagged path
             geoplot(sat_latitude(mask), sat_longitude(mask), 'g.', 'LineWidth', 1)
-            legend('Satellite Path', [options.mask, ' window'], 'Location', 'southwest')
+            legend('Satellite path', strcat(options.mask, " window"), 'Location', 'southwest')
             %determine satellite altitude for plotting lines of sight
             switch class(receiver)
             case "nodes.Satellite"

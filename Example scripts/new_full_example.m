@@ -19,7 +19,7 @@ telescope = components.Telescope( ...
     'Focal_Length', 8.4,...
     'Eyepiece_Focal_Length', 0.076);
 
-filter_file = '~/Projects/QKD_Sat_Link/adaptive_optics/Example Data/spectral filters';
+filter_file = 'Example Data/spectral filters';
 filter_file = utilities.nativePathFrom(filter_file);
 channel_wavelength = 785;
 repetition_rate = 1E8;
@@ -53,7 +53,7 @@ gaussian_beacon = beacon.Gaussian_Beacon( ...
     beacon_telescope, beacon_power, beacon_wavelength,...
     "Power_Efficiency", beacon_efficiency, "Pointing_Jitter", beacon_pointing_precision);
 
-sky_brightness = '~/Projects/QKD_Sat_Link/adaptive_optics/Example Data/orbit modelling resources/background count rate files/Errol_Experimental_Sky_Brightness_Store.mat';
+sky_brightness = 'Example Data/orbit modelling resources/background count rate files/Errol_Experimental_Sky_Brightness_Store.mat';
 sky_brightness = utilities.nativePathFrom(sky_brightness);
 
 hogs = nodes.Ground_Station(telescope,...
@@ -202,9 +202,9 @@ result = nodes.QkdPassSimulation(hogs, spoqc, "DecoyBB84");
 fig = result.plotResult(spoqc.Times, "Time (s)", hogs, spoqc, "mask", "Elevation");
 
 % beacon simulation, downlink
-beacon_loss_down = beacon.beaconSimulation(hogs, spoqc);
-beacon_loss_down.plot(spoqc.Times, "time (s)", "mask", result.within_elevation_limit)
+beacon_result_down = beacon.beaconSimulation(hogs, spoqc);
+beacon_result_down.plot(spoqc.Times, "time (s)", "mask", "Elevation")
 
 % beacon simulation, up
-beacon_loss_up = beacon.beaconSimulation(spoqc, hogs);
-beacon_loss_up.plot(spoqc.Times, "time (s)", "mask", result.within_elevation_limit)
+beacon_result_up = beacon.beaconSimulation(spoqc, hogs);
+beacon_result_up.plot(spoqc.Times, "time (s)", "mask", "Elevation")
