@@ -59,7 +59,7 @@ function hogs = new_HOGS(wavelength)
     beacon_efficiency = 1;
     gaussian_beacon = beacon.Gaussian_Beacon( ...
         beacon_telescope, beacon_power, beacon_wavelength,...
-        beacon_pointing_precision, beacon_efficiency);
+        "Power_Efficiency", beacon_efficiency, "Pointing_Jitter", beacon_pointing_precision);
 
     sky_brightness = '~/Projects/QKD_Sat_Link/adaptive_optics/Example Data/orbit modelling resources/background count rate files/Errol_Experimental_Sky_Brightness_Store.mat';
 

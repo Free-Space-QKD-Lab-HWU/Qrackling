@@ -7,21 +7,21 @@ classdef Gaussian_Beacon < beacon.Beacon
     end
 
     methods
-        function Gaussian_Beacon = Gaussian_Beacon(Telescope, Power, ...
-            Wavelength, Power_Efficiency, Pointing_Jitter, Divergence_Half_Angle)
+        function Gaussian_Beacon = Gaussian_Beacon(Telescope, Power, Wavelength, options)
             %%Gaussian_Beacon Construct an instance of this class
             arguments
                 Telescope
                 Power
                 Wavelength
-                Power_Efficiency = 1
-                Pointing_Jitter = 1E-3
-                Divergence_Half_Angle = Telescope.FOV / 2
+                options.Power_Efficiency = 1
+                options.Pointing_Jitter = 1E-3
+                options.Divergence_Half_Angle = Telescope.FOV / 2
             end
 
             %construct abstract beacon class
             Gaussian_Beacon@beacon.Beacon(Telescope, Power, Wavelength, ...
-                Power_Efficiency, Pointing_Jitter);
+                "Power_Efficiency", options.Power_Efficiency, ...
+                "Pointing_Jitter", options.Pointing_Jitter);
 
             %% check to see if flat top beacon half angle is provided, if not use telescope
             % p=inputParser();
@@ -31,7 +31,7 @@ classdef Gaussian_Beacon < beacon.Beacon
             % parse(p,varargin{:})
             % Gaussian_Beacon.Divergence_Half_Angle = p.Results.Divergence_Half_Angle;
 
-            Gaussian_Beacon.Divergence_Half_Angle = Divergence_Half_Angle;
+            Gaussian_Beacon.Divergence_Half_Angle = options.Divergence_Half_Angle;
         end
 
         function Loss = GetAPTLoss(Gaussian_Beacon, Camera)

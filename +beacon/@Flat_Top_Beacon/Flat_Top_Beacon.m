@@ -8,13 +8,12 @@ classdef Flat_Top_Beacon < beacon.Beacon
 
     methods
         function Flat_Top_Beacon = Flat_Top_Beacon(telescope, Power,...
-                                                   Wavelength,...
-                                                   Limit_Half_Angle)
+                                                   Wavelength, options)
             arguments
                 telescope components.Telescope
                 Power
                 Wavelength
-                Limit_Half_Angle = telescope.FOV/2
+                options.Limit_Half_Angle = telescope.FOV/2
             end
             %%Gaussian_Beacon Construct an instance of this class
             
@@ -28,7 +27,7 @@ classdef Flat_Top_Beacon < beacon.Beacon
             % addParameter(p,'Limit_Half_Angle',Flat_Top_Beacon.Telescope.FOV/2);
             % parse(p);
             %Flat_Top_Beacon.Limit_Half_Angle = p.Results.Limit_Half_Angle;
-            Flat_Top_Beacon.Limit_Half_Angle = Limit_Half_Angle;
+            Flat_Top_Beacon.Limit_Half_Angle = options.Limit_Half_Angle;
         end
 
         function Loss = GetAPTLoss(Flat_Top_Beacon, Camera)

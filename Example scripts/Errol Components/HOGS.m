@@ -73,7 +73,7 @@ Beacon_Telescope = SetFOV(Beacon_Telescope,Beacon_Beam_Divergence);
 %500km/sin(30), so pointing precision is on the order 5mrads.
 BeaconEfficiency = 1;                                                           %beacon optical efficiency (unitless)
 HOGSBeacon = beacon.Gaussian_Beacon(Beacon_Telescope,Beacon_Power,Beacon_Wavelength,...
-    BeaconPointingPrecision, BeaconEfficiency);
+    "Power_Efficiency", BeaconEfficiency, "Pointing_Jitter",  BeaconPointingPrecision);
 
 % #### DEPRECATED ####
     % Atmosphere_File_Location using SMARTS data, now gone

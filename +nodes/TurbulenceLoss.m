@@ -87,6 +87,7 @@ function varargout = TurbulenceLoss(kind, receiver, transmitter, fried_parameter
         spot_size(elevation_flags), link_length(elevation_flags), wavenumber, r0);
 
     % NOTE: Is this true? -> "residual beam wander is not needed here as this is dealt with in"
+    % NOTE: Is this where we need "greenwood_frequency.m"?
 
     loss(~elevation_flags) = 0;
     loss(elevation_flags) = ( ...

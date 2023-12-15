@@ -29,25 +29,25 @@ classdef(Abstract) Beacon
     end
 
     methods
-        function Beacon = Beacon(Telescope, Power, Wavelength, Power_Efficiency, Pointing_Jitter)
+        function Beacon = Beacon(Telescope, Power, Wavelength, options)
             %%BEACON construct a beacon class
 
             arguments
                 Telescope
                 Power
                 Wavelength
-                Power_Efficiency = 1
-                Pointing_Jitter = 1E-3
+                options.Power_Efficiency = 1
+                options.Pointing_Jitter = 1E-3
             end
 
             Beacon.Power = Power;
             Beacon.Wavelength = Wavelength;
-            Beacon.Power_Efficiency = Power_Efficiency;
-            Beacon.Pointing_Jitter = Pointing_Jitter;
+            Beacon.Power_Efficiency = options.Power_Efficiency;
+            Beacon.Pointing_Jitter = options.Pointing_Jitter;
 
             %store pointing jitter
             Telescope = SetWavelength(Telescope, Wavelength);
-            Telescope = SetPointingJitter(Telescope, Pointing_Jitter);
+            Telescope = SetPointingJitter(Telescope, options.Pointing_Jitter);
             Beacon.Telescope = Telescope;
         end
     end

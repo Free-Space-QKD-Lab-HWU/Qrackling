@@ -13,7 +13,6 @@ function result = nativePathFrom(input_path)
     end
 
     [filepath, ~, ~] = fileparts(result);
-    disp(filepath)
     assert(isfolder(filepath), 'Path does not exist');
 
 end
