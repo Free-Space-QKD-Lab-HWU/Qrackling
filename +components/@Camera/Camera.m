@@ -5,25 +5,22 @@ classdef Camera
     % it is convention in CMOS and CCD cameras to record noise in terms of
     % charge, in particular the charge on an electron (e-). Therefore SNR
     % calculation etc. will need signal in terms of photons and photon rate,
-    % rather than power. We then operate on the assumption of 100% absorption so
-    % that every incident photon creates a single electron charge in the CMOS
-    % gate.
+    % rather than power.
 
     properties (SetAccess=protected, GetAccess=public)
-        Telescope (1,1) components.Telescope =[];
+        Telescope (1,1) components.Telescope = []
         Collecting_Area (1,1) double {mustBeNonnegative}                        %the optics area which collects beacon light, usually the telescope effective area
         Detector_Diameter (1,1) double {mustBeNonnegative}=0.001                %the physical size of the camera's detector area
         Focal_Length (1,1) double {mustBeNonnegative}=0.0125;                   %focal length (in m) of the lens focussing onto the camera's sensor
-        %Quantum_Efficiency (1,1) double {mustBeNonnegative,mustBeLessThanOrEqual(Quantum_Efficiency,1)}=1; %the efficiency of the camera at collecting beacon light which arrives on a pixel
         Quantum_Efficiency  double {mustBeNonnegative,mustBeLessThanOrEqual(Quantum_Efficiency,1)}=1; %the efficiency of the camera at collecting beacon light which arrives on a pixel
         Exposure_Time (1,1) double {mustBePositive} = 1;                        %exposure time for operation of the camera in s
         Wavelength (1,1) double {mustBeScalarOrEmpty}
 
         Spectral_Filter_Width (1,1) double {mustBeNonnegative}=10;              %the spectral width of the (assumed brick-wall) filter on the camera
 
-        Readout_Noise (1,1) double = 1.3E-11;                                   %noise (in electron charges) incurred by reading out a whole image
-        Dark_Current_Noise (1,1) double = 0;                                    %noise (in electron charges) incurred by exposing the camera per second
-        Full_Well_Capacity (1,1) double = 2E-9;                                 %the maximum signal (in electron charges) a pixel can tolerate before saturating
+        Readout_Noise (1,1) double = 1.3E-11;                                   %noise (in coulombs) incurred by reading out a whole image
+        Dark_Current_Noise (1,1) double = 0;                                    %noise (in coulombs) incurred by exposing the camera per second
+        Full_Well_Capacity (1,1) double = 2E-9;                                 %the maximum signal (in coulombs) a pixel can tolerate before saturating
 
         Pixels (1,2) double {mustBePositive}=[1080,1080]                        %number of pixels in camera x and y directions
         Fine_Pointing_Handover_Angle (1,1) double {mustBeNonnegative} = 2E-3;   %pointing angle below which fine pointing can operate in rads
