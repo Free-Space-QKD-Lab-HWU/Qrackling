@@ -6,7 +6,7 @@ function data = ReadData(lrt)
     [keys, values] = libradtran.readInputFile(lrt.File);
 
     if any(contains(keys, 'mc_basename'))
-        [path, name, ~] = fileparts(lrt.File);
+        [path, name, ~] = fileparts(lrt.MysticsSettings.basename.Name);
         mc_file = strjoin({strjoin({path, name}, filesep), '.rad.spc'}, '');
         [data.stokes, data.wavelength] = libradtran.extractStokesParameters( ...
             mc_file, "extract_wavelength", "on");

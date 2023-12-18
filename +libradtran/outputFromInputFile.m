@@ -111,7 +111,7 @@ function data = extractDataFromLine(offsets, keys, line, options)
     arguments
         offsets {mustBeNumeric}
         keys
-        line {mustBeTextScalar}
+        line {mustBeTextScalar,mustBeNonempty}
         options.radiance_shape
     end
 
