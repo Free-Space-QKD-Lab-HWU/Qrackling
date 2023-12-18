@@ -1,9 +1,7 @@
 classdef Outputs < handle
-    properties (SetAccess = protected)
-        lrt_config libradtran.libRadtran
-    end
 
    properties (SetAccess = protected)
+        lrt_config libradtran.libRadtran
         Columns libradtran.Parameters.output_user
         Quantity libradtran.Parameters.output_quantity
         Process libradtran.Parameters.output_process

@@ -1,9 +1,7 @@
 classdef Spectral < handle
-    properties (SetAccess = protected)
-        lrt_config libradtran.libRadtran
-    end
 
     properties (SetAccess = protected)
+        lrt_config libradtran.libRadtran
         radiation_source libradtran.Parameters.source
         thermal_bands libradtran.Parameters.thermal_bands_file
         bandwidth libradtran.Parameters.thermal_bandwidth

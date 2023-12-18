@@ -1,6 +1,4 @@
 classdef Aerosol < handle
-    properties (SetAccess = protected)
-    end
 
     properties (SetAccess = protected)
         lrt_config libradtran.libRadtran

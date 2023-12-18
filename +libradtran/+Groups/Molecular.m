@@ -1,9 +1,7 @@
 classdef Molecular < handle
-    properties (SetAccess = protected)
-        lrt_config libradtran.libRadtran
-    end
 
     properties (SetAccess = protected)
+        lrt_config libradtran.libRadtran
         surface_pressure libradtran.Parameters.pressure
         pressure_levels libradtran.Parameters.pressure_out
         photovoltaic_refractive_index libradtran.Parameters.refractive_index_pv

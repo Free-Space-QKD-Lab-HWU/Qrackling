@@ -4,7 +4,11 @@ function path = addUserPath(in_path)
     else
         home = getenv('USERPROFILE');
     end
-
+    
+    if isstring(in_path)
+        in_path = char(in_path);
+    end
+    
     delim = filesep();
 
     if startsWith(in_path, '~')

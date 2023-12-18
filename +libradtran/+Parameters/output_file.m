@@ -13,11 +13,13 @@ classdef output_file
             end
 
             elems = strsplit(file, delim);
+            if numel(elems)>1
             path = strjoin(elems(1:end-1), delim);
-
+            else
+            path = elems{1};
+            end
             assert(numel(elems) ~= numel(path), ...
                 'Not a valid file path')
-            mustBeFolder(path)
             out.File = file;
         end
     end

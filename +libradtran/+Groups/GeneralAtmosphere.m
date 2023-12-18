@@ -1,9 +1,7 @@
 classdef GeneralAtmosphere < handle
-    properties (SetAccess = protected)
-        lrt_config libradtran.libRadtran
-    end
 
     properties (SetAccess = protected)
+        lrt_config libradtran.libRadtran
         atmosphere libradtran.Parameters.atmosphere_file
         disable_absorption libradtran.Parameters.no_absorption
         disable_scattering libradtran.Parameters.no_scattering

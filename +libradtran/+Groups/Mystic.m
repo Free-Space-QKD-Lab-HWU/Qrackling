@@ -1,8 +1,7 @@
 classdef Mystic < handle
+
     properties (SetAccess = protected)
         lrt_config libradtran.libRadtran
-    end
-    properties (SetAccess = protected)
         azimuth_old libradtran.Parameters.mc_azimuth_old
         backward libradtran.Parameters.mc_backward
         backward_increment libradtran.Parameters.mc_backward_increment

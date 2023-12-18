@@ -1,9 +1,7 @@
 classdef Clouds < handle
-    properties (SetAccess = protected)
-        lrt_config libRadtran.libRadtran
-    end
 
     properties (SetAccess = protected)
+        lrt_config libradtran.libRadtran
         water_cloud_file libradtran.Parameters.wc_file
         water_cloud_modifications libradtran.Parameters.wc_modify
         water_cloud_properties libradtran.Parameters.wc_properties

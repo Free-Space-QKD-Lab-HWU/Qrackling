@@ -1,9 +1,7 @@
 classdef SolverAlgorithm < handle
-    properties (SetAccess = protected)
-        lrt_config libradtran.libRadtran
-    end
 
     properties (SetAccess = protected)
+        lrt_config libradtran.libRadtran
         pseudospherical_geometry libradtran.Parameters.pseudospherical
         disort_intensity_correction libradtran.Parameters.disort_intcor
         top_of_atmosphere_isotropic_illumination libradtran.Parameters.isotropic_source_toa

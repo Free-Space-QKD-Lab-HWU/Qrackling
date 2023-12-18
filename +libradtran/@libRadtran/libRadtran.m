@@ -1,6 +1,6 @@
 classdef libRadtran < handle
     properties (Access = protected)
-        lrt_root
+        lrt_root char
     end
     properties
         Aerosol_Settings libradtran.Groups.Aerosol
@@ -30,6 +30,11 @@ classdef libRadtran < handle
                     'mystic',     'tzs',         'sss'})}
             end
 
+            %remove any trailing slashes
+            if libRadtran_Path(end) == '/' || libRadtran_Path(end) == '\'
+                libRadtran_Path = libRadtran_Path(1:end-1);
+            end
+            
             lrt.lrt_root = libRadtran_Path;
 
             if numel(fieldnames(options)) > 0
@@ -242,8 +247,16 @@ classdef libRadtran < handle
                 path_delimiter = '\';
             end
 
+            %check that all / or \ in configuration string have been
+            %escaped
+            configuration = replace( ...
+                configuration, ...
+                path_delimiter, ...
+                [path_delimiter, path_delimiter]);
+
+
             if ~contains(lower(file_name(end-3:end)), '.txt')
-                file_name = strjoin(file_name, '.txt');
+                file_name = [file_name, '.txt'];
             end
 
             configuration_file_path = strjoin({file_path, path_delimiter, file_name}, '');
@@ -286,7 +299,7 @@ classdef libRadtran < handle
             end
 
             lrt_directory = strjoin({char(lrt.lrt_root), 'examples'}, path_delimiter);
-            uvspec_path = 'uvspec';
+            uvspec_path = [lrt.lrt_root,filesep(),'bin',filesep(),'uvspec'];
 
             call_str = strjoin({uvspec_path, '<', input_path, '>', output_file});
 
@@ -296,7 +309,8 @@ classdef libRadtran < handle
                 case 'Quiet'
                     [~,~] = system(call_str);
                 case 'Verbose'
-                    info = system(call_str);
+                    [status_flag,info] = system(call_str);
+                    fprintf(info)
             end
 
             [~] = cd(current_directory);

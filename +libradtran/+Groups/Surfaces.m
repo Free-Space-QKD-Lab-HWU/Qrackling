@@ -1,4 +1,5 @@
 classdef Surfaces < handle
+    
     properties (SetAccess = protected)
         lrt_config libradtran.libRadtran
         altitudes libradtran.Parameters.altitude
