@@ -4,6 +4,7 @@ arguments
     Transmitter {mustBeA(Transmitter, ["nodes.Satellite", "nodes.Ground_Station"]),nodes.mustHaveSource(Transmitter)}
     proto Protocol
     options.Background_Sources = []
+    options.Visibility = '50km'
 end
 
 %{
@@ -16,6 +17,7 @@ receiver_name = utilities.node_name(Receiver);
 
 direction = nodes.LinkDirection.DetermineLinkDirection(Receiver, Transmitter);
 
+% TODO include reflected light off satellite surface in noise calculation
 switch direction
     case nodes.LinkDirection.Downlink
         [headings, elevations, ranges] = Transmitter.RelativeHeadingAndElevation(Receiver);
@@ -63,14 +65,14 @@ end
 line_of_sight = elevations > 0;
 
 % TODO: what is this?
-visibility = nodes.Visibility(Receiver, Transmitter);
-Receiver.Detector.Visibility = visibility(elevation_limit_mask);
+interferometer_visibility = nodes.Visibility(Receiver, Transmitter);
+Receiver.Detector.Visibility = interferometer_visibility(elevation_limit_mask);
 
 [background_count_rate, ~] = Receiver.ComputeTotalBackgroundCountRate( ...
     options.Background_Sources, Transmitter, headings, elevations);
 
 [link_loss, ~] = nodes.linkLoss("qkd", Receiver, Transmitter, ...
-    "apt", "optical", "geometric", "turbulence", "atmospheric");
+    "apt", "optical", "geometric", "turbulence", "atmospheric",'Visibility',options.Visibility);
 
 total_loss = link_loss.TotalLoss("dB");
 total_loss_db = total_loss.As("dB");

@@ -1,4 +1,6 @@
 function visibility = Visibility(receiver, transmitter)
+% compute visibility of an interferometer when doppler and arrival time
+% changes are caused by satellite velocity
     arguments
         receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
         transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}

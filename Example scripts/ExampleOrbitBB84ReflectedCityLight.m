@@ -1,7 +1,5 @@
-%% implement a simulation of a satellite in a 100km orbit over a ground station using the decoy BB84 protocol
-%% First, we must construct the components of a simulation, this time including background light sources (which in this case are cities).
-%% Then we form them all into a single PassSimulation object.
-%% Then we simulate the pass and plot the results.
+% a simulation which includes the effect of reflected light from nearby
+% cities
 
 %% 1. Choose parameters
 Wavelength=780;                                                            %wavelength is measured in nm
@@ -45,6 +43,6 @@ Cities=Cities_Struct.Cities;                                           %these ar
 
 %% 3 run and plot simulation
 %3.1 run simulation
-Result=nodes.QkdPassSimulation(SimGround_Station,SimSatellite,"DecoyBB84",'Background_Sources',Cities);
+Result=nodes.QkdPassSimulation(SimGround_Station,SimSatellite,"BB84",'Background_Sources',Cities);
 %3.2 plot results
 plotResult(Result,SimSatellite.Times,'Time',SimGround_Station,SimSatellite)

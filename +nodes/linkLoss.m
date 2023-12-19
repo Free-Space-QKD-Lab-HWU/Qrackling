@@ -11,6 +11,7 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
         options.dB logical = false
         options.SpotSize = []
         options.LinkLength = []
+        options.Visibility = '50km'
     end
 
     unit = "probability";
@@ -61,7 +62,7 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
         case 'apt'
             res = nodes.APTLoss(kind, receiver, transmitter);
         case 'atmospheric'
-            res = nodes.AtmosphericLoss(kind, receiver, transmitter);
+            res = nodes.AtmosphericLoss(kind, receiver, transmitter,'Visibility',options.Visibility);
         end
 
         losses.(label) = res.ConvertTo(unit);
