@@ -61,8 +61,8 @@ classdef PassSimulationResult
                 result nodes.PassSimulationResult
                 x_axis
                 x_label
-                receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
-                transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
+                receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"]),mustHaveDetector(receiver)}
+                transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"]),mustHaveSource(transmitter)}
                 options.mask {mustBeMember(options.mask, { ...
                     'Elevation', 'Communication', 'Line of sight', 'None'})} = "Elevation"
                 options.Background_Sources = [] %HACK: make a "noise result" type instead

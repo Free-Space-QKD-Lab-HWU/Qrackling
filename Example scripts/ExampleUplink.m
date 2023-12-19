@@ -14,37 +14,34 @@ Repetition_Rate = 1E8;                                                     %sour
 
 %2.1 Satellite
 %2.1.1 Detector
-MPD_BB84_Detector=Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,Preset=DetectorPresets.MicroPhotonDevices.LoadPreset());
+MPD_BB84_Detector=components.Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,"Preset",components.loadPreset("MicroPhotonDevices"));
 
 %2.1.2 Transmitter telescope
-Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
+Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
 
 %2.1.3 Construct satellite
-SimSatellite=Satellite(Transmitter_Telescope,...
+SimSatellite=nodes.Satellite(Transmitter_Telescope,...
                         'Detector', MPD_BB84_Detector,...
                         'OrbitDataFileLocation',OrbitDataFileLocation);
 
 %2.2 Ground station
 %2.2.1 Source
-Transmitter_Source=Source(Wavelength,'Repetition_Rate',Repetition_Rate);                %we use default values to simplify this example
-
-%need to provide repetition rate in order to compute QBER and loss due to
-%time gating
-
+Transmitter_Source=components.Source(Wavelength,...
+                                    'Repetition_Rate',Repetition_Rate,...
+                                    'Mean_Photon_Number',[0.7,0.3,0],...
+                                    'State_Probabilities',[0.75,0.15,0.1]);            
 %2.2.2 Receiver telescope
-Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);
+Receiver_Telescope=components.Telescope(Receiver_Telescope_Diameter);
 
-%2.2.3 construct ground station, use Errol as an example
-SimGround_Station=Errol_OGS(Receiver_Telescope,...
-                            'Source',Transmitter_Source);
+%2.2.3 construct ground station, use Heriot-Watt as an example
+SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
+                                'Source',Transmitter_Source,...
+                                'LLA',[55.909723, -3.319995,10],...
+                                'Name','Heriot-Watt');
 
-%2.3 protocol
-BB84_protocol=Protocol.BB84;
 
 %% 3 Compose and run the PassSimulation
-%3.1 compose passsimulation object
-Pass=PassSimulation(SimGround_Station,BB84_protocol,SimSatellite);
-%3.2 run simulation
-Pass=Simulate(Pass);
-%3.3 plot results
-plot(Pass,'Range','Elevation');
+%3.1 run simulation, first argument is receiver
+result = nodes.QkdPassSimulation(SimSatellite, SimGround_Station, "DecoyBB84");
+%3.2 plot results
+figure = plotResult(result,SimSatellite.Times,'Time',SimSatellite,SimGround_Station);

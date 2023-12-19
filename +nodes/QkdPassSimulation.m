@@ -1,7 +1,7 @@
 function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
     arguments
-        Receiver {mustBeA(Receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
-        Transmitter {mustBeA(Transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
+        Receiver {mustBeA(Receiver, ["nodes.Satellite", "nodes.Ground_Station"]),nodes.mustHaveDetector(Receiver)}
+        Transmitter {mustBeA(Transmitter, ["nodes.Satellite", "nodes.Ground_Station"]),nodes.mustHaveSource(Transmitter)}
         proto Protocol
         options.Background_Sources = []
     end
@@ -86,23 +86,16 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
 
     %qber(~elevation_limit_mask) = nan;
     communicating =  ~(isnan(secret) | (secret <= 0));
-    any(~isnan(secret))
-    any(~(secret <= 0))
 
-    any(~(isnan(secret) | secret <= 0))
-    sum(communicating)
 
-    size(times([false, communicating(1:end)]))
-    size(times(communicating))
+    time_window_widths = times([false, communicating(1:end)]) - times(communicating);
+    assert(~isempty(time_window_widths), "no communication occurs"); % not sure what correct error should be
 
-    time_windows = times([false, communicating(1:end)]) - times(communicating);
-    assert(~isempty(time_windows), "no time windows"); % not sure what correct error should be
-
-    if isnumeric(time_windows)
-        total_sifted_key = dot(time_windows, sifted(communicating));
-        total_secret_key = dot(time_windows, secret(communicating));
-    elseif isduration(time_windows)
-        time_seconds = seconds(time_windows);
+    if isnumeric(time_window_widths)
+        total_sifted_key = dot(time_window_widths, sifted(communicating));
+        total_secret_key = dot(time_window_widths, secret(communicating));
+    elseif isduration(time_window_widths)
+        time_seconds = seconds(time_window_widths);
         total_sifted_key = dot(time_seconds, sifted(communicating));
         total_secret_key = dot(time_seconds, secret(communicating));
     end

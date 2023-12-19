@@ -6,6 +6,11 @@
 **/SMARTS cache/*
 towards_a_quantum_internet/*
 
+
+# matlab project files should be local
+*.prj
+# as should any MATLAB autosave files
+*.asv
 # matlab likes to add a resources folder lets not push it
 resources/
 

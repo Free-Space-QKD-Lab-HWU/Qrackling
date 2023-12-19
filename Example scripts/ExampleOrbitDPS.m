@@ -14,18 +14,18 @@ SPs = [0.9,0.1];
 
 %2.1 Satellite
 %2.1.1 Source
-Transmitter_Source=Source(Wavelength,...
+Transmitter_Source=components.Source(Wavelength,...
                           'Repetition_Rate',Repetition_Rate,...
                           'State_Probabilities',SPs);        %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
-Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
+Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
 
 %2.1.3 Construct satellite
 StartTime = datetime(2022,12,25,6,0,0);
 StopTime = datetime(2022,12,25,7,0,0);
-        SampleTime = 0.01;
-SimSatellite=Satellite(Transmitter_Telescope,...
+SampleTime = 1;
+SimSatellite=nodes.Satellite(Transmitter_Telescope,...
                         'Source',Transmitter_Source,...
                         'SemiMajorAxis',600E3 + earthRadius,...             %mean orbital radius = Altitude + Earth radius
                         'eccentricity',0,...                                %measure of ellipticity of the orbit, for circular, =0
@@ -39,29 +39,23 @@ SimSatellite=Satellite(Transmitter_Telescope,...
 
 %2.2 Ground station
 %2.2.1 Detector
-Generic_DPS_Detector=Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,...
-    Preset=DetectorPresets.MicroPhotonDevices.LoadPreset());
+DPS_Detector=components.Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,...
+    "Preset",components.loadPreset("MicroPhotonDevices"));
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
 %NOTE only detectors with the 'Visibility' property can be used for COW
 
 %2.2.2 Receiver telescope
-Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);
+Receiver_Telescope=components.Telescope(Receiver_Telescope_Diameter);
 
 %2.2.3 construct ground station, use Chilbolton as an example
-SimGround_Station=Chilbolton_OGS(Receiver_Telescope,...
-                                    'Detector',Generic_DPS_Detector);
+SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
+                                'Detector',DPS_Detector,...
+                                'LLA',[55.909723, -3.319995,10],...
+                                'Name','Heriot-Watt');
 
-%2.3 protocol
-DPS_protocol=Protocol.DPS;
+
 
 %% 3 Compose and run the PassSimulation
-%3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,DPS_protocol,SimGround_Station);
-%3.2 run simulation
-Pass=Simulate(Pass);
-%3.3 plot results
-plot(Pass.Satellite.Times(Pass.Elevation_Limit_Flags),Pass.QKD_Receiver.Detector.Visibility,...
-    Pass.Satellite.Times(Pass.Elevation_Limit_Flags),Pass.QBERs(Pass.Elevation_Limit_Flags))
-xlabel('Time during elevation window')
-legend('Visibility','QBER')
+SimResults = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,"DPS");
+plotResult(SimResults,SimSatellite.Times,'Time',SimGround_Station,SimSatellite);

@@ -4,11 +4,19 @@ function shifted_wavelength = Doppler_Shift(receiver, transmitter)
         transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
     end
 
-    assert(~isempty(transmitter.Times), ...
-        ["transmitter { ", inputname(2), " } does not have any timestamps"]);
-
+    %get timestamps from either node
+    link_direction = nodes.LinkDirection.DetermineLinkDirection(receiver,transmitter);
+    switch link_direction
+        case 'Uplink'
+            times = receiver.Times;
+        case 'Downlink'
+            times = transmitter.Times;
+        case 'Intersatellite'
+            times = transmitter.Times;
+        otherwise
+            error('At least one of receiver and transmitter must have time stamps')
+    end
     distances = receiver.ComputeDistanceBetween(transmitter);
-    times = transmitter.Times;
     wavelength = receiver.Telescope.Wavelength;
 
     % differentiate wrt time

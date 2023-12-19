@@ -184,7 +184,7 @@ spoqc = nodes.Satellite(OGS_telescope,...
     'sampleTime', sample_time);                           %simulation interval in s
 
 
-%% construct a receiver (ground station)
+%% 2. construct a receiver (ground station)
 % to do this, we need lots of details about the ground station
 % 2.1 quantum receiver details
 % 2.2 beacon details (optional)
