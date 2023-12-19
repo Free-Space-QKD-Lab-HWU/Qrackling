@@ -87,7 +87,10 @@
         else
             [snr, snr_db] = SNR(Receiver.Camera, received_power);
         end
-        
+
+        %% compute PAA
+        [heading_PAA,elevation_PAA] = beacon.PointAheadAngle(Receiver,Transmitter);
+        PAA = [heading_PAA;elevation_PAA];
         %% record result
         result = beacon.BeaconResult(...
             utilities.node_name(Transmitter),...
@@ -104,6 +107,7 @@
             snr,...
             snr_db,...
             direction,...
-            background_power);
+            background_power,...
+            PAA);
     
     end

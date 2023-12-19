@@ -1,6 +1,4 @@
-%% implement a simulation of a satellite in a 100km orbit over a ground station using the conventional BB84 protocol
-%% First, we must construct the components of a simulation. Then we form them all into a single PassSimulation object.
-%% Then we simulate the pass and plot the results.
+% a simulation of BB84 with limited visibility
 
 %% 1. Choose parameters
 Wavelength=850;                                                            %wavelength is measured in nm
@@ -9,7 +7,7 @@ OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                                %or
 Receiver_Telescope_Diameter=1;                                           
 Time_Gate_Width=1E-9;                                                      %times are measured in s
 Spectral_Filter_Width=10;                                                  %consistemt with wavelength, spectral width is measured in nm
-Visibility = '2km';                                                       %we simulate low visibility here. Options are:
+Visibility = '5km';                                                       %we simulate low visibility here. Options are:
                                                                           %clear,
                                                                           %100m,
                                                                           %200m,

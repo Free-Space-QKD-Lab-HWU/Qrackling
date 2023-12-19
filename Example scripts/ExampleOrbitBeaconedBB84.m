@@ -13,7 +13,7 @@ Beacon_Power = 1;                                                           %bea
 Beacon_Wavelength = 850;                                                    %beacon wavelength in nm
 Downlink_Beacon_Divergence = 1E-3;                                         %beacon divergence in rads
 Open_Loop_Pointing_Precision = 1E-3;                                 %rms pointing error in rads
-COmpensa_Beacon_Divergence = 1E-5;                                           %beacon divergence in rads
+Uplink_Beacon_Divergence = 1E-5;                                           %beacon divergence in rads
 Closed_Loop_Pointing_Precision = 1E-6;                                   %rms pointing error in rads
 OGS_Camera_Scope_Diameter = 0.4;                                                %camera telescope diameter in m
 Camera_Exposure_Time = 0.001;                                              %exposure time of beacon cameras in s
@@ -96,6 +96,6 @@ DownlinkBeaconResults = beacon.beaconSimulation(SimGround_Station,SimSatellite);
 UplinkBeaconResults = beacon.beaconSimulation(SimSatellite,SimGround_Station);
 %3.2 plot results
 plotResult(Result,SimSatellite.Times,'Time',SimGround_Station,SimSatellite);
-%plot(DownlinkBeaconResults,SimSatellite.Times,'Time');
-%plot(UplinkBeaconResults,SimSatellite.Times,'Time');
+plot(DownlinkBeaconResults,SimSatellite.Times,'Time');
+plot(UplinkBeaconResults,SimSatellite.Times,'Time');
 
