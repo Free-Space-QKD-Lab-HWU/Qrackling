@@ -18,9 +18,9 @@ classdef Camera
 
         Spectral_Filter_Width (1,1) double {mustBeNonnegative}=10;              %the spectral width of the (assumed brick-wall) filter on the camera
 
-        Readout_Noise (1,1) double = 1.3E-11;                                   %noise (in coulombs) incurred by reading out a whole image
-        Dark_Current_Noise (1,1) double = 0;                                    %noise (in coulombs) incurred by exposing the camera per second
-        Full_Well_Capacity (1,1) double = 2E-9;                                 %the maximum signal (in coulombs) a pixel can tolerate before saturating
+        Readout_Noise (1,1) double = 13;                                   %noise (in coulombs) incurred by reading out a whole image
+        Dark_Current_Noise (1,1) double = 125;                                    %noise (in coulombs) incurred by exposing the camera per second
+        Full_Well_Capacity (1,1) double = 13500;                                 %the maximum signal (in coulombs) a pixel can tolerate before saturating
 
         Pixels (1,2) double {mustBePositive}=[1080,1080]                        %number of pixels in camera x and y directions
         Fine_Pointing_Handover_Angle (1,1) double {mustBeNonnegative} = 2E-3;   %pointing angle below which fine pointing can operate in rads

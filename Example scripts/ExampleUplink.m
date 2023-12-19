@@ -1,6 +1,4 @@
-%% implement a simulation of a satellite in a 100km orbit over a ground station using the conventional BB84 protocol
-%% First, we must construct the components of a simulation. Then we form them all into a single PassSimulation object.
-%% Then we simulate the pass and plot the results. In this simulation, the uplink configuration is used
+% a simulation of a decoy BB84 uplink to a satellite
 
 %% 1. Choose parameters
 Wavelength=850;                                                            %wavelength is measured in nm

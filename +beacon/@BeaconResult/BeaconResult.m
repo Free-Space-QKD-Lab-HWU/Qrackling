@@ -86,9 +86,9 @@ classdef BeaconResult
 
             subplot(3, 1, 1)
             if have_mask
-                plot(x_axis(mask), result.received_power(mask))
+                plot(x_axis(mask), result.received_power(mask));
             else
-                plot(x_axis, result.received_power)
+                plot(x_axis, result.received_power);
             end
             ylabel("Beacon Power (W)");
             xlabel(x_label);

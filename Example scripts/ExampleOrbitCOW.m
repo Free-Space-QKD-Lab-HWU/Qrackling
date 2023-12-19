@@ -15,40 +15,38 @@ SPs = [0.9,0.1];
 
 %2.1 Satellite
 %2.1.1 Source
-Transmitter_Source=Source(Wavelength,...
+Transmitter_Source=components.Source(Wavelength,...
                           'Repetition_Rate',Repetition_Rate,...
                           'State_Probabilities',SPs);        %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
-Transmitter_Telescope=Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
+Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
 
 %2.1.3 Construct satellite
-SimSatellite=Satellite(Transmitter_Telescope,...
+SimSatellite=nodes.Satellite(Transmitter_Telescope,...
                         'Source',Transmitter_Source,...
                         'OrbitDataFileLocation',OrbitDataFileLocation);
 
 %2.2 Ground station
 %2.2.1 Detector
-Generic_COW_Detector=Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,...
-    Preset=DetectorPresets.MicroPhotonDevices.LoadPreset());
+Generic_COW_Detector=components.Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,...
+    'Preset',components.loadPreset("Excelitas"));
+%TODO: need a detector object preset with visibility
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
 %NOTE only detectors with the 'Visibility' property can be used for COW
 
 %2.2.2 Receiver telescope
-Receiver_Telescope=Telescope(Receiver_Telescope_Diameter);
+Receiver_Telescope=components.Telescope(Receiver_Telescope_Diameter);
 
-%2.2.3 construct ground station, use Chilbolton as an example
-SimGround_Station=Chilbolton_OGS(Receiver_Telescope,...
-                                    'Detector',Generic_COW_Detector);
-
-%2.3 protocol
-COW_protocol=Protocol.COW;
+%2.2.3 construct ground station, use Heriot-Watt as an example
+SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
+                                'Detector',Detector,...
+                                'LLA',[55.909723, -3.319995,10],...
+                                'Name','Heriot-Watt');
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Pass=PassSimulation(SimSatellite,COW_protocol,SimGround_Station);
-%3.2 run simulation
-Pass=Simulate(Pass);
-%3.3 plot results
-plot(Pass);
+Results = QkdPassSimulation(SimGround_Station,SimSatellite,"COW");
+%3.2 plot results
+plotResults(Results);

@@ -1,6 +1,4 @@
-%% implement a simulation of a satellite in a 500km sun synchronous orbit over a ground station using the COW protocol
-%% First, we must construct the components of a simulation. Then we form them all into a single PassSimulation object.
-%% Then we simulate the pass and plot the results.
+% a simulation of a differential phase shift protocol satellite pass
 
 %% 1. Choose parameters
 Wavelength=780;                                                            %wavelength is measured in nm

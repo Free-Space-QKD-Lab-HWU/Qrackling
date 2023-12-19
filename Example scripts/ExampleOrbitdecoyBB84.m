@@ -1,6 +1,4 @@
-%% implement a simulation of a satellite in a 500km orbit over a ground station using the decoy BB84 protocol
-%% First, we must construct the components of a simulation. Then we form them all into a single PassSimulation object.
-%% Then we simulate the pass and plot the results.
+% a simulation of a decoy BB84 satellite pass
 
 %% 1. Choose parameters
 Wavelength=780;                                                            %wavelength is measured in nm
@@ -42,8 +40,8 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
                                 'LLA',[55.909723, -3.319995,10],...
                                 'Name','Heriot-Watt');
 
-%% 3 Compose and run the PassSimulation
-%3.1 compose passsimulation object
+%% 3 run and plot simulation
+%3.1 run simulation
 Result=nodes.QkdPassSimulation(SimGround_Station,SimSatellite,"DecoyBB84");
 %3.2 plot results
 plotResult(Result,SimSatellite.Times,'Time',SimGround_Station,SimSatellite)
