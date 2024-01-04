@@ -63,15 +63,24 @@ classdef BeaconResult
             result.PAA                      = PAA;
         end
 
-        function fig = plot(result, x_axis, x_label, options)
+        function fig = plot(result, options)
             arguments
                 result beacon.BeaconResult
-                x_axis
-                x_label
+                options.x_axis {mustBeMember(options.x_axis, { ...
+                    'Time', 'Elevation'})} = "Time"
                 options.mask {mustBeMember(options.mask, { ...
                     'Elevation', 'Line of sight', 'None'})} = "Elevation"
             end
             
+            %% what is on the x axis?
+            switch options.x_axis
+                case 'Time'
+                x_axis = result.time;
+                x_label = 'Time';
+                case 'Elevation'
+                x_axis = result.elevation;
+                x_label = 'Elevation (deg)';
+            end
             %% what range is to be plotted?
             switch options.mask
             case "Elevation"
@@ -81,38 +90,50 @@ classdef BeaconResult
             case "None"
                 mask = true(size(result.communications));
             end
-            have_mask = any(contains(fieldnames(options), "mask"));
 
             fig = figure("Name", ['Beacon simulation from ', ...
                 result.transmitter_name, ' to ', result.receiver_name], ...
                 "WindowState", "maximized");
 
-            subplot(3, 1, 1)
-            if have_mask
-                plot(x_axis(mask), result.received_power(mask));
-            else
-                plot(x_axis, result.received_power);
-            end
+            subplot(2, 3, [1,2])
+            yyaxis left
+            plot(x_axis(mask), result.received_power(mask));
             ylabel("Beacon Power (W)");
             xlabel(x_label);
 
-            subplot(3, 1, 2)
-            hold on
-            if have_mask
-                result.losses.plotLosses(x_axis, x_label, "mask", mask);
-            else
-                result.losses.plotLosses(x_axis, x_label);
-            end
-            hold off
-
-            subplot(3, 1, 3)
-            if have_mask
-                plot(x_axis(mask), result.snr_db(mask))
-            else
-                plot(x_axis, result.snr_db)
-            end
+            yyaxis right
+            plot(x_axis(mask), result.snr_db(mask))
             ylabel("SNR (dB)");
             xlabel(x_label);
+
+            subplot(2, 3, [4,5])
+            hold on
+            result.losses.plotLosses(x_axis, x_label, "mask", mask);
+            hold off
+            
+            polarax = subplot(2,3,3,polaraxes);
+            polarplot(polarax,deg2rad(result.heading(mask)), result.elevation(mask))
+            set(polarax,'ThetaZeroLocation','top',...
+                                'ThetaDir','clockwise',...
+                                'ThetaAxisUnits','degrees',...
+                                'RDir','reverse',...
+                                'RLim',[0,90],...
+                                'RTick',[0,30,60,90],...
+                                'RTickLabel',{'0^\circ','30^\circ','60^\circ','90^\circ'});
+
+            subplot(2,3,6)
+            plot(result.PAA(1,mask), result.PAA(2,mask))
+            %centre plot on zero with equal axes
+            total_PAA_angle = sqrt(result.PAA(1,mask).^2 + result.PAA(2,mask).^2);
+            max_angle = max(total_PAA_angle);
+            ylim([-max_angle,max_angle])
+            xlim([-max_angle,max_angle])
+            axes = gca;
+            axes.YAxisLocation = 'right';
+            xlabel('Heading PAA (rads)')
+            ylabel('Elevation PAA (rads)')
+            grid on
+
 
         end
 

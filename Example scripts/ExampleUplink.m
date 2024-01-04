@@ -42,4 +42,4 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
 %3.1 run simulation, first argument is receiver
 result = nodes.QkdPassSimulation(SimSatellite, SimGround_Station, "DecoyBB84");
 %3.2 plot results
-figure = plotResult(result,SimSatellite.Times,'Time',SimSatellite,SimGround_Station);
+figure = plotResult(result,SimSatellite,SimGround_Station);

@@ -45,4 +45,4 @@ Cities=Cities_Struct.Cities;                                           %these ar
 %3.1 run simulation
 Result=nodes.QkdPassSimulation(SimGround_Station,SimSatellite,"BB84",'Background_Sources',Cities);
 %3.2 plot results
-plotResult(Result,SimSatellite.Times,'Time',SimGround_Station,SimSatellite)
+plotResult(Result,SimGround_Station,SimSatellite)

@@ -30,7 +30,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
     %do not hide small properties
     properties (SetAccess=protected, Hidden=false)
         % If not set, initialised to UUID
-        Name{mustBeText} = '';
+        Name{mustBeText} = 'Unnamed Satellite';
         %File location for Latitude, Longitude, Altitude and Time data
         Orbit_Data_File_Location{mustBeText} = '';
 

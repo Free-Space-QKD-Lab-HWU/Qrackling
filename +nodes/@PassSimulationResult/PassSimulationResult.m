@@ -56,16 +56,25 @@ classdef PassSimulationResult
             result.background_count_rate  = background_count_rate;
         end
 
-        function fig = plotResult(result, x_axis, x_label, receiver, transmitter, options)
+        function fig = plotResult(result, receiver, transmitter, options)
             arguments
                 result nodes.PassSimulationResult
-                x_axis
-                x_label
                 receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
                 transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
+                options.x_axis {mustBeMember(options.x_axis, { ...
+                    'Time', 'Elevation'})} = "Time"
                 options.mask {mustBeMember(options.mask, { ...
                     'Elevation', 'Communication', 'Line of sight', 'None'})} = "Elevation"
                 options.Background_Sources = [] %HACK: make a "noise result" type instead
+            end
+
+            switch options.x_axis
+                case 'Time'
+                x_axis = result.time;
+                x_label = 'Time';
+                case 'Elevation'
+                x_axis = result.elevation;
+                x_label = 'Elevation (deg)';
             end
 
             switch options.mask

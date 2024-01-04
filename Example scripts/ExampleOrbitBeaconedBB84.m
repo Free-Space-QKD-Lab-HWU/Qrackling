@@ -50,7 +50,8 @@ SimSatellite=nodes.Satellite(Transmitter_Telescope,...
                             'OrbitDataFileLocation',OrbitDataFileLocation,...
                             'Source',Transmitter_Source,...
                             'Beacon',Downlink_Beacon,...
-                            'Camera',Uplink_Cam);
+                            'Camera',Uplink_Cam,...
+                            'Name','ExampleSat');
 
 %2.2 Ground station
 %2.2.1 Detector
@@ -95,7 +96,7 @@ Result = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,"DecoyBB84");
 DownlinkBeaconResults = beacon.beaconSimulation(SimGround_Station,SimSatellite);
 UplinkBeaconResults = beacon.beaconSimulation(SimSatellite,SimGround_Station);
 %3.2 plot results
-plotResult(Result,SimSatellite.Times,'Time',SimGround_Station,SimSatellite);
-plot(DownlinkBeaconResults,SimSatellite.Times,'Time');
-plot(UplinkBeaconResults,SimSatellite.Times,'Time');
+plotResult(Result,SimGround_Station,SimSatellite);
+plot(DownlinkBeaconResults);
+plot(UplinkBeaconResults);
 

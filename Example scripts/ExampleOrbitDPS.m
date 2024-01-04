@@ -56,4 +56,4 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
 
 %% 3 Compose and run the PassSimulation
 SimResults = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,"DPS");
-plotResult(SimResults,SimSatellite.Times,'Time',SimGround_Station,SimSatellite);
+plotResult(SimResults,SimGround_Station,SimSatellite);

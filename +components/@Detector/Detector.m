@@ -384,7 +384,7 @@ classdef  Detector
         function Det = SetDarkCountRate(Det, DCR)
             % SetDarkCountRate set detector dark count rate
             arguments
-                Det Detector
+                Det components.Detector
                 DCR double {mustBeNonnegative}
             end
             Det.Dark_Count_Rate = DCR;
