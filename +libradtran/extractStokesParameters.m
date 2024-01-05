@@ -8,7 +8,7 @@ function [stokes, wvl] = extractStokesParameters(dop_data_file, options)
     [~, ~, sub_ext] = fileparts(name);
 
     assert(any('.rad.spc' == [sub_ext, ext]),  ...
-        'Wrong input file suppled, file should have extension ".rad.spc"');
+        'Wrong input file supplied, file should have extension ".rad.spc"');
 
     data = readtable(dop_data_file, FileType='delimitedtext');
 

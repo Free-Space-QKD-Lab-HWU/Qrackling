@@ -216,7 +216,6 @@ classdef libRadtran < handle
                     continue
                 end
                 str = [str, linebreak, linebreak, '# ', group_name];
-                disp(group_name)
                 details = lrt.GroupString(group_name);
                 str = [str, details];
             end
@@ -272,6 +271,7 @@ classdef libRadtran < handle
             fd = fopen(configuration_file_path, 'w');
             written_bytes = fprintf(fd, configuration);
             assert(written_bytes > 0, 'Nothing written, something has gone wrong');
+            fclose(fd);
         end
 
         function output_file = RunConfiguration(lrt, file_path, file_name, options)
