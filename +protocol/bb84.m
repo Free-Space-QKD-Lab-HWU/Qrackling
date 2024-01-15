@@ -1,12 +1,13 @@
 classdef bb84 < protocol.proto
-    properties
-        source_features   = {'g2',              'Mean_Photon_Number', 'State_Prep_Error'}
-        detector_features = {'Dark_Count_Rate', 'Time_Gate_Width',    'Dead_Time'}
+    properties (SetAccess = protected)
+        method = 'prepare_and_measure'
+        source_features = protocol.sourceRequirements.features("g2", "Mean_Photon_Number", "State_Prep_Error")
+        detector_features = protocol.detectorRequirements.features("Dark_Count_Rate", "Time_Gate_Width", "Dead_Time")
         efficiency = 0.5
     end
 
     methods
-        function protocol = bb84()
+        function p = bb84()
         end
 
         function [secret_key_rate, sifted_key_rate, qber] = QkdModel( ...

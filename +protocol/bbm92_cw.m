@@ -1,7 +1,8 @@
 classdef bbm92_cw
-    properties
-        source_features   = {'Mean_Photon_Number', 'Coincidence_Window', 'State_Prep_Error'}
-        detector_features = {'Dark_Count_Rate'}
+    properties (SetAccess = protected)
+        method = 'prepare_and_measure'
+        source_features = protocol.sourceRequirements.features('Mean_Photon_Number', 'Coincidence_Window', 'State_Prep_Error')
+        detector_features = protocol.detectorRequirements.features('Dark_Count_Rate')
         efficiency = 0.5
     end
 

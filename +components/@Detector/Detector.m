@@ -165,7 +165,7 @@ classdef  Detector
             crossed = abs(smoothed - circshift(smoothed, shift));
             mask = bins((crossed / max(crossed)) > 0.05);
 
-            % ABSOLUTELY DO NOT DO THIS WITH JITTER DATA, YOU MORON
+            % ABSOLUTELY DO NOT DO THIS WITH JITTER DATA
             % Need oscilloscope traces for each detector
 
             peakLocation = bins(max(smoothed) == smoothed);

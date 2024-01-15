@@ -1,15 +1,9 @@
 classdef proto
-    properties (Abstract)
-        source_features {mustBeMember(source_features, { ...
-            'Wavelength',         'Repetition_Rate',  'Efficiency', ...
-            'Mean_Photon_Number', 'State_Prep_Error', 'g2',         ...
-            'State_Probabilities', 'Coincidence_Window' ...
-            })}
 
-        detector_features {mustBeMember(detector_features, { ...
-            'Wavelength', 'QBER_Jitter', 'Time_Gate_Width', ...
-            'Dead_Time', 'Dark_Count_Rate', 'Visibility', ...
-            })}
+    properties (Abstract, SetAccess = protected)
+        method {mustBeMember(method, {'prepare_and_measure', 'entanglement'})}
+        source_features protocol.sourceRequirements
+        detector_features protocol.detectorRequirements
         efficiency
     end
 
@@ -20,6 +14,37 @@ classdef proto
 
 
     methods
+
+
+
+        function [secret_rate, sifted_rate, qber] = Calculate(alice, bob, options)
+            arguments
+                alice {mustBeA(alice, ["protocol.Alice", "nodes.Satellite", "nodes.Ground_Station"])}
+                bob {mustBeA(bob, ["protocol.Bob", "nodes.Satellite", "nodes.Ground_Station"])}
+                options.channel_loss {mustBeNumeric}
+                options.background_counts {mustBeNumeric}
+            end
+
+            node_types = ["nodes.Satellite", "nodes.Ground_Station"];
+            isaNode = @(obj) any(isa(obj, node_types));
+
+            have_nodes = false;
+            if isaNode(alice) && isaNode(bob)
+                have_nodes = true;
+            end
+
+            % if Alice is not a protocol.Alice, then cast it
+            if ~isa(alice, "protocol.Alice")
+                Alice = alice.Alice();
+            end
+
+            % if Bob is not a protocol.Bob, then cast it
+            if ~isa(bob, "protocol.Bob")
+                Bob = bob.Bob();
+            end
+
+
+        end
 
 
         function [secret_key_rate, qber, sifted_key_rate] = EvaluateQKDLink( ...

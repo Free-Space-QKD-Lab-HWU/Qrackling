@@ -1,7 +1,8 @@
 classdef dps < protocol.proto
-    properties
-        source_features   = {'Mean_Photon_Number', 'State_Prep_Error', 'State_Probabilities', }
-        detector_features = {'Dark_Count_Rate',    'Time_Gate_Width',  'Dead_Time', 'QBER_Jitter'}
+    properties (SetAccess = protected)
+        method = 'prepare_and_measure'
+        source_features = protocol.sourceRequirements.features('Mean_Photon_Number', 'State_Prep_Error', 'State_Probabilities')
+        detector_features = protocol.detectorRequirements.features('Dark_Count_Rate',    'Time_Gate_Width',  'Dead_Time', 'QBER_Jitter')
         efficiency = 1
     end
 

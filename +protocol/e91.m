@@ -1,7 +1,8 @@
 classdef e91 < protocol.proto
-    properties
-        source_features   = {'Mean_Photon_Number', 'State_Prep_Error', 'g2'}
-        detector_features = {'Dark_Count_Rate',    'Time_Gate_Width',  'Dark_Count_Rate'}
+    properties (SetAccess = protected)
+        method = 'prepare_and_measure'
+        source_features = protocol.sourceRequirements.features("Mean_Photon_Number", "State_Prep_Error", "g2")
+        detector_features = protocol.detectorRequirements.features("Dark_Count_Rate", "Time_Gate_Width")
         efficiency = 1
     end
 

@@ -968,3 +968,18 @@ protocol.Alice(spoqc)
 
 protocol.Bob(spoqc)
 spoqc.Bob()
+
+protocol.bb84()
+
+protocol.detectorRequirements.Wavelength
+
+protocol.detectorRequirements.features("Dead_Time", "Wavelength", "Dead_Time")
+protocol.sourceRequirements.features("g2", "Repetition_Rate", "g2")
+
+protocol.bb84()
+protocol.decoyBB84()
+
+prot
+
+%%
+new_full_example
