@@ -262,7 +262,8 @@ out_file_path = lrt.RunConfiguration( ...
 clear all
 close all
 clc
-lrt = libRadtran("~/libRadtran-2.0.4/");
+
+lrt = libradtran.libRadtran("~/libRadtran-2.0.4/")
 
 libradtran.libRadtran("~/libRadtran-2.0.4/")
 
@@ -291,7 +292,7 @@ out = lrt.OutputSettings() ...
     .OutputColumns("lambda", "zout", "uu", "edir", "eglo", "edn", "eup", "enet", "esum")...
     .OutputQuantity("reflectivity")...
     .PostProcessing("per_nm")...
-    .FileAndFormat("File", '~/Documents/conference_data/out.txt');
+    .FileAndFormat("File", '~/Documents/conference_data/out1.txt');
 
 mol = lrt.MoleculeSettings()...
     .MolecularAbsorption("reptran coarse")...
@@ -309,7 +310,7 @@ aer = lrt.AerosolSettings() ...
 config_string = lrt.StringFromConfiguration();
 
 out_file_path = lrt.RunConfiguration( ...
-    '~/Documents/conference_data', 'test.txt', ...
+    '~/Documents/conference_data', 'test1.txt', ...
     Verbosity = 'Quiet');
 
 %% detector preset recreation after error
@@ -843,4 +844,127 @@ end
 
 %%
 
+%% 2.1µm detector
+clear all
 
+preset_path = "~/Downloads/SNSPD_2um_Chang.mat"
+preset = components.DetectorPresetBuilder().loadPreset(preset_path)
+
+options = { ...
+    'Wavelength', 'Repetition_Rate', 'Efficiency', ...
+    'Mean_Photon_Number', 'State_Prep_Error', 'g2', ...
+    'State_Probabilities'}
+choices = {'Wavelength', 'Repetition_Rate'}
+ismember(choices, options)
+mustBeMember(choices, options)
+
+props = properties(components.Detector.empty(0))
+
+props = props(ismember(props, choices))'
+
+i = 0;
+for p = props'
+    disp(p{1})
+    i = i + 1
+end
+
+channel_wavelength = 785;
+repetition_rate = 1E8;
+time_gate = 2E-9;
+filter_file = '~/Projects/QKD_Sat_Link/adaptive_optics/Example Data/spectral filters';
+spectral_filter = SpectralFilter('input_file',[filter_file, filesep(),'FBH780-10.xlsx']);
+detector = components.Detector( ...
+    channel_wavelength, ...
+    repetition_rate, ...
+    time_gate, spectral_filter, ...
+    "Preset", components.loadPreset("Excelitas") );
+
+protocol.isOrHasSource(detector)
+protocol.isOrHasDetector(detector)
+
+hub_sat_source_mp_ns = [0.8,0.3,0];
+hub_sat_source_probs = [0.75,0.25,0.25];
+hub_sat_source_rep_rate = 1E8;
+hub_sat_source_g2 = 0.01;
+hub_sat_source_efficiency = 1;
+hub_sat_source_state_prep_error = 0.0025;
+wavelength = 785;
+source = components.Source(wavelength,...
+    'Mean_Photon_Number', hub_sat_source_mp_ns,...
+    'State_Probabilities', hub_sat_source_probs,...
+    'Repetition_Rate', hub_sat_source_rep_rate,...
+    'g2', hub_sat_source_g2,...
+    'Efficiency', hub_sat_source_efficiency,...
+    'State_Prep_Error', hub_sat_source_state_prep_error);
+
+protocol.isOrHasSource(source)
+
+
+bb84_proto = protocol.bb84()
+decoy_proto = protocol.decoyBB84()
+ekart91 = protocol.e91()
+coherent_one_way = protocol.cow()
+differential_phase_shift = protocol.dps()
+
+protocol.deriveAliceAndBob(source, detector)
+
+hogs = new_HOGS(785);
+hogs.Bob()
+protocol.Bob(hogs)
+
+props = properties(hogs);
+class(hogs.(props{1}))
+
+hogs.(string(props(cell2mat(cellfun(@(prop) isa(hogs.(prop), 'components.Detector'), props, UniformOutput=false)))))
+
+utilities.getPropertyFromObject(hogs, "components.Detector")
+
+protocol.Bob(detector)
+protocol.Bob([detector, detector])
+
+det1 = detector;
+det1.Visibility = 0.6;
+
+[protocol.Bob([detector, det1]).detector.Visibility]
+
+dets = [detector, det1];
+
+protocol.Bob(dets)
+
+protocol.Bob(dets)
+
+h = [hogs, hogs]
+
+[h.Detector]
+
+spoqc = new_spoqc(785, "26/12/2022 05:15, 06:49, 08:22, 09:54")
+spoqc.Alice()
+Alice(spoqc)
+
+al = spoqc.Alice()
+
+utilities.getPropertyFromObject(spoqc, 'components.Source')
+
+try
+    det = utilities.getPropertyFromObject(spoqc, 'components.Detector');
+catch err
+    switch err.identifier
+    case 'utilities:getPropertyFromObject'
+        det = components.Detector.empty(0);
+    end
+end
+
+protocol.Alice(spoqc)
+
+
+sources = [spoqc, spoqc]
+spoqc.Detector = detector
+protocol.Alice(sources, ~)
+
+spoqc.Detector = hogs.Detector
+
+spoqc.Alice()
+protocol.Alice(spoqc)
+
+protocol.Bob(spoqc)
+spoqc.Bob()

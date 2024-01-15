@@ -224,7 +224,8 @@ OGS_telescope = components.Telescope( ...
 %--------------------------------------------------------------------------
 % provide a file which describes filter spectral performance. an example is
 % given here. nativePathFrom provides path conversion for different OSs
-filter_file = utilities.nativePathFrom('Example Data/spectral filters/FBH780-10.xlsx');
+% filter_file = utilities.nativePathFrom('Example Data/spectral filters/FBH780-10.xlsx');
+filter_file = utilities.nativePathFrom('~/Projects/QKD_Sat_Link/main/Example Data/spectral filters/FBH780-10.xlsx');
 spectral_filter = SpectralFilter('input_file', filter_file);
 % alternatively, a dummy spectral filter can be created which has a
 % brick-wall spectral response using
@@ -298,7 +299,8 @@ uplink_beacon = beacon.Gaussian_Beacon( ...
 %around it. this can be provided using a sky brightness store
 %--------------------------------------------------------------------------
 %sky brightness store for the ground station
-sky_brightness = 'Example Data/orbit modelling resources/background count rate files/Errol_Experimental_Sky_Brightness_Store.mat';
+%sky_brightness = 'Example Data/orbit modelling resources/background count rate files/Errol_Experimental_Sky_Brightness_Store.mat';
+sky_brightness = '~/Projects/QKD_Sat_Link/main/Example Data/orbit modelling resources/background count rate files/Errol_Experimental_Sky_Brightness_Store.mat';
 sky_brightness = utilities.nativePathFrom(sky_brightness);
 %construct ground station
 hogs = nodes.Ground_Station(OGS_telescope,...
@@ -314,7 +316,8 @@ hogs = nodes.Ground_Station(OGS_telescope,...
 %simulations are run by using the *Simulation functions. the first argument
 %is the receiver and the second the transmitter. For QKD, the protocol ca n
 %also be selected
-result = nodes.QkdPassSimulation(hogs, spoqc, "DecoyBB84");
+qkd_protocol = protocol.decoyBB84();
+result = nodes.QkdPassSimulation(hogs, spoqc, qkd_protocol);
 beacon_result_down = beacon.beaconSimulation(hogs, spoqc);
 beacon_result_up = beacon.beaconSimulation(spoqc, hogs);
 
@@ -323,6 +326,12 @@ beacon_result_up = beacon.beaconSimulation(spoqc, hogs);
 % standard dashboard of results. Otherwise, results can be accessed from
 % these objects as read-only properties
 
+<<<<<<< HEAD
 QKD_figure = result.plotResult(hogs, spoqc, "mask", "Elevation");
 beacon_down_figure = beacon_result_down.plot("mask", "Elevation");
 beacon_up_figure = beacon_result_up.plot("mask", "Elevation");
+=======
+QKD_figure = result.plotResult(hogs, spoqc);
+beacon_down_figure = beacon_result_down.plot();
+beacon_up_figure = beacon_result_up.plot();
+>>>>>>> f9765da (introduction of +protocol module, bbm92 qkd protocol and Alice and Bob classes.)

@@ -36,6 +36,16 @@ classdef (Abstract) QKD_Receiver < nodes.Optical_Node
 
     methods (Abstract=false)
 
+        function bob = Bob(obj, loss, background_rates)
+            arguments
+                obj {protocol.isOrHasDetector}
+                loss {mustBeNumeric} = 1
+                background_rates {mustBeNumeric} = 0
+            end
+            disp('overload')
+            bob = protocol.Bob(obj, loss, background_rates);
+        end
+
         function Received_Wavelengths = DopplerShift(QKD_Receiver,QKD_Transmitter)
             %%DOPPLERSHIFT compute the apparent wavelength at the receiver
             %%of a transmitted QKD signal

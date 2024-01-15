@@ -38,6 +38,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
 
         %% information about protocol
         % protocol used (BB84,BBN92,...)
+        %TODO: remvoe protocol from satellite
         Protocol Protocol = Protocol.BB84;
         Protocol_Efficiency{mustBeScalarOrEmpty} = 1;
 
@@ -194,7 +195,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                     hasVelocity = true;
 
                 elseif ~isempty(KeplerElements)
-                    [rows, cols] = size(KeplerElements);
+                    [~, cols] = size(KeplerElements);
                     if cols ~= 6
                         error(['Require all 6 Kepler Elements, in order:', ...
                           newline, char(9), 'semiMajorAxis', ...
@@ -430,6 +431,8 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
         end
 
 
+        % TODO: remove unused arguments
+        % TODO: remove smarts
         function [Background_Count_Rates, Satellite] = ComputeTotalBackgroundCountRate(Satellite, Background_Sources, Ground_Station, Headings, Elevations, smarts_configuration)
             %%COMPUTETOTALBACKGROUNDCOUNTRATE consider background light at the
             %%satellite to produce BCR
