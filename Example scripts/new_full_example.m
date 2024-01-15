@@ -326,12 +326,6 @@ beacon_result_up = beacon.beaconSimulation(spoqc, hogs);
 % standard dashboard of results. Otherwise, results can be accessed from
 % these objects as read-only properties
 
-<<<<<<< HEAD
 QKD_figure = result.plotResult(hogs, spoqc, "mask", "Elevation");
 beacon_down_figure = beacon_result_down.plot("mask", "Elevation");
 beacon_up_figure = beacon_result_up.plot("mask", "Elevation");
-=======
-QKD_figure = result.plotResult(hogs, spoqc);
-beacon_down_figure = beacon_result_down.plot();
-beacon_up_figure = beacon_result_up.plot();
->>>>>>> f9765da (introduction of +protocol module, bbm92 qkd protocol and Alice and Bob classes.)
