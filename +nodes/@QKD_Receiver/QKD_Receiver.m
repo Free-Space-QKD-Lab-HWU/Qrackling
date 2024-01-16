@@ -42,7 +42,6 @@ classdef (Abstract) QKD_Receiver < nodes.Optical_Node
                 loss {mustBeNumeric} = 1
                 background_rates {mustBeNumeric} = 0
             end
-            disp('overload')
             bob = protocol.Bob(obj, loss, background_rates);
         end
 

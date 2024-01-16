@@ -979,7 +979,7 @@ protocol.sourceRequirements.features("g2", "Repetition_Rate", "g2")
 protocol.bb84()
 protocol.decoyBB84()
 
-prot
-
 %%
+close all
+clear all
 new_full_example

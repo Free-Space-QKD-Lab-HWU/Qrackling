@@ -1,16 +1,16 @@
 classdef Bob
     properties
         detector components.Detector
-        channel_loss {mustBeNumeric} = 1
-        background_count_rate {mustBeNumeric} = 0
+        channel_efficiency {mustBeNumeric} = 1
+        dark_count_probability {mustBeNumeric} = 0
     end
 
     methods
-        function bob = Bob(has_detector, channel_loss, background_count_rate)
+        function bob = Bob(has_detector, channel_efficiency, dark_count_probability)
             arguments
                 has_detector {protocol.isOrHasDetector}
-                channel_loss {mustBeNumeric} = 1
-                background_count_rate {mustBeNumeric} = 0
+                channel_efficiency {mustBeNumeric} = 1
+                dark_count_probability {mustBeNumeric} = 0
             end
 
             switch class(has_detector)
@@ -25,8 +25,8 @@ classdef Bob
             end
 
             bob.detector = detector;
-            bob.channel_loss = channel_loss;
-            bob.background_count_rate = background_count_rate;
+            bob.channel_efficiency = channel_efficiency;
+            bob.dark_count_probability = dark_count_probability;
         end
     end
 

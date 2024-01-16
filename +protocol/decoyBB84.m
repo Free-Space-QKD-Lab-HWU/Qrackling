@@ -1,7 +1,10 @@
 classdef decoyBB84 < protocol.proto
     properties (SetAccess = protected)
         method = 'prepare_and_measure'
-        source_features = protocol.sourceRequirements.features("Mean_Photon_Number", "State_Prep_Error", "State_Probabilities")
+        source_features = protocol.sourceRequirements.features( ...
+            "MPN_Signal", "Probability_Signal", ...
+            "MPN_Decoy",  "Probability_Decoy",  ...
+            "State_Prep_Error")
         detector_features = protocol.detectorRequirements.features("Dark_Count_Rate", "Time_Gate_Width", "Dead_Time")
         efficiency = 0.5,
     end
@@ -10,8 +13,7 @@ classdef decoyBB84 < protocol.proto
         function protocol = decoyBB84()
         end
 
-        function [SKR_decoyBB84, Sifted_Key_Rate, QBER] = QkdModel( ...
-            proto, Source, Detector, prob_dark_counts, loss)
+        function [SKR_decoyBB84, Sifted_Key_Rate, QBER] = QkdModel(proto, alice, bob)
 
         %% Function -- BB84Decoy_model
         % Author    -- Alfonso Tello Castillo
@@ -44,54 +46,63 @@ classdef decoyBB84 < protocol.proto
         % From thesis "(2005) Xiongfeng Ma - Security of Quantum Key Distribution with 
         % Realistic Devices", although these equations are fairly known
 
-            %% get variables from source object
-            MPN = Source.Mean_Photon_Number;
-            State_p = Source.State_Probabilities;
-            rep_rate = Source.Repetition_Rate;
-            state_prep_error = Source.State_Prep_Error;
+            rep_rate = alice.source.Repetition_Rate;
+            state_prep_error = alice.source.State_Prep_Error;
+
+            %loss = bob.channel_efficiency;
+            loss = (10.^(-(bob.channel_efficiency) / 10)) ...
+                .* bob.detector.Detection_Efficiency;
+            prob_dark_counts = bob.dark_count_probability;
 
             %% get variables from detector object
-            det_eff = Detector.Detection_Efficiency;
-            QBER_jitter = Detector.QBER_Jitter;
+            %det_eff = bob.detector.Detection_Efficiency;
+            QBER_jitter = bob.detector.QBER_Jitter;
             %QBER due to polarisation misalignment (in degrees)
-            QBER_polarisation_error = sind(Detector.Polarisation_Error);
+            QBER_polarisation_error = sind(bob.detector.Polarisation_Error);
 
-            Detection_Probability = (MPN .* State_p)' * 10.^(-(loss) / 10) .* det_eff + prob_dark_counts;
+            %Detection_Probability = (MPN .* State_p)' * loss + prob_dark_counts;
+            mpn = [alice.source.MPN_Signal, alice.source.MPN_Decoy, alice.source.MPN_Vacuum];
+            state_probability = [ ...
+                alice.source.Probability_Signal, ...
+                alice.source.Probability_Decoy, ...
+                alice.source.Probability_Vacuum];
+
+            emission = mpn .* state_probability;
+            detection_probabilities = emission' .* loss + prob_dark_counts;
 
             QBER_cod = state_prep_error;
-            QBER_noise = 0.5 * prob_dark_counts ./ Detection_Probability;
+            QBER_noise = 0.5 * prob_dark_counts ./ detection_probabilities;
             %QBER_jitter = qber_jitter;
-            %Detector = SetJitterPerformance(Detector, sum(pD) * rep_rate);
+            %bob.detector = SetJitterPerformance(bob.detector, sum(pD) * rep_rate);
 
             % To avoid that due to QBER_cod and QBER_jitter (fixed) the QBER
             % can go higher than 50%, which doesn't make sense
-            QBER = min(QBER_cod + QBER_noise ...
-                       + QBER_jitter + QBER_polarisation_error, ...
-                       0.5);
+            QBER = min(...
+                QBER_cod + QBER_noise + QBER_jitter + QBER_polarisation_error, ...
+                0.5);
 
             % Estimation of the Secret Key Rate
-            pM_weak = photonDetc(MPN(2) * State_p(2), 2, 10.^(-loss/10) .* det_eff, prob_dark_counts)';
-            pS_weak = Detection_Probability(2,:) - pM_weak - prob_dark_counts * exp(-MPN(2) * State_p(2));
-            QBERs = (QBER(2,:) .* Detection_Probability(2,:) ...
-                     - 0.5 * prob_dark_counts * exp(-MPN(2) * State_p(2))) ./ pS_weak;
+            pM_weak = photonDetc(emission(2), 2, loss, prob_dark_counts)';
+            pS_weak = detection_probabilities(2,:) - pM_weak - prob_dark_counts * exp(-emission(2));
 
-            pS_signal = photonDetc(MPN(1) * State_p(1), 1, ...
-                                   10.^(-loss / 10) .* det_eff, prob_dark_counts);
+            QBERs = (QBER(2,:) .* detection_probabilities(2,:) ...
+                - 0.5 * prob_dark_counts * exp(-emission(2))) ./ pS_weak;
+
+            pS_signal = photonDetc(emission(1), 1, loss, prob_dark_counts);
 
             f = 1.2;
 
             %% this is the key generation rate
-            Ideal_Secret_Key_Rate = proto.efficiency * ( -Detection_Probability(1,:) * f .* H(QBER(1,:) ) ...
-                            + pS_signal .* ( 1 - H(QBERs) ) );
+            Ideal_Secret_Key_Rate = proto.efficiency * ( -detection_probabilities(1,:) * f .* H(QBER(1,:) ) + pS_signal .* ( 1 - H(QBERs) ) );
 
-            Sifted_Key_Rate = pS_signal*proto.efficiency*rep_rate;
+            Sifted_Key_Rate = pS_signal * proto.efficiency * rep_rate;
 
             %SKR_decoyBB84 = min(R_sifted, 1/dead_time);
             %disp([num2str(R), ' ', num2str(SKR_decoyBB84), ' ', num2str(test)]);
             %SKR_decoyBB84 = R_sifted;
 
             %SKR_decoyBB84 = dead_time_corrected_count_rate(rep_rate * Ideal_Secret_Key_Rate, tau1, tau2, 1);
-            SKR_decoyBB84 = min(rep_rate * Ideal_Secret_Key_Rate, 1 / Detector.Dead_Time);
+            SKR_decoyBB84 = min(rep_rate * Ideal_Secret_Key_Rate, 1 / bob.detector.Dead_Time);
             %SKR_decoyBB84 = R;
             %disp(SKR_decoyBB84);
             %SKR_decoyBB84(isnan(R_sifted)) = NaN;

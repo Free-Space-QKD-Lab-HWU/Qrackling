@@ -1,3 +1,4 @@
+% TODO: adapt this to allow double up/down link comms
 function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
     arguments
         Receiver { ...
@@ -69,16 +70,38 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
         options.Background_Sources, Transmitter, headings, elevations);
 
     [link_loss, ~] = nodes.linkLoss("qkd", Receiver, Transmitter, ...
-        "apt", "optical", "geometric", "turbulence", "atmospheric",'Visibility',options.Visibility);
+        "apt", "optical", "geometric", "turbulence", "atmospheric",'Visibility', options.Visibility);
 
     total_loss = link_loss.TotalLoss("dB");
     total_loss_db = total_loss.As("dB");
     total_loss_db(isnan(total_loss_db)) = 0;
 
-    [secret, qber, sifted] = proto.EvaluateQKDLink( ...
-        Transmitter.Source, Receiver.Detector, ...
-        [total_loss_db(elevation_limit_mask)], ...
-        [background_count_rate(elevation_limit_mask)]);
+    %[secret, qber, sifted] = proto.EvaluateQKDLink( ...
+    %    Transmitter.Source, Receiver.Detector, ...
+    %    [total_loss_db(elevation_limit_mask)], ...
+    %    [background_count_rate(elevation_limit_mask)]);
+
+    % assuming that alice has detectors (single link)
+    alice_loss = Transmitter.Source.Efficiency * Transmitter.Telescope.Optical_Efficiency;
+    alice_loss = ones(size(elevation_limit_mask)) .* alice_loss;
+
+    dcprobFromdcRate = @(dcRate, gateWidth) 1 - exp(-dcRate * gateWidth);
+    if ~isempty(Transmitter.Detector)
+        dcr = 0
+        if ~isempty(Transmitter.Detector.Dark_Count_Rate)
+            dcr = Transmitter.Detector.Dark_Count_Rate;
+        end
+        alice_background = ones(size(elevation_limit_mask)) .* dcr;
+        alice_background = dcprobFromdcRate(alice_background, Transmitter.Detector.Time_Gate_Width);
+    else
+        alice_background = zeros(size(elevation_limit_mask));
+    end
+
+    bob_background = dcprobFromdcRate(background_count_rate(elevation_limit_mask), Receiver.Detector.Time_Gate_Width);
+
+    [secret, sifted, qber] = proto.Calculate( ...
+        Transmitter.Alice([alice_loss], [alice_background]), ...
+        Receiver.Bob([total_loss_db(elevation_limit_mask)], [bob_background]) );
 
     %secret(~elevation_limit_mask) = 0; %outside elevation window == no comms
     %sifted(~elevation_limit_mask) = 0;

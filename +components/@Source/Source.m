@@ -4,6 +4,7 @@ classdef Source
     properties(SetAccess = protected)
         %wavelength of the source (in nm),  set by the satellite it is mounted to
         Wavelength{mustBeScalarOrEmpty, mustBePositive};
+        Units units.Magnitude
 
         %number of photon pulses per s (Hz)
         Repetition_Rate{mustBeScalarOrEmpty, mustBeNonnegative} = 10^9;
@@ -12,7 +13,9 @@ classdef Source
         Efficiency{mustBeScalarOrEmpty, mustBePositive} = 1;
 
         %average number of photons per pulse
-        Mean_Photon_Number{mustBeVector, mustBeNonnegative} = 0.01;
+        MPN_Signal {mustBeNumeric, mustBeNonnegative} = 0.01
+        MPN_Vacuum {mustBeNumeric, mustBeNonnegative} = 0
+        MPN_Decoy {mustBeNumeric, mustBeNonnegative} % optional
 
         %convolution of errors due to state preparation (as a fraction)
         % NOTE: Error when encoding polariation, i.e. accidentally encoding 'H'
@@ -23,8 +26,18 @@ classdef Source
         g2{mustBeScalarOrEmpty, mustBeNonnegative} = 0.01;
 
         %probability of emitting the different states used (for decoyBB84 and COW)
-        State_Probabilities{mustBeNumeric,  mustBeNonnegative,  mustBeLessThanOrEqual(State_Probabilities,  1)} = 1;
-
+        Probability_Signal { ...
+                    mustBeNumeric, ...
+                    mustBeNonnegative, ...
+                    mustBeLessThanOrEqual(Probability_Signal, 1)}
+        Probability_Vacuum { ...
+                    mustBeNumeric, ...
+                    mustBeNonnegative, ...
+                    mustBeLessThanOrEqual(Probability_Vacuum, 1)}
+        Probability_Decoy { ...
+                    mustBeNumeric, ...
+                    mustBeNonnegative, ...
+                    mustBeLessThanOrEqual(Probability_Decoy, 1)}
     end
 
     methods
@@ -32,15 +45,23 @@ classdef Source
         %     %%SOURCE construct a source object
 
         function obj = Source(Wavelength, options)
-            arguments (Input)
+            arguments
                 Wavelength
                 options.Wavelength_Scale units.Magnitude = "nano"
                 options.Repetition_Rate = 1e9
                 options.Efficiency = 1
-                options.Mean_Photon_Number = 0.01
+                options.MPN_Signal = 0.01
+                options.MPN_Decoy
                 options.State_Prep_Error = 0.01
                 options.g2 = 0.01
-                options.State_Probabilities = 1
+                options.Probability_Signal { ...
+                    mustBeNumeric, ...
+                    mustBeNonnegative, ...
+                    mustBeLessThanOrEqual(options.Probability_Signal, 1)} = 1
+                options.Probability_Decoy { ...
+                    mustBeNumeric, ...
+                    mustBeNonnegative, ...
+                    mustBeLessThanOrEqual(options.Probability_Decoy, 1)}
             end
 
             % BUG: Why isn't Wavelength assigned to anything
@@ -58,6 +79,34 @@ classdef Source
                 end
             end
 
+            obj = obj.UpdateVacuumProabability();
+
+        end
+
+        function Source = UpdateVacuumProabability(Source)
+            arguments
+                Source
+            end
+
+            if isempty(Source.Probability_Decoy)
+                Source.Probability_Vacuum = 1 - Source.Probability_Signal;
+                return
+            end
+
+
+            total_probability = Source.Probability_Signal + Source.Probability_Decoy;
+
+            msg = [sprintf( ...
+                '\nSum of state probabilities exceeds 1:\n\tSignal = %s\n\tVacuum = % s\n\tDecoy = %s\n\t', ...
+                Source.Probability_Signal, ...
+                1 - total_probability, ...
+                Source.Probability_Decoy), ...
+                'This has resulted in negative vacuum probability'];
+
+            if total_probability > 1;
+                error(msg)
+            end
+            Source.Probability_Vacuum = 1 - total_probability;
         end
 
         function Source = SetWavelength(Source, Wavelength, options)
@@ -69,6 +118,7 @@ classdef Source
             %%SETWAVELENGTH set the wavelength (nm) of the source
             Source.Wavelength = units.Magnitude.Convert( ...
                 options.Wavelength_Scale, "nano", Wavelength);
+            Source.Units = options.Wavelength_Scale;
         end
 
         function Source = SetRepetitionRate(Source, Repetition_Rate)
@@ -81,28 +131,54 @@ classdef Source
             Source.Efficiency = Efficiency;
         end
 
-        function Source = SetStates(Source, MPNs, State_Probabilities)
-            %%SETSTATES set the mean photon number and state probabilities
-            %%of the source for decoy BB84
+        % function Source = SetStates(Source, MPNs, State_Probabilities)
+        %     %%SETSTATES set the mean photon number and state probabilities
+        %     %%of the source for decoy BB84
 
-            %% input validation
-            if ~numel(MPNs) == numel(State_Probabilities)
-                error('State mean photon numbers and probabilities must have equal numbers of elements')
+        %     %% input validation
+        %     if ~numel(MPNs) == numel(State_Probabilities)
+        %         error('State mean photon numbers and probabilities must have equal numbers of elements')
+        %     end
+        %     Source = SetMeanPhotonNumber(Source, MPNs);
+        %     Source = SetStateProbabilities(Source, State_Probabilities);
+        % end
+
+        function Source = SetMeanPhotonNumber(Source, State, Mean_Photon_Number)
+            arguments
+                Source
+                State {mustBeMember(State, {"Signal", "Decoy"})}
+                Mean_Photon_Number {mustBeNumeric, mustBeNonnegative}
             end
-            Source = SetMeanPhotonNumber(Source, MPNs);
-            Source = SetStateProbabilities(Source, State_Probabilities);
-        end
-
-        function Source = SetMeanPhotonNumber(Source, Mean_Photon_Number)
             %%SETMEANPHOTONNUMBER set the mean photon number(s) of the
             %%source
-            Source.Mean_Photon_Number = Mean_Photon_Number;
+            switch State
+            case "Signal"
+                Source.MPN_Signal = Mean_Photon_Number;
+            case "Decoy"
+                Source.MPN_Decoy = Mean_Photon_Number;
+            end
         end
 
-        function Source = SetStateProbabilities(Source, State_Probabilities)
+        function Source = SetStateProbabilities(Source, State, Probability)
+            arguments
+                Source
+                State {mustBeMember(State, {"Signal", "Decoy"})}
+                Probability { ...
+                    mustBeNumeric, ...
+                    mustBeNonnegative, ...
+                    mustBeLessThanOrEqual(Probability, 1)}
+            end
             %%SETSTATEPROBABILITIES set the probabilities of states for the
             %%source
-            Source.State_Probabilities = State_Probabilities;
+            %Source.State_Probabilities = State_Probabilities;
+            switch State
+            case "Signal"
+                Source.Probability_Signal = Probability;
+            case "Decoy"
+                Source.Probability_Decoy = Probability
+            end
+
+            Source = Source.UpdateVacuumProabability();
         end
 
         function Source = Setg2(Source, g2)

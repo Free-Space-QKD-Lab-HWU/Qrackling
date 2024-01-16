@@ -10,8 +10,9 @@ classdef e91 < protocol.proto
         function protocol = e91()
         end
 
-        function [secret_key_rate, sifted_key_rate, qber] = QkdModel( ...
-            proto, Source, Detector, prob_dark_counts, loss)
+        % function [secret_key_rate, sifted_key_rate, qber] = QkdModel( ...
+        %     proto, Source, Detector, prob_dark_counts, loss)
+        function [secret_rate, sifted_rate, qber] = QkdModel(proto, Alice, Bob)
         % Function to compute sifted key rate and QBER of the E92 protocol
         % -------------------------------------------------------------------
         %
@@ -28,11 +29,11 @@ classdef e91 < protocol.proto
         % 
         % OUTPUTS:
         % 
-        % sifted_key_rate = secure key rate [bit/s]
+        % sifted_rate = secure key rate [bit/s]
         % qber = QBER of the transmission system [%]
         % ########################################
 
-            rep_rate = Source.Repetition_Rate;
+            rep_rate = Alice.source.Repetition_Rate;
 
             % Intermidiate step to compute key variables
             P_d = 0;
@@ -49,15 +50,17 @@ classdef e91 < protocol.proto
 
             % Using notation from the paper where the model is presented
             % prob of dark counts
+            prob_dark_counts = Bob.dark_count_probability;
             P_e = prob_dark_counts;
             % detection efficiency
-            det_eff = Detector.Efficiency;
+            det_eff = Bob.detector.Detection_Efficiency;
             if det_eff > 1
                 eta_e = det_eff / 100;
             else
                 eta_e = det_eff;
             end
 
+            loss = Bob.channel_efficiency;
             lambda = 10.^(-loss./10);
             A_e = eta_e.*lambda + P_e.*(1-eta_e.*lambda);
             B_e = 1 - (1-P_e).*(1-eta_e.*lambda).^2;
@@ -79,14 +82,15 @@ classdef e91 < protocol.proto
             t_e = (1-2.*omega1) ./ (1+2.*omega1);
 
             % Rates
-            sifted_key_rate = s1 .* rep_rate;
-            % tau1 = Detector.fall_time;
-            % tau2 = Detector.rise_time;
+            sifted_rate = s1 .* rep_rate;
+            % tau1 = Bob.detector.fall_time;
+            % tau2 = Bob.detector.rise_time;
             % Rate_Det = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
+            dead_time = Bob.detector.Dead_Time;
 
             % QBER
-            %Detector = SetJitterPerformance(Detector, s1 * rep_rate); %?
-            qber_jitter = Detector.QBER_Jitter;
+            %Bob.detector = SetJitterPerformance(Bob.detector, s1 * rep_rate); %?
+            qber_jitter = Bob.detector.QBER_Jitter;
             qber = 1/2 .* (1-t_d.*t_e);
             qber = qber + qber_jitter;
             % QBER threshold is defined as the value for which the binary entropy
@@ -100,15 +104,15 @@ classdef e91 < protocol.proto
             R_2 = 1 - 2.*bin_ent(qber);
 
             % Final sifted key rate
-            secret_key_rate = sift_prob .* P_succ .* R_2 .* proto.efficiency .* rep_rate;
-            secret_key_rate = min(secret_key_rate, 1/dead_time);
-            %sifted_key_rate = dead_time_corrected_count_rate(sifted_key_rate, ...
+            secret_rate = sift_prob .* P_succ .* R_2 .* proto.efficiency .* rep_rate;
+            secret_rate = min(secret_rate, 1/dead_time);
+            %sifted_rate = dead_time_corrected_count_rate(sifted_rate, ...
             %                                                 dead_time, 1);
 
             % Marking the values where the sifted key rate is negative as Nan
             % (when the QBER is above q_thr the R_2 variable becomes negative
             % hence the sifted key rate becomes negative)
-            secret_key_rate(secret_key_rate < 0) = 0;
+            secret_rate(secret_rate < 0) = 0;
 
         end
 

@@ -8,8 +8,9 @@ classdef proto
     end
 
     methods (Abstract)
-        [secret_key_rate, sifted_key_rate, qber] = QkdModel( ...
-            protocol, source, detector, dark_count_prob, channel_loss);
+        %[secret_key_rate, sifted_key_rate, qber] = QkdModel( ...
+        %    protocol, source, detector, dark_count_prob, channel_loss);
+        [secret_key_rate, sifted_key_rate, qber] = QkdModel(protocol, alice, bob);
     end
 
 
@@ -17,15 +18,18 @@ classdef proto
 
 
 
-        function [secret_rate, sifted_rate, qber] = Calculate(alice, bob, options)
+        function [secret_rate, sifted_rate, qber] = Calculate(proto, alice, bob, options)
             arguments
+                proto
                 alice {mustBeA(alice, ["protocol.Alice", "nodes.Satellite", "nodes.Ground_Station"])}
                 bob {mustBeA(bob, ["protocol.Bob", "nodes.Satellite", "nodes.Ground_Station"])}
+                % The following optionals can be used to over ride the values in
+                % alice and bob (if they are present)
                 options.channel_loss {mustBeNumeric}
                 options.background_counts {mustBeNumeric}
             end
 
-            node_types = ["nodes.Satellite", "nodes.Ground_Station"];
+            node_types = ['nodes.Satellite', 'nodes.Ground_Station'];
             isaNode = @(obj) any(isa(obj, node_types));
 
             have_nodes = false;
@@ -35,14 +39,15 @@ classdef proto
 
             % if Alice is not a protocol.Alice, then cast it
             if ~isa(alice, "protocol.Alice")
-                Alice = alice.Alice();
+                alice = alice.Alice();
             end
 
             % if Bob is not a protocol.Bob, then cast it
             if ~isa(bob, "protocol.Bob")
-                Bob = bob.Bob();
+                bob = bob.Bob();
             end
 
+            [secret_rate, sifted_rate, qber] = proto.QkdModel(alice, bob);
 
         end
 
