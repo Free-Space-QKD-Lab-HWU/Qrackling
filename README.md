@@ -5,8 +5,16 @@
 Qrackling is a flexible object-oriented toolbox for simulating qkd between satellites and ground stations. It is easlily extended allowing users to replicate satellite qkd scenarios presented in the literature and explore the features present within them.
 
 ## Examples
+
+<details>
+<summary><b>Satellite to Ground Decoy BB84</b></summary>
 ![sample_overpass_qkd](https://github.com/RDonaldson5/QKD_Sat_Link/assets/24245170/b497c680-65f4-4c5d-9ab5-66cc644786be)
+</details>
+
+<details>
+<summary><b>Beacon Performance</b></summary>
 ![sample_overpass_beacon](https://github.com/RDonaldson5/QKD_Sat_Link/assets/24245170/61ca5094-656a-440c-99ab-7d3404c2a174)
+</details>
 
 
 ## Features
