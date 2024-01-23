@@ -1,4 +1,4 @@
-classdef Atmosphere_Spectral_Filter < SpectralFilter
+classdef Atmosphere_Spectral_Filter < components.SpectralFilter
     %%ATMOSPHERE_SPECTRAL_FILTER implement a spectral filter which models the
     %%atmosphere
     methods
@@ -33,7 +33,7 @@ classdef Atmosphere_Spectral_Filter < SpectralFilter
             sz = size(Elevation);
             %create an array of atmospheric spectral filters of the same size as
             %the elevation array
-            ASF@SpectralFilter();
+            ASF@components.SpectralFilter();
             ASF = repmat(ASF,sz);
 
             %% iterating over the different types of atmosphere simulated

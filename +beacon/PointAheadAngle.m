@@ -23,11 +23,11 @@ function [heading_PAA,elevation_PAA] = PointAheadAngle(Receiver,Transmitter)
         error("UNIMPLEMENTED")
     end
 
-    %heading and elevation of receiver relative to transmitter
-    [headings, elevations] = RelativeHeadingAndElevation(Receiver,Transmitter);
-    %position of receiver relative to transmitter in m east-north-up (evolves
-    %with time)
-    ENUs = ComputeRelativeCoords(Receiver,Transmitter)';
+%heading and elevation of receiver relative to transmitter
+[headings, elevations] = RelativeHeadingAndElevation(Receiver,Transmitter);
+%position of receiver relative to transmitter in m east-north-up (evolves
+%with time)
+ENUs = ComputeRelativeCoords(Transmitter,Receiver)';
 
     %TODO: implement speed of light as constant property of Located_Object
     % NOTE: maybe a "constants" class?
@@ -40,10 +40,10 @@ function [heading_PAA,elevation_PAA] = PointAheadAngle(Receiver,Transmitter)
     %need to pad this calculation to be same size array
     relative_velocities = [relative_velocities,relative_velocities(:,end)];
 
-    %% compute PAA
-    %heading
-    heading_PAA = (2/c) * (relative_velocities(1,:).*cosd(headings)./sind(elevations) + ...
-                            -relative_velocities(2,:).*sind(headings)./sind(elevations));
+%% compute PAA
+%heading
+heading_PAA = (2/c) * (relative_velocities(1,:).*cosd(headings)./cosd(elevations) + ...
+                        -relative_velocities(2,:).*sind(headings)./cosd(elevations));
 
     elevation_PAA = (2/c) * (relative_velocities(1,:).*sind(headings).*sind(elevations) + ...
                              relative_velocities(2,:).*cosd(headings).*sind(elevations) + ...

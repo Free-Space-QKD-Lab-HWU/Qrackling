@@ -59,7 +59,7 @@ end
 
 % Utils functions
 function [V_] = eps(mu,V)
-    V_ = (2*V - 1)*exp(-mu) - 2*sqrt(V*(1 - V))*sqrt(1 - exp(-2*mu));
+    V_ = (2*V - 1)*exp(-mu) - 2*sqrt(V.*(1 - V))*sqrt(1 - exp(-2*mu));
 end
 
 function [entropy] = H(p)

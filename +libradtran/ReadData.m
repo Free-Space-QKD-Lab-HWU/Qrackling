@@ -16,7 +16,10 @@ function data = ReadData(lrt)
         if any(contains(keys, 'output_quantity'))
             [~, i] = max(contains(keys, 'output_quantity'));
             quantity = values{i};
+        else
+            quantity = 'radiance';
         end
+
 
         data.(quantity) = libradtran.outputFromInputFile(lrt.File);
     end

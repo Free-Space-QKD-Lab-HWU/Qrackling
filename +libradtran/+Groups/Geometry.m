@@ -64,7 +64,7 @@ classdef Geometry < handle
             end
             % FIX: Conversion causes errors when running configuration
             % cosines = cosd(unit.ToDegrees(angles));
-            cosines = cosd(units.Angle.ToDegrees(unit, angles));
+            cosines = sort(-cosd(units.Angle.ToDegrees(unit, angles)),'ascend');
             g.output_polar_angle_cosines = libradtran.Parameters.umu(cosines);
         end
 

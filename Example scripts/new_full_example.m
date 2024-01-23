@@ -228,9 +228,8 @@ OGS_telescope = components.Telescope( ...
 %--------------------------------------------------------------------------
 % provide a file which describes filter spectral performance. an example is
 % given here. nativePathFrom provides path conversion for different OSs
-% filter_file = utilities.nativePathFrom('Example Data/spectral filters/FBH780-10.xlsx');
-filter_file = utilities.nativePathFrom('~/Projects/QKD_Sat_Link/main/Example Data/spectral filters/FBH780-10.xlsx');
-spectral_filter = SpectralFilter('input_file', filter_file);
+filter_file = utilities.nativePathFrom('Example Data/spectral filters/FBH780-10.xlsx');
+spectral_filter = components.SpectralFilter('input_file', filter_file);
 % alternatively, a dummy spectral filter can be created which has a
 % brick-wall spectral response using
 % spectral_filter = IdeadBPFilter(centre_wavelength, spectral_width)
@@ -320,9 +319,7 @@ hogs = nodes.Ground_Station(OGS_telescope,...
 %simulations are run by using the *Simulation functions. the first argument
 %is the receiver and the second the transmitter. For QKD, the protocol ca n
 %also be selected
-qkd_protocol = protocol.decoyBB84();
-qkd_protocol = protocol.dps()
-result = nodes.QkdPassSimulation(hogs, spoqc, qkd_protocol);
+result = nodes.QkdPassSimulation(hogs, spoqc, "DPS");
 beacon_result_down = beacon.beaconSimulation(hogs, spoqc);
 beacon_result_up = beacon.beaconSimulation(spoqc, hogs);
 

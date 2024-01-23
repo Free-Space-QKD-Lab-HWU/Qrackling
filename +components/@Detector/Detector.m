@@ -16,7 +16,7 @@ classdef  Detector
         Jitter_Loss{mustBeNonnegative};
 
         %spectral filter model
-        Spectral_Filter SpectralFilter
+        Spectral_Filter
 
         %width of the time gate used in s
         Time_Gate_Width{mustBePositive, mustBeScalarOrEmpty};
@@ -130,10 +130,10 @@ classdef  Detector
 
             %two cases for spectral filter, either width in nm (in which
             %case need to create a SF) or a spectral filter object.
-            if isa(Spectral_Filter,'SpectralFilter')
+            if isa(Spectral_Filter,'components.SpectralFilter')
                 Detector.Spectral_Filter = Spectral_Filter;
             elseif isnumeric(Spectral_Filter)
-                Detector.Spectral_Filter = IdealBPFilter( ...
+                Detector.Spectral_Filter = components.IdealBPFilter( ...
                     Detector.Wavelength, ...
                     Spectral_Filter, ...
                     "Wavelength_Scale", options.Wavelength_Scale);
