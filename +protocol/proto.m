@@ -19,8 +19,8 @@ classdef proto
             alice, bob, total_loss, loss_unit, background_counts)
             arguments
                 proto
-                alice {mustBeA(alice, ["nodes.Satellite", "nodes.groundd_Station"])}
-                bob {mustBeA(bob, ["nodes.Satellite", "nodes.groundd_Station"])}
+                alice {mustBeA(alice, ["nodes.Satellite", "nodes.Ground_Station"])}
+                bob {mustBeA(bob, ["nodes.Satellite", "nodes.Ground_Station"])}
                 total_loss (1, :) {mustBeNumeric}
                 loss_unit {mustBeMember(loss_unit, ["probability", "dB"])}
                 background_counts (1, :, :) {mustBeNumeric}
