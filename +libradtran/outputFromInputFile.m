@@ -26,7 +26,7 @@ function data = outputFromInputFile(lrt_input_file_path)
         n_angle_pairs = numel(elevation_angles) * numel(azimuth_angles);
         offsets = indexOfOutputValueInLine(output_elems, ...
             "n_radiance_angles", n_angle_pairs);
-        radiance_shape = [numel(elevation_angles), numel(azimuth_angles)];
+        radiance_shape = [numel(azimuth_angles), numel(elevation_angles)];
     else
         offsets = indexOfOutputValueInLine(output_elems);
     end

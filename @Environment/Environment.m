@@ -1,6 +1,6 @@
 classdef Environment
     % a class which describes the conditions around a receiver, including
-    % atmospheric attenuation and background light
+    % atmospheric transmission and background light
 
     properties (SetAccess=protected,GetAccess=public)
         %coordinate system (in degrees)
@@ -10,34 +10,29 @@ classdef Environment
         %different wavelengths have different environment data
         wavelengths (1,:) {mustBeNumeric,mustBeNonnegative}
 
-        %atmospheric attenuation (in absolute terms) for the full atmosphere thickness
-        attenuation {mustBeNumeric,mustBeNonnegative,mustBeLessThanOrEqual(attenuation,1)}
-        %atmospheric attenuation (in dB) for the full atmosphere thickness
-        attenuation_dB {mustBeNumeric,mustBeNonnegative}
+        %atmospheric transmission (in absolute terms) for the full atmosphere thickness
+        transmission {mustBeNumeric,mustBeNonnegative,mustBeLessThanOrEqual(transmission,1)}
+        %atmospheric transmission (in dB) for the full atmosphere thickness
+        transmission_dB {mustBeNumeric,mustBeNonnegative}
 
         %background light, quantified as spectral radiance (W/m^2 str nm)
         spectral_radiance {mustBeNumeric,mustBeNonnegative}
     end
 
     methods (Static)
-        function Environment = Load(filename)
+        function Env = Load(filename)
             %create an environment from a .mat file in which one is stored
             arguments (Input)
-                filename mustBeFile
+                filename {mustBeFile}
             end
             arguments (Output)
-                Environment environment.Environment
+                Env Environment
             end
 
             %load all standard properties into object
-            Environment.headings = load(filename,'headings');
-            Environment.elevations = load(filename,'elevations');
-            Environment.attenuation = load(filename,'attenuation');
-            Environment.attenuation_dB = load(filename,'attenuation_dB');
-            Environment.spectral_radiance = load(filename,'spectral_radiance');
+            load(filename,"headings","elevations","wavelengths","transmission","spectral_radiance");
+            Env = Environment(headings,elevations,wavelengths,transmission,spectral_radiance);
 
-            %check sizes
-            mustHaveCompatibleData(Environment);
         end
 
         function bool = IsIncreasing(Vector)
@@ -63,7 +58,7 @@ classdef Environment
         function Env = Environment(headings,...
                 elevations,...
                 wavelengths,...
-                attenuation,...
+                transmission,...
                 spectral_radiance)
             %construct an environment object
 
@@ -71,15 +66,11 @@ classdef Environment
                 headings {mustBeNumeric,mustBeVector,mustBeInRange(headings,0,360)}
                 elevations {mustBeNumeric,mustBeVector,mustBeInRange(elevations,-90,90)}
                 wavelengths {mustBeNumeric,mustBeNonnegative,mustBeVector}
-                attenuation {mustBeNumeric,mustBeNonnegative,mustBeLessThanOrEqual(attenuation,1)}
+                transmission {mustBeNumeric,mustBeNonnegative,mustBeLessThanOrEqual(transmission,1)}
                 spectral_radiance {mustBeNumeric,mustBeNonnegative}
             end
 
             %% sort, tidy and bound inputs
-            %heading, elevation and wavelength must be increasing
-            %assert(Environment.IsIncreasing(headings),'headings must be increasing')
-            %assert(Environment.IsIncreasing(elevations),'elevations must be increasing')
-            %assert(Environment.IsIncreasing(wavelengths),'wavelengths must be increasing')
 
             %all vectors should be rows
             if iscolumn(headings)
@@ -96,8 +87,8 @@ classdef Environment
             Env.headings = headings;
             Env.elevations = elevations;
             Env.wavelengths = wavelengths;
-            Env.attenuation = attenuation;
-            Env.attenuation_dB = -10*log10(attenuation);
+            Env.transmission = transmission;
+            Env.transmission_dB = -10*log10(transmission);
             Env.spectral_radiance = spectral_radiance;
 
             %check that sizes are compatible
@@ -110,7 +101,7 @@ classdef Environment
             %save the data in the current environment to a .mat file
             arguments
                 Env Environment
-                filename mustBeFile
+                filename {mustBeText}
             end
 
             %validate sizes
@@ -120,16 +111,13 @@ classdef Environment
             headings = Env.headings; %#ok<*PROPLC>
             elevations = Env.elevations;
             wavelengths = Env.wavelengths;
-            attenuation = Env.attenuation;
-            attenuation_dB = Env.attenuation_dB;
+            transmission = Env.transmission;
             spectral_radiance = Env.spectral_radiance;
 
-            save(filename,'headings','elevations','wavelengths','attenuation',...
-                'attenuation_dB','spectral_radiance');
+            save(filename,'headings','elevations','wavelengths','transmission','spectral_radiance');
         end
 
-        function mustHaveCompatibleData(Env ...
-                )
+        function mustHaveCompatibleData(Env)
             % a validator function which checks that all arrays are the
             % correct dimensions
 
@@ -140,10 +128,10 @@ classdef Environment
             correct_size = [N_headings,N_elevations,N_wavelengths];
 
             %check dimensions of data
-            assert(isequal(size(Env.attenuation),correct_size),...
-                'attenuation array is wrong size');
-            assert(isequal(size(Env.attenuation_dB),correct_size),...
-                'attenuation_dB array is wrong size');
+            assert(isequal(size(Env.transmission),correct_size),...
+                'transmission array is wrong size');
+            assert(isequal(size(Env.transmission_dB),correct_size),...
+                'transmission_dB array is wrong size');
             assert(isequal(size(Env.spectral_radiance),correct_size),...
                 'spectral_radiance array is wrong size');
         end
@@ -154,7 +142,7 @@ classdef Environment
 
             arguments
                 Env Environment
-                data {mustBeMember(data,{'attenuation','attenuation_dB','spectral_radiance'})}
+                data {mustBeMember(data,{'transmission','transmission_dB','spectral_radiance'})}
                 headings {mustBeNumeric,mustBeInRange(headings,0,360)}
                 elevations {mustBeNumeric,mustBeInRange(elevations,-90,90)}
                 wavelengths {mustBeNumeric}
@@ -174,10 +162,10 @@ classdef Environment
 
             %get relevant data
             switch data
-                case 'attenuation'
-                    Array = Env.attenuation;
-                case 'attenuation_dB'
-                    Array = Env.attenuation_dB;
+                case 'transmission'
+                    Array = Env.transmission;
+                case 'transmission_dB'
+                    Array = Env.transmission_dB;
                 case 'spectral_radiance'
                     Array = Env.spectral_radiance;
             end
@@ -212,7 +200,7 @@ classdef Environment
 
             arguments
                 Env Environment
-                DataType {mustBeMember(DataType,{'attenuation','attenuation dB','spectral radiance'})}
+                DataType {mustBeMember(DataType,{'transmission','transmission dB','spectral radiance'})}
                 options.Name {mustBeText} = '';
                 options.Colourmap = 'turbo';
                 options.CLims(1,2) {mustBeNumeric} = [nan,nan];
@@ -223,10 +211,10 @@ classdef Environment
             %% prepare data
             %what data are we plotting?
             switch DataType
-                case 'attenuation'
-                    Values = Env.attenuation;
-                case 'attenuation dB'
-                    Values = Env.attenuation_dB;
+                case 'transmission'
+                    Values = Env.transmission;
+                case 'transmission dB'
+                    Values = Env.transmission_dB;
                 case 'spectral radiance'
                     Values = Env.spectral_radiance;
             end
@@ -240,10 +228,10 @@ classdef Environment
                 switch DataType
                     case 'spectral radiance'
                         options.Name = 'Spectral Radiance (W/m^2 str nm)';
-                    case 'attenuation'
-                        options.Name = 'Attenuation';
-                    case 'attenuation dB'
-                        options.Name = 'Attenuation (dB)';
+                    case 'transmission'
+                        options.Name = 'Transmission';
+                    case 'transmission dB'
+                        options.Name = 'Transmission (dB)';
                 end
             end
 
@@ -254,9 +242,9 @@ classdef Environment
 
             if isequal(options.ColourScale,'auto')
                 switch DataType
-                    case 'attenuation'
+                    case 'transmission'
                         options.ColourScale = 'log';
-                    case 'attenuation dB'
+                    case 'transmission dB'
                         options.ColourScale = 'linear';
                     case 'spectral radiance'
                         options.ColourScale = 'log';
@@ -290,7 +278,7 @@ classdef Environment
                 %% prepare plot data
                 Current_Wavelength = scrollbar.Value;
                 Wavelength_Index=round(interp1(Wavelengths,1:numel(Wavelengths),Current_Wavelength));
-                Current_Values = Values(:,:,Wavelength_Index);
+                Current_Values = Values(:,:,Wavelength_Index)';
                 Current_Values(isinf(Current_Values)) = nan;
 
 
