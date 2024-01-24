@@ -39,7 +39,7 @@ classdef Environment
             %check sizes
             mustHaveCompatibleData(Environment);
         end
-    
+
         function bool = IsIncreasing(Vector)
             %function which returns whether a vector is uniformly
             %increasing
@@ -61,10 +61,10 @@ classdef Environment
 
     methods
         function Env = Environment(headings,...
-                             elevations,...
-                             wavelengths,...
-                             attenuation,...
-                             spectral_radiance)
+                elevations,...
+                wavelengths,...
+                attenuation,...
+                spectral_radiance)
             %construct an environment object
 
             arguments
@@ -74,20 +74,20 @@ classdef Environment
                 attenuation {mustBeNumeric,mustBeNonnegative,mustBeLessThanOrEqual(attenuation,1)}
                 spectral_radiance {mustBeNumeric,mustBeNonnegative}
             end
-            
+
             %% sort, tidy and bound inputs
             %heading, elevation and wavelength must be increasing
             assert(Environment.IsIncreasing(headings),'headings must be increasing')
             assert(Environment.IsIncreasing(elevations),'elevations must be increasing')
             assert(Environment.IsIncreasing(wavelengths),'wavelengths must be increasing')
-            
+
             %all vectors should be rows
             if iscolumn(headings)
                 headings = headings';
             end
             if iscolumn(elevations)
                 elevations = elevations';
-            end            
+            end
             if iscolumn(wavelengths)
                 wavelengths = wavelengths';
             end
@@ -105,6 +105,7 @@ classdef Environment
 
 
         end
+
         function Save(Env,filename)
             %save the data in the current environment to a .mat file
             arguments
@@ -124,7 +125,7 @@ classdef Environment
             spectral_radiance = Env.spectral_radiance;
 
             save(filename,'headings','elevations','wavelengths','attenuation',...
-                    'attenuation_dB','spectral_radiance');
+                'attenuation_dB','spectral_radiance');
         end
 
         function mustHaveCompatibleData(Env ...
@@ -163,11 +164,11 @@ classdef Environment
             assert(all(size(headings)==size(elevations)),...
                 'requested heading and elevation arrays must be of same size')
             assert(isscalar(wavelengths)||all(size(wavelengths)==size(elevations)),...
-                    'wavelength must be either scalar or the same size as heading and elevation')
-            
+                'wavelength must be either scalar or the same size as heading and elevation')
+
             if isscalar(wavelengths)
-            %make wavelength into an array same size as headings and
-            %elevations
+                %make wavelength into an array same size as headings and
+                %elevations
                 wavelengths = wavelengths*ones(size(headings));
             end
 
@@ -183,26 +184,124 @@ classdef Environment
 
             %interpolate
             interp_data = interpn(Env.headings,...
-                                  Env.elevations,...
-                                  Env.wavelengths,...
-                                  Array,...
-                                  headings,...
-                                  elevations,...
-                                  wavelengths);
+                Env.elevations,...
+                Env.wavelengths,...
+                Array,...
+                headings,...
+                elevations,...
+                wavelengths);
 
             % detect if some headings were above the max and interpolate
             headings_above_top_indices = Env.headings(end)<headings&headings<=360;
             if any(headings_above_top_indices)
-            interp_data(headings_above_top_indices) = interpn([Env.headings(end),Env.headings(1)+360],Env.elevations,Env.wavelengths,Array([end,1],:,:),headings(headings_above_top_indices),elevations(headings_above_top_indices),wavelengths(headings_above_top_indices));
+                interp_data(headings_above_top_indices) = interpn([Env.headings(end),Env.headings(1)+360],Env.elevations,Env.wavelengths,Array([end,1],:,:),headings(headings_above_top_indices),elevations(headings_above_top_indices),wavelengths(headings_above_top_indices));
             end
             % detect if some headings were below minimum and interpolate
-            headings_below_bottom_indices = Env.headings(1)>headings&headings>=360; 
+            headings_below_bottom_indices = Env.headings(1)>headings&headings>=360;
             if any(headings_below_bottom_indices)
-            interp_data(headings_below_bottom_indices) = interpn([Env.headings(end)-360,Env.headings(1)],Env.elevations,Env.wavelengths,Array([end,1],:,:),headings(headings_below_bottom_indices),elevations(headings_above_top_indices),wavelengths(headings_above_top_indices));
+                interp_data(headings_below_bottom_indices) = interpn([Env.headings(end)-360,Env.headings(1)],Env.elevations,Env.wavelengths,Array([end,1],:,:),headings(headings_below_bottom_indices),elevations(headings_above_top_indices),wavelengths(headings_above_top_indices));
             end
 
             if any(isnan(interp_data))
                 warning('some requested data were out of environment data range, these data are returned as nan')
+            end
+        end
+
+        function Plot(Env,DataType,options)
+            %% plot data from a skyscan in a consistent polar format
+
+            arguments
+                Env Environment
+                DataType {mustBeMember(DataType,{'attenuation','attenuation dB','spectral radiance'})}
+                options.Name {mustBeText} = '';
+                options.Colourmap = 'turbo';
+                options.CLims(1,2) {mustBeNumeric} = [nan,nan];
+                options.Size {mustBeScalarOrEmpty,mustBeNonnegative} = 50;
+                options.ColourScale {mustBeMember(options.ColourScale,{'log','linear','auto'})} = 'auto'
+            end
+
+            %% prepare data
+            %what data are we plotting?
+            switch DataType
+                case 'attenuation'
+                    Values = Env.attenuation;
+                case 'attenuation dB'
+                    Values = Env.attenuation_dB;
+                case 'spectral radiance'
+                    Values = Env.spectral_radiance;
+            end
+
+            %headings and elevations
+            [Heading_Grid,Elevation_Grid]=meshgrid(Env.headings,Env.elevations);
+
+            %% enforce some defaults
+            if isempty(options.Name)
+                options.Name = DataType;
+            end
+
+            if all(isnan(options.CLims))
+                %if no colour limits provided, use min and max
+                options.CLims = [min(Values(~isinf(Values)),[],"all"),max(Values(~isinf(Values)),[],'all')];
+            end
+
+            if isequal(options.ColourScale,'auto')
+                switch DataType
+                    case 'attenuation'
+                        options.ColourScale = 'log';
+                    case 'attenuation dB'
+                        options.ColourScale = 'linear';
+                    case 'spectral radiance'
+                        options.ColourScale = 'log';
+                end
+            end
+
+
+            %% plot intensity over sky
+            % create a UI figure
+            sky_fig = uifigure('WindowState','maximized');
+            Axes = polaraxes(sky_fig);
+
+            %% prepare axes
+            %set up axis for this particular plot
+            Axes.RDir='reverse';
+            Axes.ThetaDir = "clockwise";
+            Axes.ThetaZeroLocation='top';
+            Axes.RLim=[0,90];
+            Axes.RTickLabel = cellfun(@(x) append(num2str(x),sprintf ('%c',char(176))),Axes.RTickLabel,'UniformOutput',false);
+
+            set(Axes,'ColorScale',options.ColourScale)
+            %create a scrollbar to allow time data to vary
+            Wavelength_Range = [min(Env.wavelengths),max(Env.wavelengths)];
+            scrollbar = uislider("Value",max(Wavelength_Range),...
+                "Limits",Wavelength_Range,...
+                'MajorTicks',Wavelength_Range(1):100:Wavelength_Range(2),...
+                'ValueChangedFcn',@(scrollbar,event) UpdatePlot(scrollbar,Axes,...
+                Values,Heading_Grid,Elevation_Grid,...
+                Env.wavelengths,options),...
+                'CreateFcn',@(scrollbar,event) UpdatePlot(scrollbar,Axes,...
+                Values,Heading_Grid,Elevation_Grid,...
+                Env.wavelengths,options),...
+                'Orientation','vertical',...
+                'Parent',sky_fig); %#ok<*NASGU>
+            label = uilabel("Text",'Wavelength (nm)','Position',[50,65,400,35],'FontSize',24,'Parent',sky_fig,'FontName',get(groot,'defaultAxesFontName'));
+
+            function UpdatePlot(scrollbar,Axes,...
+                    Values,Heading_Grid,Elevation_Grid,...
+                    Wavelengths,options)
+                %% prepare plot data
+                Current_Wavelength = scrollbar.Value;
+                Wavelength_Index=round(interp1(Wavelengths,1:numel(Wavelengths),Current_Wavelength));
+                Current_Values = Values(:,:,Wavelength_Index)';
+                Current_Values(isinf(Current_Values)) = nan;
+
+
+                %% perform plot
+                Plot = polarscatter(Axes,rad2deg(Heading_Grid(:)),Elevation_Grid(:),options.Size,Current_Values(:),'filled');
+            
+            colormap(Axes,options.Colourmap);
+            clim(Axes,options.CLims)
+            C = colorbar(Axes,"eastoutside");
+            C.Label.String = options.Name;
             end
         end
     end
