@@ -77,9 +77,9 @@ classdef Environment
 
             %% sort, tidy and bound inputs
             %heading, elevation and wavelength must be increasing
-            assert(Environment.IsIncreasing(headings),'headings must be increasing')
-            assert(Environment.IsIncreasing(elevations),'elevations must be increasing')
-            assert(Environment.IsIncreasing(wavelengths),'wavelengths must be increasing')
+            %assert(Environment.IsIncreasing(headings),'headings must be increasing')
+            %assert(Environment.IsIncreasing(elevations),'elevations must be increasing')
+            %assert(Environment.IsIncreasing(wavelengths),'wavelengths must be increasing')
 
             %all vectors should be rows
             if iscolumn(headings)
@@ -236,7 +236,15 @@ classdef Environment
 
             %% enforce some defaults
             if isempty(options.Name)
-                options.Name = DataType;
+                %set label for plots
+                switch DataType
+                    case 'spectral radiance'
+                        options.Name = 'Spectral Radiance (W/m^2 str nm)';
+                    case 'attenuation'
+                        options.Name = 'Attenuation';
+                    case 'attenuation dB'
+                        options.Name = 'Attenuation (dB)';
+                end
             end
 
             if all(isnan(options.CLims))
@@ -261,15 +269,6 @@ classdef Environment
             sky_fig = uifigure('WindowState','maximized');
             Axes = polaraxes(sky_fig);
 
-            %% prepare axes
-            %set up axis for this particular plot
-            Axes.RDir='reverse';
-            Axes.ThetaDir = "clockwise";
-            Axes.ThetaZeroLocation='top';
-            Axes.RLim=[0,90];
-            Axes.RTickLabel = cellfun(@(x) append(num2str(x),sprintf ('%c',char(176))),Axes.RTickLabel,'UniformOutput',false);
-
-            set(Axes,'ColorScale',options.ColourScale)
             %create a scrollbar to allow time data to vary
             Wavelength_Range = [min(Env.wavelengths),max(Env.wavelengths)];
             scrollbar = uislider("Value",max(Wavelength_Range),...
@@ -291,17 +290,30 @@ classdef Environment
                 %% prepare plot data
                 Current_Wavelength = scrollbar.Value;
                 Wavelength_Index=round(interp1(Wavelengths,1:numel(Wavelengths),Current_Wavelength));
-                Current_Values = Values(:,:,Wavelength_Index)';
+                Current_Values = Values(:,:,Wavelength_Index);
                 Current_Values(isinf(Current_Values)) = nan;
 
 
                 %% perform plot
-                Plot = polarscatter(Axes,rad2deg(Heading_Grid(:)),Elevation_Grid(:),options.Size,Current_Values(:),'filled');
+                Plot = polarscatter(Axes,deg2rad(Heading_Grid(:)),Elevation_Grid(:),options.Size,Current_Values(:),'filled');
             
+                
+                %% prepare axes
+            %set up axis for this particular plot
+            Axes.RDir='reverse';
+            Axes.ThetaDir = "clockwise";
+            Axes.ThetaZeroLocation='top';
+            Axes.RLim=[0,90];
+            Axes.RTickLabel = cellfun(@(x) append(num2str(x),sprintf ('%c',char(176))),Axes.RTickLabel,'UniformOutput',false);
+
+            set(Axes,'ColorScale',options.ColourScale)
+
             colormap(Axes,options.Colourmap);
             clim(Axes,options.CLims)
             C = colorbar(Axes,"eastoutside");
             C.Label.String = options.Name;
+            C.Label.FontName = get(groot,"defaultAxesFontName");
+            C.Label.FontSize = get(groot,"defaultAxesFontSize");
             end
         end
     end
