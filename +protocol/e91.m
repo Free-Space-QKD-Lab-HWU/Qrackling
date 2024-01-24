@@ -10,9 +10,8 @@ classdef e91 < protocol.proto
         function protocol = e91()
         end
 
-        % function [secret_key_rate, sifted_key_rate, qber] = QkdModel( ...
-        %     proto, Source, Detector, prob_dark_counts, loss)
-        function [secret_rate, sifted_rate, qber] = QkdModel(proto, Alice, Bob)
+        function [secret_rate, sifted_rate, qber] = QkdModel(proto, ...
+            Alice, Bob, total_loss, total_background_count_rate)
         % Function to compute sifted key rate and QBER of the E92 protocol
         % -------------------------------------------------------------------
         %
@@ -33,7 +32,7 @@ classdef e91 < protocol.proto
         % qber = QBER of the transmission system [%]
         % ########################################
 
-            rep_rate = Alice.source.Repetition_Rate;
+            rep_rate = Alice.Source.Repetition_Rate;
 
             % Intermidiate step to compute key variables
             P_d = 0;
@@ -50,17 +49,17 @@ classdef e91 < protocol.proto
 
             % Using notation from the paper where the model is presented
             % prob of dark counts
-            prob_dark_counts = Bob.dark_count_probability;
+            prob_dark_counts = proto.BackgroundCountProbability(total_background_count_rate);
             P_e = prob_dark_counts;
             % detection efficiency
-            det_eff = Bob.detector.Detection_Efficiency;
+            det_eff = Bob.Detector.Detection_Efficiency;
             if det_eff > 1
                 eta_e = det_eff / 100;
             else
                 eta_e = det_eff;
             end
 
-            loss = Bob.channel_efficiency;
+            loss = total_loss;
             lambda = 10.^(-loss./10);
             A_e = eta_e.*lambda + P_e.*(1-eta_e.*lambda);
             B_e = 1 - (1-P_e).*(1-eta_e.*lambda).^2;
@@ -83,14 +82,14 @@ classdef e91 < protocol.proto
 
             % Rates
             sifted_rate = s1 .* rep_rate;
-            % tau1 = Bob.detector.fall_time;
-            % tau2 = Bob.detector.rise_time;
+            % tau1 = Bob.Detector.fall_time;
+            % tau2 = Bob.Detector.rise_time;
             % Rate_Det = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
-            dead_time = Bob.detector.Dead_Time;
+            dead_time = Bob.Detector.Dead_Time;
 
             % QBER
-            %Bob.detector = SetJitterPerformance(Bob.detector, s1 * rep_rate); %?
-            qber_jitter = Bob.detector.QBER_Jitter;
+            %Bob.Detector = SetJitterPerformance(Bob.Detector, s1 * rep_rate); %?
+            qber_jitter = Bob.Detector.QBER_Jitter;
             qber = 1/2 .* (1-t_d.*t_e);
             qber = qber + qber_jitter;
             % QBER threshold is defined as the value for which the binary entropy

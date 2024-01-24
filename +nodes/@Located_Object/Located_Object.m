@@ -107,11 +107,12 @@ classdef Located_Object
                 return
             end
 
-            if all(~isempty(options.Latitude, options.Longitude, options.Altitude))
+            if all(~isempty([options.Latitude, options.Longitude, options.Altitude]))
                 Located_Object.Latitude  = options.Latitude;
                 Located_Object.Longitude = options.Longitude;
                 Located_Object.Altitude  = options.Altitude;
                 Located_Object.N_Position = numel(options.Latitude);
+                return
             end
 
             error('Failed to initialise object: LLA or latitude, longitude altitude vectors incorrect format');

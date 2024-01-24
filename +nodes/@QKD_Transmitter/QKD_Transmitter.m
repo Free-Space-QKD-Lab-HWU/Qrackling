@@ -20,7 +20,6 @@ classdef (Abstract) QKD_Transmitter < nodes.Optical_Node
                 loss {mustBeNumeric} = 1
                 background_rates {mustBeNumeric} = 0
             end
-            disp('overload')
 
             source = utilities.getPropertyFromObject(obj, 'components.Source');
 

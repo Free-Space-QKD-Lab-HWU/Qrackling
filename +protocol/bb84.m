@@ -13,11 +13,12 @@ classdef bb84 < protocol.proto
         end
 
         %function [secret_key_rate, sifted_key_rate, qber] = QkdModel( ...
-        %    proto, Source, Bob.detector, prob_dark_counts, loss)
+        %    proto, Source, Bob.Detector, prob_dark_counts, loss)
         % TODO: see all of the transposes in this function, are they all necessary?
-        function [secret_rate, sifted_rate, qber] = QkdModel(proto, Alice, Bob)
+        function [secret_rate, sifted_rate, qber] = QkdModel(proto, ...
+            Alice, Bob, total_loss, total_background_count_rate)
         % Function to compute sifted key rate and QBER of the BB84 protocol with
-        % single photon sources
+        % single photon Sources
         % -------------------------------------------------------------------
         %
         % This function is written by either Alfonso or Ugo and modified by Cameron
@@ -28,16 +29,16 @@ classdef bb84 < protocol.proto
         % ########################################
         % INPUTS:
         %
-        % MPN = mean photon number of the source
+        % MPN = mean photon number of the Source
         % g2 = second order autocorrelation function [g^2(0)] (for a single-photon 
-        %   source this should be zero)
+        %   Source this should be zero)
         % state_prep_error = convolution of errors due to state preparation (as a fraction)
         % rep_rate = Repetition rate [Hz]
-        % det_eff = Detection efficiency of receivers' detectors
+        % det_eff = Detection efficiency of receivers' Detectors
         % prob_dark_counts = Probability of dark counts of receivers' detetcors
         % loss = Transmission loss [dB]
         % prot_eff = Protocol efficiency
-        % qber_jitter = QBER contribution due to detectors' timing jitters
+        % qber_jitter = QBER contribution due to Detectors' timing jitters
         %
         % OUTPUTS:
         %
@@ -45,27 +46,23 @@ classdef bb84 < protocol.proto
         % qber = QBER of the transmission system [%]
         % ########################################
 
-            MPN = Alice.source.MPN_Signal;
-            g2 = Alice.source.g2;
-            state_prep_error = Alice.source.State_Prep_Error;
-            rep_rate = Alice.source.Repetition_Rate;
+            MPN = Alice.Source.MPN_Signal;
+            g2 = Alice.Source.g2;
+            state_prep_error = Alice.Source.State_Prep_Error;
+            rep_rate = Alice.Source.Repetition_Rate;
 
             % detection efficiency
-            eta = Bob.detector.Detection_Efficiency;
-
-            % transmission channel's loss
-            loss = Bob.channel_efficiency;
-            loss = 10.^(-loss/10);
+            eta = Bob.Detector.Detection_Efficiency;
 
             % probability of dark counts (Bob's detetcion stage - convolution of all 
-            % detectors used by Bob)
+            % Detectors used by Bob)
             %prob_dark = prob_dark_counts;
-            prob_dark = Bob.dark_count_probability;
+            prob_dark = proto.BackgroundCountProbability(total_background_count_rate);
 
             % probability of a single detection event 
-            prob_click = MPN * eta * loss + prob_dark;
+            prob_click = MPN * eta * total_loss + prob_dark;
 
-            % probability that the source generated more than one photon
+            % probability that the Source generated more than one photon
             prob_multi = 0.5 * MPN.^2 * eta.^2 * g2;
 
             % fraction of detection events originating from single photons
@@ -78,15 +75,15 @@ classdef bb84 < protocol.proto
 
             % probability of a signal event (Bob's estimation based on Alice's 
             % original signal)
-            prob_signal = MPN .* loss;
+            prob_signal = MPN .* total_loss;
 
             % QBER
             % qber due to polarisation compensation error is the sine of the mean error
             % angle (in degrees)
 
-            %Bob.detector = SetJitterPerformance(Bob.detector, Rate_In);
-            qber_jitter = Bob.detector.QBER_Jitter;
-            qber_polarisation_error = sind(Bob.detector.Polarisation_Error);
+            %Bob.Detector = SetJitterPerformance(Bob.Detector, Rate_In);
+            qber_jitter = Bob.Detector.QBER_Jitter;
+            qber_polarisation_error = sind(Bob.Detector.Polarisation_Error);
 
             % size(mu)
             % size(prob_signal)

@@ -48,6 +48,14 @@ function data = outputFromInputFile(lrt_input_file_path)
         end
     end
 
+    if has_elevation
+        data.elevation = elevation_angles;
+    end
+
+    if has_azimuth
+        data.azimuth = azimuth_angles;
+    end
+
     fd = fopen(output_path);
     line = fgetl(fd);
     i = 1;

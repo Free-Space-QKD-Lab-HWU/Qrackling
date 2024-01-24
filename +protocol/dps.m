@@ -12,16 +12,17 @@ classdef dps < protocol.proto
         function protocol = dps()
         end
 
-        function [secret_rate, sifted_rate, qber] = QkdModel(proto, Alice, Bob)
+        function [secret_rate, sifted_rate, qber] = QkdModel(proto, ...
+            Alice, Bob, total_loss, total_background_count_rate)
 
             [~] = proto;
 
-            rep_rate = Alice.source.Repetition_Rate;
-            eta = Bob.detector.Detection_Efficiency;
-            V = Bob.detector.Visibility;
-            mu = Alice.source.MPN_Signal;
-            loss = Bob.channel_efficiency;
-            prob_dark_counts = Bob.dark_count_probability;
+            rep_rate = Alice.Source.Repetition_Rate;
+            eta = Bob.Detector.Detection_Efficiency;
+            V = Bob.Detector.Visibility;
+            mu = Alice.Source.MPN_Signal;
+            loss = total_loss;
+            prob_dark_counts = proto.BackgroundCountProbability(total_background_count_rate);
             f=1.2;%error correction efficiency
 
             losses 	= 10.^(-loss/10);

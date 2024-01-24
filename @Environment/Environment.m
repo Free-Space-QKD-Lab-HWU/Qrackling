@@ -1,22 +1,25 @@
 classdef Environment
-    % a class which describes the conditions around a receiver, including
-    % atmospheric transmission and background light
+    % a class which describes the conditions around a receiver,  including
+    % atmospheric attenuation and background light
 
-    properties (SetAccess=protected,GetAccess=public)
+    properties (SetAccess=protected, GetAccess=public)
         %coordinate system (in degrees)
-        headings (1,:) {mustBeNumeric}
-        elevations (1,:) {mustBeNumeric}
+        headings (1, :) {mustBeNumeric}
+        elevations (1, :) {mustBeNumeric}
 
         %different wavelengths have different environment data
-        wavelengths (1,:) {mustBeNumeric,mustBeNonnegative}
+        wavelengths (1, :) {mustBeNumeric, mustBeNonnegative}
 
-        %atmospheric transmission (in absolute terms) for the full atmosphere thickness
-        transmission {mustBeNumeric,mustBeNonnegative,mustBeLessThanOrEqual(transmission,1)}
-        %atmospheric transmission (in dB) for the full atmosphere thickness
-        transmission_dB {mustBeNumeric,mustBeNonnegative}
+        %atmospheric attenuation (in absolute terms) for the full atmosphere thickness
+        attenuation {mustBeNumeric, mustBeNonnegative, mustBeLessThanOrEqual(attenuation, 1)}
 
-        %background light, quantified as spectral radiance (W/m^2 str nm)
-        spectral_radiance {mustBeNumeric,mustBeNonnegative}
+        % %atmospheric attenuation (in dB) for the full atmosphere thickness
+        % attenuation_dB {mustBeNumeric, mustBeNonnegative}
+
+        attenuation_unit {mustBeMember(attenuation_unit, ["probability", "dB"])} = "probability"
+
+        %background light,  quantified as spectral radiance (W/m^2 str nm)
+        spectral_radiance {mustBeNumeric, mustBeNonnegative}
     end
 
     methods (Static)
@@ -29,9 +32,11 @@ classdef Environment
                 Env Environment
             end
 
-            %load all standard properties into object
-            load(filename,"headings","elevations","wavelengths","transmission","spectral_radiance");
-            Env = Environment(headings,elevations,wavelengths,transmission,spectral_radiance);
+            Env.headings = load(filename, 'headings');
+            Env.elevations = load(filename, 'elevations');
+            Env.spectral_radiance = load(filename, 'spectral_radiance');
+            Env.attenuation = load(filename, 'attenuation');
+            Env.attenuation_unit = load(filename, 'attenuation_unit');
 
         end
 
@@ -55,22 +60,24 @@ classdef Environment
     end
 
     methods
-        function Env = Environment(headings,...
-                elevations,...
-                wavelengths,...
-                transmission,...
-                spectral_radiance)
+        function Env = Environment(headings, elevations, wavelengths, ...
+                                   spectral_radiance, attenuation, options)
             %construct an environment object
 
             arguments
-                headings {mustBeNumeric,mustBeVector,mustBeInRange(headings,0,360)}
-                elevations {mustBeNumeric,mustBeVector,mustBeInRange(elevations,-90,90)}
-                wavelengths {mustBeNumeric,mustBeNonnegative,mustBeVector}
-                transmission {mustBeNumeric,mustBeNonnegative,mustBeLessThanOrEqual(transmission,1)}
-                spectral_radiance {mustBeNumeric,mustBeNonnegative}
+                headings {mustBeNumeric, mustBeVector, mustBeInRange(headings, 0, 360)}
+                elevations {mustBeNumeric, mustBeVector, mustBeInRange(elevations, -90, 90)}
+                wavelengths {mustBeNumeric, mustBeNonnegative, mustBeVector}
+                spectral_radiance {mustBeNumeric, mustBeNonnegative}
+                attenuation {mustBeNumeric, mustBeNonnegative, mustBeLessThanOrEqual(attenuation, 1)}
+                options.attenuation_unit {mustBeMember(options.attenuation_unit, ["probability", "dB"])} = "probability"
             end
 
-            %% sort, tidy and bound inputs
+            %% sort,  tidy and bound inputs
+            %heading,  elevation and wavelength must be increasing
+            assert(Environment.IsIncreasing(headings), 'headings must be increasing')
+            assert(Environment.IsIncreasing(elevations), 'elevations must be increasing')
+            assert(Environment.IsIncreasing(wavelengths), 'wavelengths must be increasing')
 
             %all vectors should be rows
             if iscolumn(headings)
@@ -87,17 +94,15 @@ classdef Environment
             Env.headings = headings;
             Env.elevations = elevations;
             Env.wavelengths = wavelengths;
-            Env.transmission = transmission;
-            Env.transmission_dB = -10*log10(transmission);
             Env.spectral_radiance = spectral_radiance;
+            Env.attenuation = attenuation;
+            Env.attenuation_unit = options.attenuation_unit;
 
             %check that sizes are compatible
             mustHaveCompatibleData(Env);
-
-
         end
 
-        function Save(Env,filename)
+        function Save(Env, filename)
             %save the data in the current environment to a .mat file
             arguments
                 Env Environment
@@ -111,10 +116,12 @@ classdef Environment
             headings = Env.headings; %#ok<*PROPLC>
             elevations = Env.elevations;
             wavelengths = Env.wavelengths;
-            transmission = Env.transmission;
             spectral_radiance = Env.spectral_radiance;
+            attenuation = Env.attenuation;
+            attenuation_unit = Env.attenuation_unit;
 
-            save(filename,'headings','elevations','wavelengths','transmission','spectral_radiance');
+            save(filename, 'headings', 'elevations', 'wavelengths', ...
+                    'spectral_radiance', 'attenuation', 'attenuation_unit');
         end
 
         function mustHaveCompatibleData(Env)
@@ -125,34 +132,32 @@ classdef Environment
             N_headings = numel(Env.headings);
             N_elevations = numel(Env.elevations);
             N_wavelengths = numel(Env.wavelengths);
-            correct_size = [N_headings,N_elevations,N_wavelengths];
+            correct_size = [N_wavelengths, N_headings, N_elevations];
 
             %check dimensions of data
-            assert(isequal(size(Env.transmission),correct_size),...
-                'transmission array is wrong size');
-            assert(isequal(size(Env.transmission_dB),correct_size),...
-                'transmission_dB array is wrong size');
-            assert(isequal(size(Env.spectral_radiance),correct_size),...
+            assert(isequal(size(Env.attenuation), correct_size), ...
+                'attenuation array is wrong size');
+            assert(isequal(size(Env.spectral_radiance), correct_size), ...
                 'spectral_radiance array is wrong size');
         end
 
-        function interp_data = Interp(Env,data,headings,elevations,wavelengths)
-            %output a sample of the requested data interpolated in heading,
+        function interp_data = Interp(Env, data, headings, elevations, wavelengths)
+            %output a sample of the requested data interpolated in heading, 
             %elevation and wavelength
 
             arguments
                 Env Environment
-                data {mustBeMember(data,{'transmission','transmission_dB','spectral_radiance'})}
-                headings {mustBeNumeric,mustBeInRange(headings,0,360)}
-                elevations {mustBeNumeric,mustBeInRange(elevations,-90,90)}
+                data {mustBeMember(data, {'attenuation', 'attenuation_dB', 'spectral_radiance'})}
+                headings {mustBeNumeric, mustBeInRange(headings, 0, 360)}
+                elevations {mustBeNumeric, mustBeInRange(elevations, -90, 90)}
                 wavelengths {mustBeNumeric}
             end
 
             %input validation
-            assert(all(size(headings)==size(elevations)),...
+            assert(all(size(headings) == size(elevations)), ...
                 'requested heading and elevation arrays must be of same size')
-            assert(isscalar(wavelengths)||all(size(wavelengths)==size(elevations)),...
-                'wavelength must be either scalar or the same size as heading and elevation')
+            assert(isscalar(wavelengths) || all(size(wavelengths) == size(elevations)), ...
+                    'wavelength must be either scalar or the same size as heading and elevation')
 
             if isscalar(wavelengths)
                 %make wavelength into an array same size as headings and
@@ -171,28 +176,52 @@ classdef Environment
             end
 
             %interpolate
-            interp_data = interpn(Env.headings,...
-                Env.elevations,...
-                Env.wavelengths,...
-                Array,...
-                headings,...
-                elevations,...
-                wavelengths);
+            interp_data = interpn( ...
+                Env.wavelengths, Env.headings, Env.elevations, ...
+                Array,           ...
+                wavelengths,     headings,   elevations);
 
             % detect if some headings were above the max and interpolate
-            headings_above_top_indices = Env.headings(end)<headings&headings<=360;
+            headings_above_top_indices = Env.headings(end) < headings & headings <= 360;
+
             if any(headings_above_top_indices)
-                interp_data(headings_above_top_indices) = interpn([Env.headings(end),Env.headings(1)+360],Env.elevations,Env.wavelengths,Array([end,1],:,:),headings(headings_above_top_indices),elevations(headings_above_top_indices),wavelengths(headings_above_top_indices));
+                interp_data(headings_above_top_indices) = interpn( ...
+                    [Env.headings(end), Env.headings(1) + 360], ...
+                    Env.elevations, ...
+                    Env.wavelengths, ...
+                    Array([end, 1], :, :), ...
+                    headings(headings_above_top_indices), ...
+                    elevations(headings_above_top_indices), ...
+                    wavelengths(headings_above_top_indices));
             end
+
             % detect if some headings were below minimum and interpolate
-            headings_below_bottom_indices = Env.headings(1)>headings&headings>=360;
+            headings_below_bottom_indices = Env.headings(1) > headings&headings >= 360;
+
             if any(headings_below_bottom_indices)
-                interp_data(headings_below_bottom_indices) = interpn([Env.headings(end)-360,Env.headings(1)],Env.elevations,Env.wavelengths,Array([end,1],:,:),headings(headings_below_bottom_indices),elevations(headings_above_top_indices),wavelengths(headings_above_top_indices));
+                interp_data(headings_below_bottom_indices) = interpn( ...
+                    [Env.headings(end) - 360, Env.headings(1)], ...
+                    Env.elevations, ...
+                    Env.wavelengths, ...
+                    Array([end, 1], :, :), ...
+                    headings(headings_below_bottom_indices), ...
+                    elevations(headings_above_top_indices), ...
+                    wavelengths(headings_above_top_indices));
             end
 
             if any(isnan(interp_data))
-                warning('some requested data were out of environment data range, these data are returned as nan')
+                warning('some requested data were out of environment data range,  these data are returned as nan')
             end
+
+            % set format of interp_data, use a "Loss.m" class for attenuation
+            switch data
+            case 'spectral_radiance'
+                return
+            otherwise
+                temp = units.Loss(Env.attenuation_unit, "attenuation", interp_data);
+                interp_data = temp.ConvertTo(Env.attenuation_unit);
+            end
+
         end
 
         function Plot(Env,DataType,options)

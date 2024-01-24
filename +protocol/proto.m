@@ -8,49 +8,43 @@ classdef proto
     end
 
     methods (Abstract)
-        %[secret_key_rate, sifted_key_rate, qber] = QkdModel( ...
-        %    protocol, source, detector, dark_count_prob, channel_loss);
-        [secret_key_rate, sifted_key_rate, qber] = QkdModel(protocol, alice, bob);
+        [secret_key_rate, sifted_key_rate, qber] = QkdModel(protocol, ...
+            alice, bob, total_loss, background_counts_rate);
     end
 
 
     methods
 
-
-
-        function [secret_rate, sifted_rate, qber] = Calculate(proto, alice, bob, options)
+        function [secret_rate, sifted_rate, qber] = Calculate(proto, ...
+            alice, bob, total_loss, loss_unit, background_counts)
             arguments
                 proto
-                alice {mustBeA(alice, ["protocol.Alice", "nodes.Satellite", "nodes.Ground_Station"])}
-                bob {mustBeA(bob, ["protocol.Bob", "nodes.Satellite", "nodes.Ground_Station"])}
-                % The following optionals can be used to over ride the values in
-                % alice and bob (if they are present)
-                options.channel_loss {mustBeNumeric}
-                options.background_counts {mustBeNumeric}
+                alice {mustBeA(alice, ["nodes.Satellite", "nodes.groundd_Station"])}
+                bob {mustBeA(bob, ["nodes.Satellite", "nodes.groundd_Station"])}
+                total_loss (1, :) {mustBeNumeric}
+                loss_unit {mustBeMember(loss_unit, ["probability", "dB"])}
+                background_counts (1, :, :) {mustBeNumeric}
             end
 
-            node_types = ['nodes.Satellite', 'nodes.Ground_Station'];
-            isaNode = @(obj) any(isa(obj, node_types));
-
-            have_nodes = false;
-            if isaNode(alice) && isaNode(bob)
-                have_nodes = true;
-            end
-
-            % if Alice is not a protocol.Alice, then cast it
-            if ~isa(alice, "protocol.Alice")
-                alice = alice.Alice();
-            end
-
-            % if Bob is not a protocol.Bob, then cast it
-            if ~isa(bob, "protocol.Bob")
-                bob = bob.Bob();
-            end
-
-            [secret_rate, sifted_rate, qber] = proto.QkdModel(alice, bob);
+            [secret_rate, sifted_rate, qber] = proto.QkdModel( ...
+                alice, bob, ...
+                units.Loss(loss_unit, "", total_loss).As("probability"), ...
+                background_counts);
 
         end
 
+        function prob = BackgroundCountProbability(proto, ...
+            background_count_rate, time_gate_width)
+            arguments
+                proto
+                background_count_rate {mustBeNumeric}
+                time_gate_width {mustBeNumeric}
+            end
+
+            [~] = proto;
+
+            prob = 1 - exp(-background_count_rate .* time_gate_width);
+        end
 
         function [secret_key_rate, qber, sifted_key_rate] = EvaluateQKDLink( ...
             proto, source, detector, Link_Loss_dB, Background_Count_Rate)

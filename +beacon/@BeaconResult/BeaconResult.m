@@ -71,7 +71,7 @@ classdef BeaconResult
                 options.mask {mustBeMember(options.mask, { ...
                     'Elevation', 'Line of sight', 'None'})} = "Elevation"
             end
-            
+
             %% what is on the x axis?
             switch options.x_axis
                 case 'Time'
@@ -94,7 +94,7 @@ classdef BeaconResult
             fig = figure("Name", ['Beacon simulation from ', ...
                 result.transmitter_name, ' to ', result.receiver_name], ...
                 "WindowState", "maximized");
-            
+
             %% plot received power and SNR
             subplot(2, 3, [1,2])
             yyaxis left
@@ -106,13 +106,13 @@ classdef BeaconResult
             plot(x_axis(mask), result.snr_db(mask))
             ylabel("SNR (dB)");
             xlabel(x_label);
-            
+
             %% plot link losses
             subplot(2, 3, [4,5])
             hold on
             result.losses.plotLosses(x_axis, x_label, "mask", mask);
             hold off
-            
+
             %% plot link heading and elevation
             polarax = subplot(2,3,3,polaraxes);
             polarplot(polarax,deg2rad(result.heading(mask)), result.elevation(mask))
