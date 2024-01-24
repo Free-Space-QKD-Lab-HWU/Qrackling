@@ -79,11 +79,11 @@ classdef Source
                 end
             end
 
-            obj = obj.UpdateVacuumProabability();
+            obj = obj.UpdateVacuumProbability();
 
         end
 
-        function Source = UpdateVacuumProabability(Source)
+        function Source = UpdateVacuumProbability(Source)
             arguments
                 Source
             end
@@ -178,7 +178,7 @@ classdef Source
                 Source.Probability_Decoy = Probability
             end
 
-            Source = Source.UpdateVacuumProabability();
+            Source = Source.UpdateVacuumProbability();
         end
 
         function Source = Setg2(Source, g2)

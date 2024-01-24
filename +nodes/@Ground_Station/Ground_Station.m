@@ -8,7 +8,7 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
 
         % is is possible to replace this with a hash or index to get the object
         % from the toolbox scenario? Maybe the name is enough?
-        toolbox_groundStation
+        toolbox_ground_station
 
         % path to a file containing the background count rate data for this
         % ground station (stored in counts/ s steradian nm)
@@ -19,10 +19,10 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
         Sky_Brightness_Store_Location{mustBeText} = 'none';
 
         %the camera which receives beacon light, if beaconing is simulated
-        Camera=[];
+        Camera beacon.Camera = [];
 
         %uplink beacon, if simulated
-        Beacon = [];
+        Beacon beacon.Beacon = [];
 
         %atmosphere file location
         Atmosphere_File_Location = [];
@@ -210,6 +210,86 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
             %store Sky_Brightness_Store location
             Ground_Station.Sky_Brightness_Store_Location = p.Results.Sky_Brightness_Store_Location;
         end
+
+        function [ogs, varargout] = Ground_Station( ...
+            Latitude, Longitude, Altitude, Telescope, options)
+            arguments
+                Latitude {mustBeNumeric}
+                Longitude {mustBeNumeric}
+                Altitude {mustBeNumeric}
+                Telescope components.Telescope
+                options.Source components.Source = []
+                options.Detector components.Detector = []
+                options.Camera beacon.Camera = []
+                options.Beacon beacon.Beacon = []
+                options.satelliteScenario {isa(options.satelliteScenario, ['satelliteScenario', 'logical'])} = false
+                options.useSatCommsToolbox = false
+                options.name = Bob
+            end
+
+            result = [utilities.sameSize(Latitude, Longitude), ...
+                      utilities.sameSize(Latitude, Altitude)];
+            if any(false == result)
+                msg = [ ...
+                    'Latitude: { ', inputname(1), ' }, ', newline, ...
+                    'Longitude: { ', inputname(2), ' }, ', newline, ...
+                    'Altitude: { ', inputname(3), ' }, ', newline, ...
+                    ' do not have matching sizes. ', newline, ...
+                    'size(', inputname(1), ') = ', num2str(Latitude), ...
+                    'size(', inputname(2), ') = ', num2str(Longitude), ...
+                    'size(', inputname(3), ') = ', num2str(Altitude), ...
+                       ];
+                error(msg);
+            end
+
+            ogs.Telescope = Telescope;
+
+            ogs.Camera = options.Camera;
+            ogs.Source = options.Source;
+            ogs.Detector = options.Detector;
+            ogs.Beacon = options.Beacon;
+
+            scenario = [];
+            switch class(options.satelliteScenario)
+            case 'satelliteScenario'
+                scenario = options.satelliteScenario;
+
+            case 'logical'
+                % we don't currently have a scenario and we want to make one
+                msg = [newline, newline, ...
+                    '##############################', newline, ...
+                    'Making a new satelliteScenario. If you already have one ', ...
+                    'and wanted to use it, pass it in as an argument to ', ...
+                    'Ground_Station.', newline, ...
+                    'HINT: ogs = nodes.Ground_Station(latitude, longitude, ', ...
+                    'altitude, telescope, "satelliteScenario", MY_SCENARIO)', ...
+                    newline, ...
+                    '##############################', ...
+                    newline ...
+                ];
+                warning(msg)
+                if true == options.satelliteScenario
+                    nargoutchk(2);
+                    scenario = satelliteScenario();
+                    varargout{1} = scenario;
+                end
+            end
+
+            if ~isempty(scenario)
+                %ogs.toolbox_ground_station = groundStation(scenario ...
+                %    Latitude, Longitude, Altitude, Name=options.Name);
+                ogs.toolbox_ground_station = groundStation(scenario, ...
+                    Latitude, Longitude, Altitude, 'Name', options.name);
+            end
+
+            ogs = ogs.SetPosition( ...
+                "Latitude",  Latitude,  ...
+                "Longitude", Longitude, ...
+                "Altitude",  Altitude,  ...
+                "Name",      options.name);
+
+        end
+
 
         function [Background_Rates, Background_Rates_sr_nm] = GetLightPollutionCountRate(Ground_Station, Headings, Elevations)
             % GETLIGHTPOLLUTIONCOUNTRATE return the background count rate

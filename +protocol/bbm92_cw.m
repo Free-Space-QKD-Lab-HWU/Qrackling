@@ -7,6 +7,23 @@ classdef bbm92_cw
     end
 
     methods
+        function [sift, secret, qber] = bbm92_cw(alice, bob, loss, bgr)
+            arguments
+                alice { ...
+                    mustBeA(alice, ["nodes.Satellite", "nodes.Ground_Station"]), ...
+                    nodes.mustHaveDetector(alice)}
+                bob { ...
+                    mustBeA(bob, ["nodes.Satellite", "nodes.Ground_Station"]), ...
+                    nodes.mustHaveSource(bob)}
+                loss nodes.LossResult
+                bgs % background_counts
+                end
+            [~] = {alice, bob};
+            % some rule about single up/down
+            % other rule about double up OR double down
+            % some rule about arb. topo.
+        end
+
         function [sifted_rate, secret_rate, qber] = QkdModel( ...
             protocol, Alice, Bob, dark_count_prob, channel_loss)
 

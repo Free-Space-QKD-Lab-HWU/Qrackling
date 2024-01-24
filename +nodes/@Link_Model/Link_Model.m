@@ -1,3 +1,4 @@
+% NOTE: Deprected?
 % TODO
 % this is being used to later define data in an Array-of-Structs formalism, 
 % seems nice on paper but would like to change to Struct-of-Arrays since its

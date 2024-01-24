@@ -366,7 +366,8 @@ units.Magnitude.Convert("micro", "nano", 1.55)
 
 %% stokes parameters and degree of polarisation
 path = "/home/bp38/Documents/tqi_data/inputs/time_2023_02_24_09_00_00__visibility_50__radiance.inp";
-[keys, data] = libRadtran.read_input_file(path);
+[keys, data] = libRadtran.read_input_file(path)
+data = libradtran.outputFromInputFile(path)
 numel(keys)
 numel(data)
 is_key = contains(keys, 'output_file')

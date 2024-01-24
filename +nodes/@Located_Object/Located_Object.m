@@ -46,7 +46,7 @@ classdef Located_Object
                 Located_Object.Altitude];
         end
 
-        function Located_Object = SetPosition(Located_Object, varargin)
+        function Located_Object = SetPosition(Located_Object, options)
             %%SETPOSITION set the position properties of a location object
 
             %disp(nargin);
@@ -55,46 +55,72 @@ classdef Located_Object
             %    error('Recieved:\t%d arguments\n\tExpected [1 -> 6] as input (1 positional, 4 optional)');
             %end
 
-            p = inputParser;
-
-            addRequired(p, 'Located_Object');
-            addParameter(p, 'LLA', nan, @isnumeric);
-            addParameter(p, 'Latitude', nan, @isnumeric);
-            addParameter(p, 'Longitude', nan, @isnumeric);
-            addParameter(p, 'Altitude', nan, @isnumeric);
-            addParameter(p, 'Name', "");
-
-            parse(p, Located_Object, varargin{:});
-
-            LLA = p.Results.LLA;
-            lat = p.Results.Latitude;
-            lon = p.Results.Longitude;
-            alt = p.Results.Altitude;
-
-            Located_Object.Location_Name = p.Results.Name;
-
-            initialised = false;
-
-            if ~isnan(LLA)
-                Located_Object.Latitude = LLA(1);
-                Located_Object.Longitude = LLA(2);
-                Located_Object.Altitude = LLA(3);
-                initialised = true;
-            elseif AreSameSize(lat, lon, alt)
-                Located_Object.Latitude = lat;
-                Located_Object.Longitude = lon;
-                Located_Object.Altitude = alt;
-                Located_Object.N_Position = numel(lat);
-                initialised = true;
-            else
-                error('latitude, longitude and altitude must be same sized vectors');
+            arguments
+                Located_Object
+                options.LLA {mustBeNumeric} = []
+                options.Latitude {mustBeNumeric} = []
+                options.Longitude {mustBeNumeric} = []
+                options.Altitude {mustBeNumeric} = []
+                options.Name
             end
 
-            if initialised == true
+            % p = inputParser;
+
+            % addRequired(p, 'Located_Object');
+            % addParameter(p, 'LLA', nan, @isnumeric);
+            % addParameter(p, 'Latitude', nan, @isnumeric);
+            % addParameter(p, 'Longitude', nan, @isnumeric);
+            % addParameter(p, 'Altitude', nan, @isnumeric);
+            % addParameter(p, 'Name', "");
+
+            % parse(p, Located_Object, varargin{:});
+
+            % LLA = p.Results.LLA;
+            % lat = p.Results.Latitude;
+            % lon = p.Results.Longitude;
+            % alt = p.Results.Altitude;
+
+            % Located_Object.Location_Name = p.Results.Name;
+
+            % initialised = false;
+
+            % if ~isnan(LLA)
+            %     Located_Object.Latitude = LLA(1);
+            %     Located_Object.Longitude = LLA(2);
+            %     Located_Object.Altitude = LLA(3);
+            %     initialised = true;
+            % elseif AreSameSize(lat, lon, alt)
+            %     Located_Object.Latitude = lat;
+            %     Located_Object.Longitude = lon;
+            %     Located_Object.Altitude = alt;
+            %     Located_Object.N_Position = numel(lat);
+            %     initialised = true;
+            % else
+            %     error('latitude, longitude and altitude must be same sized vectors');
+            % end
+
+            if ~isempty(options.LLA)
+                Located_Object.Latitude  = options.LLA(1);
+                Located_Object.Longitude = options.LLA(2);
+                Located_Object.Altitude  = options.LLA(3);
+                Located_Object.N_Position = numel(options.LLA(1));
                 return
-            else
-                error('Failed to initialise object: LLA or latitude, longitude altitude vectors incorrect format');
             end
+
+            if all(~isempty(options.Latitude, options.Longitude, options.Altitude))
+                Located_Object.Latitude  = options.Latitude;
+                Located_Object.Longitude = options.Longitude;
+                Located_Object.Altitude  = options.Altitude;
+                Located_Object.N_Position = numel(options.Latitude);
+            end
+
+            error('Failed to initialise object: LLA or latitude, longitude altitude vectors incorrect format');
+
+            % if initialised == true
+            %     return
+            % else
+            %     error('Failed to initialise object: LLA or latitude, longitude altitude vectors incorrect format');
+            % end
         end
 
         function Located_Object = SetVelocities(Located_Object, velEast, velNorth, velUp)
