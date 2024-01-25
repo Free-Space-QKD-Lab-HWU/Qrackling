@@ -29,7 +29,7 @@ classdef Environment
                 filename {mustBeFile}
             end
             arguments (Output)
-                Env Environment
+                Env environment.Environment
             end
 
             Env.headings = load(filename, 'headings');
@@ -75,9 +75,9 @@ classdef Environment
 
             %% sort,  tidy and bound inputs
             %heading,  elevation and wavelength must be increasing
-            assert(Environment.IsIncreasing(headings), 'headings must be increasing')
-            assert(Environment.IsIncreasing(elevations), 'elevations must be increasing')
-            assert(Environment.IsIncreasing(wavelengths), 'wavelengths must be increasing')
+            assert(environment.Environment.IsIncreasing(headings), 'headings must be increasing')
+            assert(environment.Environment.IsIncreasing(elevations), 'elevations must be increasing')
+            assert(environment.Environment.IsIncreasing(wavelengths), 'wavelengths must be increasing')
 
             %all vectors should be rows
             if iscolumn(headings)
@@ -105,7 +105,7 @@ classdef Environment
         function Save(Env, filename)
             %save the data in the current environment to a .mat file
             arguments
-                Env Environment
+                Env environment.Environment
                 filename {mustBeText}
             end
 
@@ -169,8 +169,6 @@ classdef Environment
             switch data
                 case 'transmission'
                     Array = Env.transmission;
-                case 'transmission_dB'
-                    Array = Env.transmission_dB;
                 case 'spectral_radiance'
                     Array = Env.spectral_radiance;
             end
@@ -228,7 +226,7 @@ classdef Environment
             %% plot data from a skyscan in a consistent polar format
 
             arguments
-                Env Environment
+                Env environment.Environment
                 DataType {mustBeMember(DataType,{'transmission','transmission dB','spectral radiance'})}
                 options.Name {mustBeText} = '';
                 options.Colourmap = 'turbo';
@@ -280,7 +278,6 @@ classdef Environment
                 end
             end
 
-
             %% plot intensity over sky
             % create a UI figure
             sky_fig = uifigure('WindowState','maximized');
@@ -313,24 +310,23 @@ classdef Environment
 
                 %% perform plot
                 Plot = polarscatter(Axes,deg2rad(Heading_Grid(:)),Elevation_Grid(:),options.Size,Current_Values(:),'filled');
-            
-                
+
                 %% prepare axes
-            %set up axis for this particular plot
-            Axes.RDir='reverse';
-            Axes.ThetaDir = "clockwise";
-            Axes.ThetaZeroLocation='top';
-            Axes.RLim=[0,90];
-            Axes.RTickLabel = cellfun(@(x) append(num2str(x),sprintf ('%c',char(176))),Axes.RTickLabel,'UniformOutput',false);
+                %set up axis for this particular plot
+                Axes.RDir='reverse';
+                Axes.ThetaDir = "clockwise";
+                Axes.ThetaZeroLocation='top';
+                Axes.RLim=[0,90];
+                Axes.RTickLabel = cellfun(@(x) append(num2str(x),sprintf ('%c',char(176))),Axes.RTickLabel,'UniformOutput',false);
 
-            set(Axes,'ColorScale',options.ColourScale)
+                set(Axes,'ColorScale',options.ColourScale)
 
-            colormap(Axes,options.Colourmap);
-            clim(Axes,options.CLims)
-            C = colorbar(Axes,"eastoutside");
-            C.Label.String = options.Name;
-            C.Label.FontName = get(groot,"defaultAxesFontName");
-            C.Label.FontSize = get(groot,"defaultAxesFontSize");
+                colormap(Axes,options.Colourmap);
+                clim(Axes,options.CLims)
+                C = colorbar(Axes,"eastoutside");
+                C.Label.String = options.Name;
+                C.Label.FontName = get(groot,"defaultAxesFontName");
+                C.Label.FontSize = get(groot,"defaultAxesFontSize");
             end
         end
     end

@@ -414,7 +414,7 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
             %% find light pollution count rate for given headings and elevations
             %if a SMARTS config is provided, use SMARTS for this calculation
 
-            %% first, specify which time stamps must be simulated- these are timestamps for which elevation>0
+            % first, specify which time stamps must be simulated- these are timestamps for which elevation>0
             Simulate_Flags = Elevations>0;
             All_Time_Indices = 1:numel(Elevations);
             Simulation_Headings = Headings(Simulate_Flags);
