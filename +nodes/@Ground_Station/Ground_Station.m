@@ -298,7 +298,7 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
 
             % input validation
             % heading and elevation arrays must be same dimensions
-            assert(AreSameDimensions(Headings, Elevations),...
+            assert(utilities.AreSameDimensions(Headings, Elevations),...
                 'heading and elevation arrays must be of same dimensions')
 
             %% three options, either a Sky_Brightness_Store_Location is provided, or
@@ -386,7 +386,8 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
             end
 
             % add background light files to path
-            addpath(LocationofFile(Background_Count_Rate_File_Location));
+            % TODO: LocationofFile function is deprecated with module structure
+            addpath(utilities.LocationofFile(Background_Count_Rate_File_Location));
             % if a file is provided, use this file location
             if ~(exist(Background_Count_Rate_File_Location, 'file'))
                 error('cannot find a mat file of that name and location');
@@ -490,6 +491,7 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
                         Sky_Irradiance(Time_Index, :), ...
                         Wavelengths', 1e-9);
 
+                    %TODO: replace with environment.countRateFromRadiance
                     Sky_Photons(Time_Index, :) = sky_photons(...
                         Sky_Radiance(Time_Index, :), ...
                         Ground_Station.Telescope.FOV ^ 2, ...
@@ -662,14 +664,17 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
             Headings = 1:359;
             WindowLat = zeros(1, 359);
             WindowLon = zeros(1, 359);
-            ArcDistance = ComputeLOSWindow(Satellite_Altitude, Ground_Station.Elevation_Limit);
+            ArcDistance = utilities.ComputeLOSWindow(Satellite_Altitude, Ground_Station.Elevation_Limit);
             for Heading = Headings
-                [CurrentWindowLat, CurrentWindowLon] = MoveAlongSurface(Ground_Station.Latitude, Ground_Station.Longitude, ArcDistance, Heading);
+                % NOTE: this is the only call site for MoveAlongSurface
+                [CurrentWindowLat, CurrentWindowLon] = utilities.MoveAlongSurface(Ground_Station.Latitude, Ground_Station.Longitude, ArcDistance, Heading);
                 WindowLat(Heading) = CurrentWindowLat;
                 WindowLon(Heading) = CurrentWindowLon;
             end
             geoplot(WindowLat, WindowLon, 'k--')
-            AddToLegend('Ground Station orbit LOS', 'Ground Station')
+            leg = legend;
+            leg.String{end} = "Ground Station orbig LOS";
+            leg.String{end + 1} = "Ground Station";
         end
 
         function [Total_Background_Count_Rate,Ground_Station] = ComputeTotalBeaconNoisePower(Ground_Station, Background_Sources, Satellite, Headings, Elevations)

@@ -202,7 +202,7 @@ classdef Located_Object
             %compute relative coords
             ENUs = ComputeRelativeCoords(Located_Obj_1, Located_Obj_2);
             %take magnitude for distances
-            Distance = Row2Norms(ENUs)';
+            Distance = utilities.Row2Norms(ENUs)';
         end
 
         function [Headings, Elevations, Distances] = RelativeHeadingAndElevation(Located_Obj_1, ...
@@ -214,14 +214,14 @@ classdef Located_Object
             ENUs = ComputeRelativeCoords(Located_Obj_1, Located_Obj_2);
 
             %% compute heading and elevation from ground station
-            [Headings, Elevations] = HeadingAndElevation(ENUs);
+            [Headings, Elevations] = utilities.HeadingAndElevation(ENUs);
 
             %% transpose into row vectors
             Headings = Headings';
             Elevations = Elevations';
 
             %% if needed, compute distances
-            Distances = Row2Norms(ENUs)';
+            Distances = utilities.Row2Norms(ENUs)';
         end
 
         function [X, Y, Z] = GetXYZ(Loc_obj)
@@ -249,10 +249,10 @@ classdef Located_Object
             Pos_2=[X2,Y2,Z2];
             %% determine the minimum radius from earth's centre of the line between these two
             Dot_product = sum(Pos_1 .* Pos_2,2);
-            Lambda_min = (Row2Norms(Pos_1).^2 ...
+            Lambda_min = (utilities.Row2Norms(Pos_1).^2 ...
                 - Dot_product) ./ ...
-                (Row2Norms(Pos_1).^2 ...
-                + Row2Norms(Pos_2).^2 ...
+                (utilities.Row2Norms(Pos_1).^2 ...
+                + utilities.Row2Norms(Pos_2).^2 ...
                 - 2 .* Dot_product);
 
             Pos_min = Pos_1 .* (1 - Lambda_min) + Pos_2 .* Lambda_min;
@@ -275,7 +275,7 @@ classdef Located_Object
 
             %produce a located_object at this minimum point by converting
             %to spherical coords and then geographic coords
-            R_min = Row2Norms(Pos_min);
+            R_min = utilities.Row2Norms(Pos_min);
 
             %% if R_min is less than earth radius, shadowing is present
             ShadowFlag = R_min < Located_obj_1.Earth_Radius;
@@ -290,7 +290,7 @@ classdef Located_Object
             ENU_Vector = ComputeRelativeCoords(Located_Obj_1,Located_Obj_2);
 
             %% then normalise
-            Direction_Vector = ENU_Vector./Row2Norms(ENU_Vector);
+            Direction_Vector = ENU_Vector./utilities.Row2Norms(ENU_Vector);
         end
 
     end

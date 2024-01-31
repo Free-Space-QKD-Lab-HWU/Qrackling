@@ -1,6 +1,6 @@
 %Author: Peter Barrow
 %Date: 12/8/22
-
+% TODO: Remove this function from the library
 function scenario = satelliteScenarioWrapper(startTime, stopTime, varargin)
     p = inputParser;
     addRequired(p, 'startTime', @isdatetime);

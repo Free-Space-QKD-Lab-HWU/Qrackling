@@ -84,7 +84,6 @@ classdef e91 < protocol.proto
             sifted_rate = s1 .* rep_rate;
             % tau1 = Bob.Detector.fall_time;
             % tau2 = Bob.Detector.rise_time;
-            % Rate_Det = dead_time_corrected_count_rate(Rate_In, tau1, tau2, 1);
             dead_time = Bob.Detector.Dead_Time;
 
             % QBER
@@ -105,8 +104,6 @@ classdef e91 < protocol.proto
             % Final sifted key rate
             secret_rate = sift_prob .* P_succ .* R_2 .* proto.efficiency .* rep_rate;
             secret_rate = min(secret_rate, 1/dead_time);
-            %sifted_rate = dead_time_corrected_count_rate(sifted_rate, ...
-            %                                                 dead_time, 1);
 
             % Marking the values where the sifted key rate is negative as Nan
             % (when the QBER is above q_thr the R_2 variable becomes negative

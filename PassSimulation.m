@@ -390,14 +390,14 @@ classdef PassSimulation
         function PassSimulation = Set_N_Steps(PassSimulation, N_Steps)
             %%SET_N_STEPS set the data storage in PassSimulation to the
             %%correct size
-            PassSimulation.Headings = Set_to_a_Length(PassSimulation.Headings, N_Steps, 'zero');
-            PassSimulation.Elevations = Set_to_a_Length(PassSimulation.Elevations, N_Steps, 'zero');
-            PassSimulation.Link_Losses_dB = Set_to_a_Length(PassSimulation.Link_Losses_dB, N_Steps, 'zero');
-            PassSimulation.Background_Count_Rates = Set_to_a_Length(PassSimulation.Background_Count_Rates, N_Steps, 'zero');
-            PassSimulation.Secret_Key_Rates = Set_to_a_Length(PassSimulation.Secret_Key_Rates, N_Steps, 'zero');
-            PassSimulation.QBERs = Set_to_a_Length(PassSimulation.QBERs, N_Steps, 'zero');
-            PassSimulation.Communicating_Flags = Set_to_a_Length(PassSimulation.Communicating_Flags, N_Steps, 'false');
-            PassSimulation.Elevation_Limit_Flags = Set_to_a_Length(PassSimulation.Elevation_Limit_Flags, N_Steps, 'false');
+            PassSimulation.Headings = utilities.Set_to_a_Length(PassSimulation.Headings, N_Steps, 'zero');
+            PassSimulation.Elevations = utilities.Set_to_a_Length(PassSimulation.Elevations, N_Steps, 'zero');
+            PassSimulation.Link_Losses_dB = utilities.Set_to_a_Length(PassSimulation.Link_Losses_dB, N_Steps, 'zero');
+            PassSimulation.Background_Count_Rates = utilities.Set_to_a_Length(PassSimulation.Background_Count_Rates, N_Steps, 'zero');
+            PassSimulation.Secret_Key_Rates = utilities.Set_to_a_Length(PassSimulation.Secret_Key_Rates, N_Steps, 'zero');
+            PassSimulation.QBERs = utilities.Set_to_a_Length(PassSimulation.QBERs, N_Steps, 'zero');
+            PassSimulation.Communicating_Flags = utilities.Set_to_a_Length(PassSimulation.Communicating_Flags, N_Steps, 'false');
+            PassSimulation.Elevation_Limit_Flags = utilities.Set_to_a_Length(PassSimulation.Elevation_Limit_Flags, N_Steps, 'false');
         end
 
         function SetWavelength(PassSimulation, Wavelength)

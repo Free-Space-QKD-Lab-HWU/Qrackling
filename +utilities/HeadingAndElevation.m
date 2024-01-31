@@ -17,7 +17,7 @@ Zs=R(:,3);
 
 %% compute Headings and Elevations
 Headings=atan2d(Xs,Ys);
-Elevations=atan2d(Zs,Row2Norms([Xs,Ys]));
+Elevations=atan2d(Zs,utilities.Row2Norms([Xs,Ys]));
  
 %keep heading positive between 0 and 360
 Headings_too_low=Headings<0;

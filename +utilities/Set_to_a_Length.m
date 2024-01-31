@@ -1,3 +1,4 @@
+% TODO: This can probably be removed...
 function ArrayOut=Set_to_a_Length(ArrayIn,Length,PadSpecies)
 %%SET_TO_A_LENGTH
 %input ArrayIn must be a vector

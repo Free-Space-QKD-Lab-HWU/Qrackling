@@ -1,3 +1,4 @@
+%TODO: needs to be deprecated
 function Location_String=LocationofFile(File_String)
 %%LOCATIONOFFILE return the relative path of the folder in which the specified file sits
 

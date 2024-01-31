@@ -101,7 +101,6 @@ classdef decoyBB84 < protocol.proto
             %disp([num2str(R), ' ', num2str(SKR_decoyBB84), ' ', num2str(test)]);
             %SKR_decoyBB84 = R_sifted;
 
-            %SKR_decoyBB84 = dead_time_corrected_count_rate(rep_rate * Ideal_Secret_Key_Rate, tau1, tau2, 1);
             SKR_decoyBB84 = min(rep_rate * Ideal_Secret_Key_Rate, 1 / bob.Detector.Dead_Time);
             %SKR_decoyBB84 = R;
             %disp(SKR_decoyBB84);

@@ -12,8 +12,8 @@ function shadowed = InEarthsShadow(A, B)
 
     %% determine the minimum radius from earth's centre of the line between these two
     Dot_product = sum(Pos_A .* Pos_B, 2);
-    Lambda_min = (Row2Norms(Pos_A).^2 - Dot_product) ...
-        ./ (Row2Norms(Pos_A).^2 + Row2Norms(Pos_B).^2 - 2 .* Dot_product);
+    Lambda_min = (utilities.Row2Norms(Pos_A).^2 - Dot_product) ...
+        ./ (utilities.Row2Norms(Pos_A).^2 + utilities.Row2Norms(Pos_B).^2 - 2 .* Dot_product);
 
     Pos_min = Pos_A .* (1 - Lambda_min) + Pos_B .* Lambda_min;
     %check lambda for not being inside bounds
@@ -36,7 +36,7 @@ function shadowed = InEarthsShadow(A, B)
 
     %produce a located_object at this minimum point by converting
     %to spherical coords and then geographic coords
-    R_min = Row2Norms(Pos_min);
+    R_min = utilities.Row2Norms(Pos_min);
 
     shadowed = R_min < A.Earth_Radius;
 end

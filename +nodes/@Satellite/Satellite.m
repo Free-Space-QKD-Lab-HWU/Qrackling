@@ -212,7 +212,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             end
 
             %check data is compatible
-            if ~AreSameDimensions(t, lat, lon, alt)
+            if ~utilities.AreSameDimensions(t, lat, lon, alt)
                 error('Latitude, Longitude, Altitude and Time data must be of the same length')
             end
             %set N_Steps
@@ -271,7 +271,8 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             %if no file is given) orbit data file
             %% add orbit files to path
 
-            addpath(LocationofFile(Orbit_Data_File_Location));
+            % TODO: LocationofFile function is deprecated with module structure
+            addpath(utilities.LocationofFile(Orbit_Data_File_Location));
 
             if nargin < 2
                 error('ReadOrbitLLATFile takes only a satellite object and .txt file location as arguments');
@@ -414,7 +415,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                 Satellite.Altitudes'];
 
             ENU = lla2enu(LLA_satellite, LLA, "ellipsoid");
-            Distances = Row2Norms(ENU);
+            Distances = utilities.Row2Norms(ENU);
         end
 
 
