@@ -59,10 +59,11 @@ classdef Environment
 
     end
 
+    % Public Methods of Environment
     methods
+        %construct an environment object
         function Env = Environment(headings, elevations, wavelengths, ...
                                    spectral_radiance, attenuation, options)
-            %construct an environment object
 
             arguments
                 headings {mustBeNumeric, mustBeVector, mustBeInRange(headings, 0, 360)}
@@ -73,7 +74,7 @@ classdef Environment
                 options.attenuation_unit {mustBeMember(options.attenuation_unit, ["probability", "dB"])} = "probability"
             end
 
-            %% sort,  tidy and bound inputs
+            % sort,  tidy and bound inputs
             %heading,  elevation and wavelength must be increasing
             assert(environment.Environment.IsIncreasing(headings), 'headings must be increasing')
             assert(environment.Environment.IsIncreasing(elevations), 'elevations must be increasing')
@@ -146,7 +147,7 @@ classdef Environment
             %elevation and wavelength
 
             arguments
-                Env Environment
+                Env environment.Environment
                 data {mustBeMember(data, {'attenuation', 'attenuation_dB', 'spectral_radiance'})}
                 headings {mustBeNumeric, mustBeInRange(headings, 0, 360)}
                 elevations {mustBeNumeric, mustBeInRange(elevations, -90, 90)}
@@ -223,7 +224,7 @@ classdef Environment
         end
 
         function Plot(Env,DataType,options)
-            %% plot data from a skyscan in a consistent polar format
+            % plot data from a skyscan in a consistent polar format
 
             arguments
                 Env environment.Environment
@@ -235,7 +236,7 @@ classdef Environment
                 options.ColourScale {mustBeMember(options.ColourScale,{'log','linear','auto'})} = 'auto'
             end
 
-            %% prepare data
+            % prepare data
             %what data are we plotting?
             switch DataType
                 case 'transmission'
@@ -249,7 +250,7 @@ classdef Environment
             %headings and elevations
             [Heading_Grid,Elevation_Grid]=meshgrid(Env.headings,Env.elevations);
 
-            %% enforce some defaults
+            % enforce some defaults
             if isempty(options.Name)
                 %set label for plots
                 switch DataType
@@ -278,7 +279,7 @@ classdef Environment
                 end
             end
 
-            %% plot intensity over sky
+            % plot intensity over sky
             % create a UI figure
             sky_fig = uifigure('WindowState','maximized');
             Axes = polaraxes(sky_fig);
@@ -301,17 +302,17 @@ classdef Environment
             function UpdatePlot(scrollbar,Axes,...
                     Values,Heading_Grid,Elevation_Grid,...
                     Wavelengths,options)
-                %% prepare plot data
+                % prepare plot data
                 Current_Wavelength = scrollbar.Value;
                 Wavelength_Index=round(interp1(Wavelengths,1:numel(Wavelengths),Current_Wavelength));
                 Current_Values = Values(:,:,Wavelength_Index)';
                 Current_Values(isinf(Current_Values)) = nan;
 
 
-                %% perform plot
+                % perform plot
                 Plot = polarscatter(Axes,deg2rad(Heading_Grid(:)),Elevation_Grid(:),options.Size,Current_Values(:),'filled');
 
-                %% prepare axes
+                % prepare axes
                 %set up axis for this particular plot
                 Axes.RDir='reverse';
                 Axes.ThetaDir = "clockwise";
