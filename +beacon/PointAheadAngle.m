@@ -29,8 +29,6 @@ function [heading_PAA,elevation_PAA] = PointAheadAngle(Receiver,Transmitter)
 %with time)
 ENUs = ComputeRelativeCoords(Transmitter,Receiver)';
 
-    %TODO: implement speed of light as constant property of Located_Object
-    % NOTE: maybe a "constants" class?
     c = 2.998E8;
 
     % compute relative velocities (in ENU frame)

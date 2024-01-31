@@ -65,7 +65,7 @@ classdef PassSimulationResult
                     'Time', 'Elevation'})} = "Time"
                 options.mask {mustBeMember(options.mask, { ...
                     'Elevation', 'Communication', 'Line of sight', 'None'})} = "Elevation"
-                options.Background_Sources = [] %HACK: make a "noise result" type instead
+                options.Background_Sources = [] % TODO: replace with environment
             end
 
             switch options.x_axis

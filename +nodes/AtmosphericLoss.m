@@ -6,11 +6,6 @@ function loss = AtmosphericLoss(kind, receiver, transmitter, environment)
         receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
         transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
         environment Environment
-        % FIX: the Atmosphere_Spectral_Filter needs replacing, bring inline with lrt
-        % FIX: why does Atmosphere_Spectral_Filter take a wavlength on constuction?
-        %options.Atmosphere Atmosphere_Spectral_Filter
-        % HACK: needed to construct atmosphere spectral filter
-        % options.Visibility {mustBeText} = '50km'
     end
 
     % When we look at the original Satellite_Link_Model.m we can see that 
@@ -30,11 +25,6 @@ function loss = AtmosphericLoss(kind, receiver, transmitter, environment)
     case "qkd"
         wavelength = transmitter.Source.Wavelength;
     end
-
-    % atmosphere_spectral_filter = Atmosphere_Spectral_Filter( ...
-    %     elevations, wavelength, {options.Visibility});
-
-    % loss = atmosphere_spectral_filter.ComputeTransmission(wavelength);
 
     loss = environment.Interp("attenuation", headings, elevations, wavelength);
 

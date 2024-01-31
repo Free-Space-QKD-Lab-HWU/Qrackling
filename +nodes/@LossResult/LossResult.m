@@ -37,11 +37,14 @@ classdef LossResult
             end
         end
 
-        % TODO: add in optional argument for "extra losses"
-        function loss = TotalLoss(result, unit)
+        function loss = TotalLoss(result, unit, extra_loss, extra_unit)
             arguments
                 result nodes.LossResult
                 unit {mustBeMember(unit, ["probability", "dB"])}
+            end
+            arguments (Repeating)
+                extra_loss nodes.LossResult
+                extra_unit {mustBeMember(unit, ["probability", "dB"])}
             end
 
             props = properties(result);
@@ -61,6 +64,24 @@ classdef LossResult
                 total = zeros(size(result.(valid_props{1})));
                 for property = valid_props
                     total = total + result.(property{1}).As("dB");
+                end
+            end
+
+            for i = 1:numel(extra_loss)
+                l = extra_loss{i};
+                u = extra_unit{i};
+                switch u
+                case "probability"
+                    total = ones(size(result.(valid_props{1})));
+                    for property = valid_props
+                        total = total .* l.As("probability");
+                    end
+
+                case "dB"
+                    total = zeros(size(result.(valid_props{1})));
+                    for property = valid_props
+                        total = total + l.As("dB");
+                    end
                 end
             end
 

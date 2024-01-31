@@ -18,12 +18,12 @@ function counts = countRateFromRadiance(radiance, FOV, receiver_diameter, ...
         unit units.Magnitude = "nano"
     end
 
-    size_radiance = size(radiance)
-    n_wavelengths = numel(wavelengths)
+    size_radiance = size(radiance);
+    n_wavelengths = numel(wavelengths);
 
-    assert(n_wavelengths == size_radiance[1], [ ...
-        'Incompatible sizes for radiance and wavelength. ', ...
-        'Must be size(radiance) = (A, B) with size(wavelengths) = (1, A)']);
+    assert(n_wavelengths == size_radiance[1], ...
+        ['Incompatible sizes for radiance and wavelength. ', ...
+         'Must be size(radiance) = (A, B) with size(wavelengths) = (1, A)']);
 
     wavelengths_nm = units.Magnitude.Convert(unit, "none", wavelengths);
 

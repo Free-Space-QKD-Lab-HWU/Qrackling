@@ -12,7 +12,6 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
         options.SpotSize = []
         options.LinkLength = []
         options.environment Environment = []
-        % options.Visibility = '50km'
     end
 
     unit = "probability";
@@ -39,7 +38,7 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
             direction = nodes.LinkDirection.Uplink;
         end
 
-        fried_param = FriedParameter(direction, "Hufnagel_Valley", HufnagelValley.HV10_10);
+        fried_param = environment.FriedParameter(direction, "Hufnagel_Valley", HufnagelValley.HV10_10);
 
         [res, beam_width, r0] = nodes.TurbulenceLoss( ...
             kind, receiver, transmitter, fried_param, ...
@@ -76,8 +75,6 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
 
     nargoutchk(0, 3)
 
-    % NOTE: is it worth moving this into a struct2kwargs function? would make it
-    % possible to convert structs to function args. might be nice for constructors
     loss_fields = fieldnames(losses);
     loss_values = struct2cell(losses);
     n_losses = length(loss_fields);

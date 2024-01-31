@@ -1,6 +1,5 @@
 % TODO: adapt this to allow double up/down link comms
-function result = QkdPassSimulation(Receiver, Transmitter, proto, ...
-        type, data_wavelengths, data_headings, data_elevations, data, unit, options)
+function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
     arguments
         Receiver { ...
             mustBeA(Receiver, ["nodes.Satellite", "nodes.Ground_Station"]), ...
@@ -9,60 +8,7 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, ...
             mustBeA(Transmitter, ["nodes.Satellite", "nodes.Ground_Station"]), ...
             nodes.mustHaveSource(Transmitter)}
         proto protocol.proto
-    end
-    arguments (Repeating)
-        type {mustBeMember(type, {"transmission", "background_emission"})}
-        data_wavelengths (1, :) {mustBeNumeric}
-        data_headings (1, :) {mustBeNumeric}
-        data_elevations (1, :) {mustBeNumeric}
-        data (:, :) {mustBeNumeric}
-        unit {mustBeMember(unit, {"probability", "dB", "Hz/m^2/sr", "W/m^2/sr/nm"})}
-    end
-    arguments
-        options.Headings (1, :) ...
-            {mustBeNumeric, mustBeInRange(options.Headings, 0, 360)} = linspace(0, 360, 91)
-        options.Elevations (1, :) ...
-            {mustBeNumeric, mustBeInRange(options.Elevations, 0, 90)} = linspace(0, 90, 46)
         options.Environment Environment = []
-        % options.Background_Sources = []
-        % options.Visibility = '50km'
-    end
-
-    % first we need to determine the dimensions of our transmission and elevation
-    % data. This is either set by the environment or by the repeating args.
-
-    default_headings = options.Headings;
-    default_elevations = options.Elevations;
-
-    if ~isempty(options.Environment)
-        default_headings = options.Environment.headings;
-        default_elevations = options.Environment.elevations;
-    end
-
-    mapped_data = {};
-
-    for i = 1:numel(type)
-        mapped = environment.mapToEnvironment( ...
-            data_headings,    data_elevations,    data, ...
-            default_headings, default_elevations, ...
-            Wavelength=data_wavelengths);
-        mapped_data{i} = mapped;
-
-        switch type{i}
-        case "transmission"
-            switch unit{i}
-            case "probability"
-                continue
-            case "dB"
-                % TODO: convert
-            end
-        case "background_emission"
-            switch unit{i}
-            case "Hz/M^2/sr" % "counts"
-            case "W/m^2/sr/nm" % "power"
-                continue
-            end
-        end
     end
 
     transmitter_name = utilities.node_name(Transmitter);
@@ -132,14 +78,14 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, ...
         case "nodes.Ground_Station"
             [headings, elevations, ~] = receiver.RelativeHeadingAndElevation(transmitter);
         end
-        solar_radiance = options.Environment.Interp( ...
-            "spectral_radiance", headings, elevations, Receiver.Source.Wavelength);
-        background_counts_per_second = utilities.skyPhotons(...
-            solar_radiance, ...
-            Receiver.Telescope.FOV, ...
-            Receiver.Telescope.Diameter, ...
-            Receiver.Source.Wavelength, ...
-            1);
+        % solar_radiance = options.Environment.Interp( ...
+        %     "spectral_radiance", headings, elevations, Receiver.Source.Wavelength);
+        % background_counts_per_second = utilities.skyPhotons(...
+        %     solar_radiance, ...
+        %     Receiver.Telescope.FOV, ...
+        %     Receiver.Telescope.Diameter, ...
+        %     Receiver.Source.Wavelength, ...
+        %     1);
     else
         [link_loss, ~] = nodes.linkLoss("qkd", Receiver, Transmitter, ...
             "apt", "optical", "geometric", "turbulence");

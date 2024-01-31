@@ -12,9 +12,6 @@ classdef bb84 < protocol.proto
         function p = bb84()
         end
 
-        %function [secret_key_rate, sifted_key_rate, qber] = QkdModel( ...
-        %    proto, Source, Bob.Detector, prob_dark_counts, loss)
-        % TODO: see all of the transposes in this function, are they all necessary?
         function [secret_rate, sifted_rate, qber] = QkdModel(proto, ...
             Alice, Bob, total_loss, total_background_count_rate)
         % Function to compute sifted key rate and QBER of the BB84 protocol with

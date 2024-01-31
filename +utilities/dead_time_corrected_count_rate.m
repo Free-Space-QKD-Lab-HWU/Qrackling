@@ -47,8 +47,8 @@
 % Usage:
 % count_rate: rate of photons arriving at detector in units of integration_time
 % dead_time: detector (reset) dead time in seconds
-% integration_time: amount of time refered to by count_rate. NOTE: this must be
-%                     in seconds
+% integration_time: amount of time refered to by count_rate.
+% (this must be in seconds)
 % 
 % Example usage for a lossy channel where the repetition rate is in Hz, 
 % detected_rate = dead_time_corrected_count_rate(repetition_rate * loss, ...
