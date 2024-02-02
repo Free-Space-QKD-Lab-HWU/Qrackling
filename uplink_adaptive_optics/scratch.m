@@ -16,10 +16,8 @@ mustBeMember('aaa', tags')
 h = cn2.HufnagelValley;
 
 interfacefunc(cn2.HufnagelValley)
-interfacefunc(
 
 memberOfSet('HV5_7')
-memberOfSet('
 
 h = cn2.HufnagelValley.HV5_7
 

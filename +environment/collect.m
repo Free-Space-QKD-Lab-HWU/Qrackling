@@ -6,6 +6,8 @@ function env = collect(type, data_wavelengths, data_headings, data_elevations, d
         data_elevations (1, :) {mustBeNumeric}
         data (:, :) {mustBeNumeric}
         unit {mustBeMember(unit, {"probability", "dB", "Hz/m^2/sr", "W/m^2/sr/nm"})}
+    end
+    arguments
         options.Headings (1, :) ...
             {mustBeNumeric, mustBeInRange(options.Headings, 0, 360)} = linspace(0, 360, 91)
         options.Elevations (1, :) ...
@@ -17,11 +19,6 @@ function env = collect(type, data_wavelengths, data_headings, data_elevations, d
 
     default_headings = options.Headings;
     default_elevations = options.Elevations;
-
-    if ~isempty(options.Environment)
-        default_headings = options.Environment.headings;
-        default_elevations = options.Environment.elevations;
-    end
 
     mapped_data = {};
 

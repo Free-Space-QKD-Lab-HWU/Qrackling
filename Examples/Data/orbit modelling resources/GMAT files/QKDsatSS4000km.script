@@ -1,0 +1,326 @@
+%General Mission Analysis Tool(GMAT) Script
+%Created: 2022-01-20 08:27:13
+
+
+%----------------------------------------
+%---------- Spacecraft
+%----------------------------------------
+
+Create Spacecraft QKDSat;
+GMAT QKDSat.DateFormat = UTCGregorian;
+GMAT QKDSat.Epoch = '20 Jan 2022 11:59:28.000';
+GMAT QKDSat.CoordinateSystem = EarthMJ2000Eq;
+GMAT QKDSat.DisplayStateType = Keplerian;
+GMAT QKDSat.SMA = 10377.99999999995;
+GMAT QKDSat.ECC = 9.111249716090692e-16;
+GMAT QKDSat.INC = 122.9268;
+GMAT QKDSat.RAAN = 120;
+GMAT QKDSat.AOP = 0;
+GMAT QKDSat.TA = 90;
+GMAT QKDSat.DryMass = 850;
+GMAT QKDSat.Cd = 2.2;
+GMAT QKDSat.Cr = 1.8;
+GMAT QKDSat.DragArea = 15;
+GMAT QKDSat.SRPArea = 1;
+GMAT QKDSat.SPADDragScaleFactor = 1;
+GMAT QKDSat.SPADSRPScaleFactor = 1;
+GMAT QKDSat.NAIFId = -10000001;
+GMAT QKDSat.NAIFIdReferenceFrame = -9000001;
+GMAT QKDSat.OrbitColor = Red;
+GMAT QKDSat.TargetColor = Teal;
+GMAT QKDSat.OrbitErrorCovariance = [ 1e+70 0 0 0 0 0 ; 0 1e+70 0 0 0 0 ; 0 0 1e+70 0 0 0 ; 0 0 0 1e+70 0 0 ; 0 0 0 0 1e+70 0 ; 0 0 0 0 0 1e+70 ];
+GMAT QKDSat.CdSigma = 1e+70;
+GMAT QKDSat.CrSigma = 1e+70;
+GMAT QKDSat.Id = 'SatId';
+GMAT QKDSat.Attitude = CoordinateSystemFixed;
+GMAT QKDSat.SPADSRPInterpolationMethod = Bilinear;
+GMAT QKDSat.SPADSRPScaleFactorSigma = 1e+70;
+GMAT QKDSat.SPADDragInterpolationMethod = Bilinear;
+GMAT QKDSat.SPADDragScaleFactorSigma = 1e+70;
+GMAT QKDSat.ModelFile = 'aura.3ds';
+GMAT QKDSat.ModelOffsetX = 0;
+GMAT QKDSat.ModelOffsetY = 0;
+GMAT QKDSat.ModelOffsetZ = 0;
+GMAT QKDSat.ModelRotationX = 0;
+GMAT QKDSat.ModelRotationY = 0;
+GMAT QKDSat.ModelRotationZ = 0;
+GMAT QKDSat.ModelScale = 1;
+GMAT QKDSat.AttitudeDisplayStateType = 'Quaternion';
+GMAT QKDSat.AttitudeRateDisplayStateType = 'AngularVelocity';
+GMAT QKDSat.AttitudeCoordinateSystem = EarthMJ2000Eq;
+GMAT QKDSat.EulerAngleSequence = '321';
+
+%----------------------------------------
+%---------- GroundStations
+%----------------------------------------
+
+Create GroundStation Errol;
+GMAT Errol.OrbitColor = [0 128 0];
+GMAT Errol.TargetColor = [0 255 255];
+GMAT Errol.CentralBody = Earth;
+GMAT Errol.StateType = Spherical;
+GMAT Errol.HorizonReference = Sphere;
+GMAT Errol.Location1 = 56.40482132761471;
+GMAT Errol.Location2 = 356.8090674;
+GMAT Errol.Location3 = 0.009999999999308784;
+GMAT Errol.Id = 'Errol';
+GMAT Errol.IonosphereModel = 'None';
+GMAT Errol.TroposphereModel = 'None';
+GMAT Errol.DataSource = 'Constant';
+GMAT Errol.Temperature = 295.1;
+GMAT Errol.Pressure = 1013.5;
+GMAT Errol.Humidity = 55;
+GMAT Errol.MinimumElevationAngle = 30;
+
+Create GroundStation Chilbolton;
+GMAT Chilbolton.OrbitColor = [255 0 0];
+GMAT Chilbolton.TargetColor = [0 255 255];
+GMAT Chilbolton.CentralBody = Earth;
+GMAT Chilbolton.StateType = Spherical;
+GMAT Chilbolton.HorizonReference = Sphere;
+GMAT Chilbolton.Location1 = 51.14268;
+GMAT Chilbolton.Location2 = 358.56342;
+GMAT Chilbolton.Location3 = 0.08599999999999999;
+GMAT Chilbolton.Id = 'Chilbolton';
+GMAT Chilbolton.IonosphereModel = 'None';
+GMAT Chilbolton.TroposphereModel = 'None';
+GMAT Chilbolton.DataSource = 'Constant';
+GMAT Chilbolton.Temperature = 295.1;
+GMAT Chilbolton.Pressure = 1013.5;
+GMAT Chilbolton.Humidity = 55;
+GMAT Chilbolton.MinimumElevationAngle = 30;
+
+Create GroundStation York;
+GMAT York.OrbitColor = [128 0 128];
+GMAT York.TargetColor = [0 255 255];
+GMAT York.CentralBody = Earth;
+GMAT York.StateType = Spherical;
+GMAT York.HorizonReference = Sphere;
+GMAT York.Location1 = 53.94333333333333;
+GMAT York.Location2 = 1.05805555555555;
+GMAT York.Location3 = 0.011;
+GMAT York.Id = 'York';
+GMAT York.IonosphereModel = 'None';
+GMAT York.TroposphereModel = 'None';
+GMAT York.DataSource = 'Constant';
+GMAT York.Temperature = 295.1;
+GMAT York.Pressure = 1013.5;
+GMAT York.Humidity = 55;
+GMAT York.MinimumElevationAngle = 30;
+
+Create GroundStation HWU;
+GMAT HWU.OrbitColor = [128 0 128];
+GMAT HWU.TargetColor = [0 255 255];
+GMAT HWU.CentralBody = Earth;
+GMAT HWU.StateType = Spherical;
+GMAT HWU.HorizonReference = Sphere;
+GMAT HWU.Location1 = 55.91142;
+GMAT HWU.Location2 = 356.677576;
+GMAT HWU.Location3 = 0.08400000000000001;
+GMAT HWU.Id = 'HWU';
+GMAT HWU.IonosphereModel = 'None';
+GMAT HWU.TroposphereModel = 'None';
+GMAT HWU.DataSource = 'Constant';
+GMAT HWU.Temperature = 295.1;
+GMAT HWU.Pressure = 1013.5;
+GMAT HWU.Humidity = 55;
+GMAT HWU.MinimumElevationAngle = 30;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%----------------------------------------
+%---------- ForceModels
+%----------------------------------------
+
+Create ForceModel LowEarthProp_ForceModel;
+GMAT LowEarthProp_ForceModel.CentralBody = Earth;
+GMAT LowEarthProp_ForceModel.PrimaryBodies = {Earth};
+GMAT LowEarthProp_ForceModel.PointMasses = {Luna, Sun};
+GMAT LowEarthProp_ForceModel.Drag = None;
+GMAT LowEarthProp_ForceModel.SRP = On;
+GMAT LowEarthProp_ForceModel.RelativisticCorrection = Off;
+GMAT LowEarthProp_ForceModel.ErrorControl = RSSStep;
+GMAT LowEarthProp_ForceModel.GravityField.Earth.Degree = 10;
+GMAT LowEarthProp_ForceModel.GravityField.Earth.Order = 10;
+GMAT LowEarthProp_ForceModel.GravityField.Earth.StmLimit = 100;
+GMAT LowEarthProp_ForceModel.GravityField.Earth.PotentialFile = 'JGM2.cof';
+GMAT LowEarthProp_ForceModel.GravityField.Earth.TideModel = 'None';
+GMAT LowEarthProp_ForceModel.SRP.Flux = 1367;
+GMAT LowEarthProp_ForceModel.SRP.SRPModel = Spherical;
+GMAT LowEarthProp_ForceModel.SRP.Nominal_Sun = 149597870.691;
+
+%----------------------------------------
+%---------- Propagators
+%----------------------------------------
+
+Create Propagator LowEarthProp;
+GMAT LowEarthProp.FM = LowEarthProp_ForceModel;
+GMAT LowEarthProp.Type = RungeKutta89;
+GMAT LowEarthProp.InitialStepSize = 0.1;
+GMAT LowEarthProp.Accuracy = 9.999999999999999e-12;
+GMAT LowEarthProp.MinStep = 0.001;
+GMAT LowEarthProp.MaxStep = 1;
+GMAT LowEarthProp.MaxStepAttempts = 50;
+GMAT LowEarthProp.StopIfAccuracyIsViolated = true;
+
+%----------------------------------------
+%---------- EventLocators
+%----------------------------------------
+
+Create ContactLocator PassLocator;
+GMAT PassLocator.Target = QKDSat;
+GMAT PassLocator.Filename = 'ContactLocator1.txt';
+GMAT PassLocator.InputEpochFormat = 'TAIModJulian';
+GMAT PassLocator.InitialEpoch = '21545';
+GMAT PassLocator.StepSize = 1;
+GMAT PassLocator.FinalEpoch = '21545.138';
+GMAT PassLocator.UseLightTimeDelay = true;
+GMAT PassLocator.UseStellarAberration = true;
+GMAT PassLocator.WriteReport = true;
+GMAT PassLocator.RunMode = Automatic;
+GMAT PassLocator.UseEntireInterval = true;
+GMAT PassLocator.Observers = {Chilbolton, Errol, HWU, York};
+GMAT PassLocator.LightTimeDirection = Receive;
+
+%----------------------------------------
+%---------- Subscribers
+%----------------------------------------
+
+Create OrbitView DefaultOrbitView;
+GMAT DefaultOrbitView.SolverIterations = Current;
+GMAT DefaultOrbitView.UpperLeft = [ 0.005263157894736842 0.05041384499623777 ];
+GMAT DefaultOrbitView.Size = [ 0.6721804511278195 0.7539503386004515 ];
+GMAT DefaultOrbitView.RelativeZOrder = 371;
+GMAT DefaultOrbitView.Maximized = false;
+GMAT DefaultOrbitView.Add = {QKDSat, Earth};
+GMAT DefaultOrbitView.CoordinateSystem = EarthMJ2000Eq;
+GMAT DefaultOrbitView.DrawObject = [ true true ];
+GMAT DefaultOrbitView.DataCollectFrequency = 100;
+GMAT DefaultOrbitView.UpdatePlotFrequency = 100;
+GMAT DefaultOrbitView.NumPointsToRedraw = 0;
+GMAT DefaultOrbitView.ShowPlot = true;
+GMAT DefaultOrbitView.MaxPlotPoints = 20000;
+GMAT DefaultOrbitView.ShowLabels = true;
+GMAT DefaultOrbitView.ViewPointReference = Errol;
+GMAT DefaultOrbitView.ViewPointVector = [ 0 0 30000 ];
+GMAT DefaultOrbitView.ViewDirection = QKDSat;
+GMAT DefaultOrbitView.ViewScaleFactor = 1;
+GMAT DefaultOrbitView.ViewUpCoordinateSystem = EarthMJ2000Eq;
+GMAT DefaultOrbitView.ViewUpAxis = Z;
+GMAT DefaultOrbitView.EclipticPlane = Off;
+GMAT DefaultOrbitView.XYPlane = On;
+GMAT DefaultOrbitView.WireFrame = Off;
+GMAT DefaultOrbitView.Axes = On;
+GMAT DefaultOrbitView.Grid = Off;
+GMAT DefaultOrbitView.SunLine = Off;
+GMAT DefaultOrbitView.UseInitialView = On;
+GMAT DefaultOrbitView.StarCount = 7000;
+GMAT DefaultOrbitView.EnableStars = On;
+GMAT DefaultOrbitView.EnableConstellations = On;
+
+Create GroundTrackPlot DefaultGroundTrackPlot;
+GMAT DefaultGroundTrackPlot.SolverIterations = Current;
+GMAT DefaultGroundTrackPlot.UpperLeft = [ 0.05413533834586466 0.03762227238525207 ];
+GMAT DefaultGroundTrackPlot.Size = [ 0.6815789473684211 0.7547027840481565 ];
+GMAT DefaultGroundTrackPlot.RelativeZOrder = 348;
+GMAT DefaultGroundTrackPlot.Maximized = false;
+GMAT DefaultGroundTrackPlot.Add = {Chilbolton, Errol, HWU, QKDSat, York};
+GMAT DefaultGroundTrackPlot.DataCollectFrequency = 100;
+GMAT DefaultGroundTrackPlot.UpdatePlotFrequency = 100;
+GMAT DefaultGroundTrackPlot.NumPointsToRedraw = 0;
+GMAT DefaultGroundTrackPlot.ShowPlot = true;
+GMAT DefaultGroundTrackPlot.MaxPlotPoints = 20000;
+GMAT DefaultGroundTrackPlot.CentralBody = Earth;
+GMAT DefaultGroundTrackPlot.TextureMap = 'ModifiedBlueMarble.jpg';
+
+Create ReportFile LLAT;
+GMAT LLAT.SolverIterations = Current;
+GMAT LLAT.UpperLeft = [ 0.08943089430894309 0.05231866825208085 ];
+GMAT LLAT.Size = [ 0.5907859078590786 0.7859690844233056 ];
+GMAT LLAT.RelativeZOrder = 396;
+GMAT LLAT.Maximized = false;
+GMAT LLAT.Filename = '100kmOrbitLLAT.txt';
+GMAT LLAT.Precision = 16;
+GMAT LLAT.Add = {QKDSat.Earth.Latitude, QKDSat.Earth.Longitude, QKDSat.Earth.Altitude, QKDSat.ElapsedSecs};
+GMAT LLAT.WriteHeaders = false;
+GMAT LLAT.LeftJustify = On;
+GMAT LLAT.ZeroFill = Off;
+GMAT LLAT.FixedWidth = false;
+GMAT LLAT.Delimiter = ',';
+GMAT LLAT.ColumnWidth = 23;
+GMAT LLAT.WriteReport = true;
+
+Create OrbitView ViewFromErrol;
+GMAT ViewFromErrol.SolverIterations = Current;
+GMAT ViewFromErrol.UpperLeft = [ -0.02706766917293233 0.3212942061700527 ];
+GMAT ViewFromErrol.Size = [ 0.781578947368421 0.7524454477050414 ];
+GMAT ViewFromErrol.RelativeZOrder = 362;
+GMAT ViewFromErrol.Maximized = false;
+GMAT ViewFromErrol.Add = {QKDSat, Earth};
+GMAT ViewFromErrol.CoordinateSystem = EarthMJ2000Eq;
+GMAT ViewFromErrol.DrawObject = [ true true ];
+GMAT ViewFromErrol.DataCollectFrequency = 100;
+GMAT ViewFromErrol.UpdatePlotFrequency = 100;
+GMAT ViewFromErrol.NumPointsToRedraw = 0;
+GMAT ViewFromErrol.ShowPlot = true;
+GMAT ViewFromErrol.MaxPlotPoints = 20000;
+GMAT ViewFromErrol.ShowLabels = true;
+GMAT ViewFromErrol.ViewPointReference = Earth;
+GMAT ViewFromErrol.ViewPointVector = Errol;
+GMAT ViewFromErrol.ViewDirection = QKDSat;
+GMAT ViewFromErrol.ViewScaleFactor = 1;
+GMAT ViewFromErrol.ViewUpCoordinateSystem = EarthMJ2000Eq;
+GMAT ViewFromErrol.ViewUpAxis = Z;
+GMAT ViewFromErrol.EclipticPlane = Off;
+GMAT ViewFromErrol.XYPlane = Off;
+GMAT ViewFromErrol.WireFrame = Off;
+GMAT ViewFromErrol.Axes = Off;
+GMAT ViewFromErrol.Grid = Off;
+GMAT ViewFromErrol.SunLine = Off;
+GMAT ViewFromErrol.UseInitialView = Off;
+GMAT ViewFromErrol.StarCount = 7000;
+GMAT ViewFromErrol.EnableStars = On;
+GMAT ViewFromErrol.EnableConstellations = On;
+
+Create XYPlot XYPlot1;
+GMAT XYPlot1.SolverIterations = Current;
+GMAT XYPlot1.UpperLeft = [ 0.15 0.1933784800601956 ];
+GMAT XYPlot1.Size = [ 0.781578947368421 0.7509405568096313 ];
+GMAT XYPlot1.RelativeZOrder = 358;
+GMAT XYPlot1.Maximized = false;
+GMAT XYPlot1.XVariable = QKDSat.ElapsedSecs;
+GMAT XYPlot1.YVariables = {QKDSat.Earth.Altitude};
+GMAT XYPlot1.ShowGrid = true;
+GMAT XYPlot1.ShowPlot = true;
+
+
+%----------------------------------------
+%---------- Mission Sequence
+%----------------------------------------
+
+BeginMissionSequence;
+Propagate LowEarthProp(QKDSat) {QKDSat.Earth.Latitude = -0, QKDSat.Earth.Latitude = 0.0};
