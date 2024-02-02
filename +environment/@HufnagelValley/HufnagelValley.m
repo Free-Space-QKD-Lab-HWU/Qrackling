@@ -76,7 +76,7 @@ classdef HufnagelValley
             %   - ghv: Refractive index structure constant (numeric array)
 
             arguments
-                HV HufnagelValley
+                HV environment.HufnagelValley
                 altitude double
                 options.Prefactor double = 1
                 options.AltitudeUnit units.Magnitude = "Kilo"

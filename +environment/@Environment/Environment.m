@@ -99,6 +99,18 @@ classdef Environment
             Env.attenuation = attenuation;
             Env.attenuation_unit = options.attenuation_unit;
 
+            if 1 == numel(Env.wavelengths)
+                N_headings = numel(Env.headings);
+                N_elevations = numel(Env.elevations);
+                correct_size = [numel(Env.wavelengths), N_headings, N_elevations]
+                temp = zeros(correct_size);
+                temp(1, :, :) = Env.attenuation;
+                Env.attenuation = temp;
+                temp = zeros(correct_size);
+                temp(1, :, :) = Env.spectral_radiance;
+                Env.spectral_radiance = temp;
+            end
+
             %check that sizes are compatible
             mustHaveCompatibleData(Env);
         end
@@ -125,7 +137,7 @@ classdef Environment
                     'spectral_radiance', 'attenuation', 'attenuation_unit');
         end
 
-        function mustHaveCompatibleData(Env)
+        function Env = mustHaveCompatibleData(Env)
             % a validator function which checks that all arrays are the
             % correct dimensions
 
@@ -133,6 +145,7 @@ classdef Environment
             N_headings = numel(Env.headings);
             N_elevations = numel(Env.elevations);
             N_wavelengths = numel(Env.wavelengths);
+
             correct_size = [N_wavelengths, N_headings, N_elevations];
 
             %check dimensions of data
@@ -148,7 +161,7 @@ classdef Environment
 
             arguments
                 Env environment.Environment
-                data {mustBeMember(data, {'attenuation', 'attenuation_dB', 'spectral_radiance'})}
+                data {mustBeMember(data, {'attenuation', 'spectral_radiance'})}
                 headings {mustBeNumeric, mustBeInRange(headings, 0, 360)}
                 elevations {mustBeNumeric, mustBeInRange(elevations, -90, 90)}
                 wavelengths {mustBeNumeric}
@@ -168,44 +181,53 @@ classdef Environment
 
             %get relevant data
             switch data
-                case 'transmission'
-                    Array = Env.transmission;
-                case 'spectral_radiance'
-                    Array = Env.spectral_radiance;
+            case 'attenuation'
+                Array = Env.attenuation;
+            case 'spectral_radiance'
+                Array = Env.spectral_radiance;
             end
+
+            size(Array)
 
             %interpolate
-            interp_data = interpn( ...
-                Env.wavelengths, Env.headings, Env.elevations, ...
-                Array,           ...
-                wavelengths,     headings,   elevations);
+            if 1 == numel(Env.wavelengths)
+                interp_data = interpn( ...
+                    Env.headings, Env.elevations, ...
+                    squeeze(Array),           ...
+                    headings,   elevations);
+            else
+                interp_data = interpn( ...
+                    Env.wavelengths, Env.headings, Env.elevations, ...
+                    Array,           ...
+                    wavelengths,     headings,   elevations);
 
-            % detect if some headings were above the max and interpolate
-            headings_above_top_indices = Env.headings(end) < headings & headings <= 360;
+                % detect if some headings were above the max and interpolate
+                headings_above_top_indices = Env.headings(end) < headings & headings <= 360;
 
-            if any(headings_above_top_indices)
-                interp_data(headings_above_top_indices) = interpn( ...
-                    [Env.headings(end), Env.headings(1) + 360], ...
-                    Env.elevations, ...
-                    Env.wavelengths, ...
-                    Array([end, 1], :, :), ...
-                    headings(headings_above_top_indices), ...
-                    elevations(headings_above_top_indices), ...
-                    wavelengths(headings_above_top_indices));
-            end
+                if any(headings_above_top_indices)
+                    interp_data(headings_above_top_indices) = interpn( ...
+                        [Env.headings(end), Env.headings(1) + 360], ...
+                        Env.elevations, ...
+                        Env.wavelengths, ...
+                        Array([end, 1], :, :), ...
+                        headings(headings_above_top_indices), ...
+                        elevations(headings_above_top_indices), ...
+                        wavelengths(headings_above_top_indices));
+                end
 
-            % detect if some headings were below minimum and interpolate
-            headings_below_bottom_indices = Env.headings(1) > headings&headings >= 360;
+                % detect if some headings were below minimum and interpolate
+                headings_below_bottom_indices = Env.headings(1) > headings&headings >= 360;
 
-            if any(headings_below_bottom_indices)
-                interp_data(headings_below_bottom_indices) = interpn( ...
-                    [Env.headings(end) - 360, Env.headings(1)], ...
-                    Env.elevations, ...
-                    Env.wavelengths, ...
-                    Array([end, 1], :, :), ...
-                    headings(headings_below_bottom_indices), ...
-                    elevations(headings_above_top_indices), ...
-                    wavelengths(headings_above_top_indices));
+                if any(headings_below_bottom_indices)
+                    interp_data(headings_below_bottom_indices) = interpn( ...
+                        [Env.headings(end) - 360, Env.headings(1)], ...
+                        Env.elevations, ...
+                        Env.wavelengths, ...
+                        Array([end, 1], :, :), ...
+                        headings(headings_below_bottom_indices), ...
+                        elevations(headings_above_top_indices), ...
+                        wavelengths(headings_above_top_indices));
+                end
             end
 
             if any(isnan(interp_data))

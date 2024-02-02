@@ -11,7 +11,7 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
         options.dB logical = false
         options.SpotSize = []
         options.LinkLength = []
-        options.environment Environment = []
+        options.environment environment.Environment
     end
 
     unit = "probability";
@@ -38,7 +38,7 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
             direction = nodes.LinkDirection.Uplink;
         end
 
-        fried_param = environment.FriedParameter(direction, "Hufnagel_Valley", HufnagelValley.HV10_10);
+        fried_param = environment.FriedParameter(direction, "Hufnagel_Valley", environment.HufnagelValley.HV10_10);
 
         [res, beam_width, r0] = nodes.TurbulenceLoss( ...
             kind, receiver, transmitter, fried_param, ...
@@ -62,12 +62,14 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
         case 'apt'
             res = nodes.APTLoss(kind, receiver, transmitter);
         case 'atmospheric'
-            if isempty(options.environment)
+            %if isempty(options.environment)
+            if ~contains(fieldnames(options), "environment")
                 warning(['Atmospheric loss calculation requires an environment', ...
                 'See the "Environment" class. Add " "Environment", my_environ ', ...
                 'to this functions arguments']);
+            else
+                res = nodes.AtmosphericLoss(kind, receiver, transmitter, options.environment);
             end
-            res = nodes.AtmosphericLoss(kind, receiver, transmitter, options.environment);
         end
 
         losses.(label) = res.ConvertTo(unit);

@@ -5,7 +5,7 @@ function loss = AtmosphericLoss(kind, receiver, transmitter, environment)
         kind {mustBeMember(kind, ["beacon", "qkd"])}
         receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
         transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
-        environment Environment
+        environment environment.Environment
     end
 
     % When we look at the original Satellite_Link_Model.m we can see that 
@@ -28,6 +28,13 @@ function loss = AtmosphericLoss(kind, receiver, transmitter, environment)
 
     loss = environment.Interp("attenuation", headings, elevations, wavelength);
 
+    if any(isnan(loss.values))
+        disp("something went wrong")
+    end
+    loss.values(isnan(loss.values)) = 0;
+
+    disp(loss)
+
     n = max(receiver.N_Position, transmitter.N_Position);
-    loss = units.Loss("probability", "Atmospheric", utilities.validateLoss(loss, n));
+    loss = units.Loss("probability", "Atmospheric", utilities.validateLoss(loss.values, n));
 end

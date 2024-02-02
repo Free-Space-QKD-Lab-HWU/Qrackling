@@ -12,7 +12,7 @@ function data = mapToEnvironment( ...
         input_data (:, :, :) {mustBeNumeric}
         output_headings (1, :) {mustBeNumeric} = []
         output_elevations (1, :) {mustBeNumeric} = []
-        options.Environment (1, 1) environment.Environment = []
+        options.Environment (1, 1) environment.Environment
         options.Wavelengths (1, :) {mustBeNumeric} = []
     end
 
@@ -39,7 +39,7 @@ function data = mapToEnvironment( ...
     elevations = output_elevations;
     %% if the user supplies an environment.Environment class then use its headings
     % elevations instead
-    if ~isempty(options.Environment)
+    if contains(fieldnames(options), "Environment")
         headings = options.Environment.headings;
         elevations = options.Environment.elevations;
     end

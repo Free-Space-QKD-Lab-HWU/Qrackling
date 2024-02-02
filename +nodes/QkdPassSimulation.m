@@ -8,7 +8,7 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
             mustBeA(Transmitter, ["nodes.Satellite", "nodes.Ground_Station"]), ...
             nodes.mustHaveSource(Transmitter)}
         proto protocol.proto
-        options.Environment Environment = []
+        options.Environment environment.Environment = []
     end
 
     transmitter_name = utilities.node_name(Transmitter);
@@ -18,7 +18,6 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
 
     receiver_location = nodes.Located_Object();
     transmitter_location = nodes.Located_Object();
-    % TODO: include reflected light off satellite surface in noise calculation
     switch direction
         case nodes.LinkDirection.Downlink
             [headings, elevations, ranges] = Transmitter.RelativeHeadingAndElevation(Receiver);
@@ -61,7 +60,6 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
 
     line_of_sight = elevations > 0;
 
-    % TODO: what is this?
     interferometer_visibility = nodes.Visibility(Receiver, Transmitter);
     Receiver.Detector.Visibility = interferometer_visibility(elevation_limit_mask);
 
@@ -72,44 +70,57 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
         [link_loss, ~] = nodes.linkLoss("qkd", Receiver, Transmitter, ...
             "apt", "optical", "geometric", "turbulence", ...
             "atmospheric", "environment", options.Environment);
+
         switch class(Transmitter)
         case "nodes.Satellite"
-            [headings, elevations, ~] = transmitter.RelativeHeadingAndElevation(receiver);
+            [headings, elevations, ~] = Transmitter.RelativeHeadingAndElevation(Receiver);
         case "nodes.Ground_Station"
-            [headings, elevations, ~] = receiver.RelativeHeadingAndElevation(transmitter);
+            [headings, elevations, ~] = Receiver.RelativeHeadingAndElevation(Transmitter);
         end
-        % solar_radiance = options.Environment.Interp( ...
-        %     "spectral_radiance", headings, elevations, Receiver.Source.Wavelength);
-        % background_counts_per_second = utilities.skyPhotons(...
-        %     solar_radiance, ...
-        %     Receiver.Telescope.FOV, ...
-        %     Receiver.Telescope.Diameter, ...
-        %     Receiver.Source.Wavelength, ...
-        %     1);
+
+        solar_radiance = options.Environment.Interp( ...
+            "spectral_radiance", headings, elevations, Transmitter.Source.Wavelength);
+
+        t = Receiver.Detector.Spectral_Filter.transmission;
+        w = Receiver.Detector.Spectral_Filter.wavelengths;
+        w_range = w(t ~= 0);
+        filter_width = max(w_range) - min(w_range);
+
+        background_counts_per_second = environment.countRateFromRadiance( ...
+            solar_radiance, ...
+            Receiver.Telescope.FOV, ...
+            Receiver.Telescope.Diameter, ...
+            Receiver.Detector.Wavelength, ...
+            filter_width, ...
+            1);
+
     else
         [link_loss, ~] = nodes.linkLoss("qkd", Receiver, Transmitter, ...
             "apt", "optical", "geometric", "turbulence");
+        background_counts_per_second = [];
     end
 
     total_loss = link_loss.TotalLoss("dB");
     total_loss_db = total_loss.As("dB");
     total_loss_db(isnan(total_loss_db)) = 0;
 
+    % TODO: include reflected light off satellite surface in noise calculation
+    % background_counts_per_second needs to be extended to include the other
+    % sources of background light
     [secret, sifted, qber] = proto.Calculate( ...
-        Transmitter, Receiver, total_loss_db, "dB", total_background_counts);
-
-    %[secret, qber, sifted] = proto.EvaluateQKDLink( ...
-    %    Transmitter.Source, Receiver.Detector, ...
-    %    [total_loss_db(elevation_limit_mask)], ...
-    %    [background_count_rate(elevation_limit_mask)]);
-
-    %secret(~elevation_limit_mask) = 0; %outside elevation window == no comms
-    %sifted(~elevation_limit_mask) = 0;
+        Transmitter, Receiver, total_loss_db, "dB", ...
+        proto.BackgroundCountProbability(background_counts_per_second, Receiver.Detector.Time_Gate_Width));
 
     %qber(~elevation_limit_mask) = nan;
     communicating =  ~(isnan(secret) | (secret <= 0));
 
-    time_window_widths = times([false, communicating(1:end)]) - times(communicating);
+    size(times)
+    size(communicating)
+    size(times(communicating))
+    size(times([false, communicating(1:end-1)]))
+    %time_window_widths = times([false, communicating(1:end)]) - times(communicating);
+    %FIX: this is buggy, what are we doing here, do we just want the difference between odd and even indices?
+    time_window_widths = times([false, communicating(1:end-1)]) - times(communicating(2:end));
     if isempty(time_window_widths)
         warning('no communication occurs in this simulation')
         total_sifted_key = 0;

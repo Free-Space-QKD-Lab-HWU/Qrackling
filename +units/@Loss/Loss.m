@@ -1,5 +1,5 @@
 classdef Loss
-    properties (SetAccess = protected)
+    properties %(SetAccess = protected)
         unit
         label
         values

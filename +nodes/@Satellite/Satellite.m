@@ -39,7 +39,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
         %% information about protocol
         % protocol used (BB84,BBN92,...)
         %TODO: remvoe protocol from satellite
-        Protocol Protocol = Protocol.BB84;
+        Protocol protocol.proto = protocol.bb84()
         Protocol_Efficiency{mustBeScalarOrEmpty} = 1;
 
         %% information about reflection
@@ -98,8 +98,8 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             addParameter(p, 'Name', '');
             addParameter(p, 'TLE_Uncertainty',5E3);
             % satellite surface reflection properties
-            addParameter(p, 'Surface', Satellite_Foil_Surface(4))
-            addParameter(p, 'Area', [])
+            % addParameter(p, 'Surface', Satellite_Foil_Surface(4))
+            % addParameter(p, 'Area', [])
 
             % downlink beacon, if wanted
             addParameter(p, 'Beacon', [])
@@ -250,11 +250,11 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
 
 
             %% set surface object of satellite
-            Satellite.Surface = p.Results.Surface;
-            %and set area property if given
-            if ~isempty(p.Results.Area)
-                Satellite.Surface = SetArea(Satellite.Surface,p.Results.Area);
-            end
+            % Satellite.Surface = p.Results.Surface;
+            % %and set area property if given
+            % if ~isempty(p.Results.Area)
+            %     Satellite.Surface = SetArea(Satellite.Surface,p.Results.Area);
+            % end
 
 
             %% set beacon and beaconing camera

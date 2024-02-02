@@ -10,8 +10,8 @@ classdef FriedParameter
         function FP = FriedParameter(Link_Direction, options)
             arguments
                 Link_Direction nodes.LinkDirection
-                options.Hufnagel_Valley HufnagelValley
-                options.AirForceGeophysicsLab AFGL_Plus
+                options.Hufnagel_Valley environment.HufnagelValley
+                options.AirForceGeophysicsLab environment.AFGL_Plus
             end
 
             names = fieldnames(options);
@@ -26,7 +26,7 @@ classdef FriedParameter
             Slant_Range, Zenith_Angle, Wavelength, options)
 
             arguments
-                FP FriedParameter
+                FP environment.FriedParameter
                 Slant_Range {mustBeNumeric}
                 Zenith_Angle {mustBeNumeric}
                 Wavelength {mustBeNumeric}

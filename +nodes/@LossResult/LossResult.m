@@ -44,7 +44,7 @@ classdef LossResult
             end
             arguments (Repeating)
                 extra_loss nodes.LossResult
-                extra_unit {mustBeMember(unit, ["probability", "dB"])}
+                extra_unit {mustBeMember(extra_unit, ["probability", "dB"])}
             end
 
             props = properties(result);

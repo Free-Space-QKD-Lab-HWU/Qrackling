@@ -228,11 +228,11 @@ OGS_telescope = components.Telescope( ...
 %--------------------------------------------------------------------------
 % provide a file which describes filter spectral performance. an example is
 % given here. nativePathFrom provides path conversion for different OSs
-filter_file = utilities.nativePathFrom('Example Data/spectral filters/FBH780-10.xlsx');
-spectral_filter = components.SpectralFilter('input_file', filter_file);
+% filter_file = utilities.nativePathFrom('Example Data/spectral filters/FBH780-10.xlsx');
+% spectral_filter = components.SpectralFilter('input_file', filter_file);
 % alternatively, a dummy spectral filter can be created which has a
 % brick-wall spectral response using
-% spectral_filter = IdeadBPFilter(centre_wavelength, spectral_width)
+spectral_filter = components.IdealBPFilter(source.Wavelength, 1);
 
 % 2.1.3 detector
 % we provide details of some preset detectors. custom detectors can also be
@@ -301,25 +301,119 @@ uplink_beacon = beacon.Gaussian_Beacon( ...
 %constructing a ground station requires details of the background light
 %around it. this can be provided using a sky brightness store
 %--------------------------------------------------------------------------
-%sky brightness store for the ground station
-%sky_brightness = 'Example Data/orbit modelling resources/background count rate files/Errol_Experimental_Sky_Brightness_Store.mat';
-sky_brightness = '~/Projects/QKD_Sat_Link/main/Example Data/orbit modelling resources/background count rate files/Errol_Experimental_Sky_Brightness_Store.mat';
-sky_brightness = utilities.nativePathFrom(sky_brightness);
 %construct ground station
 hogs = nodes.Ground_Station(OGS_telescope,...
     'Detector', detector,...
     'Camera', uplink_beacon_camera, ...
     'Beacon', uplink_beacon, ...
-    'Sky_Brightness_Store_Location', sky_brightness, ...
     'LLA', [55.909723, -3.319995,10],...
     'name', 'Heriot Watt');
 
+%sky brightness store for the ground station
+%sky_brightness = 'Example Data/orbit modelling resources/background count rate files/Errol_Experimental_Sky_Brightness_Store.mat';
+loc = which("nodes.Satellite");
+[path, ~, ~] = fileparts(loc);
+elems = strsplit(path, filesep);
+path_root = string(join(elems(1:end-2), filesep)) + filesep;
+whichSeparator = @(Path, Sep) Sep{cellfun(@(sep) contains(Path, sep), Sep)};
+MakePathNative = @(Path) strjoin(strsplit(Path, whichSeparator(Path, {'/', '\'})), filesep);
+sky_brightness = load(path_root + MakePathNative("Examples/Data/measured background counts/HWU_Experimental_Sky_Brightness.mat")).data;
+
+sky_elevations = linspace(0, 90, 46);
+sky_headings = linspace(0, 360, 91);
+
+% FIX: dont restrict to just the qkd wavelength
+mapped_night_sky = environment.mapToEnvironment( ...
+    sky_brightness.Headings, ...
+    sky_brightness.Elevations', ...
+    sky_brightness.Spectral_Pointance(:, :, 1), ... %780nm is at index 1
+    sky_headings, ...
+    sky_elevations);
+
+loc = which('utilities.readModtranFile');
+[path, ~, ~] = fileparts(loc);
+elems = strsplit(path, filesep);
+path_root = string(join(elems(1:end-1), filesep)) + filesep;
+example_path = "Examples/Data/atmospheric transmittance/varying elevation MODTRAN data 2/";
+data_path = path_root + MakePathNative(example_path);
+paths = dir(data_path);
+FilterStrings = @(haystack, needle) haystack(arrayfun(@(h) contains(h, needle), haystack));
+csv_files = FilterStrings({paths.name}, ".csv");
+disp(csv_files')
+%% Preparing files
+% The files in this directory following a naming scheme with the folling structure: 
+% { data type, visibility, label, zenith label, zenith angle, _, .extensions }. 
+% Since we want to read the data in from these files in order of their zenith 
+% angles we will have to split their file names into these elements and then sort 
+% the array according to zenith angles.
+
+schema = {'data_type', 'visibility', 'visibility_label', 'zenith_label', 'zenith_angle', 'end'};
+file_details = cellfun(@(f) cell2struct(split(f, "_"), schema), csv_files);
+elevations = sort(str2double(replace({file_details.zenith_angle}, "deg", "")));
+sorted_file_names = string( ...
+    arrayfun( ...
+        @(n) csv_files(contains(csv_files, "_" + num2str(n) + "deg")), ...
+        elevations, ...
+        UniformOutput=false)');
+disp(sorted_file_names)
+%% Extracting data
+% With the files now in order we can read in the wavelength and transmission 
+% data from each and construct a matrix for them. The _utilities.readModtranFile_ 
+% function pull these columns from a typical MODTRAN file. The _environment.allSkyTransmission_ 
+% function then allows us to convert the transmission data into a matrix with 
+% dimensions 
+%%
+% 
+%   [numel(headings), numel(elevations)]
+%
+%% 
+% that we can the plot on polar axes.
+
+wavelengths = [];
+transmissions = [];
+for f = sorted_file_names'
+    [w, t] = utilities.readModtranFile(char(data_path + f));
+    wavelengths = [wavelengths, w(~isnan(w))];
+    transmissions = [transmissions, t(~isnan(t))];
+end
+[sky_transmission, headings] = environment.allSkyTransmission(transmissions, wavelengths(:, 1), elevations);
+%% Filtering
+% Since our files contain data for a range of wavelenths we can construct the 
+% following lambda functions to find the correct slice of our transmission matrix 
+% for a chosen wavelength.
+
+Extrema = @(arr) [min(arr), max(arr)];
+InRange = @(value, bounds) all([any(value >= bounds), any(value <= bounds)]);
+Iota = @(x) linspace(0, x, x+1);
+Take = @(arr, choices) arr(choices);
+IndexOfWavelength = @(wvls, choice) Take(Iota(numel(wvls)), wvls == choice) * InRange(wvls, Extrema(wvls));
+DataAtWavelength = @(data, wvls, choice) squeeze(data(IndexOfWavelength(wvls, choice), :, :));
+% Picking an example wavelength of 600nm we can then plot the result.
+
+wavelength = source.Wavelength;
+%FIX: get wavelengths for all in sky_brightness
+T = DataAtWavelength(sky_transmission, wavelengths(:, 1), wavelength);
+
+mapped_transmission = environment.mapToEnvironment( ...
+    headings, ...
+    elevations, ...
+    T, ...
+    sky_headings, ...
+    sky_elevations);
+
+size(mapped_night_sky)
+size(mapped_transmission)
+
+
+Env = environment.Environment(sky_headings, sky_elevations, ...
+    source.Wavelength, mapped_night_sky', mapped_transmission');
 
 %% 3 perform simulations
 %simulations are run by using the *Simulation functions. the first argument
 %is the receiver and the second the transmitter. For QKD, the protocol ca n
 %also be selected
-result = nodes.QkdPassSimulation(hogs, spoqc, "DPS");
+Protocol = protocol.decoyBB84();
+result = nodes.QkdPassSimulation(hogs, spoqc, Protocol, Environment=Env);
 beacon_result_down = beacon.beaconSimulation(hogs, spoqc);
 beacon_result_up = beacon.beaconSimulation(spoqc, hogs);
 

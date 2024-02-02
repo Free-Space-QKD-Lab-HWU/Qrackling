@@ -4,7 +4,7 @@ function varargout = TurbulenceLoss(kind, receiver, transmitter, fried_parameter
         receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
         transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
         % FIX: why does this produce different values to older method for r0?
-        fried_parameter FriedParameter
+        fried_parameter environment.FriedParameter
         options.Elevations
         options.LinkLength = []
         options.GHV = ghv_defaults('Standard', 'HV10-10')
