@@ -6,6 +6,8 @@
 **/SMARTS cache/*
 towards_a_quantum_internet/*
 
+# exclude toolbox
+*.mltbx
 
 # matlab project files should be local
 *.prj
