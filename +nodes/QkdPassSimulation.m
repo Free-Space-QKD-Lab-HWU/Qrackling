@@ -78,27 +78,38 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
             [headings, elevations, ~] = Receiver.RelativeHeadingAndElevation(Transmitter);
         end
 
-        solar_radiance = options.Environment.Interp( ...
-            "spectral_radiance", headings, elevations, Transmitter.Source.Wavelength);
+        background_radiance = options.Environment.Interp( ...
+            "spectral_radiance", abs(headings), abs(elevations), Transmitter.Source.Wavelength);
 
         t = Receiver.Detector.Spectral_Filter.transmission;
         w = Receiver.Detector.Spectral_Filter.wavelengths;
         w_range = w(t ~= 0);
-        filter_width = max(w_range) - min(w_range);
+        filter_width = max(w_range) - min(w_range)
 
         background_counts_per_second = environment.countRateFromRadiance( ...
-            solar_radiance, ...
+            background_radiance, ...
             Receiver.Telescope.FOV, ...
             Receiver.Telescope.Diameter, ...
-            Receiver.Detector.Wavelength, ...
             filter_width, ...
-            1);
+            1, ...
+            Receiver.Detector.Wavelength);
+        figure
+        plot(background_counts_per_second)
 
     else
         [link_loss, ~] = nodes.linkLoss("qkd", Receiver, Transmitter, ...
             "apt", "optical", "geometric", "turbulence");
-        background_counts_per_second = [];
+        background_counts_per_second = zeros(size(headings));
     end
+
+    noise_sources = [ ...
+        environment.Noise( ...
+            "Detector Dark Counts", ...
+            ones(size(headings)) .* Receiver.Detector.Dark_Count_Rate), ...
+        environment.Noise( ...
+            "Background Counts", ...
+            background_counts_per_second) ...
+    ];
 
     total_loss = link_loss.TotalLoss("dB");
     total_loss_db = total_loss.As("dB");
@@ -108,32 +119,24 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
     % background_counts_per_second needs to be extended to include the other
     % sources of background light
     [secret, sifted, qber] = proto.Calculate( ...
-        Transmitter, Receiver, total_loss_db, "dB", ...
-        proto.BackgroundCountProbability(background_counts_per_second, Receiver.Detector.Time_Gate_Width));
+        Transmitter, Receiver, total_loss_db, "dB", background_counts_per_second);
 
     %qber(~elevation_limit_mask) = nan;
     communicating =  ~(isnan(secret) | (secret <= 0));
 
-    size(times)
-    size(communicating)
-    size(times(communicating))
-    size(times([false, communicating(1:end-1)]))
-    %time_window_widths = times([false, communicating(1:end)]) - times(communicating);
-    %FIX: this is buggy, what are we doing here, do we just want the difference between odd and even indices?
     time_window_widths = times([false, communicating(1:end-1)]) - times(communicating(2:end));
     if isempty(time_window_widths)
         warning('no communication occurs in this simulation')
         total_sifted_key = 0;
         total_secret_key = 0;
     else
-
         if isnumeric(time_window_widths)
-            total_sifted_key = dot(time_window_widths, sifted(communicating));
-            total_secret_key = dot(time_window_widths, secret(communicating));
+            total_sifted_key = dot(time_window_widths, sifted(communicating(1:end-1)));
+            total_secret_key = dot(time_window_widths, secret(communicating(1:end-1)));
         elseif isduration(time_window_widths)
             time_seconds = seconds(time_window_widths);
-            total_sifted_key = dot(time_seconds, sifted(communicating));
-            total_secret_key = dot(time_seconds, secret(communicating));
+            total_sifted_key = dot(time_seconds, sifted(communicating(1:end-1)));
+            total_secret_key = dot(time_seconds, secret(communicating(1:end-1)));
         end
     end
 
@@ -146,6 +149,6 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
         link_loss,            total_loss,        sifted,           ...
         secret,               qber,              total_sifted_key, ...
         total_secret_key,     proto_str,         direction,        ...
-        transmitter_location, receiver_location, background_count_rate);
+        transmitter_location, receiver_location, noise_sources);
 
 end

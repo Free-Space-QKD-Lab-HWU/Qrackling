@@ -30,10 +30,8 @@ function loss = AtmosphericLoss(kind, receiver, transmitter, environment)
 
     if any(isnan(loss.values))
         disp("something went wrong")
+        loss.values(isnan(loss.values)) = 1;
     end
-    loss.values(isnan(loss.values)) = 0;
-
-    disp(loss)
 
     n = max(receiver.N_Position, transmitter.N_Position);
     loss = units.Loss("probability", "Atmospheric", utilities.validateLoss(loss.values, n));

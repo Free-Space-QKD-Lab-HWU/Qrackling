@@ -99,18 +99,6 @@ classdef Environment
             Env.attenuation = attenuation;
             Env.attenuation_unit = options.attenuation_unit;
 
-            if 1 == numel(Env.wavelengths)
-                N_headings = numel(Env.headings);
-                N_elevations = numel(Env.elevations);
-                correct_size = [numel(Env.wavelengths), N_headings, N_elevations]
-                temp = zeros(correct_size);
-                temp(1, :, :) = Env.attenuation;
-                Env.attenuation = temp;
-                temp = zeros(correct_size);
-                temp(1, :, :) = Env.spectral_radiance;
-                Env.spectral_radiance = temp;
-            end
-
             %check that sizes are compatible
             mustHaveCompatibleData(Env);
         end
@@ -146,7 +134,7 @@ classdef Environment
             N_elevations = numel(Env.elevations);
             N_wavelengths = numel(Env.wavelengths);
 
-            correct_size = [N_wavelengths, N_headings, N_elevations];
+            correct_size = [N_wavelengths, N_headings, N_elevations]
 
             %check dimensions of data
             assert(isequal(size(Env.attenuation), correct_size), ...
@@ -250,7 +238,8 @@ classdef Environment
 
             arguments
                 Env environment.Environment
-                DataType {mustBeMember(DataType,{'transmission','transmission dB','spectral radiance'})}
+                %DataType {mustBeMember(DataType,{'transmission','transmission dB','spectral radiance'})}
+                DataType {mustBeMember(DataType,{'attenuation','attenuation dB','spectral radiance'})}
                 options.Name {mustBeText} = '';
                 options.Colourmap = 'turbo';
                 options.CLims(1,2) {mustBeNumeric} = [nan,nan];
@@ -261,10 +250,10 @@ classdef Environment
             % prepare data
             %what data are we plotting?
             switch DataType
-                case 'transmission'
-                    Values = Env.transmission;
-                case 'transmission dB'
-                    Values = Env.transmission_dB;
+                case 'attenuation'
+                    Values = Env.attenuation;
+                % case 'attenuation dB'
+                %     Values = Env.attenuation_dB;
                 case 'spectral radiance'
                     Values = Env.spectral_radiance;
             end
@@ -278,10 +267,10 @@ classdef Environment
                 switch DataType
                     case 'spectral radiance'
                         options.Name = 'Spectral Radiance (W/m^2 str nm)';
-                    case 'transmission'
-                        options.Name = 'Transmission';
-                    case 'transmission dB'
-                        options.Name = 'Transmission (dB)';
+                    case 'attenuation'
+                        options.Name = 'attenuation';
+                    % case 'attenuation dB'
+                    %     options.Name = 'attenuation (dB)';
                 end
             end
 
@@ -292,10 +281,10 @@ classdef Environment
 
             if isequal(options.ColourScale,'auto')
                 switch DataType
-                    case 'transmission'
+                    case 'attenuation'
                         options.ColourScale = 'log';
-                    case 'transmission dB'
-                        options.ColourScale = 'linear';
+                    % case 'attenuation dB'
+                    %     options.ColourScale = 'linear';
                     case 'spectral radiance'
                         options.ColourScale = 'log';
                 end

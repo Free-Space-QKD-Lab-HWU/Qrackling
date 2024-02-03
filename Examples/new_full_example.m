@@ -232,7 +232,7 @@ OGS_telescope = components.Telescope( ...
 % spectral_filter = components.SpectralFilter('input_file', filter_file);
 % alternatively, a dummy spectral filter can be created which has a
 % brick-wall spectral response using
-spectral_filter = components.IdealBPFilter(source.Wavelength, 1);
+spectral_filter = components.IdealBPFilter(source.Wavelength, 5);
 
 % 2.1.3 detector
 % we provide details of some preset detectors. custom detectors can also be
@@ -319,16 +319,22 @@ whichSeparator = @(Path, Sep) Sep{cellfun(@(sep) contains(Path, sep), Sep)};
 MakePathNative = @(Path) strjoin(strsplit(Path, whichSeparator(Path, {'/', '\'})), filesep);
 sky_brightness = load(path_root + MakePathNative("Examples/Data/measured background counts/HWU_Experimental_Sky_Brightness.mat")).data;
 
+tmp_size = [numel(sky_brightness.Wavelengths), size(sky_brightness.Spectral_Pointance(:, :, 1))];
+sky_brightness_pointance = zeros(tmp_size);
+sky_brightness_pointance(1, :, :) = sky_brightness.Spectral_Pointance(:, :, 1);
+sky_brightness_pointance(2, :, :) = sky_brightness.Spectral_Pointance(:, :, 2);
+
 sky_elevations = linspace(0, 90, 46);
 sky_headings = linspace(0, 360, 91);
 
 % FIX: dont restrict to just the qkd wavelength
 mapped_night_sky = environment.mapToEnvironment( ...
     sky_brightness.Headings, ...
-    sky_brightness.Elevations', ...
-    sky_brightness.Spectral_Pointance(:, :, 1), ... %780nm is at index 1
+    sky_brightness.Elevations, ...
+    sky_brightness_pointance, ... %780nm is at index 1
     sky_headings, ...
-    sky_elevations);
+    sky_elevations, ...
+    "Wavelength", sky_brightness.Wavelengths);
 
 loc = which('utilities.readModtranFile');
 [path, ~, ~] = fileparts(loc);
@@ -390,23 +396,34 @@ IndexOfWavelength = @(wvls, choice) Take(Iota(numel(wvls)), wvls == choice) * In
 DataAtWavelength = @(data, wvls, choice) squeeze(data(IndexOfWavelength(wvls, choice), :, :));
 % Picking an example wavelength of 600nm we can then plot the result.
 
-wavelength = source.Wavelength;
-%FIX: get wavelengths for all in sky_brightness
-T = DataAtWavelength(sky_transmission, wavelengths(:, 1), wavelength);
+tmp_size = [numel(sky_brightness.Wavelengths), size(squeeze(sky_transmission(1, :, :)))];
+transmission_at_wavelength = zeros(tmp_size);
+for i = 1:numel(sky_brightness.Wavelengths)
+    wvl = sky_brightness.Wavelengths(i);
+     transmission_at_wavelength(i, :, :) = ...
+         DataAtWavelength(sky_transmission, wavelengths(:, 1), wvl);
+end
+
 
 mapped_transmission = environment.mapToEnvironment( ...
     headings, ...
     elevations, ...
-    T, ...
+    transmission_at_wavelength, ...
     sky_headings, ...
-    sky_elevations);
+    sky_elevations, ...
+    "Wavelengths", sky_brightness.Wavelengths);
+
 
 size(mapped_night_sky)
 size(mapped_transmission)
 
+mapped_night_sky = utilities.irradiance2radiance(mapped_night_sky, sky_brightness.Wavelengths', 1e-9);
+mapped_night_sky = fliplr(flipud(mapped_night_sky));
+
+% mapped_night_sky = zeros(size(mapped_night_sky));
 
 Env = environment.Environment(sky_headings, sky_elevations, ...
-    source.Wavelength, mapped_night_sky', mapped_transmission');
+    sky_brightness.Wavelengths, mapped_night_sky, mapped_transmission);
 
 %% 3 perform simulations
 %simulations are run by using the *Simulation functions. the first argument
@@ -414,6 +431,9 @@ Env = environment.Environment(sky_headings, sky_elevations, ...
 %also be selected
 Protocol = protocol.decoyBB84();
 result = nodes.QkdPassSimulation(hogs, spoqc, Protocol, Environment=Env);
+
+% TODO: beacon simulation needs to use environment
+% TODO: ensure unit conversion for power in beacon simulation is correct
 beacon_result_down = beacon.beaconSimulation(hogs, spoqc);
 beacon_result_up = beacon.beaconSimulation(spoqc, hogs);
 

@@ -14,8 +14,7 @@ classdef decoyBB84 < protocol.proto
         end
 
         function [SKR_decoyBB84, Sifted_Key_Rate, QBER] = QkdModel(proto, ...
-            alice, bob, total_loss, prob_dark_counts) %FIX: need gate width otherwise
-                %alice, bob, total_loss, total_background_count_rate)
+            alice, bob, total_loss, total_background_count_rate)
 
         %% Function -- BB84Decoy_model
         % Author    -- Alfonso Tello Castillo
@@ -53,7 +52,9 @@ classdef decoyBB84 < protocol.proto
 
             %loss = bob.channel_efficiency;
             loss = total_loss .* bob.Detector.Detection_Efficiency;
-            %prob_dark_counts = proto.BackgroundCountProbability(total_background_count_rate);
+            prob_dark_counts = proto.BackgroundCountProbability( ...
+                total_background_count_rate, ...
+                bob.Detector.Time_Gate_Width);
 
             %% get variables from Detector object
             %det_eff = bob.Detector.Detection_Efficiency;
@@ -69,7 +70,7 @@ classdef decoyBB84 < protocol.proto
                 alice.Source.Probability_Vacuum];
 
             emission = mpn .* state_probability;
-            detection_probabilities = emission' .* loss + prob_dark_counts;
+            detection_probabilities = (emission' .* loss) + prob_dark_counts;
 
             QBER_cod = state_prep_error;
             QBER_noise = 0.5 * prob_dark_counts ./ detection_probabilities;
@@ -118,6 +119,7 @@ classdef decoyBB84 < protocol.proto
             %disp(sum(SKR_decoyBB84));
             %output only signal state QBER
             QBER=QBER(1,:);
+
         end
 
     end

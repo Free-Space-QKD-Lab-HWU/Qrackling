@@ -20,7 +20,7 @@ classdef PassSimulationResult
         qber = []
         total_sifted_rate = []
         total_secure_rate = []
-        background_count_rate = []
+        noise_sources environment.Noise
     end
 
     methods
@@ -31,7 +31,7 @@ classdef PassSimulationResult
             losses,                 total_loss_db,  sifted_rate,       ...
             secure_rate,            qber,           total_sifted_rate, ...
             total_secure_rate, protocol_name, link_direction, ...
-            transmitter_location, receiver_location, background_count_rate)
+            transmitter_location, receiver_location, noise_sources)
 
             result.transmitter_name       = transmitter_name;
             result.receiver_name          = receiver_name;
@@ -53,7 +53,7 @@ classdef PassSimulationResult
             result.link_direction         = link_direction;
             result.transmitter_location   = transmitter_location;
             result.receiver_location      = receiver_location;
-            result.background_count_rate  = background_count_rate;
+            result.noise_sources          = noise_sources;
         end
 
         function fig = plotResult(result, receiver, transmitter, options)
@@ -130,12 +130,6 @@ classdef PassSimulationResult
             case "nodes.Ground_Station"
                 PlotLOS(receiver, altitude)
             end
-            %TODO: reimplement this
-            %if ~isempty(PassSimulation.Background_Sources)
-            %    for i = 1:numel(PassSimulation.Background_Sources)
-            %        PlotLOS(PassSimulation.Background_Sources(i), Satellite_Altitude)
-            %    end
-            %end
 
             % set limits to around the OGS
             geolimits( ogs_latitude + [-30, 15], ogs_longitude + [-30, 15] );
@@ -145,8 +139,8 @@ classdef PassSimulationResult
             % plot performance
             yyaxis left
             hold on
-            plot(x_axis(mask), result.secure_rate, '-')
-            plot(x_axis(mask), result.sifted_rate, ':')
+            plot(x_axis(mask), result.secure_rate(mask), '-')
+            plot(x_axis(mask), result.sifted_rate(mask), ':')
             xlabel(x_label)
             ylabel('Rate (bits/s)')
             text(0.5, 0.5, sprintf('total secret key\ntransfered = %3.2g', result.total_secure_rate), ...
@@ -157,30 +151,26 @@ classdef PassSimulationResult
                 'FontSize', get(groot,'defaultAxesFontSize'))
             % plot QBER
             yyaxis right
-            plot(x_axis(mask), result.qber .* 100)
+            plot(x_axis(mask), result.qber(mask) .* 100)
             xlabel(x_label)
             ylabel('QBER (%)')
             legend('Secret Key Rate','Sifted Key Rate','')
 
-            % plot background counts
-            % HACK: we need to pass some kind of Background_Sources through,
-            % we want background count rates in the pass simulation, not sources,
-            % so need to add in "break down of counts" into PassSimulationResult.
-            % TODO: move calculation of background counts into own function and
-            % return a "noise result" type similar to that of the loss result type
-            [~, receiver] = receiver.ComputeTotalBackgroundCountRate( ...
-            options.Background_Sources, transmitter, result.heading, result.elevation);
             subplot(3, 3, [7, 8])
             title('BCR (counts/s)')
-            PlotBackgroundCountRates(receiver, mask, x_axis);
+            n_sources = numel(result.noise_sources);
+            n_points = numel(result.noise_sources(1).values);
+            bcr_data = reshape([result.noise_sources.values], [n_points, n_sources]);
+            area(x_axis(mask), bcr_data(mask, :))
             xlabel(x_label)
+            legend(result.noise_sources.label)
 
             subplot(3, 3, [4, 5])
             result.losses.plotLosses(x_axis, x_label, "mask", mask);
 
             subplot(3, 3, [9, 9])
             title('Link performance')
-            semilogy(result.total_loss_db.values(mask), result.secure_rate, 'k-')
+            semilogy(result.total_loss_db.values(mask), result.secure_rate(mask), 'k-')
             xlabel('Link Loss (dB)')
             ylabel('Secret Key Rate (bps)')
             xlim([ ...
