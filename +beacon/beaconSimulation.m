@@ -1,9 +1,9 @@
-function result = beaconSimulation( Receiver,Transmitter)
+function result = beaconSimulation( Receiver,Transmitter, options)
     arguments
         Receiver {mustBeA(Receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
         Transmitter {mustBeA(Transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
+        options.Environment environment.Environment
     end
-
 
     %% determine link geometry
     receiver_location = nodes.Located_Object();
@@ -60,32 +60,57 @@ function result = beaconSimulation( Receiver,Transmitter)
         error(['Receiver.Camera of ', inputname(2), ' must not be empty'])
     end
 
-    [link_loss, link_extras] = nodes.linkLoss("beacon", Receiver, Transmitter, ...
-        "apt", "optical", "geometric", "turbulence", "atmospheric", dB=true);
+    has_env = contains(fieldnames(options), "Environment");
 
+    if has_env
+        [link_loss, ~] = nodes.linkLoss( ...
+            "beacon", Receiver, Transmitter, ...
+            "apt", "optical", "geometric", "turbulence", "atmospheric", ...
+            dB=true, ...
+            environment=options.Environment);
+    else
+        [link_loss, ~] = nodes.linkLoss( ...
+            "beacon", Receiver, Transmitter, ...
+            "apt", "optical", "geometric", "turbulence", "atmospheric", ...
+            dB=true);
+    end
     received_power = Transmitter.Beacon.Power .* link_loss.TotalLoss("probability").values;
 
     %% compute SNR
     background_power = [];
 
-    has_atm_file = any(contains(properties(Receiver), "Atmosphere_File_Location"));
-    has_atm = false;
-    if has_atm_file
-        has_atm = ~isempty(Receiver.Atmosphere_File_Location);
-    end
-
-    if has_atm
-    %computed beacon channel noise
-        sky_radiance = interp1( ...
-            Receiver.Wavelengths, ...
-            Receiver.Sky_Radiance', ...
+    if has_env
+        background_radiance = options.Environment.Interp( ...
+            "spectral_radiance", abs(headings), abs(elevations), ...
             Transmitter.Beacon.Wavelength);
-        background_power = sky_radiance * Receiver.Camera.FOV;
+        background_power = background_radiance * Receiver.Camera.FOV;
         [snr, snr_db] = SNR(Receiver.Camera, received_power, background_power);
 
-    else
+     else
         [snr, snr_db] = SNR(Receiver.Camera, received_power);
     end
+
+    % has_atm_file = any(contains(properties(Receiver), "Atmosphere_File_Location"));
+    % has_atm = false;
+    % if has_atm_file
+    %     has_atm = ~isempty(Receiver.Atmosphere_File_Location);
+    % end
+
+    % if has_atm
+    % %computed beacon channel noise
+    %     sky_radiance = interp1( ...
+    %         Receiver.Wavelengths, ...
+    %         Receiver.Sky_Radiance', ...
+    %         Transmitter.Beacon.Wavelength);
+    %     background_power = sky_radiance * Receiver.Camera.FOV;
+    %     [snr, snr_db] = SNR(Receiver.Camera, received_power, background_power);
+
+    % else
+    %     [snr, snr_db] = SNR(Receiver.Camera, received_power);
+    % end
+
+    
+
 
     %% compute PAA
     [heading_PAA, elevation_PAA] = beacon.PointAheadAngle(Receiver,Transmitter);

@@ -327,7 +327,6 @@ sky_brightness_pointance(2, :, :) = sky_brightness.Spectral_Pointance(:, :, 2);
 sky_elevations = linspace(0, 90, 46);
 sky_headings = linspace(0, 360, 91);
 
-% FIX: dont restrict to just the qkd wavelength
 mapped_night_sky = environment.mapToEnvironment( ...
     sky_brightness.Headings, ...
     sky_brightness.Elevations, ...
@@ -335,6 +334,10 @@ mapped_night_sky = environment.mapToEnvironment( ...
     sky_headings, ...
     sky_elevations, ...
     "Wavelength", sky_brightness.Wavelengths);
+
+% NOTE: this "brightness" is in irradiance...
+mapped_night_sky = utilities.irradiance2radiance(mapped_night_sky, sky_brightness.Wavelengths', 1e-9);
+mapped_night_sky = fliplr(flipud(mapped_night_sky));
 
 loc = which('utilities.readModtranFile');
 [path, ~, ~] = fileparts(loc);
@@ -417,8 +420,6 @@ mapped_transmission = environment.mapToEnvironment( ...
 size(mapped_night_sky)
 size(mapped_transmission)
 
-mapped_night_sky = utilities.irradiance2radiance(mapped_night_sky, sky_brightness.Wavelengths', 1e-9);
-mapped_night_sky = fliplr(flipud(mapped_night_sky));
 
 % mapped_night_sky = zeros(size(mapped_night_sky));
 
@@ -434,8 +435,8 @@ result = nodes.QkdPassSimulation(hogs, spoqc, Protocol, Environment=Env);
 
 % TODO: beacon simulation needs to use environment
 % TODO: ensure unit conversion for power in beacon simulation is correct
-beacon_result_down = beacon.beaconSimulation(hogs, spoqc);
-beacon_result_up = beacon.beaconSimulation(spoqc, hogs);
+beacon_result_down = beacon.beaconSimulation(hogs, spoqc, Environment=Env);
+beacon_result_up = beacon.beaconSimulation(spoqc, hogs, Environment=Env);
 
 %% plot results
 % each simulation result object has a plotResult method which plots a

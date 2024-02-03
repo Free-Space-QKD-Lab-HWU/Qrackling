@@ -26,7 +26,7 @@ function loss = AtmosphericLoss(kind, receiver, transmitter, environment)
         wavelength = transmitter.Source.Wavelength;
     end
 
-    loss = environment.Interp("attenuation", headings, elevations, wavelength);
+    loss = environment.Interp("attenuation", abs(headings), abs(elevations), wavelength);
 
     if any(isnan(loss.values))
         disp("something went wrong")
