@@ -78,6 +78,9 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
             [headings, elevations, ~] = Receiver.RelativeHeadingAndElevation(Transmitter);
         end
 
+        % NOTE: why does this need "abs" around headings and elevations?
+        % NOTE: SOLVED: add in mask by elevation limit (or other equivalent)
+        % NOTE: mask by elevation >= 0
         background_radiance = options.Environment.Interp( ...
             "spectral_radiance", abs(headings), abs(elevations), Transmitter.Source.Wavelength);
 

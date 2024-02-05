@@ -151,8 +151,8 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
             end
 
             % set Background count rate data
-            Ground_Station = ReadBackgroundCountRateData(Ground_Station, ...
-                p.Results.Background_Count_Rate_File_Location);
+            % Ground_Station = ReadBackgroundCountRateData(Ground_Station, ...
+            %     p.Results.Background_Count_Rate_File_Location);
 
             % set camera and beacon
             Ground_Station.Camera = p.Results.Camera;
@@ -324,8 +324,8 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
             end
             geoplot(WindowLat, WindowLon, 'k--')
             leg = legend;
-            leg.String{end} = "Ground Station orbig LOS";
             leg.String{end + 1} = "Ground Station";
+            leg.String{end} = "Ground Station orbit LOS";
         end
 
         function OGSDetails = GetOGSDetails(Ground_Station)

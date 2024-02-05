@@ -26,6 +26,9 @@ function loss = AtmosphericLoss(kind, receiver, transmitter, environment)
         wavelength = transmitter.Source.Wavelength;
     end
 
+    % NOTE: why does this need "abs" around headings and elevations?
+    % NOTE: SOLVED: add in mask by elevation limit (or other equivalent)
+    % NOTE: mask by elevation >= 0
     loss = environment.Interp("attenuation", abs(headings), abs(elevations), wavelength);
 
     if any(isnan(loss.values))
