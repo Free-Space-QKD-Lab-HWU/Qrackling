@@ -58,41 +58,6 @@ classdef Located_Object
                 options.Name
             end
 
-            % p = inputParser;
-
-            % addRequired(p, 'Located_Object');
-            % addParameter(p, 'LLA', nan, @isnumeric);
-            % addParameter(p, 'Latitude', nan, @isnumeric);
-            % addParameter(p, 'Longitude', nan, @isnumeric);
-            % addParameter(p, 'Altitude', nan, @isnumeric);
-            % addParameter(p, 'Name', "");
-
-            % parse(p, Located_Object, varargin{:});
-
-            % LLA = p.Results.LLA;
-            % lat = p.Results.Latitude;
-            % lon = p.Results.Longitude;
-            % alt = p.Results.Altitude;
-
-            % Located_Object.Location_Name = p.Results.Name;
-
-            % initialised = false;
-
-            % if ~isnan(LLA)
-            %     Located_Object.Latitude = LLA(1);
-            %     Located_Object.Longitude = LLA(2);
-            %     Located_Object.Altitude = LLA(3);
-            %     initialised = true;
-            % elseif AreSameSize(lat, lon, alt)
-            %     Located_Object.Latitude = lat;
-            %     Located_Object.Longitude = lon;
-            %     Located_Object.Altitude = alt;
-            %     Located_Object.N_Position = numel(lat);
-            %     initialised = true;
-            % else
-            %     error('latitude, longitude and altitude must be same sized vectors');
-            % end
-
             if ~isempty(options.LLA)
                 Located_Object.Latitude  = options.LLA(1);
                 Located_Object.Longitude = options.LLA(2);

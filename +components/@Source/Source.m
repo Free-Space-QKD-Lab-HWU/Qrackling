@@ -131,18 +131,6 @@ classdef Source
             Source.Efficiency = Efficiency;
         end
 
-        % function Source = SetStates(Source, MPNs, State_Probabilities)
-        %     %%SETSTATES set the mean photon number and state probabilities
-        %     %%of the source for decoy BB84
-
-        %     %% input validation
-        %     if ~numel(MPNs) == numel(State_Probabilities)
-        %         error('State mean photon numbers and probabilities must have equal numbers of elements')
-        %     end
-        %     Source = SetMeanPhotonNumber(Source, MPNs);
-        %     Source = SetStateProbabilities(Source, State_Probabilities);
-        % end
-
         function Source = SetMeanPhotonNumber(Source, State, Mean_Photon_Number)
             arguments
                 Source

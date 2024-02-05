@@ -432,24 +432,6 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
         end
 
 
-        % TODO: remove unused arguments
-        % TODO: remove smarts
-        function [Background_Count_Rates, Satellite] = ComputeTotalBackgroundCountRate(Satellite, Background_Sources, Ground_Station, Headings, Elevations, smarts_configuration)
-            %%COMPUTETOTALBACKGROUNDCOUNTRATE consider background light at the
-            %%satellite to produce BCR
-                Background_Count_Rates = ones(size(Headings))*Satellite.Detector.Dark_Count_Rate;
-                Satellite.Dark_Count_Rates = Background_Count_Rates;
-        end
-
-
-        function PlotBackgroundCountRates(Satellite, Plotting_Indices, X_Axis)
-            %%PLOTBACKGROUNDCOUNTRATES plot the background count rate at the
-            %%satellite
-
-                area(X_Axis(Plotting_Indices),Satellite.Dark_Count_Rates(Plotting_Indices));
-                legend('Dark Counts')
-        end
-
 
         function OrbitDetails = GetOrbitDetails(Satellite)
             %% return the orbit details sufficient to create a MATLAB satellite object
@@ -463,47 +445,6 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
         end
     
 
-        function Doppler_Wavelength = DopplerShiftedWavelength(Satellite,Ground_Station)
-            %%DOPPLERSHIFTEDWAVELENGTH compute the wavelength which a qkd
-            %%signal is doppler shifted to due to relative velocity between
-            %%transmitter and receiver
-
-            % note that doppler shift is independent of the link direction,
-            % but in this function the first argument is always the
-            % satellite
-
-            %% get distance from receiver to transmitter
-            Distance = ComputeDistanceBetween(Ground_Station,Satellite);
-
-            %% get time derivative of distance (relative velocity)
-
-            Times = Satellite.Times; %#ok<*PROPLC> 
-            %convert to seconds and take time differences
-            if isa(Times,'datetime')
-                Time_Intervals = seconds(Times(2:end)-Times(1:end-1));
-            else
-                Time_Intervals = Times(2:end)-Times(1:end-1);
-            end
-            %take derivative
-            Relative_Velocity = (Distance(2:end)-Distance(1:end-1))./(Time_Intervals);
-                %append correction on end of relative velocity
-                Relative_Velocity=[Relative_Velocity,Relative_Velocity(end)];
-           
-            %% use this to compute doppler shifted wavelength
-            c=2.998E8; %speed of light in a vacuum
-
-            %get wavelength
-            if ~isempty(Satellite.Source)
-            Wavelength = Satellite.Source.Wavelength;
-            elseif ~isempty(Ground_Station.Source)
-            Wavelength = Ground_Station.Source.Wavelength;
-            else
-                error('One of Satellite or Ground_Station must have a non-empty source property')
-            end
-                    
-            Doppler_Wavelength = Wavelength*(1+Relative_Velocity/c);
-        end
-    
         function [Satellite_Scenario,Sim_Sat] = AddSimulatorSatellite(Satellite,Satellite_Scenario)
             %%ADDSIMULATORSATELLITE add a MATLAB simulator representation of this satellite to
             %%the existing satelliteScenario

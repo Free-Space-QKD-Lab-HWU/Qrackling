@@ -1,4 +1,4 @@
-classdef SpectralFilter < matlab.mixin.Heterogeneous
+classdef SpectralFilter
     %% a spectral filter class which inherits the ability to form heterogenous arrays
 
     

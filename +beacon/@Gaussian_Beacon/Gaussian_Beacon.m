@@ -23,14 +23,6 @@ classdef Gaussian_Beacon < beacon.Beacon
                 "Power_Efficiency", options.Power_Efficiency, ...
                 "Pointing_Jitter", options.Pointing_Jitter);
 
-            %% check to see if flat top beacon half angle is provided, if not use telescope
-            % p=inputParser();
-            % p.KeepUnmatched=true;
-            % parse(p,varargin{:})
-            % addParameter(p,'Divergence_Half_Angle',Gaussian_Beacon.Telescope.FOV/2);
-            % parse(p,varargin{:})
-            % Gaussian_Beacon.Divergence_Half_Angle = p.Results.Divergence_Half_Angle;
-
             Gaussian_Beacon.Divergence_Half_Angle = options.Divergence_Half_Angle;
         end
 

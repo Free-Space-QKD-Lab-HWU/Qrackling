@@ -90,27 +90,6 @@ function result = beaconSimulation( Receiver,Transmitter, options)
         [snr, snr_db] = SNR(Receiver.Camera, received_power);
     end
 
-    % has_atm_file = any(contains(properties(Receiver), "Atmosphere_File_Location"));
-    % has_atm = false;
-    % if has_atm_file
-    %     has_atm = ~isempty(Receiver.Atmosphere_File_Location);
-    % end
-
-    % if has_atm
-    % %computed beacon channel noise
-    %     sky_radiance = interp1( ...
-    %         Receiver.Wavelengths, ...
-    %         Receiver.Sky_Radiance', ...
-    %         Transmitter.Beacon.Wavelength);
-    %     background_power = sky_radiance * Receiver.Camera.FOV;
-    %     [snr, snr_db] = SNR(Receiver.Camera, received_power, background_power);
-
-    % else
-    %     [snr, snr_db] = SNR(Receiver.Camera, received_power);
-    % end
-
-    
-
 
     %% compute PAA
     [heading_PAA, elevation_PAA] = beacon.PointAheadAngle(Receiver,Transmitter);
