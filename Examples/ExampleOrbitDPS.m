@@ -14,7 +14,8 @@ SPs = [0.9,0.1];
 %2.1.1 Source
 Transmitter_Source=components.Source(Wavelength,...
                           'Repetition_Rate',Repetition_Rate,...
-                          'State_Probabilities',SPs);        %we use default values to simplify this example
+                          'Probability_Signal',SPs(1),...
+                          'Probability_Decoy',SPs(2));        %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
 Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
@@ -55,5 +56,5 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
 
 
 %% 3 Compose and run the PassSimulation
-SimResults = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,"DPS");
+SimResults = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.dps);
 plotResult(SimResults,SimGround_Station,SimSatellite);

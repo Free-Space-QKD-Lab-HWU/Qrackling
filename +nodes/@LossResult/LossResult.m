@@ -103,6 +103,7 @@ classdef LossResult
             labels = cell([1, length(props)]);
             i = 1;
             for property = props(~contains(props, {'kind'}))'
+                if ~isempty(result.(property{1}))
                 loss = result.(property{1}).As("dB");
 
                 if have_mask
@@ -113,6 +114,7 @@ classdef LossResult
 
                 labels{i} = result.(property{1}).label;
                 i = i + 1;
+                end
             end
 
             area(x_axis(options.mask), cell2mat(struct2cell(loss_arrays))');

@@ -8,7 +8,7 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
             mustBeA(Transmitter, ["nodes.Satellite", "nodes.Ground_Station"]), ...
             nodes.mustHaveSource(Transmitter)}
         proto protocol.proto
-        options.Environment environment.Environment = []
+        options.Environment environment.Environment = environment.Environment.empty
     end
 
     transmitter_name = utilities.node_name(Transmitter);
@@ -119,8 +119,15 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
     % TODO: include reflected light off satellite surface in noise calculation
     % background_counts_per_second needs to be extended to include the other
     % sources of background light
-    [secret, sifted, qber] = proto.Calculate( ...
-        Transmitter, Receiver, total_loss_db, "dB", background_counts_per_second);
+    secret = zeros(size(elevations));
+    sifted = secret;
+    qber = secret;
+    [secret_masked, sifted_masked, qber_masked] = proto.Calculate( ...
+        Transmitter, Receiver, total_loss_db(elevation_limit_mask), "dB", background_counts_per_second(elevation_limit_mask));
+    %pad key rates to fit
+    secret(elevation_limit_mask) = secret_masked;
+    sifted(elevation_limit_mask) = sifted_masked;
+    qber(elevation_limit_mask) = qber_masked;
 
     %qber(~elevation_limit_mask) = nan;
     communicating =  ~(isnan(secret) | (secret <= 0));
