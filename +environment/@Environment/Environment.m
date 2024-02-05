@@ -18,6 +18,7 @@ classdef Environment
 
         attenuation_unit {mustBeMember(attenuation_unit, ["probability", "dB"])} = "probability"
 
+        % FIX: what is this?
         %background light,  quantified as spectral radiance (W/m^2 str nm)
         spectral_radiance {mustBeNumeric, mustBeNonnegative}
     end

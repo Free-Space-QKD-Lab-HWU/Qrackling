@@ -153,7 +153,7 @@ classdef Camera
             %% external noise (optional)
             if nargin == 3
                 ExternalNoisePhotonRate = ExternalNoisePower/Camera.PhotonEnergy;
-                ExternalNoisePhotons = ExternalNoisePhotonRate * Camera.Exposure_Time;
+                ExternalNoisePhotons = ExternalNoisePhotonRate * Camera.Exposure_Time * Camera.Total_Efficiency;
             else
                 ExternalNoisePhotons = 0;
             end

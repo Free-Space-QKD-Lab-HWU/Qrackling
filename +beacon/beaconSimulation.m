@@ -79,14 +79,16 @@ function result = beaconSimulation( Receiver,Transmitter, options)
     %% compute SNR
     background_power = [];
 
-    if has_env
+    %only use environment for background if camera is on the ground
+    Camera_In_Environment = (direction == direction==nodes.LinkDirection.Downlink)||(direction == direction==nodes.LinkDirection.Terrestrial);
+    if Camera_In_Environment&&has_env
         % NOTE: why does this need "abs" around headings and elevations?
         % NOTE: SOLVED: add in mask by elevation limit (or other equivalent)
         % NOTE: mask by elevation >= 0
         background_radiance = options.Environment.Interp( ...
             "spectral_radiance", abs(headings), abs(elevations), ...
             Transmitter.Beacon.Wavelength);
-        background_power = background_radiance * Receiver.Camera.FOV;
+        background_power = background_radiance * (Receiver.Camera.FOV)^2 * Receiver.Camera.Collecting_Area * Receiver.Camera.Spectral_Filter_Width;
         [snr, snr_db] = SNR(Receiver.Camera, received_power, background_power);
 
      else
