@@ -8,6 +8,7 @@ classdef cow < protocol.proto
             "State_Prep_Error")
         detector_features = protocol.detectorRequirements.features('Dark_Count_Rate', 'Time_Gate_Width',  'Visibility')
         efficiency = 1,
+        num_detectors = 2;
     end
 
     methods

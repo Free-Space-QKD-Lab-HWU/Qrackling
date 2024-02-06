@@ -6,6 +6,7 @@ classdef dps < protocol.proto
         detector_features = protocol.detectorRequirements.features( ...
             'Dark_Count_Rate', 'Time_Gate_Width', 'Dead_Time', 'QBER_Jitter')
         efficiency = 1
+        num_detectors = 2;
     end
 
     methods

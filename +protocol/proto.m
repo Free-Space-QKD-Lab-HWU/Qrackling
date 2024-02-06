@@ -5,6 +5,7 @@ classdef proto
         source_features protocol.sourceRequirements
         detector_features protocol.detectorRequirements
         efficiency
+        num_detectors {mustBeNumeric,mustBeNonnegative}
     end
 
     methods (Abstract)
@@ -29,7 +30,7 @@ classdef proto
             [secret_rate, sifted_rate, qber] = proto.QkdModel( ...
                 alice, bob, ...
                 units.Loss(loss_unit, "", total_loss).As("probability"), ...
-                background_counts + bob.Detector.Dark_Count_Rate);
+                background_counts + bob.Detector.Dark_Count_Rate*proto.num_detectors);
 
         end
 
