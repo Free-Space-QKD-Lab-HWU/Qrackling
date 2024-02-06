@@ -22,8 +22,9 @@ classdef dps < protocol.proto
             V = Bob.Detector.Visibility;
             mu = Alice.Source.MPN_Signal;
             loss = total_loss;
-            prob_dark_counts = proto.BackgroundCountProbability(total_background_count_rate,Bob.Detector.Time_Gate_Width);
-            f=1.2;%error correction efficiency
+            prob_dark_counts = proto.BackgroundCountProbability( ...
+                total_background_count_rate, Bob.Detector.Time_Gate_Width);
+            f=1.2; % error correction efficiency
 
             losses 	= 10.^(-loss/10);
 

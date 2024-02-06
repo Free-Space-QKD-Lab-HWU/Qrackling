@@ -80,7 +80,10 @@ function result = beaconSimulation( Receiver,Transmitter, options)
     background_power = [];
 
     %only use environment for background if camera is on the ground
-    Camera_In_Environment = (direction == direction==nodes.LinkDirection.Downlink)||(direction == direction==nodes.LinkDirection.Terrestrial);
+    Camera_In_Environment = ...
+        (direction == direction == nodes.LinkDirection.Downlink) ...
+        || (direction == direction==nodes.LinkDirection.Terrestrial);
+
     if Camera_In_Environment&&has_env
         % NOTE: why does this need "abs" around headings and elevations?
         % NOTE: SOLVED: add in mask by elevation limit (or other equivalent)

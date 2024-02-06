@@ -63,36 +63,6 @@ classdef Camera
             C.Pixels = options.Pixels;
         end
 
-        %function C = Camera(Telescope,varargin)
-        %    %CAMERA Construct an instance of a beacon camera
-        %    
-        %    %% using inputParser
-        %    p=inputParser();
-        %    addRequired(p,'Telescope');
-        %    addParameter(p,'Quantum_Efficiency',1);
-        %    addParameter(p,'Exposure_Time', 0.001);
-        %    addParameter(p,'Spectral_Filter_Width',10);
-        %    addParameter(p,'Detector_Diameter',1);
-        %    addParameter(p,'Focal_Length',0.03);
-        %    addParameter(p,'Readout_Noise', 1.3E-11);
-        %    addParameter(p,'Dark_Current', 0);
-        %    addParameter(p,'Full_Well_Capacity',2E-9);
-        %    addParameter(p,'Wavelength',Telescope.Wavelength);
-        %    addParameter(p,'Pixels',[1080,1080]);
-        %    parse(p,Telescope,varargin{:})
-        %    %get outputs
-        %    C.Telescope = SetWavelength(p.Results.Telescope,p.Results.Wavelength);%make sure telescope has input wavelength
-        %    C.Quantum_Efficiency = p.Results.Quantum_Efficiency;
-        %    C.Exposure_Time = p.Results.Exposure_Time;
-        %    C.Spectral_Filter_Width = p.Results.Spectral_Filter_Width;
-        %    C.Detector_Diameter = p.Results.Detector_Diameter;
-        %    C.Focal_Length = p.Results.Focal_Length;
-        %    C.Readout_Noise = p.Results.Readout_Noise;
-        %    C.Dark_Current_Noise = p.Results.Dark_Current;
-        %    C.Full_Well_Capacity = p.Results.Full_Well_Capacity;
-        %    C.Pixels = p.Results.Pixels;
-        %end
-
         function Collecting_Area = get.Collecting_Area(Camera)
             %%GETCOLLECTINGAREA overload get function to get collecting area
             %%from the telescope object owned by camera
@@ -109,7 +79,7 @@ classdef Camera
             Actual_FOV = Camera_FOV/Camera.Telescope.Magnification;
 
         end
-        
+
         function Wavelength = get.Wavelength(Camera)
             %% return the wavelength in nm that this camera is imaging
             Wavelength = Camera.Telescope.Wavelength;
@@ -132,11 +102,11 @@ classdef Camera
 
         function [SNR,SNR_dB] = SNR(Camera, InputPower, ExternalNoisePower)
             %% calculate the SNR of a single pixel tracking image, where all power from a beacon is incident on a single pixel.
-            
+
             % Int his function, to conform to standard practice for CMOS
             % cameras, we convert all sources of energy to photon count rates and
-            % electron counts and count rates                  
-            
+            % electron counts and count rates
+
             %% Signal energy
             Signal_Energy = InputPower * Camera.Exposure_Time * Camera.Quantum_Efficiency;
             Signal_Photons = Signal_Energy/Camera.PhotonEnergy;
@@ -152,8 +122,10 @@ classdef Camera
 
             %% external noise (optional)
             if nargin == 3
-                ExternalNoisePhotonRate = ExternalNoisePower/Camera.PhotonEnergy;
-                ExternalNoisePhotons = ExternalNoisePhotonRate * Camera.Exposure_Time * Camera.Total_Efficiency;
+                ExternalNoisePhotonRate = ExternalNoisePower / Camera.PhotonEnergy;
+                ExternalNoisePhotons = ExternalNoisePhotonRate ...
+                    * Camera.Exposure_Time ...
+                    * Camera.Total_Efficiency;
             else
                 ExternalNoisePhotons = 0;
             end
