@@ -11,13 +11,16 @@ Time_Gate_Width=1E-10;                                                      %tim
 Spectral_Filter_Width=1;                                                  %consistemt with wavelength, spectral width is measured in nm
 Repetition_Rate = 1E8;  
 SPs = [0.9,0.1];
+MPN = 0.8;
 %% 2. Construct components
 
 %2.1 Satellite
 %2.1.1 Source
 Transmitter_Source=components.Source(Wavelength,...
                           'Repetition_Rate',Repetition_Rate,...
-                          'State_Probabilities',SPs);        %we use default values to simplify this example
+                          'Probability_Signal',SPs(1),...
+                          'Probability_Decoy',SPs(2),...
+                          'MPN_Signal',MPN);        %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
 Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
@@ -41,12 +44,12 @@ Receiver_Telescope=components.Telescope(Receiver_Telescope_Diameter);
 
 %2.2.3 construct ground station, use Heriot-Watt as an example
 SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
-                                'Detector',Detector,...
+                                'Detector',Generic_COW_Detector,...
                                 'LLA',[55.909723, -3.319995,10],...
                                 'Name','Heriot-Watt');
 
 %% 3 Compose and run the PassSimulation
 %3.1 compose passsimulation object
-Results = QkdPassSimulation(SimGround_Station,SimSatellite,"COW");
+Results = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.cow);
 %3.2 plot results
 plotResult(Results,SimGround_Station,SimSatellite);

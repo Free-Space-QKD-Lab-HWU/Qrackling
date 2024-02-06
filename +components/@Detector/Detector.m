@@ -374,11 +374,11 @@ classdef  Detector
             cut_on = Take(bins(log10(counts) < 1), 1);
             mask = Det.Jitter_Histogram > cut_on;
 
-            [max_val, max_idx] = max(Det.Jitter_Histogram);
-            [i_val, i_idx] = max(index(mask))
+            [~, max_idx] = max(Det.Jitter_Histogram);
+            [~, i_idx] = max(index(mask));
 
             p = plot(times(mask), Det.Jitter_Histogram(mask));
-            xlim(times([max_idx-i_idx, max_idx+i_idx]))
+            xlim(times([max_idx-i_idx, max_idx+i_idx]));
         end
 
         function Det = SetDarkCountRate(Det, DCR)

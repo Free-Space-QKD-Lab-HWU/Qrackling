@@ -14,8 +14,10 @@ SPs = [0.75,0.25,0.25];                                                    %stat
 %2.1 Satellite
 %2.1.1 Source
 Transmitter_Source=components.Source(Wavelength,...
-                          'Mean_Photon_Number',MPNs,...
-                          'State_Probabilities',SPs);                                       %we use default values to simplify this example
+                          'MPN_Signal',MPNs(1),...
+                          'MPN_Decoy',MPNs(2),...
+                          'Probability_Signal',SPs(1),...
+                          'Probability_Decoy',SPs(2));                                       %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
 Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
@@ -27,7 +29,7 @@ SimSatellite=nodes.Satellite(Transmitter_Telescope,...
 
 %2.2 Ground station
 %2.2.1 Detector
-Detector=components.Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,'Preset',components.loadPreset("Excelitas"));
+Detector=components.Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,'Preset',components.loadPreset("MicroPhotonDevices"));
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
 
@@ -42,6 +44,6 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
 
 %% 3 run and plot simulation
 %3.1 run simulation
-Result=nodes.QkdPassSimulation(SimGround_Station,SimSatellite,"DecoyBB84");
+Result=nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.decoyBB84);
 %3.2 plot results
-plotResult(Result,SimGround_Station,SimSatellite)
+plotResult(Result,SimGround_Station,SimSatellite);

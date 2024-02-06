@@ -13,12 +13,8 @@ classdef Environment
         %atmospheric attenuation (in absolute terms) for the full atmosphere thickness
         attenuation {mustBeNumeric, mustBeNonnegative, mustBeLessThanOrEqual(attenuation, 1)}
 
-        % %atmospheric attenuation (in dB) for the full atmosphere thickness
-        % attenuation_dB {mustBeNumeric, mustBeNonnegative}
-
         attenuation_unit {mustBeMember(attenuation_unit, ["probability", "dB"])} = "probability"
 
-        % FIX: what is this?
         %background light,  quantified as spectral radiance (W/m^2 str nm)
         spectral_radiance {mustBeNumeric, mustBeNonnegative}
     end
@@ -71,7 +67,7 @@ classdef Environment
                 elevations {mustBeNumeric, mustBeVector, mustBeInRange(elevations, -90, 90)}
                 wavelengths {mustBeNumeric, mustBeNonnegative, mustBeVector}
                 spectral_radiance {mustBeNumeric, mustBeNonnegative}
-                attenuation {mustBeNumeric, mustBeNonnegative, mustBeLessThanOrEqual(attenuation, 1)}
+                attenuation {mustBeNumeric, mustBeNonnegative, mustBeLessThanOrEqual(attenuation,1)}
                 options.attenuation_unit {mustBeMember(options.attenuation_unit, ["probability", "dB"])} = "probability"
             end
 
@@ -135,7 +131,7 @@ classdef Environment
             N_elevations = numel(Env.elevations);
             N_wavelengths = numel(Env.wavelengths);
 
-            correct_size = [N_wavelengths, N_headings, N_elevations]
+            correct_size = [N_wavelengths, N_headings, N_elevations];
 
             %check dimensions of data
             assert(isequal(size(Env.attenuation), correct_size), ...
@@ -176,8 +172,6 @@ classdef Environment
                 Array = Env.spectral_radiance;
             end
 
-            size(Array)
-
             %interpolate
             if 1 == numel(Env.wavelengths)
                 interp_data = interpn( ...
@@ -195,32 +189,61 @@ classdef Environment
 
                 if any(headings_above_top_indices)
                     interp_data(headings_above_top_indices) = interpn( ...
+                        Env.wavelengths, ...
                         [Env.headings(end), Env.headings(1) + 360], ...
                         Env.elevations, ...
-                        Env.wavelengths, ...
-                        Array([end, 1], :, :), ...
+                        Array(:, [end, 1], :), ...
+                        wavelengths(headings_above_top_indices), ...
                         headings(headings_above_top_indices), ...
-                        elevations(headings_above_top_indices), ...
-                        wavelengths(headings_above_top_indices));
+                        elevations(headings_above_top_indices));
                 end
 
                 % detect if some headings were below minimum and interpolate
-                headings_below_bottom_indices = Env.headings(1) > headings&headings >= 360;
+                headings_below_bottom_indices = Env.headings(1) > headings&headings >= 0;
 
                 if any(headings_below_bottom_indices)
                     interp_data(headings_below_bottom_indices) = interpn( ...
+                        Env.wavelengths, ...
                         [Env.headings(end) - 360, Env.headings(1)], ...
                         Env.elevations, ...
-                        Env.wavelengths, ...
-                        Array([end, 1], :, :), ...
+                        Array(:, [end, 1], :), ...
+                        wavelengths(headings_below_bottom_indices),...
                         headings(headings_below_bottom_indices), ...
-                        elevations(headings_above_top_indices), ...
-                        wavelengths(headings_above_top_indices));
+                        elevations(headings_below_bottom_indices));
                 end
+
+                % detect if some elevations were below the minimum and use
+                % the nearest value
+                elevations_below_minimum_indices = Env.elevations(1) > elevations;
+
+                if any(elevations_below_minimum_indices)
+                    interp_data(elevations_below_minimum_indices) = interpn( ...
+                        Env.wavelengths, ...
+                        Env.headings, ...
+                        Array(:, :, 1), ...
+                        wavelengths(elevations_below_minimum_indices), ...
+                        headings(elevations_below_minimum_indices));
+                    warning('Elevation goes below minimum provided in environment. Using nearest value of %i degrees',Env.elevations(1))
+                end
+
+                % detect if some elevations were below the minimum and use
+                % the nearest value
+                elevations_above_maximum_indices = Env.elevations(end) < elevations;
+
+                if any(elevations_above_maximum_indices)
+                    interp_data(elevations_above_maximum_indices) = interpn( ...
+                        Env.headings, ...
+                        Env.wavelengths, ...
+                        Array(:, :, end), ...
+                        wavelengths(elevations_above_maximum_indices), ...
+                        headings(elevations_above_maximum_indices));
+                    warning('Elevation goes below minimum provided in environment. Using nearest value of %i',Env.elevations(1))
+                end
+
             end
 
             if any(isnan(interp_data))
-                warning('some requested data were out of environment data range,  these data are returned as nan')
+                warning('Interpolation failed. this was not corrected by Environment interpolator')
             end
 
             % set format of interp_data, use a "Loss.m" class for attenuation

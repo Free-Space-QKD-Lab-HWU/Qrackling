@@ -14,7 +14,7 @@ Spectral_Filter_Width=10;                                                  %cons
 %2.1.1 Source
 Transmitter_Source=components.Source(Wavelength,...
                                     'Repetition_Rate',1E8,...
-                                    'Mean_Photon_Number',0.1);                %we use default values to simplify this example
+                                    'MPN_Signal',0.1);                %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
 Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
@@ -46,6 +46,6 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
 
 %% 3 run and plot simulation
 %3.1 run simulation
-Result=nodes.QkdPassSimulation(SimGround_Station,SimSatellite,"BB84");
+Result=nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.bb84);
 %3.2 plot results
 plotResult(Result,SimGround_Station,SimSatellite)

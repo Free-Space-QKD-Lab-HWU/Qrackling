@@ -35,11 +35,11 @@ classdef cow < protocol.proto
             %error correction efficiency
             f = 1.2;
             % Total absolute loss
-            T = 10.^(-total_loss/10);
+            T = total_loss;
             % average number of photons arriving at receiver per pulsee
             R = MPN .* T;
             % probability of pings at receiver
-            prob_dark_counts = proto.BackgroundCountProbability(total_background_count_rate);
+            prob_dark_counts = proto.BackgroundCountProbability(total_background_count_rate,Bob.Detector.Time_Gate_Width);
             P_click = R + prob_dark_counts;
 
             % frequency of pings at the receiver

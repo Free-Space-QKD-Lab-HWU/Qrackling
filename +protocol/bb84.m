@@ -55,7 +55,7 @@ classdef bb84 < protocol.proto
             % probability of dark counts (Bob's detetcion stage - convolution of all 
             % Detectors used by Bob)
             %prob_dark = prob_dark_counts;
-            prob_dark = proto.BackgroundCountProbability(total_background_count_rate);
+            prob_dark = proto.BackgroundCountProbability(total_background_count_rate,Bob.Detector.Time_Gate_Width);
 
             % probability of a single detection event 
             prob_click = MPN * eta * total_loss + prob_dark;
@@ -118,7 +118,7 @@ classdef bb84 < protocol.proto
             % size(tau)
             % size(f)
             % size(bin_ent)
-            secret_rate = sifted_rate .* (beta .* tau - f' .* bin_ent');
+            secret_rate = sifted_rate .* (beta .* tau - f .* bin_ent);
             secret_rate(secret_rate < 0) = 0; 
             % cs modification: output sifted key rate of zero in place of nan when 
             % calculation returns zero

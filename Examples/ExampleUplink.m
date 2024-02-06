@@ -8,6 +8,8 @@ Receiver_Telescope_Diameter=0.2;
 Time_Gate_Width=1E-9;                                                      %times are measured in s
 Spectral_Filter_Width=10;                                                  %consistent with wavelength, spectral width is measured in nm
 Repetition_Rate = 1E8;                                                     %source rep rate in Hz
+MPNs = [0.7,0.3,0];                                                        %mean photon number (signal, decoy, vacuum)
+SPs = [0.75,0.15,0.1];                                                     %state probabilities (signal, decoy, vacuum)
 %% 2. Construct components
 
 %2.1 Satellite
@@ -26,8 +28,10 @@ SimSatellite=nodes.Satellite(Transmitter_Telescope,...
 %2.2.1 Source
 Transmitter_Source=components.Source(Wavelength,...
                                     'Repetition_Rate',Repetition_Rate,...
-                                    'Mean_Photon_Number',[0.7,0.3,0],...
-                                    'State_Probabilities',[0.75,0.15,0.1]);            
+                                    'MPN_Signal',MPNs(1), ...
+                                    'MPN_Decoy', MPNs(2),...
+                                    'Probability_Signal',SPs(1),...
+                                    'Probability_Decoy',SPs(2));            
 %2.2.2 Receiver telescope
 Receiver_Telescope=components.Telescope(Receiver_Telescope_Diameter);
 
@@ -40,6 +44,6 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
 
 %% 3 Compose and run the PassSimulation
 %3.1 run simulation, first argument is receiver
-result = nodes.QkdPassSimulation(SimSatellite, SimGround_Station, "DecoyBB84");
+result = nodes.QkdPassSimulation(SimSatellite, SimGround_Station, protocol.decoyBB84);
 %3.2 plot results
 figure = plotResult(result,SimSatellite,SimGround_Station);

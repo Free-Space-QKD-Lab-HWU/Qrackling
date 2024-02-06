@@ -22,10 +22,7 @@ Beacon_Camera_Filter_Width = 10;                                           %came
 
 %2.1 Satellite
 %2.1.1 Source
-Transmitter_Source=components.Source(Wavelength,...
-                                    "Repetition_Rate",Repetition_Rate,...
-                                    'Mean_Photon_Number',[0.7,0.1,0],...
-                                    'State_Probabilities',[0.75,0.15,0.1]);                                       %we use default values to simplify this example
+Transmitter_Source=components.Source(Wavelength,"Repetition_Rate",Repetition_Rate);                                %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
 Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter,...
@@ -92,7 +89,7 @@ SimGround_Station = nodes.Ground_Station(Receiver_Telescope,...
 
 %% 3 Compose and run the PassSimulation
 %3.1 run simulation
-Result = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,"DecoyBB84");
+Result = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.decoyBB84);
 DownlinkBeaconResults = beacon.beaconSimulation(SimGround_Station,SimSatellite);
 UplinkBeaconResults = beacon.beaconSimulation(SimSatellite,SimGround_Station);
 %3.2 plot results
