@@ -1,11 +1,11 @@
 function Env = CreateEnvironment(LRT_path,options)
 arguments
     LRT_path {mustBeFolder}
-    options.headings {mustBeNumeric} = linspace(0,360,91);
-    options.elevations {mustBeNumeric} = linspace(2,90,45);
+    options.headings {mustBeNumeric} = linspace(0,360,2);
+    options.elevations {mustBeNumeric} = linspace(2,90,2);
     options.Time {mustBeA(options.Time,'datetime')} = datetime("01-Aug-2023 09:00:00");
     options.LLA (1,3) {mustBeNumeric} = [56.405,-3.183,10];
-    options.WavelengthRange (1,2) {mustBeNonnegative} = [400,2000];
+    options.WavelengthRange (1,2) {mustBeNonnegative} = [400,405];
     options.OutputFileName = [cd(),filesep(),'TempLRTOutputFile.txt'];
     options.InputFileName = [cd(),filesep(),'TempLRTInputFile.txt'];
     options.Visibility (1,1) {mustBeNonnegative} = 50;
@@ -26,12 +26,11 @@ if isstring(options.InputFileName)
     options.InputFileName = char(options.InputFileName);
 end
 
-
 %% compute radiance
 %default parts
 lrt = libradtran.libRadtran(LRT_path);
 lrt.GeneralAtmosphereSettings().Atmosphere("Default", "midlatitude_winter");
-lrt.SpectralSettings().RadiationSource("solar", "File", [LRT_path,'data/solar_flux/kurudz_1.0nm.dat']);
+lrt.SpectralSettings().RadiationSource("solar", "File", strjoin({LRT_path,'data','solar_flux','kurudz_1.0nm.dat'},filesep));
 lrt.SurfaceSettings().SurfaceAlbedo(0.02);
 lrt.SolverSettings().Solver("disort").Pseudospherical("on");
 

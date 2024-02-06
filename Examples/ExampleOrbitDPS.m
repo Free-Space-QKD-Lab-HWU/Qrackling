@@ -8,12 +8,14 @@ Time_Gate_Width=1E-10;                                                      %tim
 Spectral_Filter_Width=1;                                                  %consistemt with wavelength, spectral width is measured in nm
 Repetition_Rate = 1E8;  
 SPs = [0.9,0.1];
+MPN = 0.9;
 %% 2. Construct components
 
 %2.1 Satellite
 %2.1.1 Source
 Transmitter_Source=components.Source(Wavelength,...
                           'Repetition_Rate',Repetition_Rate,...
+                          'MPN_Signal',MPN,...
                           'Probability_Signal',SPs(1),...
                           'Probability_Decoy',SPs(2));        %we use default values to simplify this example
 

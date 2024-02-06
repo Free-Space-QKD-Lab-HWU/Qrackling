@@ -60,9 +60,6 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
 
     line_of_sight = elevations > 0;
 
-    interferometer_visibility = nodes.Visibility(Receiver, Transmitter);
-    Receiver.Detector.Visibility = interferometer_visibility(elevation_limit_mask);
-
     % [background_count_rate, ~] = Receiver.ComputeTotalBackgroundCountRate( ...
     %     options.Background_Sources, Transmitter, headings, elevations);
 

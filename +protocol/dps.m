@@ -21,14 +21,11 @@ classdef dps < protocol.proto
             eta = Bob.Detector.Detection_Efficiency;
             V = Bob.Detector.Visibility;
             mu = Alice.Source.MPN_Signal;
-            loss = total_loss;
             prob_dark_counts = proto.BackgroundCountProbability( ...
                 total_background_count_rate, Bob.Detector.Time_Gate_Width);
             f=1.2; % error correction efficiency
 
-            losses 	= 10.^(-loss/10);
-
-            T = losses * eta;
+            T = total_loss * eta;
             sifted_rate = rep_rate *(mu * T + prob_dark_counts);
 
             qber_Visibility = (1 - V)/2;

@@ -1,0 +1,36 @@
+
+
+# Aerosol_Settings
+aerosol_default
+aerosol_visibility 50
+
+# General_Atmosphere_Settings
+atmosphere_file midlatitude_winter
+
+# Geometry_Settings
+phi 0  360
+umu -1   -0.034899
+latitude N 56.405
+longitude W 3.183
+time 2023 8 1 9 0 0
+zout 0.01
+
+# Molecule_Settings
+mol_abs_param reptran coarse
+mol_modify O3 200 DU
+mol_modify H2O 20 MM
+crs_model rayleigh Bodhaine
+
+# Surface_Settings
+albedo 0.02
+
+# Spectral_Settings
+source solar C:\Users\ccs2000\Documents\libRadtran-2.0.5\data\solar_flux\kurudz_1.0nm.dat
+wavelength 400 405
+
+# Solver_Settings
+pseudospherical
+rte_solver disort
+
+# Output_Settings
+output_user edir edn eglo enet esum eup lambda uu
