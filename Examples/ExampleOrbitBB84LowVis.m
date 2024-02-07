@@ -38,7 +38,7 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
 
 %% 3 create a low visibility environment
 %3.1 load in low-visibility data (choose from MODTRAN files)
-load("Examples\Data\atmospheric transmittance\varying elevation MODTRAN data 3\Elevation_Wavelength_Atmospheric_Transmittance5km.mat","Elevation","Transmittance","Wavelength");
+load("Examples/Data/atmospheric transmittance/varying elevation MODTRAN data 3/Elevation_Wavelength_Atmospheric_Transmittance5km.mat","Elevation","Transmittance","Wavelength");
 %we simulate low visibility here. Options are:
                                                                           %clear,
                                                                           %100m,

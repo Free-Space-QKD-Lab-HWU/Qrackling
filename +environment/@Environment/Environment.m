@@ -223,7 +223,7 @@ classdef Environment
                         Array(:, :, 1), ...
                         wavelengths(elevations_below_minimum_indices), ...
                         headings(elevations_below_minimum_indices));
-                    warning('Elevation goes below minimum provided in environment. Using nearest value of %i degrees',Env.elevations(1))
+                    warning('Elevation goes below minimum provided in environment. Using minimum value of %i degrees',Env.elevations(1))
                 end
 
                 % detect if some elevations were below the minimum and use

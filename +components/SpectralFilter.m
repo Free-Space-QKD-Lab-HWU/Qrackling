@@ -270,5 +270,17 @@ classdef SpectralFilter
                     end
                 end
         end
+    
+        function Axes = Plot(SpectralFilter,Axes)
+            %%PLOT plot the transmission of this spectral filter
+            arguments
+                SpectralFilter components.SpectralFilter
+                Axes matlab.graphics.axis.Axes = axes();
+            end
+
+            plot(Axes,SpectralFilter.wavelengths,SpectralFilter.transmission)
+            xlabel(Axes,'Wavelength (nm)')
+            ylabel(Axes,'Transmission')
+        end
     end
 end

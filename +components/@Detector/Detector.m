@@ -381,6 +381,77 @@ classdef  Detector
             xlim(times([max_idx-i_idx, max_idx+i_idx]));
         end
 
+        function fig = Plot(Det,fig)
+            %%PLOT plot a summary of the parameters of this detector
+            arguments
+                Det components.Detector
+                fig matlab.ui.Figure = figure("Name","Detector Summary");
+            end
+            %create fig
+            tiles = tiledlayout(3,1);
+
+            %% plot detection efficiency
+            nexttile(tiles,1)
+            plot(Det.Wavelength_Range,Det.Efficiencies);
+            xlabel('Wavelength (nm)')
+            ylabel('Detection Efficiency')
+            xline(Det.Wavelength,'g--')
+            yline(Det.Detection_Efficiency,'g--')
+            ylim([0,1])
+            xlim([min(Det.Wavelength_Range),max(Det.Wavelength_Range)])
+            text(Det.Wavelength,Det.Detection_Efficiency,0,...
+                sprintf('Detection Efficiency = %.1f%% at %inm',100*Det.Detection_Efficiency,Det.Wavelength),...
+                'VerticalAlignment','bottom',....
+                'HorizontalAlignment','center',...
+                'FontName',get(groot,'defaultAxesFontName'));
+            
+            %% plot spectral filter transmission
+            nexttile(tiles,2)
+            A = gca();
+            Transmission = ComputeTransmission(Det.Spectral_Filter,Det.Wavelength);
+            Plot(Det.Spectral_Filter,A);
+            xline(Det.Wavelength,'g--')
+            yline(Transmission,'g--')
+            xlim([min(Det.Wavelength_Range),max(Det.Wavelength_Range)])
+            ylim([0,1])
+            text(Det.Wavelength,Transmission,0,...
+                sprintf('Transmission = %.1f%% at %inm',100*Transmission,Det.Wavelength),...
+                'VerticalAlignment','bottom',....
+                'HorizontalAlignment','center',...
+                'FontName',get(groot,'defaultAxesFontName'));
+
+            %% plot jitter histogram
+            nexttile(tiles,3)
+            num_jitter_points = numel(Det.Jitter_Histogram);
+            [max_value,max_index] = max(Det.Jitter_Histogram);
+            jitter_times = ((1:num_jitter_points) - max_index)*Det.Histogram_Bin_Width;
+            period = 1./Det.Repetition_Rate;
+            plot(jitter_times,Det.Jitter_Histogram);
+            xlabel('Time (s)');
+            ylabel('PDF');
+
+            xline(-Det.Time_Gate_Width/2,'b--')
+            xline(Det.Time_Gate_Width/2,'b--')
+            text(Det.Time_Gate_Width/2,max_value/2,0,...
+                sprintf('Time Gate Width = %.2gs',Det.Time_Gate_Width),...
+                'VerticalAlignment','top',....
+                'HorizontalAlignment','left',...
+                'FontName',get(groot,'defaultAxesFontName'),...
+                'Color','b');
+
+            xlim([-period,2*period])
+            xline(0,'r--')
+            xline(period,'r--')
+            text(period,max_value/2,0,...
+                sprintf('Repetition Rate = %.2gHz \nSignal Period = %.2gs \n QBER_{jitter}=%.3g%%',Det.Repetition_Rate,period,100*Det.QBER_Jitter),...
+                'VerticalAlignment','top',....
+                'HorizontalAlignment','left',...
+                'FontName',get(groot,'defaultAxesFontName'),...
+                'Color','r');
+
+
+
+        end
         function Det = SetDarkCountRate(Det, DCR)
             % SetDarkCountRate set detector dark count rate
             arguments

@@ -137,9 +137,27 @@ superconducting_NbTiN_nanowires_preset.makeDetectorPreset()
 
 save_path = strjoin([string(userpath), "superconducting_NbTiN.mat"], filesep);
 superconducting_NbTiN_nanowires_preset.writePreset(save_path);
-%% 
-% We can then use the preset we created like so:
 
-my_preset = components.DetectorPresetBuilder().loadPreset(save_path)
-%% 
-%
+%% Using the preset
+% We can then use the preset we created, either by passing it in directly
+% or loading it, like so
+superconducting_NbTiN_nanowires_preset = components.DetectorPresetBuilder().loadPreset(save_path);
+
+%%
+% Then we can instantiate a detector object based on this preset. To do this we
+% need some situational values
+Wavelength = 1550;
+Repetition_Rate = 1E9;
+Time_Gate_Width = 1E-10;
+Spectral_Filter = components.SpectralFilter('input_file','Examples/Data/spectral filters/FBH1550-12.xlsx');
+
+detector_based_on_preset = components.Detector(Wavelength,...
+                                               Repetition_Rate,...
+                                               Time_Gate_Width,...
+                                               Spectral_Filter,...
+                                               'Preset',components.DetectorPresetBuilder().loadPreset(save_path));
+
+%%
+% this allows us to view the properties of the detector by calling the
+% Plot() method on the detector
+Plot(detector_based_on_preset)
