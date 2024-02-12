@@ -1,4 +1,9 @@
-# Qrackling 📡 📨 🛰️
+
+![qrackling-logo](https://github.com/RDonaldson5/QKD_Sat_Link/assets/24245170/4391532c-85e1-47e0-80f5-308610079d9c)
+
+
+
+# Qrackling
 > A toolbox for modelling quantum key distribution between satellites and ground stations.
 
 ## About
