@@ -93,4 +93,4 @@ For those wanting to develop new features (or just use the most up to date versi
 ## Publications
 
 ## License
-We have not decided on a license for this repo, as it is currently private. If Heriot-Watt University didn't give you access, don't use it, and give us our stuff back.
+Qrackling and its tutorials/examples are [MIT licensed](https://github.com/RDonaldson5/QKD_Sat_Link/blob/main/LICENSE)
