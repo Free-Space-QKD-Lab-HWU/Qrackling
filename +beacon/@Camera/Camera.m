@@ -1,34 +1,46 @@
 classdef Camera
     %CAMERA a camera (and included optics) used to detect pointing and tracking beacons
 
-    %% NOTE:
     % it is convention in CMOS and CCD cameras to record noise in terms of
     % charge, in particular the charge on an electron (e-). Therefore SNR
     % calculation etc. will need signal in terms of photons and photon rate,
     % rather than power.
 
     properties (SetAccess=protected, GetAccess=public)
-        Telescope (1,1) components.Telescope = []
-        Collecting_Area (1,1) double {mustBeNonnegative}                        %the optics area which collects beacon light, usually the telescope effective area
-        Detector_Diameter (1,1) double {mustBeNonnegative}=0.001                %the physical size of the camera's detector area
-        Focal_Length (1,1) double {mustBeNonnegative}=0.0125;                   %focal length (in m) of the lens focussing onto the camera's sensor
-        Quantum_Efficiency  double {mustBeNonnegative,mustBeLessThanOrEqual(Quantum_Efficiency,1)}=1; %the efficiency of the camera at collecting beacon light which arrives on a pixel
-        Exposure_Time (1,1) double {mustBePositive} = 1;                        %exposure time for operation of the camera in s
-        Wavelength (1,1) double {mustBeScalarOrEmpty}
+        Telescope (1, 1) components.Telescope = []
+        Collecting_Area (1, 1) double {mustBeNonnegative}
+        % the physical size of the camera's detector area
+        Detector_Diameter (1, 1) double {mustBeNonnegative} = 0.001
+        % focal length (in m) of the lens focussing onto the camera's sensor
+        Focal_Length (1, 1) double {mustBeNonnegative} = 0.0125;
+        % the efficiency of the camera at collecting beacon light which arrives on a pixel
+        Quantum_Efficiency  double {mustBeNonnegative,mustBeLessThanOrEqual(Quantum_Efficiency,1)} = 1;
+        % exposure time for operation of the camera in s
+        Exposure_Time (1, 1) double {mustBePositive} = 1;
 
-        Spectral_Filter_Width (1,1) double {mustBeNonnegative}=10;              %the spectral width of the (assumed brick-wall) filter on the camera
+        Wavelength (1, 1) double {mustBeScalarOrEmpty}
 
-        Readout_Noise (1,1) double = 13;                                   %noise (in coulombs) incurred by reading out a whole image
-        Dark_Current_Noise (1,1) double = 125;                                    %noise (in coulombs) incurred by exposing the camera per second
-        Full_Well_Capacity (1,1) double = 13500;                                 %the maximum signal (in coulombs) a pixel can tolerate before saturating
+        % the spectral width of the (assumed brick-wall) filter on the camera
+        Spectral_Filter_Width (1, 1) double {mustBeNonnegative} = 10;
 
-        Pixels (1,2) double {mustBePositive}=[1080,1080]                        %number of pixels in camera x and y directions
-        Fine_Pointing_Handover_Angle (1,1) double {mustBeNonnegative} = 2E-3;   %pointing angle below which fine pointing can operate in rads
+        % noise (in coulombs) incurred by reading out a whole image
+        Readout_Noise (1, 1) double = 13;
+        % noise (in coulombs) incurred by exposing the camera per second
+        Dark_Current_Noise (1, 1) double = 125;
+        % the maximum signal (in coulombs) a pixel can tolerate before saturating
+        Full_Well_Capacity (1, 1) double = 13500;
+
+        % number of pixels in camera x and y directions
+        Pixels (1, 2) double {mustBePositive} = [1080, 1080];
+        % pointing angle below which fine pointing can operate in rads
+        Fine_Pointing_Handover_Angle (1, 1) double {mustBeNonnegative} = 2E-3;
     end
+
     properties (Constant)
-        h=6.626E-34;                                                            %plank's constant in Js
-        c=2.998E8;                                                              %speed of light in m/s
+        h = 6.626E-34; %plank's constant in Js
+        c = 2.998E8; %speed of light in m/s
     end
+
     methods
         function C = Camera(telescope, options)
             arguments

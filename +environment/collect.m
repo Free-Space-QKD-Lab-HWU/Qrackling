@@ -1,3 +1,4 @@
+% TODO: finish
 function env = collect(type, data_wavelengths, data_headings, data_elevations, data, unit, options)
     arguments (Repeating)
         type {mustBeMember(type, {"transmission", "background_emission"})}
