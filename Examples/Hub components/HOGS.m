@@ -20,14 +20,12 @@ HOGS_Telescope = components.Telescope(Telescope_Diameter,...
     'Eyepiece_Focal_Length',Telescope_Eyepiece_Focal_Length);
 
 %Detector
-
-filter_file = '~/Projects/QKD_Sat_Link/adaptive_optics/Example Data/spectral filters';
 switch Wavelength
     case 785
 Channel_Wavelength = 785;                                    %signal wavelength in nm
 Repetition_Rate = 1E8;                                              %signal rep rate in Hz
 Time_Gate = 2E-9;                                                   %time gate width in s
-Spectral_Filter = SpectralFilter('input_file',[filter_file, filesep(),'FBH780-10.xlsx']);
+Spectral_Filter = components.SpectralFilter('input_file','Examples\Data\spectral filters\FBH780-10.xlsx');
 HOGS_Detector = components.Detector(Channel_Wavelength,Repetition_Rate,...
     Time_Gate,Spectral_Filter, "Preset", components.loadPreset("Excelitas"));
 
@@ -66,7 +64,7 @@ HOGS_Camera = AC4040(Camera_Telescope,Exposure_Time,Spectral_Filter_Width);%this
 Beacon_Power = 40E-3;                                                           %power of uplink beacon in W
 Beacon_Wavelength = 850;                                                        %uplink beacon wavelength in nm
 BeaconPointingPrecision = 1E-6;                                                 %beacon pointing precision (coarse pointing precision) in rads
-Beacon_Beam_Divergence = 0.0070;%49.9E-6; %7mrad = 0.5 deg is the divergence of RAL's uplink beacon system. 50urad is out uplink beacon divergence
+Beacon_Beam_Divergence =49.9E-6; %7mrad = 0.5 deg is the divergence of RAL's uplink beacon system. 50urad is our uplink beacon divergence
 Beacon_Telescope = SetWavelength(HOGS_Telescope,Beacon_Wavelength);
 Beacon_Telescope = SetFOV(Beacon_Telescope,Beacon_Beam_Divergence);
 %initially, uncertainty in satellite position is 5km and range is roughly

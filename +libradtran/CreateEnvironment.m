@@ -5,7 +5,7 @@ arguments
     options.elevations {mustBeNumeric} = linspace(2,90,2);
     options.Time {mustBeA(options.Time,'datetime')} = datetime("01-Aug-2023 09:00:00");
     options.LLA (1,3) {mustBeNumeric} = [56.405,-3.183,10];
-    options.WavelengthRange (1,2) {mustBeNonnegative} = [400,405];
+    options.WavelengthRange (1,2) {mustBeNonnegative} = [400,1600];
     options.OutputFileName = [cd(),filesep(),'TempLRTOutputFile.txt'];
     options.InputFileName = [cd(),filesep(),'TempLRTInputFile.txt'];
     options.Visibility (1,1) {mustBeNonnegative} = 50;

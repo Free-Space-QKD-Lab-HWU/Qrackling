@@ -28,9 +28,9 @@ StopTime = datetime(2022,12,25,7,0,0);
 SampleTime = 1;
 SimSatellite=nodes.Satellite(Transmitter_Telescope,...
                         'Source',Transmitter_Source,...
-                        'SemiMajorAxis',600E3 + earthRadius,...             %mean orbital radius = Altitude + Earth radius
+                        'SemiMajorAxis',500E3 + earthRadius,...             %mean orbital radius = Altitude + Earth radius
                         'eccentricity',0,...                                %measure of ellipticity of the orbit, for circular, =0
-                        'inclination',9.7065055549e+01,...                  %inclination of orbit in deg- set by sun synchronicity
+                        'inclination',97.065055549393420,...                  %inclination of orbit in deg- set by sun synchronicity
                         'rightAscensionOfAscendingNode',-1.5,...            %measure of location of orbit in longitude
                         'argumentOfPeriapsis',0,...                         %measurement of location of ellipse nature of orbit in longitude, irrelevant for circular orbits
                         'trueAnomaly',0,...                                 %initial position through orbit of satellite
