@@ -53,30 +53,18 @@ function spoqc = SatellitePlatformForOpticalQuantumCommunications(wavelength, ex
     % by Sagar, Jaya, Hastings, Elliott, Zhang, Piede, Stefko, Milan, Lowndes, David, Oi, Daniel, Rarity, John, Joshi, Siddarth K.
 
     %source mean photon numbers (unitless)
-    hub_sat_source_mp_ns = [0.8,0.3,0];
+    source = components.Source( ...
+        wavelength,       ...
+        'MPN_Signal',         0.8,   ... % mean photon numbers (unitless)
+        'MPN_Decoy',          0.3,   ...
+        'Probability_Signal', 0.5,   ... % state probabilities (unitless) (probability for vacuum is inferred)
+        'Probability_Decoy',  0.25,  ...
+        'Repetition_Rate',    1e8,   ... % pulse rate in Hz
+        'g2',                 0.01,  ... % g2 (unitless)
+        'Efficiency',         1,     ... % efficiency (unitless). 1 is the default
+        'State_Prep_Error',   0.0025 ... % state preparation error probability (unitless). this value is default
+    );
 
-    %source state probabilities (unitless)
-    hub_sat_source_probs = [0.75,0.25,0.25];
-
-    %source pulse rate in Hz
-    hub_sat_source_rep_rate = 1E8;
-
-    %source g2 (unitless)
-    hub_sat_source_g2 = 0.01;
-
-    %source efficiency (unitless)
-    hub_sat_source_efficiency = 1;
-
-    %source state preparation error probability (unitless)
-    hub_sat_source_state_prep_error = 0.0025;
-
-    source = components.Source(wavelength,...
-        'Mean_Photon_Number', hub_sat_source_mp_ns,...
-        'State_Probabilities', hub_sat_source_probs,...
-        'Repetition_Rate', hub_sat_source_rep_rate,...
-        'g2', hub_sat_source_g2,...
-        'Efficiency', hub_sat_source_efficiency,...
-        'State_Prep_Error', hub_sat_source_state_prep_error);
 
     %beacon
     %beacon optical power in w
@@ -129,7 +117,6 @@ function spoqc = SatellitePlatformForOpticalQuantumCommunications(wavelength, ex
         'Source', source,...
         'Beacon', link_beacon,...
         'Camera', camera,...
-        'Surface', Satellite_Foil_Surface(0.01), ...          %correctly set reflevctive surface proporties and area
         'SemiMajorAxis', 600E3 + earthRadius,...             %mean orbital radius = Altitude + Earth radius
         'eccentricity', 0,...                                %measure of ellipticity of the orbit, for circular, =0
         'inclination', 9.7065055549e+01,...                  %inclination of orbit in deg- set by sun synchronicity

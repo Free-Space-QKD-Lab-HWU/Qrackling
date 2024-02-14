@@ -14,7 +14,8 @@
         <!-- Icon images used for these entries are also stored in -->
         <!-- matlabroot/toolbox/matlab/icons -->
         <!-- A Getting Started Guide usually comes first -->
-        <tocitem> Examples
+        <tocitem target="Examples.html"> Examples
+            <tocitem target="ModtranData.html"> Including data from MODTRAN </tocitem>
             <tocitem target="ExampleDetectorPreset.html"> Detector Presets </tocitem>
             <tocitem target="ExampleUKQuantumCommunicationsHubMission.html"> Detailed Example </tocitem>
         </tocitem>
