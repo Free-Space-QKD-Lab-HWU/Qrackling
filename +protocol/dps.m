@@ -27,29 +27,30 @@ classdef dps < protocol.proto
             f=1.2; % error correction efficiency
 
             T = total_loss * eta;
-            sifted_rate = rep_rate *(mu * T + prob_dark_counts);
+            sifted_prob = (mu * T + prob_dark_counts);
+            sifted_rate = rep_rate *sifted_prob;
 
             qber_Visibility = (1 - V)/2;
-            qber_dark = 0.5 * prob_dark_counts;
-            qber_encoding = 0.012;
-
-            qber = min(qber_dark + qber_encoding + qber_Visibility, 0.5);
-
+            qber_dark = 0.5 * prob_dark_counts./sifted_prob;
+            qber_encoding = Alice.Source.State_Prep_Error;
+            
+            %qbers add in inverse, so...
+            %compute probability of no errors
+            qnber = (1-qber_dark) * (1-qber_encoding) * (1-qber_Visibility);
+            %then reverse into qber
+            qber = 1-qnber;
+            
             % Privacy amplification compression factor
             % tau = (1 - 2*mu)*log2(1 - qber.^2 - (1 - 6*qber).^2/2); % 2007 formula
-            tau = qber + (1 - qber).*h((1 + eps(mu, V)/2)); % 2008 formula
-            % tau = h((3 + sqrt(5))*qber); % 2009 formula
+            tau = qber + (1 - qber).*h((1 + eps(mu, V))/2); % 2008 formula
+            %tau = h((3 + sqrt(5))*qber); % 2009 formula
 
             % Secret key rate
-            % SKR = R_sif.*(-fe*h(qber) - tau); % 2007 analysis
             secret_rate = sifted_rate.*(1 -f*h(qber) - real(tau)); % 2008 and 2009 analysis
-
-            %{
-            if point
-                tau = qberp + (1 - qberp).*h((1 + eps(mu, Vp)/2));
-                SKRp = siftedP.*(1 -fe*h(qberp) - real(tau));
-            end
-            %}
+            %skr must be nonnegative and real
+            secret_rate(secret_rate<0&imag(secret_rate)==0)=0;
+            %make skr real for plotting
+            secret_rate=real(secret_rate);
         end
 
     end
@@ -61,5 +62,5 @@ end
 
 function y = h(x)
     %the binary entropy function
-    y = x.*log2(x) + (1-x).*log2(1-x);
+    y = -(x.*log2(x) + (1-x).*log2(1-x));
 end

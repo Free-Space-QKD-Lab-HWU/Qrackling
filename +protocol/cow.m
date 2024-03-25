@@ -22,13 +22,12 @@ classdef cow < protocol.proto
 
         %% written by Alfonso Tello Castillo - based on:
         % Chip-based quantum key distribution P. Sibson, C. Erven, M. Godfrey et al.
-        %altered by Cameron Simmons
+        % altered by Cameron Simmons
         % further altered by Peter Barrow
 
             MPN = Alice.Source.MPN_Signal;
             State_Prep_Error = Alice.Source.State_Prep_Error;
             rep_rate = Alice.Source.Repetition_Rate;
-            %decoy_prob = Alice.Source.State_Probabilities(2);
             decoy_prob = Alice.Source.Probability_Decoy;
             Dead_Time = Bob.Detector.Dead_Time;
 
@@ -74,8 +73,6 @@ end
 
 % Utils functions
 function [V_] = eps(mu,V)
-    size(mu)
-    size(V)
     V_ = (2 .* V - 1).*exp(-mu) - 2.*sqrt(V.*(1 - V)).*sqrt(1 - exp(-2*mu));
 end
 
