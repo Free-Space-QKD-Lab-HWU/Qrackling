@@ -21,14 +21,14 @@ OGS=HOGS(Wavelength);%current HOGS model
 %{
 StartTime = datetime(2022,12,25,6,0,0);
 StopTime = datetime(2022,12,25,7,0,0);
-VisString = '50km';
+Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\varying elevation MODTRAN data 3\Dark Environment 50km.mat");
 TurbulenceString = 'HV10-10';
 %}
 %ok pass: 0610 to 0655 christmas day 2022, 10km visibility
 %{
 StartTime = datetime(2023,2,6,3,0,0);
 StopTime = datetime(2023,2,6,5,0,0);
-VisString = '10km';
+Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\varying elevation MODTRAN data 3\Dark Environment 10km.mat");
 TurbulenceString = 'HV5-7';
 %}
 
@@ -36,21 +36,15 @@ TurbulenceString = 'HV5-7';
 %%{
 StartTime = datetime(2023,1,31,4,0,0);
 StopTime = datetime(2023,1,31,5,0,0);
-VisString = '5km';
+Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\varying elevation MODTRAN data 3\Dark Environment 5km.mat");
 TurbulenceString = '2HV5-7';
 %}
 SampleTime = seconds(1);
 Sat=SPOQC(Wavelength,StartTime,StopTime,SampleTime);
 
 
-%create SMARTS atmospheric sim- this is not needed if an atmosphere cache is
-%used
-%SMARTS_Config=solar_background_errol_fast('executable_path','C:\Git\SMARTS\',...
-%                                     'stub','C:\Git\QKD_Sat_Link\SMARTS_connection\SMARTS cache\');
-
-
 %% simulate a pass
-PassResult = nodes.QkdPassSimulation(OGS,Sat,protocol.decoyBB84);
+PassResult = nodes.QkdPassSimulation(OGS,Sat,protocol.decoyBB84,'Environment',Env);
 DownlinkBeaconResults = beacon.beaconSimulation(OGS,Sat);
 UplinkBeaconResults = beacon.beaconSimulation(Sat,OGS);
 

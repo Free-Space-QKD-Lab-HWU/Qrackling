@@ -28,12 +28,14 @@ classdef Environment
             arguments (Output)
                 Env environment.Environment
             end
+            load(filename, 'wavelengths','headings','elevations','spectral_radiance','attenuation','attenuation_unit');
 
-            Env.headings = load(filename, 'headings');
-            Env.elevations = load(filename, 'elevations');
-            Env.spectral_radiance = load(filename, 'spectral_radiance');
-            Env.attenuation = load(filename, 'attenuation');
-            Env.attenuation_unit = load(filename, 'attenuation_unit');
+            Env.headings = headings;
+            Env.elevations = elevations;
+            Env.wavelengths = wavelengths;
+            Env.spectral_radiance = spectral_radiance;
+            Env.attenuation = attenuation;
+            Env.attenuation_unit = attenuation_unit;
 
         end
 
