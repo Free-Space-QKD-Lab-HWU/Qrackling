@@ -3,13 +3,15 @@ classdef Environment
     % atmospheric attenuation and background light
 
     properties (SetAccess=protected, GetAccess=public)
+        %different wavelengths have different environment data
+        wavelengths (1, :) {mustBeNumeric, mustBeNonnegative}
         %coordinate system (in degrees)
         headings (1, :) {mustBeNumeric}
         elevations (1, :) {mustBeNumeric}
 
-        %different wavelengths have different environment data
-        wavelengths (1, :) {mustBeNumeric, mustBeNonnegative}
 
+        %%%%%%% these quantities should all have dimensions
+        %%%%%%% [numel(wavelengths),numel(headings),numel(elevations)]
         %atmospheric attenuation (in absolute terms) for the full atmosphere thickness
         attenuation {mustBeNumeric, mustBeNonnegative, mustBeLessThanOrEqual(attenuation, 1)}
 
@@ -25,17 +27,15 @@ classdef Environment
             arguments (Input)
                 filename {mustBeFile}
             end
-            arguments (Output)
-                Env environment.Environment
-            end
-            load(filename, 'wavelengths','headings','elevations','spectral_radiance','attenuation','attenuation_unit');
 
-            Env.headings = headings;
-            Env.elevations = elevations;
-            Env.wavelengths = wavelengths;
-            Env.spectral_radiance = spectral_radiance;
-            Env.attenuation = attenuation;
-            Env.attenuation_unit = attenuation_unit;
+            load(filename, 'headings');
+            load(filename, 'elevations');
+            load(filename, 'wavelengths');
+            load(filename, 'spectral_radiance');
+            load(filename, 'attenuation');
+            load(filename, 'attenuation_unit');
+            Env = environment.Environment(headings,elevations,wavelengths,...
+                                          spectral_radiance,attenuation,'attenuation_unit',attenuation_unit);
 
         end
 
@@ -54,6 +54,12 @@ classdef Environment
                 end
             end
             bool = true;
+        end
+
+        function Env = empty()
+            %conform to MATLAB class standard by providing an empty
+            %constructor
+            Env = environment.Environment(0,0,0,0,0);
         end
 
     end
@@ -136,9 +142,9 @@ classdef Environment
             correct_size = [N_wavelengths, N_headings, N_elevations];
 
             %check dimensions of data
-            assert(isequal(size(Env.attenuation), correct_size), ...
+            assert(isequal(size(Env.attenuation,[1,2,3]), correct_size), ...
                 'attenuation array is wrong size');
-            assert(isequal(size(Env.spectral_radiance), correct_size), ...
+            assert(isequal(size(Env.spectral_radiance,[1,2,3]), correct_size), ...
                 'spectral_radiance array is wrong size');
         end
 
@@ -234,8 +240,8 @@ classdef Environment
 
                 if any(elevations_above_maximum_indices)
                     interp_data(elevations_above_maximum_indices) = interpn( ...
-                        Env.headings, ...
                         Env.wavelengths, ...
+                        Env.headings, ...
                         Array(:, :, end), ...
                         wavelengths(elevations_above_maximum_indices), ...
                         headings(elevations_above_maximum_indices));
@@ -278,8 +284,8 @@ classdef Environment
             switch DataType
                 case 'attenuation'
                     Values = Env.attenuation;
-                % case 'attenuation dB'
-                %     Values = Env.attenuation_dB;
+                case 'attenuation dB'
+                     Values = -10*log10(Env.attenuation);
                 case 'spectral radiance'
                     Values = Env.spectral_radiance;
             end
@@ -295,22 +301,31 @@ classdef Environment
                         options.Name = 'Spectral Radiance (W/m^2 str nm)';
                     case 'attenuation'
                         options.Name = 'attenuation';
-                    % case 'attenuation dB'
-                    %     options.Name = 'attenuation (dB)';
+                    case 'attenuation dB'
+                         options.Name = 'attenuation (dB)';
                 end
             end
 
             if all(isnan(options.CLims))
-                %if no colour limits provided, use min and max
-                options.CLims = [min(Values(~isinf(Values)),[],"all"),max(Values(~isinf(Values)),[],'all')];
+                %if no colour limits provided,
+                % set colour limits based on data
+                switch DataType
+                    case 'spectral radiance'
+                        options.CLims = [median(Values(~isinf(Values)),"all")/100,max(Values(~isinf(Values)),[],'all')];
+                    case 'attenuation'
+                        options.CLims = [0,1];
+                    case 'attenuation dB'
+                         options.CLims = [min(Values(~isinf(Values)),[],"all"),median(Values(~isinf(Values)),'all')+10];
+                end
+
             end
 
             if isequal(options.ColourScale,'auto')
                 switch DataType
                     case 'attenuation'
                         options.ColourScale = 'log';
-                    % case 'attenuation dB'
-                    %     options.ColourScale = 'linear';
+                    case 'attenuation dB'
+                        options.ColourScale = 'linear';
                     case 'spectral radiance'
                         options.ColourScale = 'log';
                 end
@@ -342,7 +357,7 @@ classdef Environment
                 % prepare plot data
                 Current_Wavelength = scrollbar.Value;
                 Wavelength_Index=round(interp1(Wavelengths,1:numel(Wavelengths),Current_Wavelength));
-                Current_Values = Values(:,:,Wavelength_Index)';
+                Current_Values = squeeze(Values(Wavelength_Index,:,:))';
                 Current_Values(isinf(Current_Values)) = nan;
 
 
