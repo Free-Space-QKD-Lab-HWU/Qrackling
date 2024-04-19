@@ -23,12 +23,6 @@ classdef  Detector
 
         Repetition_Rate{mustBeNonnegative, mustBeScalarOrEmpty};
 
-        Jitter_Histogram;
-        Histogram_Bin_Width;
-        Total_Counts = 0;
-        CDF;
-        PDF;
-
         % polarisation reference is required for polarisation encoded QKD.
         % poor polarisation compensation results in high QBER. We describe
         % the rms error in polarisation compensation which determines QBER in
@@ -36,10 +30,7 @@ classdef  Detector
         Polarisation_Error{mustBeScalarOrEmpty, mustBeNonnegative} = asind(1/280);
         %default value modelled off Micius
 
-        Wavelength_Range;
-        Dead_Time double;
 
-        Efficiencies
         Detection_Efficiency{ ...
             mustBeScalarOrEmpty, ...
             mustBePositive, ...
@@ -51,8 +42,26 @@ classdef  Detector
         %for phase-based protocols, need a visibility metric
         Visibility {mustBeInRange(Visibility,0,1)} = 1;
 
+
+        Dead_Time {mustBeNonnegative};
+
     end
 
+    properties (Hidden,GetAccess=public,SetAccess=protected)
+        %these properties are accessible but not printed, as they are large
+        %arrays describing detector behaviour
+        Jitter_Histogram;
+        Histogram_Bin_Width;
+        Total_Counts = 0;
+        CDF;
+        PDF;
+
+        Wavelength_Range;
+        Efficiencies
+
+        Dead_Time_Calibration_Photon_Detection_Rate {mustBeNonnegative}
+        Dead_Time_Calibration_Click_Rate {mustBeNonnegative}
+    end
     methods
 
         function Detector = Detector( ...
@@ -74,7 +83,7 @@ classdef  Detector
                     mustBeGreaterThanOrEqual(options.Dark_Count_Rate, 0)}
                 options.Dead_Time { ...
                     mustBeNumeric, ...
-                    mustBeGreaterThanOrEqual(options.Dead_Time, 0)}
+                    mustBeNonnegative} = 0
                 options.Jitter_Histogram { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Jitter_Histogram, 0)}
@@ -148,6 +157,8 @@ classdef  Detector
             Detector = Detector.SetJitterPerformance(Repetition_Rate);
 
             Detector = Detector.SetDetectionEfficiency(Wavelength=Wavelength);
+
+            Detector = DeadTimeCalibration(Detector);
         end
 
         function Detector = HistogramInfo(Detector)
@@ -388,11 +399,12 @@ classdef  Detector
                 fig matlab.ui.Figure = figure("Name","Detector Summary");
             end
             %create fig
-            tiles = tiledlayout(3,1);
+            tiles = tiledlayout(2,2);
 
             %% plot detection efficiency
-            nexttile(tiles,1)
-            plot(Det.Wavelength_Range,Det.Efficiencies);
+            nexttile(tiles,1,[1,2])
+            A = gca();
+            plot(A,Det.Wavelength_Range,Det.Efficiencies);
             xlabel('Wavelength (nm)')
             ylabel('Detection Efficiency')
             xline(Det.Wavelength,'g--')
@@ -406,8 +418,7 @@ classdef  Detector
                 'FontName',get(groot,'defaultAxesFontName'));
             
             %% plot spectral filter transmission
-            nexttile(tiles,2)
-            A = gca();
+            hold on
             Transmission = ComputeTransmission(Det.Spectral_Filter,Det.Wavelength);
             Plot(Det.Spectral_Filter,A);
             xline(Det.Wavelength,'g--')
@@ -419,7 +430,8 @@ classdef  Detector
                 'VerticalAlignment','bottom',....
                 'HorizontalAlignment','center',...
                 'FontName',get(groot,'defaultAxesFontName'));
-
+            legend('Detection Efficiency','','','Filter Efficiency','','')
+            hold off
             %% plot jitter histogram
             nexttile(tiles,3)
             num_jitter_points = numel(Det.Jitter_Histogram);
@@ -428,11 +440,11 @@ classdef  Detector
             period = 1./Det.Repetition_Rate;
             plot(jitter_times,Det.Jitter_Histogram);
             xlabel('Time (s)');
-            ylabel('PDF');
+            ylabel('PDF (s^{-1})');
 
             xline(-Det.Time_Gate_Width/2,'b--')
             xline(Det.Time_Gate_Width/2,'b--')
-            text(Det.Time_Gate_Width/2,max_value/2,0,...
+            text(Det.Time_Gate_Width/2,max_value,0,...
                 sprintf('Time Gate Width = %.2gs',Det.Time_Gate_Width),...
                 'VerticalAlignment','top',....
                 'HorizontalAlignment','left',...
@@ -449,9 +461,19 @@ classdef  Detector
                 'FontName',get(groot,'defaultAxesFontName'),...
                 'Color','r');
 
+            %% plot dead time loss
+            nexttile(tiles,4)
+            loglog(Det.Dead_Time_Calibration_Photon_Detection_Rate,...
+                 Det.Dead_Time_Calibration_Click_Rate);
+            grid on
+            xlabel('Photon rate (s^{-1})')
+            ylabel('Click rate (s^{-1})')
+
+
 
 
         end
+        
         function Det = SetDarkCountRate(Det, DCR)
             % SetDarkCountRate set detector dark count rate
             arguments
@@ -517,6 +539,48 @@ classdef  Detector
                 Det.Detection_Efficiency = ppval(pw_poly, options.Wavelength);
             end
 
+        end
+    
+        function Det = DeadTimeCalibration(Det)
+            %DEADTIMECALIBRATION store the loss caused by dead time as a 
+            % function of detected photon rate. loss is the ratio of
+            % detected photon rate (rate after the detector's detection
+            % efficiency) to the click rate of the detector (at the
+            % detector's voltage output)
+            arguments
+                Det components.Detector
+            end
+
+            %here
+            % r represents the detected photon rate
+            % s represents the click rate
+            % N is the number of sample points this function is computed
+            % over
+            N = 100;
+
+            % prepare vector of click rates
+            Det.Dead_Time_Calibration_Click_Rate = logspace(log10(Det.Dark_Count_Rate),log10(Det.Dark_Count_Rate+Det.Repetition_Rate),N);
+
+            %compute output
+            Det.Dead_Time_Calibration_Photon_Detection_Rate = Det.Dead_Time_Calibration_Click_Rate.*exp(Det.Dead_Time*Det.Dead_Time_Calibration_Click_Rate);
+        end
+
+        function loss = DeadTimeLoss(Det,Photon_Detection_Rate)
+            %return loss as a function of the provided photon detection
+            %rate, by interpolating existing data
+
+            arguments
+                Det components.Detector
+                Photon_Detection_Rate {mustBeNonnegative}
+            end
+
+            % interpolate the existing computation
+            Click_Rate = interp1(Det.Dead_Time_Calibration_Photon_Detection_Rate,...
+                                 Det.Dead_Time_Calibration_Click_Rate,...
+                                 Photon_Detection_Rate);
+
+            %compute loss by dividing click rate by photon detection rate
+            loss = Click_Rate./Photon_Detection_Rate;
         end
     end
 end
