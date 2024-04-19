@@ -21,7 +21,7 @@ classdef Located_Object
         Velocity_East(:,1){mustBeNumeric} = nan;
         Velocity_North(:,1){mustBeNumeric} = nan;
         Velocity_Up(:,1){mustBeNumeric} = nan;
-        Location_Name = "";
+        Name {mustBeText} = "unnamed Location";
         useSatCommsToolbox{mustBeNumericOrLogical} = false;
         % Length of Latitude, Longitude, Altitude arrays
         % (must all be same length)

@@ -29,8 +29,6 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
 
     %do not hide small properties
     properties (SetAccess=protected, Hidden=false)
-        % If not set, initialised to UUID
-        Name{mustBeText} = 'Unnamed Satellite';
         %File location for Latitude, Longitude, Altitude and Time data
         Orbit_Data_File_Location{mustBeText} = '';
 
@@ -146,6 +144,12 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             if ~isempty(p.Results.OrbitDataFileLocation)
                 [Satellite, lat, lon, alt, t] = ReadOrbitLLATFile(Satellite,...
                     p.Results.OrbitDataFileLocation);
+                %remove duplicates
+                [t,UniqueTimeIndices]=unique(t);
+                lat = lat(UniqueTimeIndices);
+                lon = lon(UniqueTimeIndices);
+                alt = alt(UniqueTimeIndices);
+
             elseif ~isempty(p.Results.LLAT)
                 %if LLAT (latitude, longitude, altitude, time) is provided manually, use this
                 LLAT = p.Results.LLAT;
