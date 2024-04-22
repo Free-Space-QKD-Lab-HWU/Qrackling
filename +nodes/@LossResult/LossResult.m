@@ -6,6 +6,7 @@ classdef LossResult
         apt units.Loss
         turbulence units.Loss
         atmospheric units.Loss
+        dead_time units.Loss
     end
     methods
         function result = LossResult(kind, options)
@@ -17,6 +18,7 @@ classdef LossResult
                 options.apt
                 options.turbulence
                 options.atmospheric
+                options.dead_time
             end
 
             result.kind = kind;
@@ -33,6 +35,8 @@ classdef LossResult
                     result.turbulence = options.turbulence;
                 case "atmospheric"
                     result.atmospheric = options.atmospheric;
+                case "dead_time"
+                    result.dead_time = options.dead_time;
                 end
             end
         end

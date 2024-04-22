@@ -5,7 +5,7 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
         transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
     end
     arguments (Repeating)
-        loss {mustBeMember(loss, {'geometric', 'optical', 'apt', 'turbulence', 'atmospheric'})}
+        loss {mustBeMember(loss, {'geometric', 'optical', 'apt', 'turbulence', 'atmospheric', 'dead_time'})}
     end
     arguments
         options.dB logical = false
@@ -73,6 +73,24 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
         end
 
         losses.(label) = res.ConvertTo(unit);
+    end
+
+    %dead time loss is nonlinear, in that it depends on the other channel
+    %losses, so must be computed last
+    if any(contains(string(loss), "dead_time"))
+        
+        assert(~isequal(kind,'beacon'),'beacon links do not suffer from dead time loss')
+        %read all losses up to detector clicking
+        individual_losses_to_now = cellfun(@(x) As(x,'probability'),struct2cell(losses),'UniformOutput',false);
+        %format into single vector of total loss
+        total_loss_to_now = prod(cell2mat(individual_losses_to_now),1);
+        %compute detector photon arrival rate
+        photon_detection_rate = transmitter.Source.Repetition_Rate*total_loss_to_now + receiver.Detector.Dark_Count_Rate;
+        %compute dead time loss
+        dead_time_loss = receiver.Detector.DeadTimeLoss(photon_detection_rate);
+        %store in loss record
+        losses.dead_time = dead_time_loss.ConvertTo(unit);
+            
     end
 
     nargoutchk(0, 3)

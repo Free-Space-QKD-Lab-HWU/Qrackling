@@ -66,7 +66,7 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
     if ~isempty(options.Environment)
         [link_loss, ~] = nodes.linkLoss("qkd", Receiver, Transmitter, ...
             "apt", "optical", "geometric", "turbulence", ...
-            "atmospheric", "environment", options.Environment);
+            "atmospheric", "environment", "dead_time", options.Environment);
 
         switch class(Transmitter)
         case "nodes.Satellite"
@@ -96,7 +96,7 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
 
     else
         [link_loss, ~] = nodes.linkLoss("qkd", Receiver, Transmitter, ...
-            "apt", "optical", "geometric", "turbulence");
+            "apt", "optical", "geometric", "turbulence", "dead_time");
         background_counts_per_second = zeros(size(headings));
     end
 

@@ -565,7 +565,7 @@ classdef  Detector
             Det.Dead_Time_Calibration_Photon_Detection_Rate = Det.Dead_Time_Calibration_Click_Rate.*exp(Det.Dead_Time*Det.Dead_Time_Calibration_Click_Rate);
         end
 
-        function loss = DeadTimeLoss(Det,Photon_Detection_Rate)
+        function Dead_Time_Loss = DeadTimeLoss(Det,Photon_Detection_Rate)
             %return loss as a function of the provided photon detection
             %rate, by interpolating existing data
 
@@ -581,6 +581,9 @@ classdef  Detector
 
             %compute loss by dividing click rate by photon detection rate
             loss = Click_Rate./Photon_Detection_Rate;
+
+            %convert to loss object
+            Dead_Time_Loss = units.Loss("probability",'Dead Time',loss);
         end
     end
 end
