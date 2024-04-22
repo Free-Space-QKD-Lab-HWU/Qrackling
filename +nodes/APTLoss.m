@@ -37,5 +37,5 @@ function loss = APTLoss(kind, receiver, transmitter)
     end
 
     n = max(receiver.N_Position, transmitter.N_Position);
-    loss = units.Loss("probability", "Acquisition Pointing and Tracking", utilities.validateLoss(loss, n));
+    loss = units.Loss("probability", "APT", utilities.validateLoss(loss, n));
 end

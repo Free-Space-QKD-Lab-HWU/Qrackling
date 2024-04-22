@@ -2,11 +2,11 @@ classdef LossResult
     properties (SetAccess = protected)
         kind
         geometric units.Loss
-        optical units.Loss
+        transmitter units.Loss
         apt units.Loss
         turbulence units.Loss
         atmospheric units.Loss
-        dead_time units.Loss
+        receiver units.Loss
     end
     methods
         function result = LossResult(kind, options)
@@ -14,11 +14,11 @@ classdef LossResult
             arguments
                 kind {mustBeMember(kind, ["beacon", "qkd"])}
                 options.geometric
-                options.optical
+                options.transmitter
                 options.apt
                 options.turbulence
                 options.atmospheric
-                options.dead_time
+                options.receiver
             end
 
             result.kind = kind;
@@ -27,16 +27,16 @@ classdef LossResult
                 switch fieldname{1}
                 case "geometric"
                     result.geometric = options.geometric;
-                case "optical"
-                    result.optical = options.optical;
+                case "transmitter"
+                    result.transmitter = options.transmitter;
                 case "apt"
                     result.apt = options.apt;
                 case "turbulence"
                     result.turbulence = options.turbulence;
                 case "atmospheric"
                     result.atmospheric = options.atmospheric;
-                case "dead_time"
-                    result.dead_time = options.dead_time;
+                    case "receiver"
+                    result.receiver = options.receiver;
                 end
             end
         end
@@ -129,5 +129,13 @@ classdef LossResult
 
         end
 
+        function LossResult = addLoss(LossResult,newloss)
+            %add a new contributing loss to this result
+            try
+            LossResult.(lower(newloss.label)) = newloss;
+            catch
+                error('%s is not a valid loss type',lower(newloss.label))
+            end
+        end
     end
 end

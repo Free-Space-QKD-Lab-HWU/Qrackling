@@ -577,7 +577,7 @@ classdef  Detector
             % interpolate the existing computation
             Click_Rate = interp1(Det.Dead_Time_Calibration_Photon_Detection_Rate,...
                                  Det.Dead_Time_Calibration_Click_Rate,...
-                                 Photon_Detection_Rate);
+                                 Photon_Detection_Rate,'linear','extrap');
 
             %compute loss by dividing click rate by photon detection rate
             loss = Click_Rate./Photon_Detection_Rate;
