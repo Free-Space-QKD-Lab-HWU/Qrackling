@@ -51,7 +51,7 @@ Installation of the toolbox is as simple as ensuring it's on the MATLAB path. Fi
 
 ### Requirements
 
-- MATLAB R2021a (or later)
+- MATLAB R2022b (or later)
 - [Satellite Communications Toolbox](https://uk.mathworks.com/products/satellite-communications.html)
 - [Navigation Toolbox](https://www.mathworks.com/products/navigation.html)
 - [Mapping Toolbox](https://www.mathworks.com/products/mapping.html)
