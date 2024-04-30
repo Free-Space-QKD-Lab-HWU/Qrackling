@@ -1,10 +1,12 @@
-function HOGS = HOGS(Wavelength)
+function HOGS = HOGS(Wavelength,options)
 %HOGS Construct HOGS
 % need to detail the correct OGS parameters and components
 % need to implement the Errol_OGS class to give the correct position
 
-%% ChannelFlag describes which channel is to be modelled. Options are 780, 808 and 1550
-assert(ismember(Wavelength,[785,808,1550]),'Wavelength must be one of the intended channels, 780, 808 or 1550 (nm)');
+arguments
+    Wavelength {mustBeMember(Wavelength,[785,808,1550])}
+    options.BeaconCamera {mustBeMember(options.BeaconCamera,{'Coarse','Fine'})} = 'Coarse'
+end
 
 %% parameters and components
 %Telescope
@@ -47,6 +49,8 @@ HOGS_Detector = components.Detector(Channel_Wavelength,Repetition_Rate,...
 end
 
 %beacon camera
+switch options.BeaconCamera
+    case 'Coarse'
 Camera_Scope_Diameter = 0.4;
 Camera_Scope_Focal_Length = 2.72;
 Camera_Scope_Optical_Efficiency = 1-0.39^2;
@@ -59,6 +63,20 @@ Camera_Telescope = components.Telescope(Camera_Scope_Diameter,...
 Exposure_Time = 0.01;
 Spectral_Filter_Width = 10;
 HOGS_Camera = AC4040(Camera_Telescope,Exposure_Time,Spectral_Filter_Width);%this is a constructor for the ATIK camera we use
+    case 'Fine'
+Camera_Scope_Diameter = Telescope_Diameter;
+Camera_Scope_Focal_Length = Telescope_Focal_Length;
+Camera_Scope_Optical_Efficiency = 1-0.3^2;
+Camera_Pointing_Precision = 1E-3;
+Camera_Telescope = components.Telescope(Camera_Scope_Diameter,...
+                            'Wavelength',685,...
+                            'Optical_Efficiency',Camera_Scope_Optical_Efficiency,...
+                            'Focal_Length',Camera_Scope_Focal_Length,...
+                            'Pointing_Jitter',Camera_Pointing_Precision);
+Exposure_Time = 0.001;
+Spectral_Filter_Width = 10;
+HOGS_Camera = OWL320HS(Camera_Telescope,Exposure_Time,Spectral_Filter_Width);%this is a constructor for the ATIK camera we use
+end
 
 %uplink beacon
 Beacon_Power = 40E-3;                                                           %power of uplink beacon in W

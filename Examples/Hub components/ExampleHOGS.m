@@ -10,7 +10,7 @@ assert(ismember(Wavelength,[785,808,1550]),'Wavelength must be one of the intend
 
 
 %% model HOGS
-OGS=HOGS(Wavelength);%current HOGS model
+OGS=HOGS(Wavelength,'BeaconCamera','Fine');%current HOGS model
 
 %% model hub satellite
 %can run using default times
@@ -50,5 +50,5 @@ UplinkBeaconResults = beacon.beaconSimulation(Sat,OGS);
 
 %% plot a pass
 plotResult(PassResult,OGS,Sat,'x_axis','Time');
-plot(DownlinkBeaconResults,"mask","Line of sight");
+plot(DownlinkBeaconResults,"mask","Line of sight",'x_axis','Elevation');
 plot(UplinkBeaconResults,"mask","Line of sight");
