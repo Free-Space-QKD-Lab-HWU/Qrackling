@@ -10,7 +10,7 @@ towards_a_quantum_internet/*
 *.mltbx
 
 # matlab project files should be local
-*.prj
+#*.prj
 # as should any MATLAB autosave files
 *.asv
 # matlab likes to add a resources folder lets not push it
