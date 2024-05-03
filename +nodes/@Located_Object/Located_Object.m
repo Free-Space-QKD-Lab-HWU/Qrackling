@@ -90,18 +90,12 @@ classdef Located_Object
             %%COMPUTERELATIVECOORDS compute the ENU coords of located
             %%object 1 relative to located object 2
 
-            % optionally we can go directly from satelliteCommunicationsToolbox
-            % objects like ground stations and satellites directly to relative
-            % coordinates. By default it emits azimuth, elevation and range
-            % which can be converted into ENU
-
-            if Located_Obj_1.HasToolboxObj&&Located_Obj_2.HasToolboxObj
                 [Headings,Elevations,Ranges] = aer(Located_Obj_2.ToolboxObj,Located_Obj_1.ToolboxObj);
                 [East,North,Up] = aer2enu(Headings',Elevations',Ranges');
                 ENUs = [East,North,Up];
-                return
-            end
 
+            %{
+            DEPRECATED
             %1 location from each object
             if Located_Obj_1.N_Position == 1 && Located_Obj_2.N_Position == 1
                 ENUs = lla2enu(GetLLA(Located_Obj_1), ...
@@ -156,6 +150,7 @@ classdef Located_Object
 
             error('can provide objects with the same number of position entries, and/or one with a single position entry')
             ENUs = nan;
+            %}
         end
 
         function Distance = ComputeDistanceBetween(Located_Obj_1, Located_Obj_2)
@@ -174,12 +169,11 @@ classdef Located_Object
             % [H, E, D] == [Headings, Elevations, Distances]
             %%of object 1 relative to object 2
 
-            %% if both objects have satellite toolbox representations, use this
-            if Located_Obj_1.HasToolboxObj&&Located_Obj_2.HasToolboxObj
+           
                 [Headings,Elevations,Distances]=aer(Located_Obj_2.ToolboxObj,Located_Obj_1.ToolboxObj);
-                return
-            end
-                
+
+            %{
+            DEPRECATED
             %% get ENU of 1 from 2
             ENUs = ComputeRelativeCoords(Located_Obj_1, Located_Obj_2);
 
@@ -192,18 +186,30 @@ classdef Located_Object
 
             %% if needed, compute distances
             Distances = utilities.Row2Norms(ENUs)';
+            %}
         end
 
-        function [X, Y, Z] = GetXYZ(Loc_obj)
+        function [X, Y, Z] = GetXYZ(Located_Object)
             %%GETXYZ return the position of the located object wrt to the
             %%central coordinate system of the earth
             %%(https://www.nosco.ch/mathematics/en/earth-coordinates.php#:~:text=The%20usual%20cartesian%20coordinate%20system%20associated%20with%20the,its%20positive%20direction%20is%20towards%20the%20north%20pole.)
 
-            Local_Radius = earthRadius + Loc_obj.Altitude;
-            % convert to XYZ
-            X = Local_Radius .* cosd(Loc_obj.Latitude) .* cosd(Loc_obj.Longitude);
-            Y = Local_Radius .* cosd(Loc_obj.Latitude) .* sind(Loc_obj.Longitude);
-            Z = Local_Radius .* sind(Loc_obj.Latitude);
+                if isa(Located_Object.ToolboxObj,'matlabshared.satellitescenario.GroundStation')
+                    %if ground station, get lat lon alt
+                    lla = Located_Object.LLA;
+
+                    %then use geometry to convert
+                    Local_Radius = earthRadius + lla(3);
+                    % convert to XYZ
+                    X = Local_Radius .* cosd(lla(1)) .* cosd(lla(2));
+                    Y = Local_Radius .* cosd(lla(1)) .* sind(lla(2));
+                    Z = Local_Radius .* sind(lla(1));
+                else
+                xyz = states(Located_Object.ToolboxObj,CoordinateFrame='ecef');
+                X = xyz(1,:);
+                Y = xyz(2,:);
+                Z = xyz(3,:);
+                end
         end
 
         function ShadowFlag = IsEarthShadowed(Located_obj_1, Located_obj_2)
@@ -211,6 +217,22 @@ classdef Located_Object
             %%sight between these objects runs below the earth's surface
             %%and therefore the earth shadows their intervisibility
 
+            %if either is a ground station, set visibility limit of the
+            %underlying object to 0
+            if isa(Located_obj_1,'nodes.Ground_Station')
+                Located_obj_1.ToolboxObj.MinElevationAngle = 0;
+            end
+            if isa(Located_obj_2,'nodes.Ground_Station')
+                Located_obj_2.ToolboxObj.MinElevationAngle = 0;
+            end
+
+            %then determine access
+            AccessObj = access(Located_obj_1.ToolboxObj,...
+                            Located_obj_2.ToolboxObj);
+
+            ShadowFlag = ~ accessStatus(AccessObj);
+            %{
+            DEPRECATED
             %% get the two XYZ positions of the two objects
             [X1,Y1,Z1] = GetXYZ(Located_obj_1);
             Pos_1=[X1,Y1,Z1];
@@ -249,6 +271,7 @@ classdef Located_Object
 
             %% if R_min is less than earth radius, shadowing is present
             ShadowFlag = R_min < Located_obj_1.Earth_Radius;
+            %}
         end
 
         function Direction_Vector = ComputeDirection(Located_Obj_1,Located_Obj_2)

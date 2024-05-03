@@ -36,7 +36,7 @@ function varargout = GeometricLoss(kind, receiver, transmitter, options)
     end
 
     %compute whether or not the earth is obstructing the link between rx and tx
-    shadowed = nodes.InEarthsShadow(receiver, transmitter);
+    shadowed = IsEarthShadowed(receiver, transmitter);
 
     loss(shadowed) = 0;
 
