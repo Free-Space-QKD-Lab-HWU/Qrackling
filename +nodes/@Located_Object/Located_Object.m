@@ -15,17 +15,10 @@ classdef Located_Object
     %possibly for many time stamps
 
     properties(SetAccess=protected)
-        Latitude(:,1){mustBeNumeric} = nan;
-        Longitude(:,1){mustBeNumeric} = nan;
-        Altitude(:,1){mustBeNumeric} = nan;
-        Velocity_East(:,1){mustBeNumeric} = nan;
-        Velocity_North(:,1){mustBeNumeric} = nan;
-        Velocity_Up(:,1){mustBeNumeric} = nan;
-        Location_Name = "";
-        useSatCommsToolbox{mustBeNumericOrLogical} = false;
-        % Length of Latitude, Longitude, Altitude arrays
-        % (must all be same length)
-        N_Position{mustBeInteger, mustBePositive} = 1;
+        Name = " ";
+ 
+        ToolboxObj {nodes.mustBeToolboxObjorEmpty} = [];
+        HasToolboxObj (1,1) logical = false;
     end
     properties(Constant=true, Hidden=true)
         % radius of the earth in m (used to compute shadowing)
@@ -33,11 +26,21 @@ classdef Located_Object
     end
 
     methods
-        function LLA = GetLLA(Located_Object)
+        function lla = LLA(Located_Object)
             %GETLLA return latitude, longitude and altitude as an nx3 array
-            LLA = [Located_Object.Latitude, ...
-                Located_Object.Longitude, ...
-                Located_Object.Altitude];
+            
+            %if this object has a toolbox representation, use it to get
+            %states
+            if Located_Object.HasToolboxObj
+                if isa(Located_Object.ToolboxObj,'matlabshared.satellitescenario.GroundStation')
+                    lla = [Located_Object.ToolboxObj.Latitude,...
+                           Located_Object.ToolboxObj.Longitude,...
+                           Located_Object.ToolboxObj.Altitude];
+                else
+                lla = states(Located_Object.ToolboxObj,CoordinateFrame='geographic')';
+                end
+
+            end
         end
 
         function Located_Object = SetPosition(Located_Object, options)
@@ -83,12 +86,6 @@ classdef Located_Object
             % end
         end
 
-        function Located_Object = SetVelocities(Located_Object, velEast, velNorth, velUp)
-            Located_Object.Velocity_East = velEast;
-            Located_Object.Velocity_North = velNorth;
-            Located_Object.Velocity_Up = velUp;
-        end
-
         function ENUs = ComputeRelativeCoords(Located_Obj_1, Located_Obj_2)
             %%COMPUTERELATIVECOORDS compute the ENU coords of located
             %%object 1 relative to located object 2
@@ -97,6 +94,13 @@ classdef Located_Object
             % objects like ground stations and satellites directly to relative
             % coordinates. By default it emits azimuth, elevation and range
             % which can be converted into ENU
+
+            if Located_Obj_1.HasToolboxObj&&Located_Obj_2.HasToolboxObj
+                [Headings,Elevations,Ranges] = aer(Located_Obj_2.ToolboxObj,Located_Obj_1.ToolboxObj);
+                [East,North,Up] = aer2enu(Headings',Elevations',Ranges');
+                ENUs = [East,North,Up];
+                return
+            end
 
             %1 location from each object
             if Located_Obj_1.N_Position == 1 && Located_Obj_2.N_Position == 1
@@ -169,6 +173,13 @@ classdef Located_Object
             %%RELATIVEHEADINGANDELEVATION return the heading and elevation
             % [H, E, D] == [Headings, Elevations, Distances]
             %%of object 1 relative to object 2
+
+            %% if both objects have satellite toolbox representations, use this
+            if Located_Obj_1.HasToolboxObj&&Located_Obj_2.HasToolboxObj
+                [Headings,Elevations,Distances]=aer(Located_Obj_2.ToolboxObj,Located_Obj_1.ToolboxObj);
+                return
+            end
+                
             %% get ENU of 1 from 2
             ENUs = ComputeRelativeCoords(Located_Obj_1, Located_Obj_2);
 
@@ -252,5 +263,47 @@ classdef Located_Object
             Direction_Vector = ENU_Vector./utilities.Row2Norms(ENU_Vector);
         end
 
+        function lat = Latitude(Located_Object)
+            %%LATITUDE return location latitude, as a vector for a mobile
+            %%location or as a scalar for a static location
+
+                if isa(Located_Object.ToolboxObj,'matlabshared.satellitescenario.GroundStation')
+                    lat = Located_Object.ToolboxObj.Latitude;
+                else
+                lla = states(Located_Object.ToolboxObj,CoordinateFrame='geographic');
+                lat = lla(1,:)';
+                end
+        end
+
+        function lon = Longitude(Located_Object)
+            %%LONGITUDE return location longitude, as a vector for a mobile
+            %%location or as a scalar for a static location
+
+                if isa(Located_Object.ToolboxObj,'matlabshared.satellitescenario.GroundStation')
+                    lon = Located_Object.ToolboxObj.Longitude;
+                else
+                lla = states(Located_Object.ToolboxObj,CoordinateFrame='geographic');
+                lon = lla(2,:)';
+                end
+        end
+
+        function alt = Altitude(Located_Object)
+            %%ALTITUDE return location altitude (in m), as a vector for a mobile
+            %%location or as a scalar for a static location
+
+                if isa(Located_Object.ToolboxObj,'matlabshared.satellitescenario.GroundStation')
+                    alt = Located_Object.ToolboxObj.Altitude;
+                else
+                lla = states(Located_Object.ToolboxObj,CoordinateFrame='geographic');
+                alt = lla(3,:)';
+                end
+        end
+
+        function n = N_Position(Located_Object)
+            %%N_POSITION return the number of timesteps at which an object
+            %%is simulated
+
+                n = numel(Located_Object.Latitude);
+        end
     end
 end

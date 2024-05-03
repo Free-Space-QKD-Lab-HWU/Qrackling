@@ -1,5 +1,5 @@
 % TODO: adapt this to allow double up/down link comms
-function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
+function [result,scenario] = QkdPassSimulation(Receiver, Transmitter, proto, options)
     arguments
         Receiver { ...
             mustBeA(Receiver, ["nodes.Satellite", "nodes.Ground_Station"]), ...
@@ -9,6 +9,9 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
             nodes.mustHaveSource(Transmitter)}
         proto protocol.proto
         options.Environment environment.Environment = environment.Environment.empty
+        options.startTime (1,1) datetime = datetime(2000,1,1,0,0,0);
+        options.stopTime (1,1) datetime = datetime(2000,1,2,0,0,0);
+        options.sampleTime (1,1) duration = seconds(1);
     end
 
     transmitter_name = utilities.node_name(Transmitter);
@@ -16,38 +19,28 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
 
     direction = nodes.LinkDirection.DetermineLinkDirection(Receiver, Transmitter);
 
-    receiver_location = nodes.Located_Object();
-    transmitter_location = nodes.Located_Object();
+    % create a satellite scenario to simulate the link
+    scenario = satelliteScenario(options.startTime,...
+                        options.stopTime,...
+                        seconds(options.sampleTime));
     switch direction
         case nodes.LinkDirection.Downlink
+            %add satellite and ground station to scenario
+            [scenario,Transmitter] = AddSimulatorSatellite(Transmitter,scenario);
+            [scenario,Receiver] = AddSimulatorOGS(Receiver,scenario);
             [headings, elevations, ranges] = Transmitter.RelativeHeadingAndElevation(Receiver);
             elevation_limit_mask = elevations > Receiver.Elevation_Limit;
-            times = Transmitter.Times;
+            times = options.startTime:options.sampleTime:options.stopTime;
 
-            receiver_location = receiver_location.SetPosition( ...
-                'Latitude', Receiver.Latitude, ...
-                'Longitude', Receiver.Longitude, ...
-                'Altitude', Receiver.Altitude);
-
-            transmitter_location = transmitter_location.SetPosition( ...
-                'Latitude', Transmitter.Latitude, ...
-                'Longitude', Transmitter.Longitude, ...
-                'Altitude', Transmitter.Altitude);
 
         case nodes.LinkDirection.Uplink
-            [headings, elevations, ranges] = Receiver.RelativeHeadingAndElevation(Transmitter);
-            elevation_limit_mask = elevations > Transmitter.Elevation_Limit;
-            times = Receiver.Times;
+            %add satellite and ground station to scenario
+            [scenario,Transmitter] = AddSimulatorOGS(Transmitter,scenario);
+            [scenario,Receiver] = AddSimulatorSatellite(Receiver,scenario);
+            [headings, elevations, ranges] = Transmitter.RelativeHeadingAndElevation(Receiver);
+            elevation_limit_mask = elevations > Receiver.Elevation_Limit;
+            times = options.startTime:options.sampleTime:options.stopTime;
 
-            receiver_location = receiver_location.SetPosition( ...
-                'Latitude', Receiver.Latitude, ...
-                'Longitude', Receiver.Longitude, ...
-                'Altitude', Receiver.Altitude);
-
-            transmitter_location = transmitter_location.SetPosition( ...
-                'Latitude', Transmitter.Latitude, ...
-                'Longitude', Transmitter.Longitude, ...
-                'Altitude', Transmitter.Altitude);
 
         case nodes.LinkDirection.Intersatellite
             %FIX: IMPLEMENT
@@ -154,6 +147,6 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
         link_loss,            total_loss,        sifted,           ...
         secret,               qber,              total_sifted_key, ...
         total_secret_key,     proto_str,         direction,        ...
-        transmitter_location, receiver_location, noise_sources);
+        Transmitter, Receiver, noise_sources, scenario);
 
 end

@@ -7,5 +7,5 @@ function name = node_name(node)
     takeFirst = @(array) array{end};
     descriptor_string = replace(takeFirst(strsplit(class(node), ".")), "_", " ");
 
-    name = [descriptor_string, ': ' char(node.Location_Name)];
+    name = [descriptor_string, ': ' char(node.Name)];
 end

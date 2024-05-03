@@ -51,9 +51,11 @@ function varargout = TurbulenceLoss(kind, receiver, transmitter, fried_parameter
 
     switch class(transmitter)
     case "nodes.Satellite"
-        altitude = transmitter.Altitude(elevation_flags);
+        altitude = transmitter.Altitude();
+        altitude = altitude(elevation_flags);
     case "nodes.Ground_Station"
-        altitude = receiver.Altitude(elevation_flags);
+        altitude = receiver.Altitude();
+        altitude = altitude(elevation_flags);
     end
 
     % r0 = fried_parameter.AtmosphericTurbulenceCoherenceLength( ...

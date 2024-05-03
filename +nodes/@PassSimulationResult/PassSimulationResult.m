@@ -21,6 +21,7 @@ classdef PassSimulationResult
         total_sifted_rate = []
         total_secure_rate = []
         noise_sources environment.Noise
+        scenario satelliteScenario
     end
 
     methods
@@ -31,7 +32,7 @@ classdef PassSimulationResult
             losses,                 total_loss_db,  sifted_rate,       ...
             secure_rate,            qber,           total_sifted_rate, ...
             total_secure_rate, protocol_name, link_direction, ...
-            transmitter_location, receiver_location, noise_sources)
+            transmitter_location, receiver_location, noise_sources,scenario)
 
             result.transmitter_name       = transmitter_name;
             result.receiver_name          = receiver_name;
@@ -54,6 +55,7 @@ classdef PassSimulationResult
             result.transmitter_location   = transmitter_location;
             result.receiver_location      = receiver_location;
             result.noise_sources          = noise_sources;
+            result.scenario               = scenario;
         end
 
         function fig = plotResult(result, receiver, transmitter, options)
@@ -96,17 +98,24 @@ classdef PassSimulationResult
 
             switch result.link_direction
             case nodes.LinkDirection.Downlink
-                sat_latitude = result.transmitter_location.Latitude;
-                sat_longitude = result.transmitter_location.Longitude;
-                altitude = mean(result.transmitter_location.Altitude);
-                ogs_latitude = result.receiver_location.Latitude;
-                ogs_longitude = result.receiver_location.Longitude;
+                sat_LLA = result.transmitter_location.LLA;
+                sat_latitude = sat_LLA(:,1);
+                sat_longitude = sat_LLA(:,2);
+                altitude = mean(sat_LLA(:,3));
+
+                ogs_LLA = result.receiver_location.LLA;
+                ogs_latitude = ogs_LLA(1);
+                ogs_longitude = ogs_LLA(2);
+
             case nodes.LinkDirection.Uplink
-                sat_latitude = result.receiver_location.Latitude;
-                sat_longitude = result.receiver_location.Longitude;
-                altitude = mean(result.receiver_location.Altitude);
-                ogs_latitude = result.transmitter_location.Latitude;
-                ogs_longitude = result.transmitter_location.Longitude;
+                sat_LLA = result.receiver_location.LLA;
+                sat_latitude = sat_LLA(:,1);
+                sat_longitude = sat_LLA(:,2);
+                altitude = mean(sat_LLA(:,3));
+
+                ogs_LLA = result.transmitter_location.LLA;
+                ogs_latitude = ogs_LLA(1);
+                ogs_longitude = ogs_LLA(2);
             case nodes.LinkDirection.Intersatellite
                 %FIX: IMPLEMENT
                 error("UNIMPLEMENTED")

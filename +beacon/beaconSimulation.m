@@ -3,43 +3,36 @@ function result = beaconSimulation( Receiver,Transmitter, options)
         Receiver {mustBeA(Receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
         Transmitter {mustBeA(Transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
         options.Environment environment.Environment
+        options.startTime (1,1) datetime = datetime(2000,1,1,0,0,0);
+        options.stopTime (1,1) datetime = datetime(2000,1,2,0,0,0);
+        options.sampleTime (1,1) duration = seconds(1);
     end
 
+    %% if needed, produce a new satelliteScenario
+    % create a satellite scenario to simulate the link
+    scenario = satelliteScenario(options.startTime,...
+                        options.stopTime,...
+                        seconds(options.sampleTime));
+
     %% determine link geometry
-    receiver_location = nodes.Located_Object();
-    transmitter_location = nodes.Located_Object();
     direction = nodes.LinkDirection.DetermineLinkDirection(Receiver, Transmitter);
 
     switch direction
     case nodes.LinkDirection.Downlink
+         [scenario,Transmitter] = AddSimulatorSatellite(Transmitter,scenario);
+         [scenario,Receiver] = AddSimulatorOGS(Receiver,scenario);
+
         [headings, elevations, ranges] = Transmitter.RelativeHeadingAndElevation(Receiver);
         elevation_limit_mask = elevations > Receiver.Elevation_Limit;
         times = Transmitter.Times;
 
-        receiver_location = receiver_location.SetPosition( ...
-           'Latitude', Receiver.Latitude, ...
-           'Longitude', Receiver.Longitude, ...
-           'Altitude', Receiver.Altitude);
-
-        transmitter_location = transmitter_location.SetPosition( ...
-           'Latitude', Transmitter.Latitude, ...
-           'Longitude', Transmitter.Longitude, ...
-           'Altitude', Transmitter.Altitude);
-
     case nodes.LinkDirection.Uplink
+        %add satellite and ground station to scenario
+        [scenario,Transmitter] = AddSimulatorOGS(Transmitter,scenario);
+        [scenario,Receiver] = AddSimulatorSatellite(Receiver,scenario);
         [headings, elevations, ranges] = Receiver.RelativeHeadingAndElevation(Transmitter);
         elevation_limit_mask = elevations > Transmitter.Elevation_Limit;
         times = Receiver.Times;
-
-        receiver_location = receiver_location.SetPosition( ...
-           'Latitude', Receiver.Latitude, ...
-           'Longitude', Receiver.Longitude, ...
-           'Altitude', Receiver.Altitude);
-
-        transmitter_location = transmitter_location.SetPosition( ...
-           'Latitude', Transmitter.Latitude, ...
-           'Longitude', Transmitter.Longitude, ...
-           'Altitude', Transmitter.Altitude);
 
     case nodes.LinkDirection.Intersatellite
         %FIX: IMPLEMENT
@@ -119,6 +112,7 @@ function result = beaconSimulation( Receiver,Transmitter, options)
         snr_db,...
         direction,...
         background_power,...
-        PAA);
+        PAA,...
+        scenario);
 
 end

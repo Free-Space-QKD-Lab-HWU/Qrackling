@@ -1,27 +1,6 @@
-function HubSat = SPOQC(Wavelength,StartTime,StopTime,SampleTime)
+function HubSat = SPOQC(Wavelength)
 %SPOQC Construct a model of the Quantum Comms hub satellite
 
-%% allow variable start and stop time of simulations
-switch nargin
-    case 1
-        StartTime = datetime(2024,1,1,5,0,0);
-        StopTime = datetime(2024,1,1,6,0,0);
-        SampleTime = 1;
-    case 2
-        assert(isdatetime(StartTime));
-        StopTime = StartTime + days(1);
-        SampleTime = 1;
-    case 3
-        assert(isdatetime(StartTime));
-        assert(isdatetime(StopTime));
-        SampleTime = 1;
-    case 4
-        assert(isdatetime(StartTime));
-        assert(isdatetime(StopTime));
-        if isduration(SampleTime)
-            SampleTime = seconds(SampleTime);
-        end
-end
 %% check that provided wavelength is one of the intended ones
 assert(ismember(Wavelength,[785,808,1550]),'Wavelength must be one of the intended channels, 780, 808 or 1550 (nm)')
 
@@ -103,10 +82,7 @@ assert(ismember(Wavelength,[785,808,1550]),'Wavelength must be one of the intend
         'inclination',9.7065055549e+01,...                  %inclination of orbit in deg- set by sun synchronicity
         'rightAscensionOfAscendingNode',-1.5,...            %measure of location of orbit in longitude
         'argumentOfPeriapsis',0,...                         %measurement of location of ellipse nature of orbit in longitude, irrelevant for circular orbits
-        'trueAnomaly',0,...                                 %initial position through orbit of satellite
-        'StartTime',StartTime,...                           %start of simulation
-        'StopTime',StopTime,...                             %end of simulation
-        'sampleTime',SampleTime);                           %simulation interval in s
+        'trueAnomaly',0);                                   %initial position through orbit of satellite
 
     %% passes
     %this orbit will directly overfly Errol between 0700 and 0710 on

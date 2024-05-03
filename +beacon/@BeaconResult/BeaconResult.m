@@ -17,6 +17,7 @@ classdef BeaconResult
         snr = []
         snr_db = []
         PAA (2,:) = zeros(2,0)
+        scenario satelliteScenario
     end
 
     methods
@@ -26,7 +27,7 @@ classdef BeaconResult
             within_elevation_limit, line_of_sight,...
             losses,                 total_loss_db,       received_power,...
             snr,                    snr_db,              link_direction,...
-            background_counts, PAA)
+            background_counts, PAA, scenario)
             arguments
                 transmitter_name,
                 receiver_name,
@@ -44,6 +45,7 @@ classdef BeaconResult
                 link_direction 
                 background_counts
                 PAA
+                scenario
             end
             result.transmitter_name         = transmitter_name;
             result.receiver_name            = receiver_name;
@@ -61,6 +63,7 @@ classdef BeaconResult
             result.link_direction           =link_direction;
             result.background_counts        = background_counts;
             result.PAA                      = PAA;
+            result.scenario                = scenario;
         end
 
         function fig = plot(result, options)
