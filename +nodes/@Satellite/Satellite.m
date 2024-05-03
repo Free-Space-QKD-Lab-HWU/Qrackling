@@ -37,6 +37,8 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
 
         OrbitDataSource {mustBeMember(OrbitDataSource,...
                           {'Kepler Elements','LLAT','none'})} = 'none'
+
+        TLE_File
     end
 
     methods
@@ -71,6 +73,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                 options.trueAnomaly (1,1) {mustBeNumeric} = nan
                 options.OrbitDataFileLocation {mustBeFile}
                 options.LLAT (:,4) {mustBeNumeric}
+                options.TLE_File {mustBeFile}
                 options.Name {mustBeTextScalar};
             end
 
@@ -104,7 +107,9 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                 %if LLAT (latitude, longitude, altitude, time) is provided manually, use this
                 Satellite.LLAT = options.LLAT;
                 Satellite.OrbitDataSource = 'LLAT';
-
+           elseif ismember('TLE_File',fieldnames(options))
+               Satellite.TLE_File = options.TLE_File;
+               Satellite.OrbitDataSource = 'TLE File';
             end
 
             %% currently, both transmit and receive scopes are the same
@@ -312,6 +317,9 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                 case 'LLAT'
                 PositionTable = timetable(Satellite.LLAT(:,4),Satellite.LLAT(:,1),Satellite.LLAT(:,2),Satellite.LLAT(:,3));
                 Sim_Sat = satellite(Satellite_Scenario, PositionTable,"Name",Satellite.Name);
+                
+                case 'TLE File'
+                Sim_Sat = satellite(Satellite_Scenario, Satellite.TLE_File,"Name",Satellite.Name);
 
                 otherwise
                     error('Satellite has no orbit data. This can be provided as kepler elements, a TLE file or a file or array of latitude, longitude, altitude and time values')
