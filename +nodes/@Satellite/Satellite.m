@@ -324,7 +324,10 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                 otherwise
                     error('Satellite has no orbit data. This can be provided as kepler elements, a TLE file or a file or array of latitude, longitude, altitude and time values')
             end
-            %include satellite
+
+            %include telescope
+            conicalSensor(Sim_Sat,"MaxViewAngle",rad2deg(Satellite.Telescope.FOV))
+
             %modify labelling
             Sim_Sat.LabelFontSize = 25;
             Sim_Sat.MarkerSize = 12;

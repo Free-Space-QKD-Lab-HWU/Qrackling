@@ -170,7 +170,7 @@ classdef Located_Object
             %%of object 1 relative to object 2
 
            
-                [Headings,Elevations,Distances]=aer(Located_Obj_2.ToolboxObj,Located_Obj_1.ToolboxObj);
+            [Headings,Elevations,Distances]=aer(Located_Obj_2.ToolboxObj,Located_Obj_1.ToolboxObj);
 
             %{
             DEPRECATED
