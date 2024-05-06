@@ -35,7 +35,7 @@ classdef Environment
             load(filename, 'attenuation');
             load(filename, 'attenuation_unit');
             Env = environment.Environment(headings,elevations,wavelengths,...
-                                          spectral_radiance,attenuation,'attenuation_unit',attenuation_unit);
+                spectral_radiance,attenuation,'attenuation_unit',attenuation_unit);
 
         end
 
@@ -68,7 +68,7 @@ classdef Environment
     methods
         %construct an environment object
         function Env = Environment(headings, elevations, wavelengths, ...
-                                   spectral_radiance, attenuation, options)
+                spectral_radiance, attenuation, options)
 
             arguments
                 headings {mustBeNumeric, mustBeVector, mustBeInRange(headings, 0, 360)}
@@ -108,6 +108,19 @@ classdef Environment
             mustHaveCompatibleData(Env);
         end
 
+        function EmptyFlag = isempty(Env)
+            %define how to check that an environment is empty
+            arguments
+                Env environment.Environment
+            end
+
+            EmptyFlag = isequal(Env.headings,0)&&...
+                isequal(Env.elevations,0)&&...
+                isequal(Env.wavelengths,0)&&...
+                isequal(Env.spectral_radiance,0)&&...
+                isequal(Env.attenuation,0);
+        end
+
         function Save(Env, filename)
             %save the data in the current environment to a .mat file
             arguments
@@ -127,7 +140,7 @@ classdef Environment
             attenuation_unit = Env.attenuation_unit;
 
             save(filename, 'headings', 'elevations', 'wavelengths', ...
-                    'spectral_radiance', 'attenuation', 'attenuation_unit');
+                'spectral_radiance', 'attenuation', 'attenuation_unit');
         end
 
         function Env = mustHaveCompatibleData(Env)
@@ -149,7 +162,7 @@ classdef Environment
         end
 
         function interp_data = Interp(Env, data, headings, elevations, wavelengths)
-            %output a sample of the requested data interpolated in heading, 
+            %output a sample of the requested data interpolated in heading,
             %elevation and wavelength
 
             arguments
@@ -164,7 +177,7 @@ classdef Environment
             assert(all(size(headings) == size(elevations)), ...
                 'requested heading and elevation arrays must be of same size')
             assert(isscalar(wavelengths) || all(size(wavelengths) == size(elevations)), ...
-                    'wavelength must be either scalar or the same size as heading and elevation')
+                'wavelength must be either scalar or the same size as heading and elevation')
 
             if isscalar(wavelengths)
                 %make wavelength into an array same size as headings and
@@ -174,10 +187,10 @@ classdef Environment
 
             %get relevant data
             switch data
-            case 'attenuation'
-                Array = Env.attenuation;
-            case 'spectral_radiance'
-                Array = Env.spectral_radiance;
+                case 'attenuation'
+                    Array = Env.attenuation;
+                case 'spectral_radiance'
+                    Array = Env.spectral_radiance;
             end
 
             %interpolate
@@ -256,11 +269,11 @@ classdef Environment
 
             % set format of interp_data, use a "Loss.m" class for attenuation
             switch data
-            case 'spectral_radiance'
-                return
-            otherwise
-                temp = units.Loss(Env.attenuation_unit, "attenuation", interp_data);
-                interp_data = temp.ConvertTo(Env.attenuation_unit);
+                case 'spectral_radiance'
+                    return
+                otherwise
+                    temp = units.Loss(Env.attenuation_unit, "attenuation", interp_data);
+                    interp_data = temp.ConvertTo(Env.attenuation_unit);
             end
 
         end
@@ -285,7 +298,7 @@ classdef Environment
                 case 'attenuation'
                     Values = Env.attenuation;
                 case 'attenuation dB'
-                     Values = -10*log10(Env.attenuation);
+                    Values = -10*log10(Env.attenuation);
                 case 'spectral radiance'
                     Values = Env.spectral_radiance;
             end
@@ -302,7 +315,7 @@ classdef Environment
                     case 'attenuation'
                         options.Name = 'attenuation';
                     case 'attenuation dB'
-                         options.Name = 'attenuation (dB)';
+                        options.Name = 'attenuation (dB)';
                 end
             end
 
@@ -315,7 +328,7 @@ classdef Environment
                     case 'attenuation'
                         options.CLims = [0,1];
                     case 'attenuation dB'
-                         options.CLims = [min(Values(~isinf(Values)),[],"all"),median(Values(~isinf(Values)),'all')+10];
+                        options.CLims = [min(Values(~isinf(Values)),[],"all"),median(Values(~isinf(Values)),'all')+10];
                 end
 
             end

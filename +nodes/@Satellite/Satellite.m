@@ -31,12 +31,12 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
         %argument of periapsis
         %true anomaly
 
-        LLAT (:,4) {mustBeNumeric} = nan(1,4);
+        LLAT (:,1) struct = struct('LLA',[],'Time',duration.empty());
         %LLAT contains latitude, longitude, altitude and time data for an
         %orbit
 
         OrbitDataSource {mustBeMember(OrbitDataSource,...
-                          {'Kepler Elements','LLAT','none'})} = 'none'
+            {'Kepler Elements','LLAT','none'})} = 'none'
 
         TLE_File
     end
@@ -65,8 +65,8 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                 options.Beacon (1,1) beacon.Beacon
                 options.Camera (1,1) beacon.Camera
                 options.KeplerElements (1,6) {mustBeNumeric} = nan(1,6);
-                options.semiMajorAxis (1,1) {mustBeNonnegative} = nan
-                options.eccentricity (1,1) {mustBeInRange(options.eccentricity,0,1)} = nan
+                options.semiMajorAxis (1,1) {mustBeNumeric} = nan
+                options.eccentricity (1,1) {mustBeNumeric} = nan
                 options.inclination (1,1) {mustBeNumeric} = nan;
                 options.rightAscensionOfAscendingNode (1,1) {mustBeNumeric} = nan
                 options.argumentOfPeriapsis (1,1) {mustBeNumeric} = nan
@@ -80,36 +80,37 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             Satellite.Telescope = Telescope;
 
             %% many different ways of providing orbital data
-          
+
             %first, let's check if there are kepler elements available
             individual_kepler_elements = [options.semiMajorAxis,...
-                                          options.eccentricity,...
-                                          options.inclination,...
-                                          options.rightAscensionOfAscendingNode,...
-                                          options.argumentOfPeriapsis,...
-                                          options.trueAnomaly];
+                options.eccentricity,...
+                options.inclination,...
+                options.rightAscensionOfAscendingNode,...
+                options.argumentOfPeriapsis,...
+                options.trueAnomaly];
 
-           if ~all(isnan(individual_kepler_elements))
-               Satellite.Kepler_Elements = individual_kepler_elements;
-               Satellite.OrbitDataSource = 'Kepler Elements';
+            if ~all(isnan(individual_kepler_elements))
+                Satellite.Kepler_Elements = individual_kepler_elements;
+                Satellite.OrbitDataSource = 'Kepler Elements';
 
-           elseif ~all(isnan(options.KeplerElements))
-               %if all elements are provided individually, use these
-               Satellite.Kepler_Elements = options.Kepler_Elements;
-               Satellite.OrbitDataSource = 'Kepler Elements';
+            elseif ~all(isnan(options.KeplerElements))
+                %if all elements are provided individually, use these
+                Satellite.Kepler_Elements = options.Kepler_Elements;
+                Satellite.OrbitDataSource = 'Kepler Elements';
 
-           elseif ismember('OrbitDataFileLocation',fieldnames(options))
-                [lat, lon, alt, t] = ReadOrbitLLATFile(options.OrbitDataFileLocation);
-                Satellite.LLAT = [lat,lon,alt,t];
+            elseif ismember('OrbitDataFileLocation',fieldnames(options))
+                [lat, lon, alt, t] = Satellite.ReadOrbitLLATFile(options.OrbitDataFileLocation);
+                Satellite.LLAT.LLA = [lat',lon',alt'];
+                Satellite.LLAT.Time = t';
                 Satellite.OrbitDataSource = 'LLAT';
 
             elseif ismember('LLAT',fieldnames(options))
                 %if LLAT (latitude, longitude, altitude, time) is provided manually, use this
                 Satellite.LLAT = options.LLAT;
                 Satellite.OrbitDataSource = 'LLAT';
-           elseif ismember('TLE_File',fieldnames(options))
-               Satellite.TLE_File = options.TLE_File;
-               Satellite.OrbitDataSource = 'TLE File';
+            elseif ismember('TLE_File',fieldnames(options))
+                Satellite.TLE_File = options.TLE_File;
+                Satellite.OrbitDataSource = 'TLE File';
             end
 
             %% currently, both transmit and receive scopes are the same
@@ -117,13 +118,13 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
 
             %infer correct wavelength from source or detector
             if ismember('Source',fieldnames(options))
-            Satellite.Source = options.Source;
-            Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
-                Satellite.Source.Wavelength);
+                Satellite.Source = options.Source;
+                Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
+                    Satellite.Source.Wavelength);
             elseif ismember('Detector',fieldnames(options))
-            Satellite.Detector = options.Detector;
-            Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
-                Satellite.Detector.Wavelength);
+                Satellite.Detector = options.Detector;
+                Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
+                    Satellite.Detector.Wavelength);
             else
                 warning('must provide either a source or detector')
             end
@@ -137,41 +138,16 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
 
             %% set beacon and beaconing camera
             if ismember('Beacon',fieldnames(options))
-            Satellite.Beacon = options.Beacon;
+                Satellite.Beacon = options.Beacon;
             end
             if ismember('Camera',fieldnames(options))
-            Satellite.Camera = options.Camera;
+                Satellite.Camera = options.Camera;
             end
-        end
-
-        function [lat, lon, alt, t] = ReadOrbitLLATFile(Orbit_Data_File_Location)
-            %ReadOrbitLLATFile Read in the given (or internally pointed to
-            %if no file is given) orbit data file
-            arguments
-                Orbit_Data_File_Location {mustBeFile}
-            end
-
-            %% read orbit data file
-            %% open the file and assign it an ID
-            FileID=fopen(Orbit_Data_File_Location);
-
-            %% read file as an arrray
-            LLATData=fscanf(FileID, '%f, %f, %f, %f', [4, inf]);
-            %% close the file
-            fclose(FileID);
-
-            %% store data
-            % Separate rows into LLA and T
-            lat = LLATData(1,:);
-            lon = LLATData(2,:);
-            alt = LLATData(3,:) * 1000; %conversion to m from km
-            %time must now conform to being a datetime object
-            t = datetime(LLATData(4,:),'ConvertFrom','epochtime','Epoch',datetime(2023,1,1,0,0,0));
         end
 
 
         function [Satellite, lat, lon, alt, t, vE, vN, vU] = ...
-                            llatAndVelFromScenario(Satellite, varargin)
+                llatAndVelFromScenario(Satellite, varargin)
             p = inputParser();
             addRequired(p, 'Satellite');
             addParameter(p, 'satCommsSatellite', nan);
@@ -181,11 +157,11 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
 
             parse(p, Satellite, varargin{:});
 
-            % the below coul have been in a switch statement but this would 
+            % the below coul have been in a switch statement but this would
             % have been more indententation than is wanted
 
             % Conditionally get the position, velocity and time for a satellite
-            % described by the input arguments. The 'states' function from the 
+            % described by the input arguments. The 'states' function from the
             % satellite communications toolbox can be supplied with a relevent
             % 'CoordinateFrame' argument to set the format of the return values.
             % Here they have been set to 'geographic' giving a result in terms
@@ -196,29 +172,29 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                     && isempty(p.Results.KeplerElements)
 
                 % First case: we have been supplied with only a satCommsToolbox
-                % satellite object, get its position, velocity and time 
+                % satellite object, get its position, velocity and time
 
                 [position, velocity, t] = states(p.Results.satCommsSatellite, ...
-                                            'CoordinateFrame', 'geographic');
+                    'CoordinateFrame', 'geographic');
                 Satellite.Name = p.Results.satCommsSatellite.Name;
 
             elseif ~any([isempty(p.Results.scenario), isnan(p.Results.TLE)])
 
                 % Second case: we have been supplied with a satCommsToolbox
                 % scenario along with some TLE data. So, use the scenario and
-                % the TLE data to construct a satellite and get its position, 
+                % the TLE data to construct a satellite and get its position,
                 % velocity and time steps
 
                 sc_sat = satellite(p.Results.scenario, p.Results.TLE, ...
-                                   "Name", Satellite.Name, ...
-                                   "OrbitPropagator", "two-body-keplerian");
+                    "Name", Satellite.Name, ...
+                    "OrbitPropagator", "two-body-keplerian");
 
                 [position, velocity, t] = states(...
-                                    sc_sat, 'CoordinateFrame', 'geographic');
+                    sc_sat, 'CoordinateFrame', 'geographic');
                 Satellite.Name = sc_sat.satellite(1).Name;
 
             elseif ~isempty(p.Results.scenario) ...
-                   && ~isempty(p.Results.KeplerElements)
+                    && ~isempty(p.Results.KeplerElements)
 
                 % Third case: same as above except we have received an array of
                 % kepler elements rather than TLE data
@@ -234,11 +210,11 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                 ta = p.Results.KeplerElements(6);
 
                 sc_sat = satellite(p.Results.scenario, sma, ecc, inc, ...
-                                   raan, aop, ta, "Name", Satellite.Name, ...
-                                   "OrbitPropagator", "two-body-keplerian");
+                    raan, aop, ta, "Name", Satellite.Name, ...
+                    "OrbitPropagator", "two-body-keplerian");
 
                 [position, velocity, t] = states(...
-                                sc_sat, 'CoordinateFrame', 'geographic');
+                    sc_sat, 'CoordinateFrame', 'geographic');
                 Satellite.Name = sc_sat.Name;
             end
 
@@ -248,7 +224,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             lon = position(2, :);
             alt = position(3, :);
 
-            % Since we work in the East-North-Up coordinate frame we need to 
+            % Since we work in the East-North-Up coordinate frame we need to
             % change the format of the velocities from NED to ENU.
             % See 'basic classes/utilities.m for details.
             velocity_enu = utilities.ned2enu(velocity);
@@ -266,7 +242,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                 Wavelength);
         end
 
-        
+
         function Satellite = SetSource(Satellite, Source)
             Satellite.Source = Source;
             Satellite = Satellite.SetWavelength(Source.Wavelength);
@@ -297,7 +273,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             Satellite.Reflectivity = reflectivity;
             warning('this behaviour is legacy and may no longer be support. Instead access the "Surface" class of the satellite')
         end
-    
+
         function [Satellite_Scenario,Satellite] = AddSimulatorSatellite(Satellite,Satellite_Scenario)
             %%ADDSIMULATORSATELLITE add a MATLAB simulator representation of this satellite to
             %%the existing satelliteScenario
@@ -305,21 +281,21 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             %% get details of satellite
             switch Satellite.OrbitDataSource
                 case 'Kepler Elements'
-                Sim_Sat = satellite(Satellite_Scenario,...
-                                    Satellite.Kepler_Elements(1),...
-                                    Satellite.Kepler_Elements(2),...
-                                    Satellite.Kepler_Elements(3),...
-                                    Satellite.Kepler_Elements(4),...
-                                    Satellite.Kepler_Elements(5),...
-                                    Satellite.Kepler_Elements(6),...
-                                    "Name",Satellite.Name);
+                    Sim_Sat = satellite(Satellite_Scenario,...
+                        Satellite.Kepler_Elements(1),...
+                        Satellite.Kepler_Elements(2),...
+                        Satellite.Kepler_Elements(3),...
+                        Satellite.Kepler_Elements(4),...
+                        Satellite.Kepler_Elements(5),...
+                        Satellite.Kepler_Elements(6),...
+                        "Name",Satellite.Name);
 
                 case 'LLAT'
-                PositionTable = timetable(Satellite.LLAT(:,4),Satellite.LLAT(:,1),Satellite.LLAT(:,2),Satellite.LLAT(:,3));
-                Sim_Sat = satellite(Satellite_Scenario, PositionTable,"Name",Satellite.Name);
-                
+                    PositionTable = timetable(Satellite.LLAT.Time,Satellite.LLAT.LLA);
+                    Sim_Sat = satellite(Satellite_Scenario, PositionTable,"Name",Satellite.Name,"CoordinateFrame","geographic");
+
                 case 'TLE File'
-                Sim_Sat = satellite(Satellite_Scenario, Satellite.TLE_File,"Name",Satellite.Name);
+                    Sim_Sat = satellite(Satellite_Scenario, Satellite.TLE_File,"Name",Satellite.Name);
 
                 otherwise
                     error('Satellite has no orbit data. This can be provided as kepler elements, a TLE file or a file or array of latitude, longitude, altitude and time values')
@@ -341,6 +317,33 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             %%being performed for
 
             [~,~,times]=states(Satellite.ToolboxObj);
+        end
+    end
+
+    methods (Static)
+        function [lat, lon, alt, t] = ReadOrbitLLATFile(Orbit_Data_File_Location)
+            %ReadOrbitLLATFile Read in the given (or internally pointed to
+            %if no file is given) orbit data file
+            arguments
+                Orbit_Data_File_Location {mustBeFile}
+            end
+
+            %% read orbit data file
+            %% open the file and assign it an ID
+            FileID=fopen(Orbit_Data_File_Location);
+
+            %% read file as an arrray
+            LLATData=fscanf(FileID, '%f, %f, %f, %f', [4, inf]);
+            %% close the file
+            fclose(FileID);
+
+            %% store data
+            % Separate rows into LLA and T
+            lat = LLATData(1,:);
+            lon = LLATData(2,:);
+            alt = LLATData(3,:) * 1000; %conversion to m from km
+            %time must now conform to being a datetime object
+            t = seconds(LLATData(4,:));
         end
     end
 end

@@ -21,7 +21,7 @@ Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter);     
 
 %2.1.3 Construct satellite
 SimSatellite=nodes.Satellite(Transmitter_Telescope,'Source',Transmitter_Source,...
-                        'OrbitDataFileLocation',OrbitDataFileLocation);
+                        'OrbitDataFileLocation','Examples\Data\orbit modelling resources\orbit LLAT files\100kmSSOrbitLLAT.txt');
 
 %2.2 Ground station
 %2.2.1 Detector
@@ -47,5 +47,6 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
 %% 3 run and plot simulation
 %3.1 run simulation
 Result=nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.bb84);
+%%%%%%%NOTE, start and stop times are not required when orbit data provided
 %3.2 plot results
 plotResult(Result,SimGround_Station,SimSatellite)
