@@ -302,7 +302,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             end
 
             %include telescope
-            conicalSensor(Sim_Sat,"MaxViewAngle",rad2deg(Satellite.Telescope.FOV))
+            conicalSensor(Sim_Sat,"MaxViewAngle",rad2deg(Satellite.Telescope.FOV));
 
             %modify labelling
             Sim_Sat.LabelFontSize = 25;

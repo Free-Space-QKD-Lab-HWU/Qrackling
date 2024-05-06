@@ -25,7 +25,7 @@ Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter);     
 %2.1.3 Construct satellite
 StartTime = datetime(2022,12,25,6,0,0);
 StopTime = datetime(2022,12,25,7,0,0);
-SampleTime = 1;
+SampleTime = seconds(1);
 SimSatellite=nodes.Satellite(Transmitter_Telescope,...
                         'Source',Transmitter_Source,...
                         'SemiMajorAxis',500E3 + earthRadius,...             %mean orbital radius = Altitude + Earth radius
@@ -33,10 +33,7 @@ SimSatellite=nodes.Satellite(Transmitter_Telescope,...
                         'inclination',97.065055549393420,...                  %inclination of orbit in deg- set by sun synchronicity
                         'rightAscensionOfAscendingNode',-1.5,...            %measure of location of orbit in longitude
                         'argumentOfPeriapsis',0,...                         %measurement of location of ellipse nature of orbit in longitude, irrelevant for circular orbits
-                        'trueAnomaly',0,...                                 %initial position through orbit of satellite
-                        'StartTime',StartTime,...                           %start of simulation
-                        'StopTime',StopTime,...                             %end of simulation
-                        'sampleTime',SampleTime);                           %simulation interval in s
+                        'trueAnomaly',0);                                   %initial position through orbit of satellite
 
 %2.2 Ground station
 %2.2.1 Detector
@@ -58,5 +55,8 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
 
 
 %% 3 Compose and run the PassSimulation
-SimResults = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.dps);
+SimResults = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.dps,...
+                        'startTime',StartTime,...                           %start of simulation
+                        'stopTime',StopTime,...                             %end of simulation
+                        'sampleTime',SampleTime);                           %simulation interval in s);
 plotResult(SimResults,SimGround_Station,SimSatellite);

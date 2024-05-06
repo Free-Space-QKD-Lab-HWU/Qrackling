@@ -3,7 +3,6 @@
 %% 1. Choose parameters
 Wavelength=690;                                                            %wavelength is measured in nm
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
-OrbitDataFileLocation='100kmSSOrbitLLAT.txt';                                %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
 Receiver_Telescope_Diameter=1;                                           
 Time_Gate_Width=1E-10;                                                      %times are measured in s
 Spectral_Filter_Width=10;                                                  %consistemt with wavelength, spectral width is measured in nm                           
@@ -19,7 +18,8 @@ Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter);     
 %2.1.3 Construct satellite
 SimSatellite=nodes.Satellite(Transmitter_Telescope,...
                         'Source',Transmitter_Source,...
-                        'OrbitDataFileLocation',OrbitDataFileLocation);
+                        'OrbitDataFileLocation',...
+                        'Examples\Data\orbit modelling resources\orbit LLAT files\100kmSSOrbitLLAT.txt');
 
 %2.2 Ground station
 %2.2.1 Detector

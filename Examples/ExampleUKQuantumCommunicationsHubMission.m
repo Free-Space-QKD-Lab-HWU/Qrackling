@@ -145,10 +145,7 @@ spoqc = nodes.Satellite( ...
     'inclination',                   inclination,                       ...
     'rightAscensionOfAscendingNode', right_ascension_of_ascending_node, ...
     'argumentOfPeriapsis',           argument_of_periapsis,             ...
-    'trueAnomaly',                   true_anomaly,                      ...
-    'StartTime',                     start_time,                        ... % start of simulation
-    'StopTime',                      stop_time,                         ... % end of simulation
-    'sampleTime',                    sample_time);                          % simulation interval in s
+    'trueAnomaly',                   true_anomaly);
 %% 2. construct a receiver (ground station)
 % to do this, we need lots of details about the ground station:
 %% 
@@ -352,7 +349,10 @@ Env = environment.Environment(sky_headings, sky_elevations, ...
 % be selected
 
 Protocol = protocol.decoyBB84();
-result = nodes.QkdPassSimulation(hogs, spoqc, Protocol, Environment=Env);
+result = nodes.QkdPassSimulation(hogs, spoqc, Protocol, 'Environment',Env,...
+    'startTime',                     start_time,                        ... % start of simulation
+    'stopTime',                      stop_time,                         ... % end of simulation
+    'sampleTime',                    sample_time);                          % simulation interval in s
 
 beacon_result_down = beacon.beaconSimulation(hogs, spoqc, Environment=Env);
 beacon_result_up = beacon.beaconSimulation(spoqc, hogs, Environment=Env);

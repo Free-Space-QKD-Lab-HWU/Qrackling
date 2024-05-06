@@ -122,10 +122,7 @@ function spoqc = SatellitePlatformForOpticalQuantumCommunications(wavelength, ex
         'inclination', 9.7065055549e+01,...                  %inclination of orbit in deg- set by sun synchronicity
         'rightAscensionOfAscendingNode', -1.5,...            %measure of location of orbit in longitude
         'argumentOfPeriapsis', 0,...                         %measurement of location of ellipse nature of orbit in longitude, irrelevant for circular orbits
-        'trueAnomaly', 0,...                                 %initial position through orbit of satellite
-        'StartTime', start_time,...                           %start of simulation
-        'StopTime', stop_time,...                             %end of simulation
-        'sampleTime', sample_time);                           %simulation interval in s
+        'trueAnomaly', 0);
 
 end
 

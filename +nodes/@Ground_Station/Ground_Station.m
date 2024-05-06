@@ -166,7 +166,7 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
                                     "MinElevationAngle",Ground_Station.Elevation_Limit);
 
             %include telescope
-            conicalSensor(Sim_OGS,"MaxViewAngle",rad2deg(Ground_Station.Telescope.FOV))
+            conicalSensor(Sim_OGS,"MaxViewAngle",rad2deg(Ground_Station.Telescope.FOV));
 
             %modify labelling
             Sim_OGS.LabelFontSize = 25;

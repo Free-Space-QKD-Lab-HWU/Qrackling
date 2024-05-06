@@ -4,7 +4,6 @@
 %% 1. Choose parameters
 Wavelength=785;                                                            %wavelength is measured in nm
 Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
-OrbitDataFileLocation='500kmSSOrbitLLAT.txt';                              %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
 Receiver_Telescope_Diameter=1;                                           
 Time_Gate_Width=1E-9;                                                      %times are measured in s
 Spectral_Filter_Width=10;                                                  %consistemt with wavelength, spectral width is measured in nm
@@ -44,7 +43,7 @@ Uplink_Cam = CVM4000(Transmitter_Telescope, ...
 
 %2.1.5 Construct satellite
 SimSatellite=nodes.Satellite(Transmitter_Telescope,...
-                            'OrbitDataFileLocation',OrbitDataFileLocation,...
+                            'OrbitDataFileLocation','Examples\Data\orbit modelling resources\orbit LLAT files\500kmSSOrbitLLAT.txt',...
                             'Source',Transmitter_Source,...
                             'Beacon',Downlink_Beacon,...
                             'Camera',Uplink_Cam,...
@@ -93,7 +92,7 @@ Result = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.decoyBB
 DownlinkBeaconResults = beacon.beaconSimulation(SimGround_Station,SimSatellite);
 UplinkBeaconResults = beacon.beaconSimulation(SimSatellite,SimGround_Station);
 %3.2 plot results
-plotResult(Result,SimGround_Station,SimSatellite);
+plotResult(Result,SimGround_Station,SimSatellite,"mask","None");
 plot(DownlinkBeaconResults);
 plot(UplinkBeaconResults);
 
