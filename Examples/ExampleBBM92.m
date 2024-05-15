@@ -354,6 +354,8 @@ mapped_transmission = environment.mapToEnvironment( ...
 
 Env = environment.Environment(sky_headings, sky_elevations, ...
     brightness_data.Wavelengths, mapped_night_sky, mapped_transmission);
+Env = environment.Environment(sky_headings, sky_elevations, ...
+    brightness_data.Wavelengths, zeros(size(mapped_night_sky)), mapped_transmission);
 %% 3 perform simulations
 % simulations are run by using the *Simulation functions. the first argument 
 % is the receiver and the second the transmitter. For QKD, the protocol can also 
@@ -376,3 +378,4 @@ beacon_up_figure = beacon_result_up.plot("mask", "Elevation");
 %% testing
 Protocol = protocol.bbm92();
 result = nodes.QkdPassSimulation(hogs, spoqc, Protocol, Environment=Env);
+QKD_figure = result.plotResult(hogs, spoqc, "mask", "Elevation");

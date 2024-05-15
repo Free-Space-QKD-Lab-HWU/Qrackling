@@ -16,7 +16,7 @@ classdef bbm92_cw
                     mustBeA(bob, ["nodes.Satellite", "nodes.Ground_Station"]), ...
                     nodes.mustHaveSource(bob)}
                 loss nodes.LossResult
-                bgs % background_counts
+                bgr % background_counts
                 end
             [~] = {alice, bob};
             % some rule about single up/down
