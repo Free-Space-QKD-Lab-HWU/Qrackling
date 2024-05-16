@@ -51,7 +51,7 @@ classdef Flat_Top_Beacon < beacon.Beacon
         if iscolumn(Range)
             Range = Range';
         end
-        GeoSpotDiameter = (2*Flat_Top_Beacon.Limit_Half_Angle*Range);
+        GeoSpotDiameter = Flat_Top_Beacon.Telescope.Diameter + (2*Flat_Top_Beacon.Limit_Half_Angle*Range);
 
         GeoLoss = Camera.Collecting_Area./((pi/4)*GeoSpotDiameter.^2);
         end
