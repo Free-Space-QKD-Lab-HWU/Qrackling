@@ -77,8 +77,6 @@ classdef bbm92 < protocol.proto
 
             transmission_alice = loss_alice;
             transmission_bob = loss_bob;
-            background_rate_alice = 1e-6 .* ones(size(loss_alice));
-            background_rate_bob = 1e-6 .* ones(size(loss_bob));
 
             pairs_per_pulse = alice.Source.MPN_Signal / 2;
             % pairs_per_pulse = 0.09
