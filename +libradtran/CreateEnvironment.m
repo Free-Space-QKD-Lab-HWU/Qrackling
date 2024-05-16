@@ -1,11 +1,11 @@
 function Env = CreateEnvironment(LRT_path,options)
 arguments
     LRT_path {mustBeFolder}
-    options.headings {mustBeNumeric} = linspace(0,360,2);
-    options.elevations {mustBeNumeric} = linspace(2,90,2);
+    options.headings {mustBeNumeric} = [0,1];%linspace(0,360,2);
+    options.elevations {mustBeNumeric} = [1,89]%linspace(2,90,2);
     options.Time {mustBeA(options.Time,'datetime')} = datetime("01-Aug-2023 09:00:00");
     options.LLA (1,3) {mustBeNumeric} = [56.405,-3.183,10];
-    options.WavelengthRange (1,2) {mustBeNonnegative} = [400,1600];
+    options.WavelengthRange (1,2) {mustBeNonnegative} = [900,905];
     options.OutputFileName = [cd(),filesep(),'TempLRTOutputFile.txt'];
     options.InputFileName = [cd(),filesep(),'TempLRTInputFile.txt'];
     options.Visibility (1,1) {mustBeNonnegative} = 50;
@@ -16,9 +16,9 @@ end
 if isstring(LRT_path)
     LRT_path = char(LRT_path);
 end
-if LRT_path(end) ~= filesep()
-    LRT_path = [LRT_path,filesep()];
-end
+%if LRT_path(end) ~= filesep()
+%    LRT_path = [LRT_path,filesep()];
+%end
 if isstring(options.OutputFileName)
     options.OutputFileName = char(options.OutputFileName);
 end
@@ -87,6 +87,6 @@ transmission = permute(transmission,[2,3,1]);
 
 %% create environment file
 wavelengths = options.WavelengthRange(1):1:options.WavelengthRange(2);
-Env = Environment(options.headings,options.elevations,wavelengths,...
+Env = environment.Environment(options.headings,options.elevations,wavelengths,...
                   transmission,radiances);
 

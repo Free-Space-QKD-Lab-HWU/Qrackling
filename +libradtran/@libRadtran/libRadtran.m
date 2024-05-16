@@ -211,6 +211,9 @@ classdef libRadtran < handle
             end
             str = '';
             for p = properties(lrt)'
+                if isequal(p{1},'File')
+                    continue
+                end
                 group_name = p{1};
                 if isempty(lrt.(group_name))
                     continue
@@ -289,8 +292,6 @@ classdef libRadtran < handle
 
             output_file = lrt.OutputSettings.File.File;
             assert(~isempty(output_file), 'Output file must be set');
-            
-            %output_file = 'C:\Desktop\OutputFile.txt';
 
             input_path = lrt.SaveConfigurationString(file_path, ...
                 file_name, "Configuration_String", options.Configuration_String);
@@ -304,40 +305,16 @@ classdef libRadtran < handle
             lrt_bin = strjoin({char(lrt.lrt_root), 'bin'}, path_delimiter);
             uvspec_path = [lrt.lrt_root,filesep(),'bin',filesep(),'uvspec'];
 
-            %call_str = strjoin({'"',uvspec_path, '" < "', input_path, '" > "', output_file,'"'},'');
-            call_str = strjoin({'"',uvspec_path, '" < "', input_path, '"'},'');
+            call_str = strjoin({'',uvspec_path, ' < ', input_path, ''},'');
+            current_directory = cd(lrt_directory);
 
-           UNIX_cd_str = ['cd "',char(lrt_bin),'"; ']
-           UNIX_move_in_str = ['cp "',char(input_path),'" "',char(lrt_bin),filesep(),'LRT_MATLAB_Temp_in.txt"; ']
-           UNIX_run_str = './uvspec "< ./LRT_MATLAB_Temp_in.txt > ./LRT_MATLAB_Temp_out.txt"; '
-           UNIX_move_out_str = ['mv ./LRT_MATLAB_Temp_out.txt "', char(output_file),'"']
-
-           UNIX_call_str = [UNIX_cd_str,UNIX_move_in_str,UNIX_run_str]
-           Cygwin_call_str = [char("C:\cygwin64\bin\bash --login -c '"),UNIX_call_str,char("'")]
-
-            %current_directory = cd(lrt_directory);
-
-            switch options.Verbosity
-                case 'Quiet'
-                    if ~ispc
-                    [~,~] = system(call_str);
-                    else
-                    [~,~] = system("C:\cygwin64\bin\bash --login -c '" + string(call_str) + "'");
-                    end
-                case 'Verbose'
-                    if ~ispc
-                    [status_flag,info] = system(call_str);
-                    else
-                    [status_flag,info] = system("C:\cygwin64\bin\bash --login -c '"+ string(string(call_str)) + "'");
-                    disp("C:\cygwin64\bin\bash --login -c '"+ string(string(call_str)) + "'");
-                    end
-                    fprintf(info)
-
+            [status_flag,info] = system(call_str);
+            if isequal(options.Verbosity,'Verbose')
+                fprintf(info)
             end
-
-            %[~] = cd(current_directory);
-            lrt.File = input_path;
             
+            [~] = cd(current_directory);
+            lrt.File = input_path;
 
         end
 
