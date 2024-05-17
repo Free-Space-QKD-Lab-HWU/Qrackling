@@ -68,6 +68,14 @@ lrt.RunConfiguration(input_file_loc, [input_file_name,input_file_ext], 'Verbosit
 data_tran = libradtran.outputFromInputFile(options.InputFileName);
 upwards_transmission = data_tran.edir;
 angle_transmission = upwards_transmission'*cosd(90-options.elevations);
+%here, we use upwards transmission of the atmosphere and scale by
+%cos(90-elevation). This is a well established approximation to atmospheric
+%transmission, but relies on a flat-earth approximation.
+%it is sufficient for our purposes. don't @ me.
+
+%TODO: experiment with using edir with varying solar zenith angle to
+%produce elevation-dependent transmission
+
 transmission = repmat(angle_transmission,[1,1,numel(options.headings)]);
 transmission = permute(transmission,[1,3,2]);
 transmission = flip(transmission,3);
