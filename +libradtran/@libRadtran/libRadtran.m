@@ -181,12 +181,11 @@ classdef libRadtran < handle
                     'Aerosol_Settings', 'Cloud_Settings',  ...
                     'General_Atmosphere_Settings', 'Molecule_Settings',  ...
                     'Mystic_Settings', 'Spectral_Settings',  ...
-                    'Solver_Settings', 'Output_Settings'})}
+                    'Solver_Settings', 'Output_Settings',...
+                    'Geometry_Settings'})}
                 value
             end
-            arguments (Output)
-                lrt libRadtran
-            end
+
             for i = 1:numel(setting)
                 target_type = class(lrt.(setting{i}));
                 if ~isa(value{i}, target_type)

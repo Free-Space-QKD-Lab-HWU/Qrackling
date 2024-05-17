@@ -8,7 +8,7 @@ classdef zout_interpolate
             arguments
                 state matlab.lang.OnOffSwitchState
             end
-            z = state;
+            z.State = state;
         end
     end
 end
