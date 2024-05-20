@@ -65,16 +65,11 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                 options.Beacon (1,1) beacon.Beacon
                 options.Camera (1,1) beacon.Camera
                 options.KeplerElements (1,6) {mustBeNumeric} = nan(1,6);
-                options.semiMajorAxis (1,1) {mustBeNumeric} = nan
-                options.eccentricity (1,1) {mustBeNumeric} = nan
-                options.inclination (1,1) {mustBeNumeric} = nan;
-                options.rightAscensionOfAscendingNode (1,1) {mustBeNumeric} = nan
-                options.argumentOfPeriapsis (1,1) {mustBeNumeric} = nan
-                options.trueAnomaly (1,1) {mustBeNumeric} = nan
-                options.OrbitDataFileLocation {mustBeFile}
+                % options.OrbitDataFileLocation {mustBeFile}
                 options.LLAT (:,4) {mustBeNumeric}
                 options.TLE_File {mustBeFile}
                 options.Name {mustBeTextScalar};
+                options.SatCommsToolboxSatellite (1, 1) matlabshared.satellitescenario.Satellite
             end
 
             Satellite.Telescope = Telescope;
@@ -82,32 +77,22 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             %% many different ways of providing orbital data
 
             %first, let's check if there are kepler elements available
-            individual_kepler_elements = [options.semiMajorAxis,...
-                options.eccentricity,...
-                options.inclination,...
-                options.rightAscensionOfAscendingNode,...
-                options.argumentOfPeriapsis,...
-                options.trueAnomaly];
-
-            if ~all(isnan(individual_kepler_elements))
-                Satellite.Kepler_Elements = individual_kepler_elements;
-                Satellite.OrbitDataSource = 'Kepler Elements';
-
-            elseif ~all(isnan(options.KeplerElements))
+            if ~all(isnan(options.KeplerElements))
                 %if all elements are provided individually, use these
                 Satellite.Kepler_Elements = options.Kepler_Elements;
                 Satellite.OrbitDataSource = 'Kepler Elements';
 
-            elseif ismember('OrbitDataFileLocation',fieldnames(options))
-                [lat, lon, alt, t] = Satellite.ReadOrbitLLATFile(options.OrbitDataFileLocation);
-                Satellite.LLAT.LLA = [lat',lon',alt'];
-                Satellite.LLAT.Time = t';
-                Satellite.OrbitDataSource = 'LLAT';
+            % elseif ismember('OrbitDataFileLocation',fieldnames(options))
+            %     [lat, lon, alt, t] = Satellite.ReadOrbitLLATFile(options.OrbitDataFileLocation);
+            %     Satellite.LLAT.LLA = [lat',lon',alt'];
+            %     Satellite.LLAT.Time = t';
+            %     Satellite.OrbitDataSource = 'LLAT';
 
             elseif ismember('LLAT',fieldnames(options))
                 %if LLAT (latitude, longitude, altitude, time) is provided manually, use this
                 Satellite.LLAT = options.LLAT;
                 Satellite.OrbitDataSource = 'LLAT';
+
             elseif ismember('TLE_File',fieldnames(options))
                 Satellite.TLE_File = options.TLE_File;
                 Satellite.OrbitDataSource = 'TLE File';
@@ -344,6 +329,56 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             alt = LLATData(3,:) * 1000; %conversion to m from km
             %time must now conform to being a datetime object
             t = seconds(LLATData(4,:));
+        end
+
+        function new_satellite = NewFromLLATFile(telescope, scenario, ...
+            path_to_llat_file, Name, options)
+            arguments
+                telescope components.Telescope
+                scenario satelliteScenario
+                path_to_llat_file {mustBeFile}
+                Name {mustBeTextScalar}
+                options.Source components.Source
+                options.Detector components.Detector
+                options.Beacon beacon.Beacon
+                options.Camera beacon.Camera
+            end
+
+            position_table = nodes.Satellite.ReadLLATFile(path_to_llat_file);
+            sat = satellite(scenario, ...
+                position_table, ...
+                "CoordinateFrame", "geographic", ...
+                "Name", Name);
+
+            args = {telescope, 'Name', Name, 'SatCommsToolboxSatellite', sat};
+            for f = fieldnames(options)'
+                args = {args, f{1}, options.(f{1})};
+            end
+
+            new_satellite = nodes.Satellite(args{:});
+        end
+
+        function new_satellite = NewFromTLEFile(telescope, scenario, ...
+            path_to_tle_file, Name, options)
+            arguments
+                telescope components.Telescope
+                scenario satelliteScenario
+                path_to_tle_file {mustBeFile}
+                Name {mustBeTextScalar}
+                options.Source components.Source
+                options.Detector components.Detector
+                options.Beacon beacon.Beacon
+                options.Camera beacon.Camera
+            end
+
+            sat = satellite(scenario, path_to_tle_file, "Name", Name);
+
+            args = {telescope, 'Name', Name, 'SatCommsToolboxSatellite', sat};
+            for f = fieldnames(options)'
+                args = {args, f{1}, options.(f{1})};
+            end
+
+            new_satellite = nodes.Satellite(args{:});
         end
     end
 end
