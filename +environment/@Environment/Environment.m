@@ -139,7 +139,7 @@ classdef Environment
             N_elevations = numel(Env.elevations);
             N_wavelengths = numel(Env.wavelengths);
 
-            correct_size = [N_wavelengths, N_headings, N_elevations]
+            correct_size = [N_wavelengths, N_headings, N_elevations];
             
             %check dimensions of data
             assert(isequal(size(Env.attenuation,[1,2,3]), correct_size), ...
