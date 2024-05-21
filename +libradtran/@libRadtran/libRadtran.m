@@ -270,7 +270,7 @@ classdef libRadtran < handle
                 [path_delimiter, path_delimiter], ...
                 path_delimiter);
 
-            disp(configuration_file_path);
+            % disp(configuration_file_path);
             fd = fopen(configuration_file_path, 'w');
             written_bytes = fprintf(fd, configuration);
             assert(written_bytes > 0, 'Nothing written, something has gone wrong');

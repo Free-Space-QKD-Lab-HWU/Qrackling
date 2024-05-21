@@ -7,7 +7,7 @@ classdef day_of_year
             %arguments
             %    date %{mustBeA(date, 'datetime')}
             %end
-            disp(d);
+            % disp(d);
             day.Value = day(d, "dayofyear");
         end
     end

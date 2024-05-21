@@ -8,7 +8,8 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
             mustBeA(Transmitter, ["nodes.Satellite", "nodes.Ground_Station"]), ...
             nodes.mustHaveSource(Transmitter)}
         proto protocol.proto
-        options.Environment environment.Environment = environment.Environment.empty
+        % options.Environment environment.Environment = environment.Environment.empty
+        options.Environment environment.Environment
     end
 
     transmitter_name = utilities.node_name(Transmitter);
@@ -63,10 +64,16 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
     % [background_count_rate, ~] = Receiver.ComputeTotalBackgroundCountRate( ...
     %     options.Background_Sources, Transmitter, headings, elevations);
 
-    if ~isempty(options.Environment)
-        [link_loss, ~] = nodes.linkLoss("qkd", Receiver, Transmitter, ...
-            "apt", "optical", "geometric", "turbulence", ...
-            "atmospheric", "environment", options.Environment);
+    link_loss_args = {
+        "qkd", Receiver, Transmitter, ...
+        "apt", "optical", "geometric", "turbulence" ...
+    };
+    background_counts_per_second = zeros(size(headings));
+
+    if ismember(fieldnames(options), "Environment")
+        link_loss_args{numel(link_loss_args)} = "atmospheric";
+        link_loss_args{numel(link_loss_args)} = "environment";
+        link_loss_args{numel(link_loss_args)} = options.Environment;
 
         switch class(Transmitter)
         case "nodes.Satellite"
@@ -75,9 +82,6 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
             [headings, elevations, ~] = Receiver.RelativeHeadingAndElevation(Transmitter);
         end
 
-        % NOTE: why does this need "abs" around headings and elevations?
-        % NOTE: SOLVED: add in mask by elevation limit (or other equivalent)
-        % NOTE: mask by elevation >= 0
         background_radiance = options.Environment.Interp( ...
             "spectral_radiance", abs(headings), abs(elevations), Transmitter.Source.Wavelength);
 
@@ -93,12 +97,9 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
             filter_width, ...
             1, ...
             Receiver.Detector.Wavelength);
-
-    else
-        [link_loss, ~] = nodes.linkLoss("qkd", Receiver, Transmitter, ...
-            "apt", "optical", "geometric", "turbulence");
-        background_counts_per_second = zeros(size(headings));
     end
+
+    [link_loss, ~] = nodes.linkLoss(link_loss_args{:});
 
     noise_sources = [ ...
         environment.Noise( ...

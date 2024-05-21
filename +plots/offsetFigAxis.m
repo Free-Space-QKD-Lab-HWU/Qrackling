@@ -34,7 +34,7 @@ function varargout = offsetFigAxis(Axes, varargin)
             x_axes(i) = offsetAxis(Axes(i), x_axes(i), parent{i}, 'x', Results);
         end
         if have_y
-            disp(y_axes(i))
+            % disp(y_axes(i))
             y_axes(i) = offsetAxis(Axes(i), y_axes(i), parent{i}, 'y', Results);
         end
     end

@@ -29,7 +29,7 @@ classdef (Abstract) QKD_Transmitter < nodes.Optical_Node
             % empty detector to pass into the Alice constructor
             try
                 det = utilities.getPropertyFromObject(obj, 'components.Detector');
-                disp(det)
+                % disp(det)
                 alice = protocol.Alice(source, det, loss, background_rates);
                 return
             catch
