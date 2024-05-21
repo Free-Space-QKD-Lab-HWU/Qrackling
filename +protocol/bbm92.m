@@ -5,7 +5,7 @@ classdef bbm92 < protocol.proto
             "MPN_Signal", "Coincidence_Window", "State_Prep_Error")
         detector_features = protocol.detectorRequirements.features("Dark_Count_Rate")
         efficiency = 0.5
-        num_detectors = 1;
+        num_detectors = 4;
     end
 
     methods
