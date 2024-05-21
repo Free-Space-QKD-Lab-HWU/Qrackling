@@ -186,10 +186,13 @@ classdef SolverAlgorithm < handle
                     'sslidar',    'sos',         'montecarlo',           ...
                     'mystic',     'tzs',         'sss'})}
             end
-            opts = split(possible_solvers{1}, " ");
-            check = contains(opts, s.solver.Label);
-            err_string = strjoin(['This options is only valid for: {', opts, '}']);
-            assert(any(check), err_string);
+
+            check = false;
+            for opt = possible_solvers
+            check = check | contains(opt{1}, s.solver.Label);
+            end
+            err_string = "This options is only valid for: {"+ strjoin(([possible_solvers{:}]')')+ "}";
+            assert(check, err_string);
         end
 
     end

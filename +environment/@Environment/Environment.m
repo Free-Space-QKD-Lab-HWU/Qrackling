@@ -75,7 +75,7 @@ classdef Environment
                 elevations {mustBeNumeric, mustBeVector, mustBeInRange(elevations, -90, 90)}
                 wavelengths {mustBeNumeric, mustBeNonnegative, mustBeVector}
                 spectral_radiance {mustBeNumeric, mustBeNonnegative}
-                attenuation {mustBeNumeric, mustBeNonnegative, mustBeLessThanOrEqual(attenuation,1)}
+                attenuation {mustBeNumeric, mustBeNonnegative}% mustBeLessThanOrEqual(attenuation,1)}
                 options.attenuation_unit {mustBeMember(options.attenuation_unit, ["probability", "dB"])} = "probability"
             end
 
@@ -139,8 +139,8 @@ classdef Environment
             N_elevations = numel(Env.elevations);
             N_wavelengths = numel(Env.wavelengths);
 
-            correct_size = [N_wavelengths, N_headings, N_elevations];
-
+            correct_size = [N_wavelengths, N_headings, N_elevations]
+            
             %check dimensions of data
             assert(isequal(size(Env.attenuation,[1,2,3]), correct_size), ...
                 'attenuation array is wrong size');
@@ -357,7 +357,8 @@ classdef Environment
                 % prepare plot data
                 Current_Wavelength = scrollbar.Value;
                 Wavelength_Index=round(interp1(Wavelengths,1:numel(Wavelengths),Current_Wavelength));
-                Current_Values = squeeze(Values(Wavelength_Index,:,:))';
+                %Current_Values = squeeze(Values(Wavelength_Index,:,:))';
+                Current_Values = flipud(squeeze(Values(Wavelength_Index,:,:))');
                 Current_Values(isinf(Current_Values)) = nan;
 
 
