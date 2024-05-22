@@ -12,6 +12,8 @@ function result = QkdPassSimulation(Receiver, Transmitter, proto, options)
         options.Environment environment.Environment
     end
 
+    disp(Receiver)
+
     transmitter_name = utilities.node_name(Transmitter);
     receiver_name = utilities.node_name(Receiver);
 

@@ -4,8 +4,18 @@ function name = node_name(node)
         node {mustBeA(node, ["nodes.Satellite", "nodes.Ground_Station"])}
     end
 
-    takeFirst = @(array) array{end};
-    descriptor_string = replace(takeFirst(strsplit(class(node), ".")), "_", " ");
+    TakeFirst = @(array) array{end};
+    ExtractDescriptor = @(N) replace(TakeFirst(strsplit(class(N), ".")), "_", " ");
 
-    name = [descriptor_string, ': ' char(node.Location_Name)];
+    if isscalar(node)
+        descriptor_string = ExtractDescriptor(node);
+        name = [descriptor_string, ': ' char(node.Location_Name)];
+        return
+    end
+
+    name = {};
+    for i = 1:numel(node)
+        descriptor_string = ExtractDescriptor(node(i));
+        name{i} = [descriptor_string, ': ', char(node(i).Location_Name)];
+    end
 end

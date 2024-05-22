@@ -6,6 +6,8 @@
 **/SMARTS cache/*
 towards_a_quantum_internet/*
 
+html
+
 # exclude toolbox
 *.mltbx
 
