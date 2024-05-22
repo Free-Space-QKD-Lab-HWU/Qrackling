@@ -54,11 +54,17 @@ sim_satellite = nodes.Satellite( ...
     'OrbitDataFileLocation', orbit_data_file_location);
 
 %2.2.2 construct ground station, use Heriot-Watt as an example
-sim_ground_station = nodes.Ground_Station( ...
+sim_ground_station_edi = nodes.Ground_Station( ...
     receiver_telescope,...
     'Detector', detector,...
     'LLA', [55.909723, -3.319995,10],...
     'Name', 'Heriot-Watt');
+
+sim_ground_station_inv = nodes.Ground_Station( ...
+    receiver_telescope,...
+    'Detector', detector,...
+    'LLA', [57.4778, -4.2247, 10],...
+    'Name', 'Inverness');
 
 %% double link
 
@@ -133,4 +139,98 @@ for i = 1:numel(direction)
     case nodes.LinkDirection.Terrestrial
         error("UNIMPLEMENTED")
     end
+end
+
+tx_rx_pairs
+
+%% The following allows for finding all single links
+receivers = {sim_ground_station_edi, sim_ground_station_inv};
+transmitters = {sim_satellite, sim_satellite};
+[Receivers, Transmitters] = meshgrid(receivers, transmitters);
+Receivers = {Receivers{:}};
+Transmitters = {Transmitters{:}};
+
+assert(numel(Receivers) == numel(Transmitters));
+
+valid_links = zeros(1, numel(Receivers));
+directions = createArray(1, numel(Receivers), Like=nodes.LinkDirection.Downlink);
+
+Location = @(heading, elevation, range) ...
+    struct("heading", heading, "elevation", elevation, "range", range);
+
+relative_locations = createArray(1, numel(Receivers), Like=Location([], [], []));
+
+for i = 1:numel(Receivers)
+    rx = Receivers{i};
+    tx = Transmitters{i};
+    directions(i) = nodes.LinkDirection.DetermineLinkDirection(rx, tx);
+
+    switch directions(i)
+
+    case nodes.LinkDirection.Downlink
+        [h, e, r] = tx.RelativeHeadingAndElevation(rx);
+        elevation_limit_mask = elevations > rx.Elevation_Limit;
+        if sum(elevation_limit_mask) > 0
+            valid_links(i) = 1;
+        end
+
+    case nodes.LinkDirection.Uplink
+        [h, e, r] = rx.RelativeHeadingAndElevation(tx);
+        elevation_limit_mask = elevations > tx.Elevation_Limit;
+        if sum(elevation_limit_mask) > 0
+            valid_links(i) = 1;
+        end
+
+    end
+    relative_locations(i) = Location(h, e, r);
+end
+
+valid_links
+directions
+
+relative_locations
+
+for r = relative_locations
+    disp(numel(r.elevation))
+end
+
+%% Now how do we take care of dual links?
+
+receivers = {sim_ground_station_edi, sim_ground_station_inv};
+transmitters = {sim_satellite};
+Receivers = {receivers{:}};
+Transmitters = {transmitters{:}};
+
+% assert(numel(Receivers) == numel(Transmitters));
+
+for t = 1:numel(Transmitters)
+    tx = Transmitters{t};
+    directions = createArray(1, numel(Receivers), Like=nodes.LinkDirection.Downlink);
+    i = 1;
+    valid_links = zeros(1, numel(Receivers));
+    for r = 1:numel(Receivers)
+        rx = Receivers{r};
+        directions(i) = nodes.LinkDirection.DetermineLinkDirection(rx, tx);
+
+        switch directions(i)
+
+        case nodes.LinkDirection.Downlink
+            [h, e, r] = tx.RelativeHeadingAndElevation(rx);
+            elevation_limit_mask = elevations > rx.Elevation_Limit;
+            if sum(elevation_limit_mask) > 0
+                valid_links(i) = 1;
+            end
+
+        case nodes.LinkDirection.Uplink
+            [h, e, r] = rx.RelativeHeadingAndElevation(tx);
+            elevation_limit_mask = elevations > tx.Elevation_Limit;
+            if sum(elevation_limit_mask) > 0
+                valid_links(i) = 1;
+            end
+
+        end
+        i = i + 1;
+    end
+    disp(valid_links)
+    disp(directions)
 end
