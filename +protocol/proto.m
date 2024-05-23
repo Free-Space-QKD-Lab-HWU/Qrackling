@@ -20,11 +20,29 @@ classdef proto
             alice, bob, total_loss, loss_unit, background_counts)
             arguments
                 proto
-                alice {mustBeA(alice, ["nodes.Satellite", "nodes.Ground_Station"])}
-                bob {mustBeA(bob, ["nodes.Satellite", "nodes.Ground_Station"])}
-                total_loss (1, :) {mustBeNumeric}
+                % alice {mustBeA(alice, ["nodes.Satellite", "nodes.Ground_Station"])}
+                % bob {mustBeA(bob, ["nodes.Satellite", "nodes.Ground_Station"])}
+                alice { ...
+                    nodes.mustBeReceiverOrTransmitter(alice), ...
+                    nodes.mustHaveSource(alice) }
+                bob { ...
+                    nodes.mustBeReceiverOrTransmitter(bob), ...
+                    nodes.mustHaveDetector(bob) }
+                total_loss (:, :) {mustBeNumeric}
                 loss_unit {mustBeMember(loss_unit, ["probability", "dB"])}
-                background_counts (1, :, :) {mustBeNumeric}
+                background_counts (:, :, :) {mustBeNumeric}
+            end
+
+            RowOrColumn = @(arr) sum((size(arr) == min(size(arr))) .* [1, 2]);
+
+            disp(RowOrColumn(total_loss))
+            disp(size(total_loss))
+
+            if min(size(total_loss)) == 2
+                % got different losses for two different channels
+                [secret_rate, sifted_rate, qber] = proto.QkdModel( ...
+                    alice, bob, total_loss, background_counts);
+                return
             end
 
             [secret_rate, sifted_rate, qber] = proto.QkdModel( ...
