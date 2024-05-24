@@ -334,9 +334,16 @@ isa(relative_locations(1).time, "datetime")
 size(relative_locations(1).time)
 
 %% testing new QkdPassSimulation
+close all
+sim_ground_station_inv = sim_ground_station_inv.SetElevationLimit(30);
+sim_ground_station_edi = sim_ground_station_edi.SetElevationLimit(30);
 receivers = {sim_ground_station_edi, sim_ground_station_inv, sim_ground_station_paris};
 transmitters = sim_satellite;
-results = nodes.QkdPassSimulationNext(receivers, transmitters, protocol.bbm92)
+results = nodes.QkdPassSimulationNext(receivers, transmitters, protocol.bbm92);
 
 results.receiver_name
 results.transmitter_name
+
+% results(1).plot()
+% results(2).plot()
+results(3).plot()

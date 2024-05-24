@@ -15,12 +15,12 @@ classdef Located_Object
     %possibly for many time stamps
 
     properties(SetAccess=protected)
-        Latitude(:,1){mustBeNumeric} = nan;
-        Longitude(:,1){mustBeNumeric} = nan;
-        Altitude(:,1){mustBeNumeric} = nan;
-        Velocity_East(:,1){mustBeNumeric} = nan;
-        Velocity_North(:,1){mustBeNumeric} = nan;
-        Velocity_Up(:,1){mustBeNumeric} = nan;
+        Latitude (:,1) {mustBeNumeric} = [];
+        Longitude (:,1) {mustBeNumeric} = [];
+        Altitude (:,1) {mustBeNumeric} = [];
+        Velocity_East (:,1) {mustBeNumeric} = [];
+        Velocity_North (:,1) {mustBeNumeric} = [];
+        Velocity_Up (:,1) {mustBeNumeric} = [];
         Location_Name = "";
         useSatCommsToolbox{mustBeNumericOrLogical} = false;
         % Length of Latitude, Longitude, Altitude arrays
