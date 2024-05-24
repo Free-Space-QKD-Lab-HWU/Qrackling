@@ -1,15 +1,15 @@
 classdef Loss
     properties %(SetAccess = protected)
-        unit
-        label
-        values
+        unit = []
+        label = []
+        values = []
     end
     methods
         function loss = Loss(unit, label, values)
             arguments
-                unit {mustBeMember(unit, ["probability", "dB"])}
-                label {mustBeText}
-                values
+                unit {mustBeMember(unit, ["probability", "dB"])} = "probability"
+                label {mustBeText} = ""
+                values = []
             end
             loss.unit = unit;
             loss.label = label;

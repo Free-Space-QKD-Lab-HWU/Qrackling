@@ -35,9 +35,6 @@ classdef proto
 
             RowOrColumn = @(arr) sum((size(arr) == min(size(arr))) .* [1, 2]);
 
-            disp(RowOrColumn(total_loss))
-            disp(size(total_loss))
-
             if min(size(total_loss)) == 2
                 % got different losses for two different channels
                 [secret_rate, sifted_rate, qber] = proto.QkdModel( ...

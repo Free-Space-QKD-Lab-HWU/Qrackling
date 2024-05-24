@@ -1,17 +1,17 @@
 classdef LossResult
     properties (SetAccess = protected)
-        kind
-        geometric units.Loss
-        optical units.Loss
-        apt units.Loss
-        turbulence units.Loss
-        atmospheric units.Loss
+        kind = []
+        geometric units.Loss = units.Loss.empty(0, 1)
+        optical units.Loss = units.Loss.empty(0, 1)
+        apt units.Loss = units.Loss.empty(0, 1)
+        turbulence units.Loss = units.Loss.empty(0, 1)
+        atmospheric units.Loss = units.Loss.empty(0, 1)
     end
     methods
         function result = LossResult(kind, options)
 
             arguments
-                kind {mustBeMember(kind, ["beacon", "qkd"])}
+                kind {mustBeMember(kind, ["beacon", "qkd"])} = "qkd"
                 options.geometric
                 options.optical
                 options.apt

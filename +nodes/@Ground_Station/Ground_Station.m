@@ -26,6 +26,8 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
 
         %atmosphere file location
         Atmosphere_File_Location = [];
+
+        Name = '';
     end
 
     properties (Abstract = false, SetAccess = protected, Hidden = true)
@@ -203,6 +205,8 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
                     'Name', ...
                     p.Results.name );
             end
+
+            Ground_Station.Name = p.Results.name;
 
 
             %store atmosphere file location

@@ -10,6 +10,14 @@ function results = QkdPassSimulationNext(receiver, transmitter, qkd_protocol, op
         options.Environment environment.Environment
     end
 
+    if isscalar(receiver)
+        receiver = {receiver};
+    end
+
+    if isscalar(transmitter)
+        transmitter = {transmitter};
+    end
+
     have_environment = ismember(fieldnames(options), "Environment");
 
     % check length of needs_env to pick route
@@ -30,8 +38,11 @@ function results = QkdPassSimulationNext(receiver, transmitter, qkd_protocol, op
     dark_counts_dict = dictionary;
     background_counts_dict = dictionary;
 
+    result_dim = [1, numel(single_links) + numel(double_links)];
+    results = createArray(result_dim, "nodes.PassSimulationResultNext");
+
+    r = 1;
     for s = [single_links{:}]
-        % disp(s)
         args{1} = receiver{s.rx_idx};
         args{2} = transmitter{s.tx_idx};
         [loss, noise] = loss_and_noise_for_channel(args{:});
@@ -42,8 +53,8 @@ function results = QkdPassSimulationNext(receiver, transmitter, qkd_protocol, op
 
         elev_mask = s.elevation_mask;
         dim = size(elev_mask);
-        secret = zeros(size(dim));
-        sifted = zeros(size(dim));
+        secret_key_rate = zeros(size(dim));
+        sifted_key_rate = zeros(size(dim));
         qber = zeros(size(dim));
 
         loss_array = loss.TotalLoss("probability").values(elev_mask);
@@ -55,19 +66,25 @@ function results = QkdPassSimulationNext(receiver, transmitter, qkd_protocol, op
             loss_array, "probability", ...
             noise_array);
 
-        secret(elev_mask) = skr;
-        sifted(elev_mask) = kr;
+        secret_key_rate(elev_mask) = skr;
+        sifted_key_rate(elev_mask) = kr;
         qber(elev_mask) = q;
 
-        disp(['total skr:', char(9), num2str(sum(secret))]);
-        disp(['mean qber: ', char(9), num2str(mean(q))]);
-
+        results(r) = nodes.PassSimulationResultNext( ...
+            receiver{s.rx_idx}, transmitter{s.tx_idx}, ...
+            s.direction, s.heading, s.elevation, s.range, s.time, s.elevation_limit, ...
+            loss, noise, ...
+            sifted_key_rate, secret_key_rate, qber);
+        r = r + 1;
     end
 
     for d = [double_links{:}]
         % disp(d{1})
         l1 = d{1}(1);
         l2 = d{1}(2);
+
+        assert(l1.tx_idx == l2.tx_idx, "Must be addressing same transmitter");
+        assert(l1.rx_idx ~= l2.rx_idx, "Must be addressing different receivers");
 
         elev_mask = l2.elevation_mask & l2.elevation_mask;
 
@@ -81,12 +98,9 @@ function results = QkdPassSimulationNext(receiver, transmitter, qkd_protocol, op
         noise_2 = background_counts_dict(key2).values(elev_mask);
 
         dim = size(elev_mask);
-        secret = zeros(size(dim));
-        sifted = zeros(size(dim));
+        secret_key_rate = zeros(size(dim));
+        sifted_key_rate = zeros(size(dim));
         qber = zeros(size(dim));
-
-        assert(l1.tx_idx == l2.tx_idx, "Must be addressing same transmitter");
-        assert(l1.rx_idx ~= l2.rx_idx, "Must be addressing different receivers");
 
         [skr, kr, q] = qkd_protocol.Calculate( ...
             transmitter{l1.tx_idx}, ...
@@ -94,16 +108,23 @@ function results = QkdPassSimulationNext(receiver, transmitter, qkd_protocol, op
             [loss_1; loss_2], "probability", ...
             [noise_1; noise_2]);
 
-        secret(elev_mask) = skr;
-        sifted(elev_mask) = kr;
+        secret_key_rate(elev_mask) = skr;
+        sifted_key_rate(elev_mask) = kr;
         qber(elev_mask) = q;
 
-        disp(['total skr:', char(9), num2str(sum(secret))]);
-        disp(['mean qber: ', char(9), num2str(mean(q))]);
-
+        results(r) = nodes.PassSimulationResultNext( ...
+            {receiver{l1.rx_idx}, receiver{l2.rx_idx}}, transmitter{l1.tx_idx}, ...
+            [l1.direction, l2.direction], ...
+            [l1.heading; l2.heading], ...
+            [l1.elevation; l2.elevation], ...
+            [l1.range; l2.range], ...
+            [l1.time; l2.time], ...
+            [l1.elevation_limit, l2.elevation_limit], ...
+            [loss_dict(key1), loss_dict(key2)], ...
+            [background_counts_dict(key1), background_counts_dict(key2)], ...
+            sifted_key_rate, secret_key_rate, qber);
+        r = r + 1;
     end
-
-    results = {};
 end
 
 
@@ -146,13 +167,15 @@ function [min_val, max_val] = extrema(array)
 end
 
 
-function loc_time = location_time(tx_idx, rx_idx, heading, elevation, range, elev_mask, time)
+function loc_time = location_time(tx_idx, rx_idx, direction, heading, elevation, range, elev_limit, elev_mask, time)
     arguments
         tx_idx {mustBeNumeric}
         rx_idx {mustBeNumeric}
+        direction nodes.LinkDirection
         heading (1, :) {mustBeNumeric}
         elevation (1, :) {mustBeNumeric}
         range (1, :) {mustBeNumeric}
+        elev_limit {mustBeScalarOrEmpty, mustBeNumeric}
         elev_mask (1, :) {mustBeNumericOrLogical}
         time (1, :) {mustBeA(time, "datetime")}
     end
@@ -160,9 +183,11 @@ function loc_time = location_time(tx_idx, rx_idx, heading, elevation, range, ele
     loc_time = struct( ...
         "tx_idx", tx_idx, ...
         "rx_idx", rx_idx, ...
+        "direction", direction, ...
         "heading", heading, ...
         "elevation", elevation, ...
         "range", range, ...
+        "elevation_limit", elev_limit, ...
         "elevation_mask", elev_mask, ...
         "time", time);
 end
@@ -195,18 +220,19 @@ function [single_link_idx, double_link_idx] = find_links(receivers, transmitters
 
     n_receivers = numel(receivers);
 
-    directions = createArray(1, n_receivers, Like=nodes.LinkDirection.Downlink);
-
     loc_time = struct( ...
         "tx_idx", 0, ...
         "rx_idx", 0, ...
+        "direction", nodes.LinkDirection.Downlink, ...
         "heading", [], ...
         "elevation", [], ...
         "range", [], ...
+        "elevation_limit", 0, ...
         "elevation_mask", [], ...
         "time", []);
+
     % relative_locations = createArray(1, n_receivers, Like=loc_time(0, 0, [], [], [], [], []));
-    relative_locations = {};
+    % relative_locations = {};
 
     for T = 1:numel(transmitters)
         tx = transmitters{T};
@@ -214,23 +240,28 @@ function [single_link_idx, double_link_idx] = find_links(receivers, transmitters
         valid_links = zeros(1, n_receivers); % for current transmitter
         elevation_limits = zeros(1, n_receivers);
 
-        relative_locations = createArray(1, n_receivers, Like=loc_time([], [], [], [], [], [], []));
+        % relative_locations = createArray(1, n_receivers, ...
+        %     Like=loc_time(0, 0, 0, [], [], [], 0, [], []));
+
+        relative_locations = createArray(1, n_receivers, Like=loc_time);
         for R = 1:numel(receivers)
             rx = receivers{R};
-            directions(i) = nodes.LinkDirection.DetermineLinkDirection(rx, tx);
+            direction = nodes.LinkDirection.DetermineLinkDirection(rx, tx);
 
-            switch directions(i)
+            switch direction
                 case nodes.LinkDirection.Downlink
                     [h, e, r] = tx.RelativeHeadingAndElevation(rx);
-                    elevation_limits(i) = rx.Elevation_Limit;
+                    limit = rx.Elevation_Limit;
+                    elevation_limits(i) = limit;
                     elevation_limit_mask = e > elevation_limits(i);
-                    rel_loc = location_time(T, R, h, e, r, elevation_limit_mask, tx.Times);
+                    rel_loc = location_time(T, R, direction, h, e, r, limit, elevation_limit_mask, tx.Times);
 
                 case nodes.LinkDirection.Uplink
                     [h, e, r] = rx.RelativeHeadingAndElevation(tx);
-                    elevation_limits(i) = tx.Elevation_Limit;
+                    limit = tx.Elevation_limit;
+                    elevation_limits(i) = limit;
                     elevation_limit_mask = e > elevation_limits(i);
-                    rel_loc = location_time(T, R, h, e, r, elevation_limit_mask, rx.Times);
+                    rel_loc = location_time(T, R, direction, h, e, r, limit, elevation_limit_mask, tx.Times);
             end
 
             % elevation_limit_mask = relative_locations(i).elevation > elevation_limits(i);
@@ -349,4 +380,28 @@ function [loss, noise] = loss_and_noise_for_channel(receiver, transmitter, qkd_p
         environment.Noise("Detector Dark Counts", dark_counts), ...
         environment.Noise("Background Counts", background_counts_per_second), ...
     ];
+end
+
+function [total_skr, total_kr] = total_key_rates(times, secret_key_rates, key_rates)
+    arguments
+        times (1, :) datetime
+        secret_key_rates (1, :) {mustBeNumeric}
+        key_rates (1, :) {mustBeNumeric}
+    end
+
+    communicating = ~(isnan(secret_key_rates) | (secret_key_rates <= 0));
+    time_window_widths = ...
+        times([false, communicating(1:end-1)]) - times(communicating(2:end));
+
+    assert(~isempty(time_window_widths), "No communication occurs in this simulation");
+
+    if isnumeric(time_window_widths)
+        total_kr  = dot(time_window_widths, key_rates(communicating(1:end-1)));
+        total_skr = dot(time_window_widths, secret_key_rates(communicating(1:end-1)));
+        return
+    end
+
+    time_seconds = seconds(time_window_widths);
+    total_kr  = dot(time_seconds, key_rates(communicating(1:end-1)));
+    total_skr = dot(time_seconds, secret_key_rates(communicating(1:end-1)));
 end
