@@ -79,8 +79,16 @@ sim_ground_station_edi = sim_ground_station_edi.SetElevationLimit(30);
 receivers = {sim_ground_station_edi, sim_ground_station_inv, sim_ground_station_paris};
 transmitters = sim_satellite;
 
-results = nodes.QkdPassSimulationNext(receivers, transmitters, protocol.bbm92);
+env_2km = environment.Environment.Load(which("Dark Environment 2km.mat"));
+env_5km = environment.Environment.Load(which("Dark Environment 5km.mat"));
+env_10km = environment.Environment.Load(which("Dark Environment 10km.mat"));
+env_50km = environment.Environment.Load(which("Dark Environment 50km.mat"));
 
-results(1).plot()
-results(2).plot()
-results(3).plot()
+proto = protocol.bbm92;
+
+results = nodes.QkdPassSimulationNext(receivers, transmitters, proto, ...
+    "Environment", [env_50km, env_10km, env_2km]);
+
+for result = results
+    result.plot()
+end

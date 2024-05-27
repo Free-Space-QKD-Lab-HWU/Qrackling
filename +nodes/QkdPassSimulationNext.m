@@ -28,14 +28,14 @@ function results = QkdPassSimulationNext(receiver, transmitter, qkd_protocol, op
         needs_env = map_receivers_and_environments(receiver, "Environment", options.Environment);
     end
 
-    disp(needs_env)
+    supports_double_link = string(qkd_protocol.method) == "entanglement";
 
     [single_links, double_links] = find_links(receiver, transmitter);
 
     args = {{}, {}, qkd_protocol};
     if have_environment
-        args{numel(args)} = "Environment";
-        args{numel(args)} = options.Environment;
+        args{end + 1} = "Environment";
+        args{end + 1} = options.Environment(1);
     end
 
     loss_dict = dictionary;
@@ -49,6 +49,9 @@ function results = QkdPassSimulationNext(receiver, transmitter, qkd_protocol, op
     for s = [single_links{:}]
         args{1} = receiver{s.rx_idx};
         args{2} = transmitter{s.tx_idx};
+        if have_environment
+            args{end} = options.Environment(s.rx_idx);
+        end
         [loss, noise] = loss_and_noise_for_channel(args{:});
         key = [num2str(s.rx_idx), ' ', num2str(s.tx_idx)];
         loss_dict(key) = loss;
@@ -92,6 +95,12 @@ function results = QkdPassSimulationNext(receiver, transmitter, qkd_protocol, op
             loss, noise, ...
             sifted_key_rate, secret_key_rate, qber, protocol_name);
         r = r + 1;
+    end
+
+    if ~supports_double_link
+        % return here if not capable of double link
+        results = results(1:numel(single_links));
+        return
     end
 
     for d = [double_links{:}]
@@ -164,8 +173,8 @@ end
 function needs_env = map_receivers_and_environments(receiver, options)
     arguments
         receiver { ...
-            mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"]), ...
-            nodes.mustHaveDetector(receiver)}
+            nodes.mustBeReceiverOrTransmitter(receiver), ...
+            nodes.mustHaveDetector(receiver) }
         options.Environment environment.Environment
     end
 
@@ -380,9 +389,9 @@ function [loss, noise] = loss_and_noise_for_channel(receiver, transmitter, qkd_p
     background_counts_per_second = zeros(size(headings));
 
     if ismember(fieldnames(options), "Environment")
-        link_loss_args{numel(link_loss_args)} = "atmospheric";
-        link_loss_args{numel(link_loss_args)} = "environment";
-        link_loss_args{numel(link_loss_args)} = options.Environment;
+        link_loss_args{end + 1} = "atmospheric";
+        link_loss_args{end + 1} = "environment";
+        link_loss_args{end + 1} = options.Environment;
 
 
         background_radiance = options.Environment.Interp( ...

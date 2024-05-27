@@ -49,7 +49,14 @@ classdef LossResult
 
             props = properties(result);
             loss_props = props(~contains(props, {'kind'}))';
-            valid_props = ~cellfun(@(p) isempty(result.(p)), loss_props);
+
+            valid_props = logical([1, numel(loss_props)]);
+
+            i = 1;
+            for l = loss_props
+                valid_props(i) = ~isempty(result.(l{1}).values);
+                i = i + 1;
+            end
 
             valid_props = loss_props(valid_props);
 

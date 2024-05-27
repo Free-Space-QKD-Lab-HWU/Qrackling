@@ -207,12 +207,11 @@ classdef PassSimulationResultNext
                     mean(result.transmitter_location.Altitude), ...
                     result.elevation_limit(1))
                 labels{end + 1} = result.receiver_name{r};
+                labels{end + 1} = 'Line-of-Sight';
                 r = r + 1;
-
             end
 
             legend(labels, 'Location', 'southwest');
-
             geolimits( ...
                 mean([result.receiver_location.Latitude]) + [-4, 4], ...
                 mean([result.receiver_location.Longitude]) + [-4, 4] );
