@@ -86,7 +86,7 @@ env_50km = environment.Environment.Load(which("Dark Environment 50km.mat"));
 
 proto = protocol.bbm92;
 
-results = nodes.QkdPassSimulationNext(receivers, transmitters, proto, ...
+results = nodes.QkdPassSimulation(receivers, transmitters, proto, ...
     "Environment", [env_50km, env_10km, env_2km]);
 
 for result = results
