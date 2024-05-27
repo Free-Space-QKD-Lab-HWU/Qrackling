@@ -94,6 +94,7 @@ classdef LossResult
                 x_axis
                 x_label
                 options.mask
+                options.axes
             end
 
             have_mask = any(contains(fieldnames(options), "mask"));
@@ -117,8 +118,15 @@ classdef LossResult
                 end
             end
 
-            area(x_axis(options.mask), cell2mat(struct2cell(loss_arrays))');
-            legend(labels(1:i-1), "Orientation", "horizontal", "Location", "south")
+            if ismember(fieldnames(options), "axes")
+                area(options.axes, x_axis(options.mask), cell2mat(struct2cell(loss_arrays))');
+            else
+                area(x_axis(options.mask), cell2mat(struct2cell(loss_arrays))');
+            end
+
+            lgd = legend(labels(1:i-1), "Orientation", "horizontal", "Location", "south");
+            lgd.NumColumns = 1;
+
             xlabel(x_label)
             ylabel("Losses (dB)")
             grid on

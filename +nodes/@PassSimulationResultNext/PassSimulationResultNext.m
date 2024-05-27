@@ -51,19 +51,19 @@ classdef PassSimulationResultNext
             end
 
             if isscalar(transmitter)
-                result.transmitter_name = utilities.node_name(transmitter);
+                result.transmitter_name = string(utilities.node_name(transmitter));
             else
-                result.transmitter_name = ...
+                result.transmitter_name = string( ...
                     cellfun(@(tx) utilities.node_name(tx), transmitter, ...
-                            "UniformOutput", false);
+                            "UniformOutput", false));
             end
 
             if isscalar(receiver)
-                result.receiver_name = utilities.node_name(receiver);
+                result.receiver_name = string(utilities.node_name(receiver));
             else
-                result.receiver_name = ...
+                result.receiver_name = string( ...
                     cellfun(@(tx) utilities.node_name(tx), receiver, ...
-                            "UniformOutput", false);
+                            "UniformOutput", false));
             end
 
             result.transmitter_location = transmitter_location;
@@ -121,7 +121,7 @@ classdef PassSimulationResultNext
 
             x_label = 'Time';
             x_axis = result.time;
-            if isa(result.receiver_name, "cell")
+            if numel(result.receiver_name) > 1
                 x_axis = result.time(1, :);
                 total_loss_db = result.loss(1).TotalLoss("dB").values ...
                     + result.loss(2).TotalLoss("dB").values;
@@ -147,20 +147,25 @@ classdef PassSimulationResultNext
                 mask = true(size(result.communications));
             end
 
-            figure_name = string([result.protocol_name, ' simulation from ', result.transmitter_name, ' to ']);
-            if isa(result.receiver_name, "cell")
+            figure_name = string(result.protocol_name) ...
+                + " simulation from " ...
+                + result.transmitter_name ...
+                + " to ";
+
+            if numel(result.receiver_name) > 1
                 figure_name = figure_name ...
-                    + string([result.receiver_name{1}, ' and ', result.receiver_name{2}]);
+                    + result.receiver_name{1} + " and " + result.receiver_name{2};
             else
-                figure_name = figure_name + string(result.receiver_name);
+                figure_name = figure_name + result.receiver_name;
             end
 
             fig = figure("Name", figure_name);
+            [~] = tiledlayout(3, 3, "TileSpacing", "tight");
 
             [total_secure_key, ~] = result.total_key_rates();
 
             % plot performance
-            subplot(3, 3, [1, 2])
+            nexttile([1, 2])
             yyaxis left
             hold on
             plot(x_axis(mask), result.secret_key_rate(mask), '-')
@@ -174,6 +179,7 @@ classdef PassSimulationResultNext
                 'HorizontalAlignment', 'center', ...
                 'FontName', get(groot,'defaultAxesFontName'), ...
                 'FontSize', get(groot,'defaultAxesFontSize'))
+
             % plot QBER
             yyaxis right
             plot(x_axis(mask), result.qber(mask) .* 100)
@@ -182,15 +188,8 @@ classdef PassSimulationResultNext
             legend('Secret Key Rate','Sifted Key Rate','')
             xlim([min(x_axis(mask)), max(x_axis(mask))])
 
-            % plot loss
-
-
-            % plot background counts
-
-
             % plot scenario on map
-            subplot(3, 3, [3, 6])
-
+            nexttile(3, [2, 1])
             geoplot( ...
                 result.transmitter_location.Latitude, ...
                 result.transmitter_location.Longitude)
@@ -199,21 +198,79 @@ classdef PassSimulationResultNext
                 result.transmitter_location.Latitude(mask), ...
                 result.transmitter_location.Longitude(mask), 'g')
 
-            nodes.PassSimulationResultNext.PlotLOS( ...
-                result.receiver_location(1), ...
-                mean(result.transmitter_location.Altitude), ...
-                result.elevation_limit(1))
-            nodes.PassSimulationResultNext.PlotLOS( ...
-                result.receiver_location(2), ...
-                mean(result.transmitter_location.Altitude), ...
-                result.elevation_limit(2))
+            labels = ["Satellite path", strcat(options.mask, " window")];
+
+            r = 1;
+            for rx_loc = result.receiver_location
+                nodes.PassSimulationResultNext.PlotLOS( ...
+                    rx_loc, ...
+                    mean(result.transmitter_location.Altitude), ...
+                    result.elevation_limit(1))
+                labels{end + 1} = result.receiver_name{r};
+                r = r + 1;
+
+            end
+
+            legend(labels, 'Location', 'southwest');
 
             geolimits( ...
                 mean([result.receiver_location.Latitude]) + [-4, 4], ...
                 mean([result.receiver_location.Longitude]) + [-4, 4] );
 
-            % plot total loss vs skr
-            subplot(3, 3, [9, 9])
+            % plot loss
+            if numel(result.loss) > 1
+                ax1 = nexttile(4);
+                result.loss(1).plotLosses(x_axis, x_label, "mask", mask);
+                xlim([min(x_axis(mask)), max(x_axis(mask))])
+                ax2 = nexttile(5);
+                result.loss(2).plotLosses(x_axis, x_label, "mask", mask);
+                linkaxes([ax1, ax2], 'y')
+                xlim([min(x_axis(mask)), max(x_axis(mask))])
+            else
+                nexttile(4, [1, 2])
+                result.loss.plotLosses(x_axis, x_label, "mask", mask);
+                xlim([min(x_axis(mask)), max(x_axis(mask))])
+            end
+
+            % plot background counts
+            if numel(result.noise) > 2
+                nexttile(7)
+                title('BCR (counts/s)')
+                noise_rx1 = result.noise(:, 1);
+                n_sources = numel(noise_rx1);
+                n_points = numel(noise_rx1(1).values);
+                bcr_data = reshape([noise_rx1.values], [n_points, n_sources]);
+                area(x_axis(mask), bcr_data(mask, :))
+                xlabel(x_label)
+                lgd = legend(noise_rx1.label);
+                lgd.NumColumns = 1;
+                xlim([min(x_axis(mask)), max(x_axis(mask))])
+
+                nexttile(8)
+                title('BCR (counts/s)')
+                noise_rx2 = result.noise(:, 2);
+                n_sources = numel(noise_rx2);
+                n_points = numel(noise_rx2(1).values);
+                bcr_data = reshape([noise_rx2.values], [n_points, n_sources]);
+                area(x_axis(mask), bcr_data(mask, :))
+                xlabel(x_label)
+                lgd = legend(noise_rx2.label);
+                lgd.NumColumns = 1;
+                xlim([min(x_axis(mask)), max(x_axis(mask))])
+            else
+                nexttile(7, [1, 2])
+                title('BCR (counts/s)')
+                n_sources = numel(result.noise);
+                n_points = numel(result.noise(1).values);
+                bcr_data = reshape([result.noise.values], [n_points, n_sources]);
+                area(x_axis(mask), bcr_data(mask, :))
+                xlabel(x_label)
+                lgd = legend(result.noise.label);
+                lgd.NumColumns = 1;
+                xlim([min(x_axis(mask)), max(x_axis(mask))])
+            end
+
+            nexttile()
             title('Link performance')
             semilogy(total_loss_db(mask), result.secret_key_rate(mask), 'k-')
             xlabel('Link Loss (dB)')
@@ -240,11 +297,6 @@ classdef PassSimulationResultNext
             % PLOTLOS plot the ground station and its line of sight to a
             % given altitude
 
-            disp(ogs_location)
-            disp(ogs_location.Latitude)
-            disp(ogs_location.Longitude)
-            disp(elevation_limit)
-
             % plot ground station
             geoplot(ogs_location.Latitude, ogs_location.Longitude, 'k*', 'MarkerSize', 20);
             hold on
@@ -261,9 +313,10 @@ classdef PassSimulationResultNext
                 WindowLon(Heading) = CurrentWindowLon;
             end
             geoplot(WindowLat, WindowLon, 'k--')
-            leg = legend;
-            leg.String{end + 1} = "Ground Station";
-            leg.String{end} = "Ground Station orbit LOS";
+            % leg = legend;
+            % % leg.String{end + 1} = "Ground Station";
+            % leg.String{end + 1} = ogs_name;
+            % leg.String{end} = "Ground Station orbit LOS";
         end
     end
 
