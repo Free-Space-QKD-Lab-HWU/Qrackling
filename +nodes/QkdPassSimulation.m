@@ -43,7 +43,7 @@ function results = QkdPassSimulation(receiver, transmitter, qkd_protocol, option
     background_counts_dict = dictionary;
 
     result_dim = [1, numel(single_links) + numel(double_links)];
-    results = createArray(result_dim, "nodes.PassSimulationResultNext");
+    results = createArray(result_dim, "nodes.PassSimulationResult");
 
     r = 1;
     for s = [single_links{:}]
