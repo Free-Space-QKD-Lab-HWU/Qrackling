@@ -86,7 +86,7 @@ classdef PassSimulationResult
 
         function [total_secret, total_sifted] = total_key_rates(result)
             arguments
-                result nodes.PassSimulationResultNext
+                result nodes.PassSimulationResult
             end
 
             communicating = ~(isnan(result.secret_key_rate) | (result.secret_key_rate <= 0));
@@ -202,7 +202,7 @@ classdef PassSimulationResult
 
             r = 1;
             for rx_loc = result.receiver_location
-                nodes.PassSimulationResultNext.PlotLOS( ...
+                nodes.PassSimulationResult.PlotLOS( ...
                     rx_loc, ...
                     mean(result.transmitter_location.Altitude), ...
                     result.elevation_limit(1))
