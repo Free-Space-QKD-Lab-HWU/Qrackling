@@ -4,7 +4,7 @@ classdef (Abstract) QKD_Receiver < nodes.Optical_Node
 
     properties
         % a detector object, validated individually in subclasses
-        Detector =[];
+        Detector = [];
 
         % background count rate (in counts/s) as a function of heading and 
         % elevation, stored as a structure with fields 'Count_Rate', 'Heading' 

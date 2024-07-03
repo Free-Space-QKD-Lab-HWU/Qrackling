@@ -19,7 +19,7 @@ classdef dps < protocol.proto
             [~] = proto;
 
             rep_rate = Alice.Source.Repetition_Rate;
-            eta = Bob.Detector.Detection_Efficiency;
+            eta = proto.ReceiverLoss(Bob.Detector.Detection_Efficiency);
             V = Bob.Detector.Visibility;
             mu = Alice.Source.MPN_Signal;
             prob_dark_counts = proto.BackgroundCountProbability( ...

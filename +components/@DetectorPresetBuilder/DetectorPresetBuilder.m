@@ -109,37 +109,31 @@ classdef DetectorPresetBuilder
             % by outputPath. This calls makeDetectorPreset() ensuring that the
             % requirements for a valid detector preset have been met.
             outputPath = utilities.addUserPath(outputPath);
-            preset = builder.makeDetectorPreset();
-            save(outputPath, 'preset');
+            detector_preset = builder.makeDetectorPreset();
+            save(outputPath, 'detector_preset');
         end
 
-        function preset = loadPreset(builder, presetFilePath)
+        function detector_preset = loadPreset(builder, presetFilePath)
             arguments
                 builder components.DetectorPresetBuilder
                 presetFilePath {mustBeFile}
             end
             % Load a preset from presetFilePath. The loaded preset is contained
             % within the builder and validated with makeDetectorPreset()
-            preset = load(presetFilePath).preset;
-            builder.preset = preset;
-            preset = builder.makeDetectorPreset();
-        end
-
-        function presetBuilder = BuildPresetFromDetector(builder, name, detector)
-            % Build a preset from a name and a Detector object.
-            arguments
-                builder components.DetectorPresetBuilder
-                name {mustBeText}
-                detector Detector
+            if isscalar(presetFilePath)
+                preset_raw = load(presetFilePath);
+                fields = fieldnames(preset_raw);
+                builder.preset = preset_raw.(fields{1});
+                detector_preset = builder.makeDetectorPreset();
+                return
             end
 
-            presetBuilder = DetectorPresetBuilder() ...
-                .addName(name) ...
-                .addDarkCountRate(detector.Dark_Count_Rate) ...
-                .addDeadTime(detector.Dead_Time) ...
-                .addJitterHistogram(detector.Jitter_Histogram, detector.Histogram_Bin_Width) ...
-                .addDetectorEfficiencyArray(detector.Wavelength_Range, detector.Efficiencies);
+            detector_preset = createArray(numel(presetFilePath), 1, "components.DetectorPreset");
+            for i = 1:numel(presetFilePath)
+                detector_preset(i) = builder.loadPreset(presetFilePath(i));
+            end
         end
+
 
         function convert(builder, old, old_preset_path)
             arguments
@@ -157,9 +151,29 @@ classdef DetectorPresetBuilder
             builder.preset.Histogram_Bin_Width = old.Histogram_Bin_Width;
             builder.preset.Wavelength_Range = old.Wavelength_Range;
             builder.preset.Efficiencies = old.Efficiencies;
-            preset = builder.preset;
-            save(old_preset_path, 'preset');
+            detector_preset = builder.preset;
+            save(old_preset_path, 'detector_preset');
         end
 
     end
+
+    methods (Static)
+
+        function presetBuilder = BuildPresetFromDetector(name, detector)
+            % Build a preset from a name and a Detector object.
+            arguments
+                name {mustBeText}
+                detector Detector
+            end
+
+            presetBuilder = DetectorPresetBuilder() ...
+                .addName(name) ...
+                .addDarkCountRate(detector.Dark_Count_Rate) ...
+                .addDeadTime(detector.Dead_Time) ...
+                .addJitterHistogram(detector.Jitter_Histogram, detector.Histogram_Bin_Width) ...
+                .addDetectorEfficiencyArray(detector.Wavelength_Range, detector.Efficiencies);
+        end
+
+    end
+
 end

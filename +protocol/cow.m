@@ -34,7 +34,7 @@ classdef cow < protocol.proto
             %error correction efficiency
             f = 1.2;
             % Total absolute loss
-            T = total_loss;
+            T = total_loss; % BUG: Is this missing detection efficiency
             % average number of photons arriving at receiver per pulsee
             R = MPN .* T;
             % probability of pings at receiver

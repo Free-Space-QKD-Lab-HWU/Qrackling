@@ -52,7 +52,7 @@ classdef decoyBB84 < protocol.proto
             state_prep_error = alice.Source.State_Prep_Error;
 
             %loss = bob.channel_efficiency;
-            loss = total_loss .* bob.Detector.Detection_Efficiency;
+            loss = total_loss .* proto.ReceiverLoss(bob.Detector.Detection_Efficiency);
             prob_dark_counts = proto.BackgroundCountProbability( ...
                 total_background_count_rate, ...
                 bob.Detector.Time_Gate_Width);

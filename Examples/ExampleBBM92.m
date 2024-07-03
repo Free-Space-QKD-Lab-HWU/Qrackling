@@ -70,4 +70,4 @@ SimGround_Station=nodes.Ground_Station( ...
 Result = nodes.QkdPassSimulation(SimGround_Station, SimSatellite, protocol.bbm92);
 
 %3.2 plot results
-plotResult(Result , SimGround_Station , SimSatellite)
+Result.plot()
