@@ -79,7 +79,7 @@ classdef  Detector
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Jitter_Histogram, 0)}
                 options.Histogram_Bin_Width {mustBeNumeric, mustBePositive}
-                options.Wavelength_Range {mustBeNumeric} %FIX: Has this been deprecated?
+                options.Wavelength_Range {mustBeNumeric}
                 options.Efficiencies { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Efficiencies, 0), ...
@@ -150,34 +150,34 @@ classdef  Detector
             Detector = Detector.SetDetectionEfficiency(Wavelength=Wavelength);
         end
 
-        function Detector = HistogramInfo(Detector)
+        % function Detector = HistogramInfo(Detector)
 
-            range = @(b) linspace(1, b, b);
-            upperHalf = @(array) array >= (max(array) / 2);
-            width = @(array) array(end) - array(1);
-            fwhm = @(xarray, yarray) width(xarray(upperHalf(yarray)));
+        %     range = @(b) linspace(1, b, b);
+        %     upperHalf = @(array) array >= (max(array) / 2);
+        %     width = @(array) array(end) - array(1);
+        %     fwhm = @(xarray, yarray) width(xarray(upperHalf(yarray)));
 
-            bins = range(numel(Detector.Jitter_Histogram));
+        %     bins = range(numel(Detector.Jitter_Histogram));
 
-            % TODO fix magic number here!!!
-            smoothed = smooth(Detector.Jitter_Histogram, 1000);
-            shift = floor(fwhm(bins, Detector.Jitter_Histogram) / 2);
-            crossed = abs(smoothed - circshift(smoothed, shift));
-            mask = bins((crossed / max(crossed)) > 0.05);
+        %     % TODO fix magic number here!!!
+        %     smoothed = smooth(Detector.Jitter_Histogram, 1000);
+        %     shift = floor(fwhm(bins, Detector.Jitter_Histogram) / 2);
+        %     crossed = abs(smoothed - circshift(smoothed, shift));
+        %     mask = bins((crossed / max(crossed)) > 0.05);
 
-            % ABSOLUTELY DO NOT DO THIS WITH JITTER DATA
-            % Need oscilloscope traces for each detector
+        %     % ABSOLUTELY DO NOT DO THIS WITH JITTER DATA
+        %     % Need oscilloscope traces for each detector
 
-            peakLocation = bins(max(smoothed) == smoothed);
-            waveformStart = mask(1);
-            waveformEnd = mask(end);
-            %disp([waveformStart, peakLocation, waveformEnd])
-            riseTime = (peakLocation - waveformStart) * Detector.Histogram_Bin_Width;
-            fallTime = (waveformEnd - peakLocation) * Detector.Histogram_Bin_Width;
-            deadTime = fwhm(bins, Detector.Jitter_Histogram) * Detector.Histogram_Bin_Width;
+        %     peakLocation = bins(max(smoothed) == smoothed);
+        %     waveformStart = mask(1);
+        %     waveformEnd = mask(end);
+        %     %disp([waveformStart, peakLocation, waveformEnd])
+        %     riseTime = (peakLocation - waveformStart) * Detector.Histogram_Bin_Width;
+        %     fallTime = (waveformEnd - peakLocation) * Detector.Histogram_Bin_Width;
+        %     deadTime = fwhm(bins, Detector.Jitter_Histogram) * Detector.Histogram_Bin_Width;
 
-            %disp([riseTime, fallTime, deadTime] .* 1e9)
-        end
+        %     %disp([riseTime, fallTime, deadTime] .* 1e9)
+        % end
 
         function Detector = SetHistogramBinWidth(Detector,Width)
             %%SETHISTOGRAMBINWIDTH set how wide the bins are in the jitter
@@ -191,13 +191,19 @@ classdef  Detector
                 Detector
                 Wavelength
                 options.Wavelength_Scale units.Magnitude = 'nano'
+                options.UpdateEfficiency logical = false
             end
             %%SETWAVELENGTH set wavelength at which the detector is
             %%operating- which will determine detection efficiency
-            Detector.Wavelength = units.Magnitude.Convert(...
-                options.Wavelength_Scale, ...
-                "nano", ...
-                Wavelength);
+
+            wavelength_new = units.Magnitude.Convert(options.Wavelength_Scale, "nano", Wavelength);
+
+
+            if options.UpdateEfficiency == true
+                Detector = Detector.SetDetectionEfficiency(Wavelength=Wavelength);
+            end
+
+            Detector.Wavelength = wavelength_new;
         end
 
         function Detector = SetDeadTime(Detector, Dead_Time)
@@ -474,7 +480,7 @@ classdef  Detector
             Det.Polarisation_Error = Polarisation_Error;
         end
 
-        function Det = SetDetectionEfficiency(Det, options)
+        function Detector = SetDetectionEfficiency(Detector, options)
             % Set detection efficiency according to the options.{Efficiency, 
             % Wavelength}, only one options can be passed when called otherwise the
             % function errors:
@@ -486,7 +492,7 @@ classdef  Detector
             % det.SetDetectionEfficiency(Efficiency=0.8)
             % det.SetDetectionEfficiency(Wavelength=1550)
             arguments
-                Det components.Detector
+                Detector
                 options.Efficiency double { ...
                     mustBeNonnegative, mustBeLessThanOrEqual(options.Efficiency, 1)}
                 options.Wavelength double {mustBeNonnegative}
@@ -498,23 +504,24 @@ classdef  Detector
                 'Either "Efficiency" or "Wavelength" should supplied not both');
 
             if contains(fields, 'Efficiency')
-                Det.Detection_Efficiency = options.Efficiency;
+                Detector.Detection_Efficiency = options.Efficiency;
                 return
             end
 
             if contains(fields, 'Wavelength')
-                min_wavelength = min(Det.Wavelength_Range);
-                max_wavelength = max(Det.Wavelength_Range);
+                min_wavelength = min(Detector.Wavelength_Range);
+                max_wavelength = max(Detector.Wavelength_Range);
                 assert( ...
                     (options.Wavelength >= min_wavelength) & ...
                     (options.Wavelength <= max_wavelength), ...
                     ['Wavelength must be in range: ', num2str(min_wavelength), ...
                     ' : ', num2str(max_wavelength), '.'])
 
-                Det = Det.SetWavelength(options.Wavelength);
+                % Detector.SetWavelength(options.Wavelength);
+                Detector.Wavelength = options.Wavelength;
 
-                pw_poly = interp1(Det.Wavelength_Range, Det.Efficiencies, 'cubic', 'pp');
-                Det.Detection_Efficiency = ppval(pw_poly, options.Wavelength);
+                pw_poly = interp1(Detector.Wavelength_Range, Detector.Efficiencies, 'cubic', 'pp');
+                Detector.Detection_Efficiency = ppval(pw_poly, options.Wavelength);
             end
 
         end
