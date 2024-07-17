@@ -209,6 +209,9 @@ classdef libRadtran < handle
                 linebreak = [char(13), linebreak];
             end
             str = '';
+
+            %insert data_files_path to assist LRT in finding its own data
+            str = ['# Path to LRT data',newline,'data_files_path ',lrt.lrt_root,filesep(),'data',filesep()];
             for p = properties(lrt)'
                 if isequal(p{1},'File')
                     continue
@@ -269,11 +272,40 @@ classdef libRadtran < handle
                 [path_delimiter, path_delimiter], ...
                 path_delimiter);
 
+            if ispc()
+                configuration = ['# For windows "C:\" -> "/mnt/c/"',newline,...
+                                 strrep(strrep(configuration,'\\','//'),'C:','//mnt//c')];
+            end
             % disp(configuration_file_path);
             fd = fopen(configuration_file_path, 'w');
             written_bytes = fprintf(fd, configuration);
             assert(written_bytes > 0, 'Nothing written, something has gone wrong');
             fclose(fd);
+        end
+
+        function MakeShellScript(lrt,input_path)
+            %%create a shell script which can be run in linux or WSL and includes
+            %%and includes paths to input and output files
+            arguments
+                lrt libradtran.libRadtran
+                input_path {mustBeText}
+            end
+            in_path = input_path;
+
+            if ispc()
+                in_path = strrep(in_path,'\','/');
+                in_path = strrep(in_path,'C:','/mnt/c');
+            end
+
+            script = ['#!/usr/bin/env sh',newline,...
+                      'uvspec < ',in_path];
+
+
+
+
+            fid = fopen('lrtrunner.sh',"w");
+            fwrite(fid,script);
+            fclose(fid);
         end
 
         function output_file = RunConfiguration(lrt, file_path, file_name, options)
@@ -295,25 +327,40 @@ classdef libRadtran < handle
             input_path = lrt.SaveConfigurationString(file_path, ...
                 file_name, "Configuration_String", options.Configuration_String);
 
+            MakeShellScript(lrt,input_path);
+            
             path_delimiter = '/';
             if ispc()
                 path_delimiter = '\';
             end
 
-            lrt_directory = strjoin({char(lrt.lrt_root), 'examples'}, path_delimiter);
-            lrt_bin = strjoin({char(lrt.lrt_root), 'bin'}, path_delimiter);
-            uvspec_path = [lrt.lrt_root,filesep(),'bin',filesep(),'uvspec'];
-
-            call_str = strjoin({'',uvspec_path, ' < ', input_path, ''},'');
-            current_directory = cd(lrt_directory);
-
-            [status_flag,info] = system(call_str);
-            if isequal(options.Verbosity,'Verbose')
-                fprintf(info)
+            if ispc()
+                runner_str = 'wsl -e "./lrtrunner.sh';
+            else
+                runner_str = 'bash ./lrtrunner.sh';
             end
-            
-            [~] = cd(current_directory);
-            lrt.File = input_path;
+
+            [status_flag,info] = system(runner_str);
+             if isequal(options.Verbosity,'Verbose')
+                 fprintf(info)
+             end
+             
+             lrt.File = input_path;
+
+            % lrt_directory = strjoin({char(lrt.lrt_root), 'examples'}, path_delimiter);
+            % lrt_bin = strjoin({char(lrt.lrt_root), 'bin'}, path_delimiter);
+            % uvspec_path = [lrt.lrt_root,filesep(),'bin',filesep(),'uvspec'];
+            % 
+            % call_str = strjoin({'',uvspec_path, ' < ', input_path, ''},'');
+            % current_directory = cd(lrt_directory);
+            % 
+            % [status_flag,info] = system(call_str);
+            % if isequal(options.Verbosity,'Verbose')
+            %     fprintf(info)
+            % end
+            % 
+            % [~] = cd(current_directory);
+            % lrt.File = input_path;
 
         end
 
