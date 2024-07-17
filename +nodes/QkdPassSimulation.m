@@ -20,7 +20,7 @@ function results = QkdPassSimulation(receiver, transmitter, qkd_protocol, option
         transmitter = {transmitter};
     end
 
-    have_environment = ismember(fieldnames(options), "Environment");
+    have_environment = any(ismember(fieldnames(options), "Environment"));
 
     % check length of needs_env to pick route
     needs_env = have_environment;

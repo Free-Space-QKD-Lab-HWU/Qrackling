@@ -54,7 +54,7 @@ classdef LossResult
 
             i = 1;
             for l = loss_props
-                valid_props(i) = ~isempty(result.(l{1}).values);
+                valid_props(i) = ~isempty(result.(l{1}));
                 i = i + 1;
             end
 

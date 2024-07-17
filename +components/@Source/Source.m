@@ -18,7 +18,7 @@ classdef Source
         MPN_Decoy {mustBeNumeric, mustBeNonnegative} % optional
 
         %convolution of errors due to state preparation (as a fraction)
-        % NOTE: Error when encoding polariation, i.e. accidentally encoding 'H'
+        % Error when encoding polariation, i.e. accidentally encoding 'H'
         % when trying to encode 'V'
         State_Prep_Error{mustBeScalarOrEmpty, mustBeNonnegative} = 0.01;
 

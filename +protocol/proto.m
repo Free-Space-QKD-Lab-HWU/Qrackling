@@ -33,7 +33,7 @@ classdef proto
                 background_counts (:, :, :) {mustBeNumeric}
             end
 
-            RowOrColumn = @(arr) sum((size(arr) == min(size(arr))) .* [1, 2]);
+            % RowOrColumn = @(arr) sum((size(arr) == min(size(arr))) .* [1, 2]);
 
             if min(size(total_loss)) == 2
                 % got different losses for two different channels
@@ -42,10 +42,64 @@ classdef proto
                 return
             end
 
+            bob_dcr = proto.ReceiverDarkCountRate(bob);
+
             [secret_rate, sifted_rate, qber] = proto.QkdModel( ...
                 alice, bob, ...
                 units.Loss(loss_unit, "", total_loss).As("probability"), ...
-                background_counts + bob.Detector.Dark_Count_Rate*proto.num_detectors);
+                background_counts + bob_dcr);
+
+        end
+
+        function loss = ReceiverLoss(proto, rx)
+            arguments
+                proto protocol.proto
+                rx { ...
+                    nodes.mustBeReceiverOrTransmitter(rx), ...
+                    nodes.mustHaveDetector(rx) }
+            end
+
+            if proto.num_detectors == 1
+                loss = rx.Detector.Detection_Efficiency;
+                return
+            end
+
+            if isscalar(rx)
+                loss = rx.Detector.Detection_Efficiency;
+                return
+            end
+
+            % now assume that counts are randomly and evenly distributed to all
+            % detectors
+            
+            % See Eurasian-scale experimental satellite-based quantum key distribution
+            % with detector efficiency mismatch analysis
+            % (https://doi.org/10.1364/OE.511772). equation 1
+            % Sum over detection efficiencies after scaling to number of detectors
+
+            loss = sum(rx.Detector.Detection_Efficiency ./ proto.num_detectors); 
+
+
+        end
+
+        function dcr = ReceiverDarkCountRate(proto, bob)
+            arguments
+                proto protocol.proto
+                bob { ...
+                    nodes.mustBeReceiverOrTransmitter(bob), ...
+                    nodes.mustHaveDetector(bob) }
+            end
+
+            if isscalar(bob.Detector)
+                dcr = bob.Detector.Dark_Count_Rate .* proto.num_detectors;
+                return
+            end
+
+            assert(numel(bob.Detector) == proto.num_detectors, [
+                'Receiver must have either a single detector object for ', ...
+                'all detections modes or specific detector objects for ', ...
+                'each mode']);
+            dcr = sum(bob.Detector.Dark_Count_Rate);
 
         end
 
@@ -62,6 +116,7 @@ classdef proto
             prob = 1 - exp(-background_count_rate .* time_gate_width);
         end
 
+        % FIX: DEPRECATED
         function [secret_key_rate, qber, sifted_key_rate] = EvaluateQKDLink( ...
             proto, source, detector, Link_Loss_dB, Background_Count_Rate)
             % EVALUATEQKDLINK enact the link performance simulation for the

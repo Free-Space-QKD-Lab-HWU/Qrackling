@@ -52,7 +52,7 @@ classdef e91 < protocol.proto
             prob_dark_counts = proto.BackgroundCountProbability(total_background_count_rate);
             P_e = prob_dark_counts;
             % detection efficiency
-            det_eff = Bob.Detector.Detection_Efficiency;
+            det_eff = proto.ReceiverLoss(Bob.Detector.Detection_Efficiency);
             if det_eff > 1
                 eta_e = det_eff / 100;
             else

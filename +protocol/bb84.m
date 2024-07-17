@@ -50,7 +50,8 @@ classdef bb84 < protocol.proto
             rep_rate = Alice.Source.Repetition_Rate;
 
             % detection efficiency
-            eta = Bob.Detector.Detection_Efficiency;
+            % eta = Bob.Detector.Detection_Efficiency;
+            eta = proto.ReceiverLoss(Bob.Detector.Detection_Efficiency);
 
             % probability of dark counts (Bob's detetcion stage - convolution of all 
             % Detectors used by Bob)
@@ -58,6 +59,7 @@ classdef bb84 < protocol.proto
             prob_dark = proto.BackgroundCountProbability(total_background_count_rate,Bob.Detector.Time_Gate_Width);
 
             % probability of a single detection event 
+            % prob_click = MPN * eta * total_loss + prob_dark;
             prob_click = MPN * eta * total_loss + prob_dark;
 
             % probability that the Source generated more than one photon
