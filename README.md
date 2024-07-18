@@ -59,7 +59,7 @@ Installation of the toolbox is as simple as ensuring it's on the MATLAB path. Fi
 <details>
 <summary><b>Optional</b></summary>
 
-- [LibRadtran](http://www.libradtran.org/doku.php)
+- [LibRadtran](http://www.libradtran.org/doku.php) 2.0.4 or later
 
 </details>
 
@@ -90,7 +90,7 @@ For those wanting to develop new features (or just use the most up to date versi
 3. (Optional) Add the examples to the MATLAB path with the pathtool (see step 4 of [Easy Installation](#easy-installation-recommended))
 
 ## LibRadtran
-libRadtran - library for radiative transfer - is a collection of C and Fortran functions and programs for calculation of solar and thermal radiation in the Earth's atmosphere. See the [libRadtran website](https://libradtran.org/doku.php) for technical details, licensing and operational instructions.
+libRadtran - library for radiative transfer - is a collection of C and Fortran functions and programs for calculation of solar and thermal radiation in the Earth's atmosphere. See the [libRadtran website](https://libradtran.org/doku.php) for technical details, licensing and operational instructions. Qrackling has been tested with libRadtran 2.0.4 and 2.0.5.
 
 Qrackling has the optional ability to incorporate libRadtran to calculate background light and atmospheric transmission for conditions different to those already provided. This requires the installation of libRadtran to the machine running Qrackling. The following instructions detail how to do this on *NIX and windows machines. On windows, the process is marginally more complicated, as both installation and then running of libRadtran have been designed to depend on [windows subsystem for linux](https://learn.microsoft.com/en-us/windows/wsl/) (WSL). Steps which are only for windows users are **_in bold italics_**. *NIX (e.g. linux or macOS) should ignore these steps.
 
