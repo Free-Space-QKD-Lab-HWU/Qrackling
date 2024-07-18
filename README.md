@@ -89,8 +89,52 @@ For those wanting to develop new features (or just use the most up to date versi
     ```
 3. (Optional) Add the examples to the MATLAB path with the pathtool (see step 4 of [Easy Installation](#easy-installation-recommended))
 
+## LibRadtran
+libRadtran - library for radiative transfer - is a collection of C and Fortran functions and programs for calculation of solar and thermal radiation in the Earth's atmosphere. See the [libRadtran website](https://libradtran.org/doku.php) for technical details, licensing and operational instructions.
+
+Qrackling has the optional ability to incorporate libRadtran to calculate background light and atmospheric transmission for conditions different to those already provided. This requires the installation of libRadtran to the machine running Qrackling. The following instructions detail how to do this on *NIX and windows machines. On windows, the process is marginally more complicated, as both installation and then running of libRadtran have been designed to depend on [windows subsystem for linux](https://learn.microsoft.com/en-us/windows/wsl/) (WSL). Steps which are only for windows users are **_in bold italics_**. *NIX (e.g. linux or macOS) should ignore these steps.
+
+### Dependencies
+Building and running libRadtran depends on the following:
+- make
+- g++
+- gcc
+- gfortran
+- NetCDF (libraries and headers, e.g. on ubuntu (including in WSL) libnetcdff-dev)
+- gsl (libraries and headers, e.g. on ubuntu (including in WSL) libgsl-dev)
+- **_WSL (windows subsystem for linux, required for windows only)_**
+
+### Installation
+1. Download and unzip libRadtran from [its website](https://libradtran.org/doku.php?id=download) to an easily accessible folder
+   - **_Ensure on windows that this path does not contain spaces, as these cannot be parsed by libRadtran_**.
+   - Make a note of this path, we will need it later.
+2. **_Install and prepare WSL_**
+   - **_[WSL](https://learn.microsoft.com/en-us/windows/wsl/install) can be installed by opening the command prompt and calling `WSL --install`._**
+   - **_Once installed, launch WSL by calling `wsl` in the command prompt._**
+   - **_You will be prompted to create a username and password pair._**
+   - **_To test your network connection, call `sudo apt update`. If this succeeds and updates your packages, continue to the next step._**
+      - **_In some cases, especially on managed PCs, WSL will not have network permissions. Contact your IT service if this is an issue and they will be able to allow WSL through the firewall_**
+3. Install required *NIX packages
+   - Use your favourite flavour of package manager to install the packages listed in the dependencies above. The versions you require will depend on the hardware architecture you are using.
+   - **_For instance, the standard installation of WSL will install them with the command `sudo apt install g++ gcc gfortran make libnetcdff-dev libgsl-dev`_**
+      - This step will require permissions (hence `sudo` above).
+4. Navigate to the top of your unzipped libRadtran folder.
+   - **_In WSL, this path can be formed by taking the windows path to the libRadtran folder, replacing all `\` with `/`, and replacing `C:\` with `/mnt/c/` (or equivalent)._**
+   - This folder should contain further folders named bin, data, doc, examples (as well as many more and several files).
+5. Build libRadtran
+   - Call `./configure` to configure the make files to build libRadtran. This will fail if you are missing any crucial packages.
+   - Call `make` to prepare to build.
+   - Call `make check` to ensure preparation went smoothly.
+   - Call `sudo make install` to build libRadtran.
+      - This step requires permissions (hence `sudo` above).
+6. Download aerosol files (optional)
+   - For MYSTIC polarisation calculations, some extra aerosol data are required.
+   - This is a very specific calculation and won't be required for most users.
+   - If required, download the OPAC data from the [libRadtran website downloads page](https://libradtran.org/doku.php?id=download).
+   - Unzip this information (there is quite a lot) and the contents into the libRadtran data folder.
 
 ## Publications
+[Dawn and dusk satellite quantum key distribution using time and phase based encoding and polarization filtering (preprint)](https://preprints.opticaopen.org/s/1bb0c741db45094e4890), C. Simmons, P. Barrow, R. Donaldson.
 
 ## License
 Qrackling and its tutorials/examples are [MIT licensed](https://github.com/RDonaldson5/QKD_Sat_Link/blob/main/LICENSE)
