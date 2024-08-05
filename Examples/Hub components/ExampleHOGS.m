@@ -18,7 +18,7 @@ OGS=HOGS(Wavelength,'BeaconCamera','Fine');%current HOGS model
 % or using custom start, stop and interval times
 
 %best case pass: 0423 to 0426 31 jan 2023, 50km visibility
-%{
+%%{
 StartTime = datetime(2022,12,25,6,0,0);
 StopTime = datetime(2022,12,25,7,0,0);
 Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\varying elevation MODTRAN data 3\Dark Environment 50km.mat");
@@ -33,7 +33,7 @@ TurbulenceString = 'HV5-7';
 %}
 
 %worst case pass: 0330 to 0333 4 feb 2023, 2km visibility
-%%{
+%{
 StartTime = datetime(2023,1,31,4,0,0);
 StopTime = datetime(2023,1,31,5,0,0);
 Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\varying elevation MODTRAN data 3\Dark Environment 5km.mat");
@@ -49,6 +49,6 @@ DownlinkBeaconResults = beacon.beaconSimulation(OGS,Sat);
 UplinkBeaconResults = beacon.beaconSimulation(Sat,OGS);
 
 %% plot a pass
-plotResult(PassResult,OGS,Sat,'x_axis','Time');
+plot(PassResult,'x_axis','Time','mask','Elevation');
 plot(DownlinkBeaconResults,"mask","Line of sight",'x_axis','Elevation');
 plot(UplinkBeaconResults,"mask","Line of sight");

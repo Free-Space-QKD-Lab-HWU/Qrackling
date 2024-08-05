@@ -60,9 +60,9 @@ function results = QkdPassSimulation(receiver, transmitter, qkd_protocol, option
 
         elev_mask = s.elevation_mask;
         dim = size(elev_mask);
-        secret_key_rate = zeros(size(dim));
-        sifted_key_rate = zeros(size(dim));
-        qber = zeros(size(dim));
+        secret_key_rate = zeros(dim);
+        sifted_key_rate = zeros(dim);
+        qber = zeros(dim);
 
         loss_array = loss.TotalLoss("probability").values(elev_mask);
         noise_array = noise(2).values(elev_mask);
@@ -72,7 +72,7 @@ function results = QkdPassSimulation(receiver, transmitter, qkd_protocol, option
             receiver{s.rx_idx}, ...
             loss_array, "probability", ...
             noise_array);
-
+        
         secret_key_rate(elev_mask) = skr;
         sifted_key_rate(elev_mask) = kr;
         qber(elev_mask) = q;
@@ -123,9 +123,9 @@ function results = QkdPassSimulation(receiver, transmitter, qkd_protocol, option
         noise_2 = background_counts_dict(key2).values(elev_mask);
 
         dim = size(elev_mask);
-        secret_key_rate = zeros(size(dim));
-        sifted_key_rate = zeros(size(dim));
-        qber = zeros(size(dim));
+        secret_key_rate = zeros(dim);
+        sifted_key_rate = zeros(dim);
+        qber = zeros(dim);
 
         [skr, kr, q] = qkd_protocol.Calculate( ...
             transmitter{l1.tx_idx}, ...
@@ -158,7 +158,7 @@ function results = QkdPassSimulation(receiver, transmitter, qkd_protocol, option
             [l1.heading; l2.heading], ...
             [l1.elevation; l2.elevation], ...
             [l1.range; l2.range], ...
-            [l1.time; l2.time], ...
+            l1.time, ...
             [l1.elevation_limit, l2.elevation_limit], ...
             elev_mask, ...
             [loss_dict(key1), loss_dict(key2)], ...

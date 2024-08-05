@@ -90,14 +90,18 @@ classdef PassSimulationResult
             end
 
             communicating = ~(isnan(result.secret_key_rate) | (result.secret_key_rate <= 0));
-            time = result.time(communicating);
-            % time_window_widths = time([false, communicating(1:end-1)]) - time(communicating(2:end));
-
-            time_window_widths = time(2:end) - time(1:end-1);
+            time = result.time;
+            time_window_widths = time([false, communicating(1:end-1)]) - time(communicating(2:end));
 
 
 
-            assert(~isempty(time_window_widths), "No communication occurs in this simulation");
+
+            if isempty(time_window_widths)
+                warning("No communication occurs in this simulation");
+                total_secret = 0;
+                total_sifted = 0;
+                return
+            end
 
             if isnumeric(time_window_widths)
                 total_sifted  = dot(time_window_widths, result.sifted_key_rate(communicating(1:end-1)));
@@ -142,7 +146,7 @@ classdef PassSimulationResult
             case "Communication"
                 mask = ~(isnan(result.secret_key_rate) | (result.secret_key_rate <= 0));
             case "Line of sight"
-                mask = result.line_of_sight;
+                mask = result.elevation > 0;
             case "None"
                 mask = true(size(result.communications));
             end
