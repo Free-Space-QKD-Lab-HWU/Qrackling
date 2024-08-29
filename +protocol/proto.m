@@ -35,6 +35,36 @@ classdef proto
 
             % RowOrColumn = @(arr) sum((size(arr) == min(size(arr))) .* [1, 2]);
 
+            n_alice = numel(alice);
+            if n_alice > 1
+                alice_sources = cellfun(@(a) proto.compatiblecomponent(a.source, a.Name), alice);
+            else
+                alice_sources = proto.CompatibleComponent(alice.Source, alice.Name);
+            end
+            assert(all(alice_sources), "Detector not compatible with protocol")
+    
+            n_bob = numel(bob);
+            if n_bob > 1
+                bob_detectors = cellfun(@(b) proto.CompatibleComponent(b.Detector, b.Name), bob);
+            else
+                bob_detectors = proto.CompatibleComponent(bob.Detector, bob.Name);
+            end
+            assert(all(bob_detectors), "Detector not compatible with protocol")
+
+            if string(proto.method) == "entanglement"
+                n_alice = numel(alice);
+                if n_alice > 1
+                    alice_detectors = cellfun(@(a) proto.CompatibleComponent(a.Detector, a.Name), alice);
+                else
+                    alice_detectors = proto.CompatibleComponent(alice.Detector, alice.Name);
+                end
+
+                if sum(alice_detectors) + sum(bob_detectors) < 2
+                    error("Not enough compatible detectors for protocol")
+                end
+
+            end
+
             if min(size(total_loss)) == 2
                 % got different losses for two different channels
                 [secret_rate, sifted_rate, qber] = proto.QkdModel( ...
@@ -147,29 +177,33 @@ classdef proto
                     source, detector, dark_count_probability, Link_Loss_dB);
         end
 
-        function result = CompatibleComponent(protocol, component)
+        function result = CompatibleComponent(protocol, component, label)
             % Determine whether a supplied source or detector meets the
             % requirements defined in the concrete implementation of
             % source_features and detector_features
             arguments
                 protocol protocol.proto
                 component {mustBeA(component, ["components.Detector", "components.Source"])}
+                label {mustBeTextScalar}
             end
 
-            component_name = inputname(2);
+            component_name = label;
             props = properties(component);
 
             switch class(component)
             case "components.Detector"
                 mask = ismember(props, protocol.detector_features);
+                component_name = string(component_name) +  ".Detector";
             case "components.Source"
                 mask = ismember(props, protocol.source_features);
+                component_name = string(component_name) +  ".Source";
             otherwise
                 error([component_name, ': Not a components.Detector or components.Source']);
             end
 
             msg = @(p_name) [ ...
-                'Field: [ ', p_name, ' ] of [ ', component_name, ...
+                newline, ...
+                'Field: [ ', p_name, ' ] of [ ', char(component_name), ...
                 ' ] is required. ', p_name, ' must be nonempty and not nan' ...
             ];
             result = true;
