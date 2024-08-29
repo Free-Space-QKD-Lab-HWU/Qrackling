@@ -64,8 +64,6 @@ classdef Source
                     mustBeLessThanOrEqual(options.Probability_Decoy, 1)}
             end
 
-            % BUG: Why isn't Wavelength assigned to anything
-
             for option = fieldnames(options)'
                 opt = option{1};
                 switch opt

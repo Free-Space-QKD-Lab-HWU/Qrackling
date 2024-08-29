@@ -42,11 +42,9 @@ function result = beaconSimulation( Receiver,Transmitter, options)
            'Altitude', Transmitter.Altitude);
 
     case nodes.LinkDirection.Intersatellite
-        %FIX: IMPLEMENT
         error("UNIMPLEMENTED")
 
     case nodes.LinkDirection.Terrestrial
-        %FIX: IMPLEMENT
         error("UNIMPLEMENTED")
     end
     line_of_sight_mask = elevations > 0;

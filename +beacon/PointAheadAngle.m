@@ -19,7 +19,6 @@ function [heading_PAA,elevation_PAA] = PointAheadAngle(Receiver,Transmitter)
     case nodes.LinkDirection.Intersatellite
         Times = Transmitter.Times;
     case nodes.LinkDirection.Terrestrial
-        %FIX: warn and return nan?
         error("UNIMPLEMENTED")
     end
 
