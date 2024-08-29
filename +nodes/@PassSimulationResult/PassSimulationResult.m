@@ -90,11 +90,9 @@ classdef PassSimulationResult
             end
 
             communicating = ~(isnan(result.secret_key_rate) | (result.secret_key_rate <= 0));
-            time = result.time;
-            time_window_widths = time([false, communicating(1:end-1)]) - time(communicating(2:end));
+            time = result.time(communicating);
 
-
-
+            time_window_widths = time(2:end) - time(1:end-1);
 
             if isempty(time_window_widths)
                 warning("No communication occurs in this simulation");
@@ -146,7 +144,7 @@ classdef PassSimulationResult
             case "Communication"
                 mask = ~(isnan(result.secret_key_rate) | (result.secret_key_rate <= 0));
             case "Line of sight"
-                mask = result.elevation > 0;
+                mask = result.line_of_sight;
             case "None"
                 mask = true(size(result.communications));
             end
