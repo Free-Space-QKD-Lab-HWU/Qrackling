@@ -149,34 +149,6 @@ classdef proto
             prob = 1 - exp(-background_count_rate .* time_gate_width);
         end
 
-        % FIX: DEPRECATED
-        function [secret_key_rate, qber, sifted_key_rate] = EvaluateQKDLink( ...
-            proto, source, detector, Link_Loss_dB, Background_Count_Rate)
-            % EVALUATEQKDLINK enact the link performance simulation for the
-            % particular protocol
-
-            arguments
-                 proto protocol.proto
-                 source components.Source
-                 detector components.Detector
-                 Link_Loss_dB
-                 Background_Count_Rate
-            end
-
-            %check compatibility
-            [~] = proto.CompatibleComponent(source);
-            [~] = proto.CompatibleComponent(detector);
-
-            %get inputs to evaluation function (probability of dark counts in a
-            %pulse)
-            dark_count_probability = 1 - exp(-Background_Count_Rate * detector.Time_Gate_Width);
-
-            %run protocol's evaluation function
-            %all evaluation functions must conform to this format
-            [secret_key_rate, sifted_key_rate, qber] = proto.QkdModel( ...
-                    source, detector, dark_count_probability, Link_Loss_dB);
-        end
-
         function result = CompatibleComponent(protocol, component, label)
             % Determine whether a supplied source or detector meets the
             % requirements defined in the concrete implementation of
