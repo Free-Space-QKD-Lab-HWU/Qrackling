@@ -92,46 +92,82 @@ For those wanting to develop new features (or just use the most up to date versi
 ## LibRadtran
 libRadtran - library for radiative transfer - is a collection of C and Fortran functions and programs for calculation of solar and thermal radiation in the Earth's atmosphere. See the [libRadtran website](https://libradtran.org/doku.php) for technical details, licensing and operational instructions. Qrackling has been tested with libRadtran 2.0.4 and 2.0.5.
 
-Qrackling has the optional ability to incorporate libRadtran to calculate background light and atmospheric transmission for conditions different to those already provided. This requires the installation of libRadtran to the machine running Qrackling. The following instructions detail how to do this on *NIX and windows machines. On windows, the process is marginally more complicated, as both installation and then running of libRadtran have been designed to depend on [windows subsystem for linux](https://learn.microsoft.com/en-us/windows/wsl/) (WSL). Steps which are only for windows users are **_in bold italics_**. *NIX (e.g. linux or macOS) should ignore these steps.
+Qrackling has the optional ability to incorporate libRadtran to calculate background light and atmospheric transmission for conditions different to those already provided.
+This requires building and installing libRadtran from source, details for [Linux users](#Linux) and [Windows users](#Windows) have been outlined below.
 
 ### Dependencies
 Building and running libRadtran depends on the following:
 - make
-- g++
-- gcc
-- gfortran
+- gcc, g++, gfortran
 - NetCDF (libraries and headers, e.g. on ubuntu (including in WSL) libnetcdff-dev)
-- gsl (libraries and headers, e.g. on ubuntu (including in WSL) libgsl-dev)
-- **_WSL (windows subsystem for linux, required for windows only)_**
+- Gnu Scientific Library, gsl (libraries and headers, e.g. on ubuntu (including in WSL) libgsl-dev)
+- WSL (Windows Subsystem for Linux, required for Windows only)
+
 
 ### Installation
-1. Download and unzip libRadtran from [its website](https://libradtran.org/doku.php?id=download) to an easily accessible folder
-   - **_Ensure on windows that this path does not contain spaces, as these cannot be parsed by libRadtran_**.
-   - Make a note of this path, we will need it later.
-2. **_Install and prepare WSL_**
-   - **_[WSL](https://learn.microsoft.com/en-us/windows/wsl/install) can be installed by opening the command prompt and calling `WSL --install`._**
-   - **_Once installed, launch WSL by calling `wsl` in the command prompt._**
-   - **_You will be prompted to create a username and password pair._**
-   - **_To test your network connection, call `sudo apt update`. If this succeeds and updates your packages, continue to the next step._**
-      - **_In some cases, especially on managed PCs, WSL will not have network permissions. Contact your IT service if this is an issue and they will be able to allow WSL through the firewall_**
-3. Install required *NIX packages
-   - Use your favourite flavour of package manager to install the packages listed in the dependencies above. The versions you require will depend on the hardware architecture you are using.
-   - **_For instance, the standard installation of WSL will install them with the command `sudo apt install g++ gcc gfortran make libnetcdff-dev libgsl-dev`_**
-      - This step will require permissions (hence `sudo` above).
-4. Navigate to the top of your unzipped libRadtran folder.
-   - **_In WSL, this path can be formed by taking the windows path to the libRadtran folder, replacing all `\` with `/`, and replacing `C:\` with `/mnt/c/` (or equivalent)._**
-   - This folder should contain further folders named bin, data, doc, examples (as well as many more and several files).
-5. Build libRadtran
-   - Call `./configure` to configure the make files to build libRadtran. This will fail if you are missing any crucial packages.
-   - Call `make` to prepare to build.
-   - Call `make check` to ensure preparation went smoothly.
-   - Call `sudo make install` to build libRadtran.
-      - This step requires permissions (hence `sudo` above).
-6. Download aerosol files (optional)
-   - For MYSTIC polarisation calculations, some extra aerosol data are required.
-   - This is a very specific calculation and won't be required for most users.
-   - If required, download the OPAC data from the [libRadtran website downloads page](https://libradtran.org/doku.php?id=download).
-   - Unzip this information (there is quite a lot) and the contents into the libRadtran data folder.
+
+Download and unzip libRadtran from [its website](https://libradtran.org/doku.php?id=download) to an easily accessible folder, **if** you are building this on Windows then you should be careful not to extract libRadtran into a directory with spaces in the name.
+
+#### Linux
+
+**Note:** Although untested these steps likely work on MacOS too if anyone using this attemps this and gets it to work please file a PR with updates to the readme.
+
+Install the requirements: 
+1. make
+2. gcc
+3. g++
+4. gfortran
+5. NetCDF
+6. Gnu Scientific Library
+
+On Ubuntu with `apt` this will be as follows
+``` shell
+apt install make gcc g++ gfortran libnetcdff-dev libgsl-dev
+```
+Navigate to the directory you have extraced libRadtran into and run the following commands.
+The will first configure the build system, resulting in errors if any dependencies are missing. Then prepare, verify and finally install to the users system.
+```shell
+./configure
+make
+make check
+sudo make install
+```
+
+#### Windows
+Installation on Windows is slightly more involved as it requires the use of 
+Windows Subsystem for Linux, WSL, to properly build libRadtran.
+By default WSL will install Ubuntu Linux as a virtual machine, this will be plenty for this guide.
+From Windows 10 onwards this can be installed by openning PowerShell or Command Prompt and running the following command, this will prompt you for your username and password.
+```shell
+WSL --install
+```
+Once complete you can enter WSL by running `WSL` in either PowerShell or Command Prompt.
+
+Now that Ubuntu is installed it should be updated, the first command will update the list of available packages, the second will update any packages that need it: 
+```shell
+sudo apt update
+sudo apt upgrade
+```
+
+**NOTE:** If you are attempting to install WSL on a managed computer you may need to contact your I.T. department to allow WSL to connect to the internet.
+
+Next we will need to install the required dependencies, this can be done as shown
+``` shell
+sudo apt install make gcc g++ gfortran libnetcdff-dev libgsl-dev
+```
+
+Now that the dependencies are installed we can begin building libRadtran.
+From inside WSL navigate to the directory containing libRadtran, since we are in Linux now the path convention has changed for example if libRadtran was extracted to `C:\users\USERNAME\Downloads\libRadtran` this would now become `/mnt/c/users/USERNAME/Downloads/libRadtran`.
+Drives become lower case and are found in `/mnt` and all path delimeters change from `\` to `/`.
+
+The following commands are then used to build libRadtran.
+The will first configure the build system, resulting in errors if any dependencies are missing. Then prepare, verify and finally install to the users system.
+```shell
+./configure
+make
+make check
+sudo make install
+```
 
 ## Publications
 [Dawn and dusk satellite quantum key distribution using time and phase based encoding and polarization filtering (preprint)](https://preprints.opticaopen.org/s/1bb0c741db45094e4890), C. Simmons, P. Barrow, R. Donaldson.

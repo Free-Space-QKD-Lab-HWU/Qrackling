@@ -51,6 +51,9 @@ classdef proto
 
         end
 
+        % TODO: Rename this function or incorporate channel loss
+        % TODO: Example for configuring multiple detectors
+        % TODO: integrate an optional "tuning factor" so a single detector can be used with different efficiency
         function loss = ReceiverLoss(proto, rx)
             arguments
                 proto protocol.proto
