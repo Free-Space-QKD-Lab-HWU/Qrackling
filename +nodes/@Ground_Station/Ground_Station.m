@@ -30,7 +30,7 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
         Name = '';
     end
 
-    properties (Abstract = false, SetAccess = protected, Hidden = true)
+    properties (Abstract = false, SetAccess = protected)
         % Heading of the satellite in degrees as seen from the OGS
         Headings{mustBeVector} = nan;
 

@@ -66,4 +66,5 @@ Env = environment.Environment(Dummy_Headings,Elevation,Wavelength,Dummy_Spectral
 %4.1 run simulation
 Result=nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.bb84,'Environment',Env);
 %4.2 plot results
-plotResult(Result,SimGround_Station,SimSatellite);
+% plotResult(Result,SimGround_Station,SimSatellite);
+Result.plot()

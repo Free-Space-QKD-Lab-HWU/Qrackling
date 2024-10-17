@@ -183,40 +183,77 @@ classdef PassSimulationResult
                 'FontSize', get(groot,'defaultAxesFontSize'))
 
             % plot QBER
-            yyaxis right
-            plot(x_axis(mask), result.qber(mask) .* 100)
-            xlabel(x_label)
-            ylabel('QBER (%)')
-            legend('Secret Key Rate','Sifted Key Rate','')
-            xlim([min(x_axis(mask)), max(x_axis(mask))])
 
-            % plot scenario on map
-            nexttile(3, [2, 1])
-            geoplot( ...
-                result.transmitter_location.Latitude, ...
-                result.transmitter_location.Longitude)
-            hold('on')
-            geoplot( ...
-                result.transmitter_location.Latitude(mask), ...
-                result.transmitter_location.Longitude(mask), 'g')
+            if result.receiver_location.N_Position < result.transmitter_location.N_Position
+                yyaxis right
+                plot(x_axis(mask), result.qber(mask) .* 100)
+                xlabel(x_label)
+                ylabel('QBER (%)')
+                legend('Secret Key Rate','Sifted Key Rate','')
+                xlim([min(x_axis(mask)), max(x_axis(mask))])
 
-            labels = ["Satellite path", strcat(options.mask, " window")];
+                % plot scenario on map
+                nexttile(3, [2, 1])
+                geoplot( ...
+                    result.transmitter_location.Latitude, ...
+                    result.transmitter_location.Longitude)
+                hold('on')
+                geoplot( ...
+                    result.transmitter_location.Latitude(mask), ...
+                    result.transmitter_location.Longitude(mask), 'g')
 
-            r = 1;
-            for rx_loc = result.receiver_location
-                nodes.PassSimulationResult.PlotLOS( ...
-                    rx_loc, ...
-                    mean(result.transmitter_location.Altitude), ...
-                    result.elevation_limit(1))
-                labels{end + 1} = result.receiver_name{r};
-                labels{end + 1} = 'Line-of-Sight';
-                r = r + 1;
+                labels = ["Satellite path", strcat(options.mask, " window")];
+                r = 1;
+                for rx_loc = result.receiver_location
+                    nodes.PassSimulationResult.PlotLOS( ...
+                        rx_loc, ...
+                        mean(result.transmitter_location.Altitude), ...
+                        result.elevation_limit(1))
+                    labels{end + 1} = result.receiver_name{r};
+                    labels{end + 1} = 'Line-of-Sight';
+                    r = r + 1;
+                end
+
+                legend(labels, 'Location', 'southwest');
+                geolimits( ...
+                    mean([result.receiver_location.Latitude]) + [-4, 4], ...
+                    mean([result.receiver_location.Longitude]) + [-4, 4] );
+            else
+                yyaxis right
+                plot(x_axis(mask), result.qber(mask) .* 100)
+                xlabel(x_label)
+                ylabel('QBER (%)')
+                legend('Secret Key Rate','Sifted Key Rate','')
+                xlim([min(x_axis(mask)), max(x_axis(mask))])
+
+                % plot scenario on map
+                nexttile(3, [2, 1])
+                geoplot( ...
+                    result.receiver_location.Latitude, ...
+                    result.receiver_location.Longitude)
+                hold('on')
+                geoplot( ...
+                    result.receiver_location.Latitude(mask), ...
+                    result.receiver_location.Longitude(mask), 'g')
+
+                labels = ["Satellite path", strcat(options.mask, " window")];
+                t = 1;
+                for tx_loc = result.transmitter_location
+                    nodes.PassSimulationResult.PlotLOS( ...
+                        tx_loc, ...
+                        mean(result.receiver_location.Altitude), ...
+                        result.elevation_limit(1))
+                    labels{end + 1} = result.transmitter_name{t};
+                    labels{end + 1} = 'Line-of-Sight';
+                    t = t + 1;
+                end
+
+                legend(labels, 'Location', 'southwest');
+                geolimits( ...
+                    mean([result.transmitter_location.Latitude]) + [-4, 4], ...
+                    mean([result.transmitter_location.Longitude]) + [-4, 4] );
             end
 
-            legend(labels, 'Location', 'southwest');
-            geolimits( ...
-                mean([result.receiver_location.Latitude]) + [-4, 4], ...
-                mean([result.receiver_location.Longitude]) + [-4, 4] );
 
             % plot loss
             if numel(result.loss) > 1

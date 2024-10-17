@@ -51,7 +51,7 @@ classdef bb84 < protocol.proto
 
             % detection efficiency
             % eta = Bob.Detector.Detection_Efficiency;
-            eta = proto.ReceiverLoss(Bob.Detector.Detection_Efficiency);
+            eta = proto.ReceiverLoss(Bob);
 
             % probability of dark counts (Bob's detetcion stage - convolution of all 
             % Detectors used by Bob)

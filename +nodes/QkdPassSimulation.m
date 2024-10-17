@@ -298,10 +298,10 @@ function [single_link_idx, double_link_idx] = find_links(receivers, transmitters
 
                 case nodes.LinkDirection.Uplink
                     [h, e, r] = rx.RelativeHeadingAndElevation(tx);
-                    limit = tx.Elevation_limit;
+                    limit = tx.Elevation_Limit;
                     elevation_limits(i) = limit;
                     elevation_limit_mask = e > elevation_limits(i);
-                    rel_loc = location_time(T, R, direction, h, e, r, limit, elevation_limit_mask, tx.Times);
+                    rel_loc = location_time(T, R, direction, h, e, r, limit, elevation_limit_mask, rx.Times);
             end
 
             % elevation_limit_mask = relative_locations(i).elevation > elevation_limits(i);
