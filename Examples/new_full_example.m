@@ -358,6 +358,7 @@ beacon_result_up = beacon.beaconSimulation(spoqc, hogs, Environment=Env);
 % standard dashboard of results. Otherwise, results can be accessed from
 % these objects as read-only properties
 
-QKD_figure = result.plotResult(hogs, spoqc, "mask", "Elevation");
+% QKD_figure = result.plotResult(hogs, spoqc, "mask", "Elevation");
+QKD_figure = result.plot();
 beacon_down_figure = beacon_result_down.plot("mask", "Elevation");
 beacon_up_figure = beacon_result_up.plot("mask", "Elevation");

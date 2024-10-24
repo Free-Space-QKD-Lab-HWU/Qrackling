@@ -52,4 +52,5 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
 %3.1 compose passsimulation object
 Results = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.cow);
 %3.2 plot results
-plotResult(Results,SimGround_Station,SimSatellite);
+%plotResult(Results,SimGround_Station,SimSatellite);
+Results.plot()

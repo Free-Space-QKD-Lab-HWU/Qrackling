@@ -20,10 +20,8 @@ function [name, kepler_elements] = TLE2Kepler(options)
         lines = {name, options.Line1, options.Line2};
     end
 
-    n_tle = length(lines) / 3;
-    if n_tle > 1
-        name = cell.empty;
-    end
+    n_tle = floor(length(lines) / 3);
+    name = cell.empty;
 
     tle_sets = reshape(lines, 3, n_tle);
 
@@ -47,11 +45,15 @@ function [name, kepler_elements] = TLE2Kepler(options)
         % ma = str2double(elem2{7});
         mm = str2double(elem2{8});
 
-        sma(i) = tle_utilities.meanmotion2semimajoraxis(mm);
-        ta(i) = tle_utilities.eccentricity2trueAnomaly(ecc(i));
+        sma(i) = utilities.meanmotion2semimajoraxis(mm);
+        ta(i) = utilities.eccentricity2trueAnomaly(ecc(i));
         n = n + 3;
         j = j + 3;
     end
 
     kepler_elements = [sma', ecc', inc', raan', aop', ta'];
+
+    if n_tle > 1
+        name = name{1};
+    end
 end
