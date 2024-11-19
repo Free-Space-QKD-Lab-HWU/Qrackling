@@ -93,6 +93,8 @@ classdef PassSimulationResult
             time = result.time(communicating);
 
             time_window_widths = time(2:end) - time(1:end-1);
+            %pad to match width of other arrays
+            time_window_widths = [time_window_widths,time_window_widths(end)];
 
             if isempty(time_window_widths)
                 warning("No communication occurs in this simulation");
