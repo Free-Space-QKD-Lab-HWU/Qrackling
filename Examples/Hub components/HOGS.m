@@ -29,7 +29,7 @@ Repetition_Rate = 1E8;                                              %signal rep 
 Time_Gate = 2E-9;                                                   %time gate width in s
 Spectral_Filter = components.SpectralFilter('input_file','Examples\Data\spectral filters\FBH780-10.xlsx');
 HOGS_Detector = components.Detector(Channel_Wavelength,Repetition_Rate,...
-    Time_Gate,Spectral_Filter, "Preset", components.loadPreset("Excelitas"));
+    Time_Gate,Spectral_Filter, 'Preset', 'Excelitas');
 
     case 808
 Channel_Wavelength = 808;                                    %signal wavelength in nm
@@ -37,7 +37,7 @@ Repetition_Rate = 1E8;                                              %signal rep 
 Time_Gate = 2E-9;                                                   %time gate width in s
 Spectral_Filter = SpectralFilter('input_file',[filter_file,filesep(),'FBH850-10.xlsx']);
 HOGS_Detector = components.Detector(Channel_Wavelength,Repetition_Rate,...
-    Time_Gate,Spectral_Filter, "Preset", components.loadPreset("Excelitas"));
+    Time_Gate,Spectral_Filter, 'Preset', 'Excelitas');
 
     case 1550
 Channel_Wavelength = 1550;                                    %signal wavelength in nm
@@ -45,7 +45,7 @@ Repetition_Rate = 1;                                              %signal rep ra
 Time_Gate = 1;                                                   %time gate width in s
 Spectral_Filter = SpectralFilter('input_file',[filter_file,filesep(),'FBH1550-12.xlsx']);
 HOGS_Detector = components.Detector(Channel_Wavelength,Repetition_Rate,...
-    Time_Gate,Spectral_Filter, "Preset", components.loadPreset("Excelitas"));
+    Time_Gate,Spectral_Filter, 'Preset', 'Excelitas');
 end
 
 %beacon camera

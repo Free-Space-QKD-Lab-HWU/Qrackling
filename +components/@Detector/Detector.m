@@ -68,7 +68,14 @@ classdef  Detector
                 Spectral_Filter
                 options.Wavelength_Scale units.Magnitude = 'nano'
                 options.Polarisation_Error double = asind(1 / 280)
-                options.Preset components.DetectorPreset
+                options.Preset {mustBeMember(options.Preset,{'Excelitas',...
+                                                             'Hamamatsu',...
+                                                             'ID_Qube_NIR',...
+                                                             'LaserComponents',...
+                                                             'MicroPhotonDevices',...
+                                                             'PerkinElmer',...
+                                                             'QuantumOpus1550_CryogenicAmplifer',...
+                                                             'QuantumOpus1550_RoomTempAmplifer'})}
                 options.Dark_Count_Rate { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Dark_Count_Rate, 0)}
@@ -84,42 +91,6 @@ classdef  Detector
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Efficiencies, 0), ...
                     mustBeLessThanOrEqual(options.Efficiencies, 1)}
-            end
- 
-            optionFields = fieldnames(options);
-            assert(~isempty(optionFields), ['Missing input parameters. ', ...
-                'Supply either a :', newline, char(9), ...
-                'a DetectorPreset -> Detector(... Preset=yourPreset),', ...
-                newline, char(9), 'or a full set of parameters -> ', ...
-                '(Detector(... Dark_Count_Rate=?, Dead_Time=?, ', ...
-                'Jitter_Histogram=?, Histogram_Bin_Width=?, ', ...
-                'Wavelength_Range=?, Efficiencies=?)'])
-
-            if any(contains(optionFields, 'Preset'))
-                Preset = options.Preset;
-                for f = fieldnames(components.DetectorPreset)' % Have to transpose to iterate it
-                    if strcmp(f{1}, 'Name') % We don't need this field here
-                        continue
-                    end
-                    Detector.(f{1}) = Preset.(f{1});
-                end
-            else
-                for f = fieldnames(DetectorPreset)' % Same as loop above
-                    if strcmp(f{1}, 'Name')
-                        continue
-                    end
-                    assert(any(contains(optionFields, f{1})), ...
-                        ['Since a DetectorPreset is not being used { ', ...
-                        f{1}, ' } must be supplied']);
-                    Detector.(f{1}) = options.(f{1});
-                end
-            end
-
-            if contains(optionFields, 'Wavelength_Range')
-                Detector.Wavelength = units.Magnitude.Convert( ...
-                    options.Wavelength_Scale, ...
-                    "nano", ...
-                    options.Wavelength_Range);
             end
 
             %% implement detector properties
@@ -140,13 +111,48 @@ classdef  Detector
             else
                 error('Spectral_Filter can be either a SpectralFilter object or a filter width in nm')
             end
-
             Detector.Repetition_Rate = Repetition_Rate;
- 
+
+
+            %implement preset or load in custom detector data
+            if isequal(options.Preset,'none')
+                Detector.Dark_Count_Rate = options.Dark_Count_Rate;
+                Detector.Dead_Time = options.Dead_Time;
+                Detector.Efficiencies = options.Efficiencies;
+                Detector.Histogram_Bin_Width = options.Histogram_Bin_Width;
+                Detector.Jitter_Histogram = options.Jitter_Histogram;
+                Detector.Wavelength_Range = options.Wavelength_Range;
+
+                Detector.Wavelength = units.Magnitude.Convert( ...
+                    options.Wavelength_Scale, ...
+                    "nano", ...
+                    options.Wavelength_Range);
+
+            else
+                %if preset was provided, load in
+                if isstring(options.Preset)
+                    options.Preset = char(options.Preset);
+                end
+                load(['+components\@Detector\presets\',options.Preset,'.mat'],...
+                    'Dark_Count_Rate',...
+                    'Dead_Time',...
+                    'Efficiencies',...
+                    'Histogram_Bin_Width',...
+                    'Jitter_Histogram',...
+                    'Wavelength_Range')
+                
+                Detector.Dark_Count_Rate = Dark_Count_Rate;
+                Detector.Dead_Time = Dead_Time;
+                Detector.Efficiencies = Efficiencies;
+                Detector.Histogram_Bin_Width = Histogram_Bin_Width;
+                Detector.Jitter_Histogram = Jitter_Histogram;
+                Detector.Wavelength_Range = Wavelength_Range;
+            end
+
+
             % compute jitter qber and loss
             Detector = Detector.DensityFunctions();
             Detector = Detector.SetJitterPerformance(Repetition_Rate);
-
             Detector = Detector.SetDetectionEfficiency(Wavelength=Wavelength);
         end
 
