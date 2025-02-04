@@ -1,8 +1,9 @@
-function varargout = TurbulenceLoss(kind, receiver, transmitter, fried_parameter, options)
+function varargout = TurbulenceLoss(kind, receiver, transmitter, direction, fried_parameter, options)
     arguments
         kind {mustBeMember(kind, ["beacon", "qkd"])}
         receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
         transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
+        direction nodes.LinkDirection
         % FIX: why does this produce different values to older method for r0?
         fried_parameter environment.FriedParameter
         options.Elevations
@@ -61,9 +62,15 @@ function varargout = TurbulenceLoss(kind, receiver, transmitter, fried_parameter
 
     wavenumber = 2 * pi / (wavelength * (1e-9));
 
+    switch direction
+        case nodes.LinkDirection.Downlink
     r0 = atmospheric_turbulence_coherence_length_downlink( ...
         wavenumber, zenith, altitude', options.GHV);
-
+        case nodes.LinkDirection.Uplink
+    r0 = atmospheric_turbulence_coherence_length_uplink( ...
+        wavenumber, zenith, altitude', options.GHV);
+    end
+    
     link_length = options.LinkLength;
     if isempty(options.LinkLength)
         link_length = receiver.ComputeDistanceBetween(transmitter);

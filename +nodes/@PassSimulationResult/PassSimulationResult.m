@@ -93,15 +93,15 @@ classdef PassSimulationResult
             time = result.time(communicating);
 
             time_window_widths = time(2:end) - time(1:end-1);
-            %pad to match width of other arrays
-            time_window_widths = [time_window_widths,time_window_widths(end)];
-
             if isempty(time_window_widths)
                 warning("No communication occurs in this simulation");
                 total_secret = 0;
                 total_sifted = 0;
                 return
             end
+
+            %pad to match width of other arrays
+            time_window_widths = [time_window_widths,time_window_widths(end)];
 
             if isnumeric(time_window_widths)
                 total_sifted  = dot(time_window_widths, result.sifted_key_rate(communicating(1:end-1)));

@@ -222,7 +222,7 @@ classdef  Detector
             Detector.PDF = zeros(1,N);
  
             %% iterating over elements in the Detector.Jitter_Histogram
-            Detector.PDF(1) = Detector.Jitter_Histogram(1)/Detector.Total_Counts;
+            Detector.PDF(1) = Detector.Jitter_Histogram(1)/(Detector.Total_Counts*Detector.Histogram_Bin_Width);
             Detector.CDF(1) = 0;
             for i = 2:N
                 %compute histogram probability density function and
@@ -428,11 +428,11 @@ classdef  Detector
 
             %% plot jitter histogram
             nexttile(tiles,3)
-            num_jitter_points = numel(Det.Jitter_Histogram);
-            [max_value,max_index] = max(Det.Jitter_Histogram);
+            num_jitter_points = numel(Det.PDF);
+            [max_value,max_index] = max(Det.PDF);
             jitter_times = ((1:num_jitter_points) - max_index)*Det.Histogram_Bin_Width;
             period = 1./Det.Repetition_Rate;
-            plot(jitter_times,Det.Jitter_Histogram);
+            plot(jitter_times,Det.PDF);
             xlabel('Time (s)');
             ylabel('PDF');
 

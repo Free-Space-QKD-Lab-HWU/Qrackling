@@ -2,7 +2,7 @@ function atm_turb_cor_len = atmospheric_turbulence_coherence_length_downlink( ..
                     wavenumber, zenith_angle, satellite_altitude, ghv_args)
 
     fun = @(x,sat_alt) (generalised_hufnagel_valley(ghv_args, x) ...
-                    .* (1-(x ./ sat_alt) .^ (5/3)));
+                    .* (((x ./ sat_alt)) .^ (5/3)));
     
     %% iterate over different satellite altitudes
     assert(isrow(satellite_altitude),'Satellite Altitude must be a row vector input');
@@ -11,7 +11,7 @@ function atm_turb_cor_len = atmospheric_turbulence_coherence_length_downlink( ..
     result = zeros(size(satellite_altitude));
 
     for i=1:Num_Altitudes
-    result(i) = integral(@(x) -fun(x,satellite_altitude(i)), satellite_altitude(i), 0);
+    result(i) = integral(@(x) fun(x,satellite_altitude(i)), 0, satellite_altitude(i));
     end
 
     atm_turb_cor_len = (0.423 ...
