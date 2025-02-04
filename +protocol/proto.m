@@ -10,24 +10,20 @@ classdef proto
 
     methods (Abstract)
         [secret_key_rate, sifted_key_rate, qber] = QkdModel(protocol, ...
-            alice, bob, total_loss, background_counts_rate);
+            transmitter, receiver, total_loss, background_counts_rate);
     end
 
 
     methods
 
         function [secret_rate, sifted_rate, qber] = Calculate(proto, ...
-            alice, bob, total_loss, loss_unit, background_counts)
+            transmitter, receiver, total_loss, loss_unit, background_counts)
             arguments
                 proto
-                % alice {mustBeA(alice, ["nodes.Satellite", "nodes.Ground_Station"])}
-                % bob {mustBeA(bob, ["nodes.Satellite", "nodes.Ground_Station"])}
-                alice { ...
-                    nodes.mustBeReceiverOrTransmitter(alice), ...
-                    nodes.mustHaveSource(alice) }
-                bob { ...
-                    nodes.mustBeReceiverOrTransmitter(bob), ...
-                    nodes.mustHaveDetector(bob) }
+                transmitter {utilities.mustBeSubclassOf(transmitter,'nodes.Optical_Node'),...
+                             nodes.mustHaveSource(transmitter) }
+                receiver {utilities.mustBeSubclassOf(receiver,'nodes.Optical_Node'),...
+                          nodes.mustHaveDetector(receiver) }
                 total_loss (:, :) {mustBeNumeric}
                 loss_unit {mustBeMember(loss_unit, ["probability", "dB"])}
                 background_counts (:, :, :) {mustBeNumeric}
@@ -35,31 +31,31 @@ classdef proto
 
             % RowOrColumn = @(arr) sum((size(arr) == min(size(arr))) .* [1, 2]);
 
-            n_alice = numel(alice);
-            if n_alice > 1
-                alice_sources = cellfun(@(a) proto.compatiblecomponent(a.source, a.Name), alice);
+            n_transmitter = numel(transmitter);
+            if n_transmitter > 1
+                transmitter_sources = cellfun(@(a) proto.compatiblecomponent(a.source, a.Name), transmitter);
             else
-                alice_sources = proto.CompatibleComponent(alice.Source, alice.Name);
+                transmitter_sources = proto.CompatibleComponent(transmitter.Source, transmitter.Name);
             end
-            assert(all(alice_sources), "Detector not compatible with protocol")
+            assert(all(transmitter_sources), "Detector not compatible with protocol")
     
-            n_bob = numel(bob);
-            if n_bob > 1
-                bob_detectors = cellfun(@(b) proto.CompatibleComponent(b.Detector, b.Name), bob);
+            n_receiver = numel(receiver);
+            if n_receiver > 1
+                receiver_detectors = cellfun(@(b) proto.CompatibleComponent(b.Detector, b.Name), receiver);
             else
-                bob_detectors = proto.CompatibleComponent(bob.Detector, bob.Name);
+                receiver_detectors = proto.CompatibleComponent(receiver.Detector, receiver.Name);
             end
-            assert(all(bob_detectors), "Detector not compatible with protocol")
+            assert(all(receiver_detectors), "Detector not compatible with protocol")
 
             if string(proto.method) == "entanglement"
-                n_alice = numel(alice);
-                if n_alice > 1
-                    alice_detectors = cellfun(@(a) proto.CompatibleComponent(a.Detector, a.Name), alice);
+                n_transmitter = numel(transmitter);
+                if n_transmitter > 1
+                    transmitter_detectors = cellfun(@(a) proto.CompatibleComponent(a.Detector, a.Name), transmitter);
                 else
-                    alice_detectors = proto.CompatibleComponent(alice.Detector, alice.Name);
+                    transmitter_detectors = proto.CompatibleComponent(transmitter.Detector, transmitter.Name);
                 end
 
-                if sum(alice_detectors) + sum(bob_detectors) < 2
+                if sum(transmitter_detectors) + sum(receiver_detectors) < 2
                     error("Not enough compatible detectors for protocol")
                 end
 
@@ -68,16 +64,16 @@ classdef proto
             if min(size(total_loss)) == 2
                 % got different losses for two different channels
                 [secret_rate, sifted_rate, qber] = proto.QkdModel( ...
-                    alice, bob, total_loss, background_counts);
+                    transmitter, receiver, total_loss, background_counts);
                 return
             end
 
-            bob_dcr = proto.ReceiverDarkCountRate(bob);
+            receiver_dcr = proto.ReceiverDarkCountRate(receiver);
 
             [secret_rate, sifted_rate, qber] = proto.QkdModel( ...
-                alice, bob, ...
+                transmitter, receiver, ...
                 units.Loss(loss_unit, "", total_loss).As("probability"), ...
-                background_counts + bob_dcr);
+                background_counts + receiver_dcr);
 
         end
 
@@ -87,8 +83,7 @@ classdef proto
         function loss = ReceiverLoss(proto, rx)
             arguments
                 proto protocol.proto
-                rx { ...
-                    nodes.mustBeReceiverOrTransmitter(rx), ...
+                rx {utilities.mustBeSubclassOf(rx,'nodes.Optical_Node'),...
                     nodes.mustHaveDetector(rx) }
             end
 
@@ -115,24 +110,22 @@ classdef proto
 
         end
 
-        function dcr = ReceiverDarkCountRate(proto, bob)
+        function dcr = ReceiverDarkCountRate(proto, receiver)
             arguments
                 proto protocol.proto
-                bob { ...
-                    nodes.mustBeReceiverOrTransmitter(bob), ...
-                    nodes.mustHaveDetector(bob) }
+                receiver {nodes.mustHaveDetector(receiver)}
             end
 
-            if isscalar(bob.Detector)
-                dcr = bob.Detector.Dark_Count_Rate .* proto.num_detectors;
+            if isscalar(receiver.Detector)
+                dcr = receiver.Detector.Dark_Count_Rate .* proto.num_detectors;
                 return
             end
 
-            assert(numel(bob.Detector) == proto.num_detectors, [
+            assert(numel(receiver.Detector) == proto.num_detectors, [
                 'Receiver must have either a single detector object for ', ...
                 'all detections modes or specific detector objects for ', ...
                 'each mode']);
-            dcr = sum(bob.Detector.Dark_Count_Rate);
+            dcr = sum(receiver.Detector.Dark_Count_Rate);
 
         end
 
