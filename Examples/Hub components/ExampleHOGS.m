@@ -22,14 +22,14 @@ OGS=HOGS(Wavelength,'BeaconCamera','Fine');%current HOGS model
 StartTime = datetime(2022,12,25,6,0,0);
 StopTime = datetime(2022,12,25,7,0,0);
 Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\varying elevation MODTRAN data 3\Dark Environment 50km.mat");
-TurbulenceString = 'HV10-10';
+Env.turbulence_model = environment.Turbulence_Model('Preset','10-10');
 %}
 %ok pass: 0610 to 0655 christmas day 2022, 10km visibility
 %{
 StartTime = datetime(2023,2,6,3,0,0);
 StopTime = datetime(2023,2,6,5,0,0);
 Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\varying elevation MODTRAN data 3\Dark Environment 10km.mat");
-TurbulenceString = 'HV5-7';
+Env.turbulence_model = environment.Turbulence_Model('Preset','HV5-7');
 %}
 
 %worst case pass: 0330 to 0333 4 feb 2023, 2km visibility
@@ -37,7 +37,7 @@ TurbulenceString = 'HV5-7';
 StartTime = datetime(2023,1,31,4,0,0);
 StopTime = datetime(2023,1,31,5,0,0);
 Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\varying elevation MODTRAN data 3\Dark Environment 5km.mat");
-TurbulenceString = '2HV5-7';
+Env.turbulence_model = environment.Turbulence_Model('Preset','2HV5-7');
 %}
 SampleTime = seconds(1);
 Sat=SPOQC(Wavelength,StartTime,StopTime,SampleTime);

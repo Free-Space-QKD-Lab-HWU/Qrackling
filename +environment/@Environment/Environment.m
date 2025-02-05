@@ -2,7 +2,7 @@ classdef Environment
     % a class which describes the conditions around a receiver,  including
     % atmospheric attenuation and background light
 
-    properties (SetAccess=protected, GetAccess=public)
+    properties
         %different wavelengths have different environment data
         wavelengths (1, :) {mustBeNumeric, mustBeNonnegative}
         %coordinate system (in degrees)
@@ -80,6 +80,7 @@ classdef Environment
                 spectral_radiance {mustBeNumeric, mustBeNonnegative}
                 attenuation {mustBeNumeric, mustBeNonnegative}% mustBeLessThanOrEqual(attenuation,1)}
                 options.attenuation_unit {mustBeMember(options.attenuation_unit, ["probability", "dB"])} = "probability"
+                options.turbulence_model {mustBeMember(options.turbulence_model,{'HV5-7','2HV5-7','HV10-10','HV15-12'})} = 'HV5-7';
             end
 
             % sort,  tidy and bound inputs
