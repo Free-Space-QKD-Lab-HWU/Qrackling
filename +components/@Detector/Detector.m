@@ -75,7 +75,8 @@ classdef  Detector
                                                              'MicroPhotonDevices',...
                                                              'PerkinElmer',...
                                                              'QuantumOpus1550_CryogenicAmplifer',...
-                                                             'QuantumOpus1550_RoomTempAmplifer'})}
+                                                             'QuantumOpus1550_RoomTempAmplifer' ...
+                                                             'none'})} = 'none'
                 options.Dark_Count_Rate { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Dark_Count_Rate, 0)}
@@ -121,9 +122,7 @@ classdef  Detector
                 Detector.Efficiencies = options.Efficiencies;
                 Detector.Histogram_Bin_Width = options.Histogram_Bin_Width;
                 Detector.Jitter_Histogram = options.Jitter_Histogram;
-                Detector.Wavelength_Range = options.Wavelength_Range;
-
-                Detector.Wavelength = units.Magnitude.Convert( ...
+                Detector.Wavelength_Range = units.Magnitude.Convert( ...
                     options.Wavelength_Scale, ...
                     "nano", ...
                     options.Wavelength_Range);
@@ -155,35 +154,6 @@ classdef  Detector
             Detector = Detector.SetJitterPerformance(Repetition_Rate);
             Detector = Detector.SetDetectionEfficiency(Wavelength=Wavelength);
         end
-
-        % function Detector = HistogramInfo(Detector)
-
-        %     range = @(b) linspace(1, b, b);
-        %     upperHalf = @(array) array >= (max(array) / 2);
-        %     width = @(array) array(end) - array(1);
-        %     fwhm = @(xarray, yarray) width(xarray(upperHalf(yarray)));
-
-        %     bins = range(numel(Detector.Jitter_Histogram));
-
-        %     % TODO fix magic number here!!!
-        %     smoothed = smooth(Detector.Jitter_Histogram, 1000);
-        %     shift = floor(fwhm(bins, Detector.Jitter_Histogram) / 2);
-        %     crossed = abs(smoothed - circshift(smoothed, shift));
-        %     mask = bins((crossed / max(crossed)) > 0.05);
-
-        %     % ABSOLUTELY DO NOT DO THIS WITH JITTER DATA
-        %     % Need oscilloscope traces for each detector
-
-        %     peakLocation = bins(max(smoothed) == smoothed);
-        %     waveformStart = mask(1);
-        %     waveformEnd = mask(end);
-        %     %disp([waveformStart, peakLocation, waveformEnd])
-        %     riseTime = (peakLocation - waveformStart) * Detector.Histogram_Bin_Width;
-        %     fallTime = (waveformEnd - peakLocation) * Detector.Histogram_Bin_Width;
-        %     deadTime = fwhm(bins, Detector.Jitter_Histogram) * Detector.Histogram_Bin_Width;
-
-        %     %disp([riseTime, fallTime, deadTime] .* 1e9)
-        % end
 
         function Detector = SetHistogramBinWidth(Detector,Width)
             %%SETHISTOGRAMBINWIDTH set how wide the bins are in the jitter
@@ -464,6 +434,7 @@ classdef  Detector
 
 
         end
+        
         function Det = SetDarkCountRate(Det, DCR)
             % SetDarkCountRate set detector dark count rate
             arguments
