@@ -361,8 +361,7 @@ classdef Environment
                 % prepare plot data
                 Current_Wavelength = scrollbar.Value;
                 Wavelength_Index=round(interp1(Wavelengths,1:numel(Wavelengths),Current_Wavelength));
-                %Current_Values = squeeze(Values(Wavelength_Index,:,:))';
-                Current_Values = flipud(squeeze(Values(Wavelength_Index,:,:))');
+                Current_Values = squeeze(Values(Wavelength_Index,:,:))';
                 Current_Values(isinf(Current_Values)) = nan;
 
 
