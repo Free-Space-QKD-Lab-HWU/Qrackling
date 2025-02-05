@@ -11,7 +11,7 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
         options.dB logical = false
         options.SpotSize = []
         options.LinkLength = []
-        options.environment environment.Environment
+        options.environment environment.Environment = environment.Environment.empty();
     end
 
     unit = "probability";
@@ -38,12 +38,9 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
             direction = nodes.LinkDirection.Uplink;
         end
 
-        fried_param = environment.FriedParameter(direction, "Hufnagel_Valley", environment.HufnagelValley.HV10_10);
-
         [res, beam_width, r0] = nodes.TurbulenceLoss( ...
             kind, receiver, transmitter, direction, ...
-            fried_param, ...
-            "LinkLength", link_length, ...
+            options.environment.turbulence_model, ...
             "SpotSize", spot_size);
 
         losses.("turbulence") = res.ConvertTo(unit);

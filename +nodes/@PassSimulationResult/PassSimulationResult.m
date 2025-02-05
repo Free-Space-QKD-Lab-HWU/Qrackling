@@ -104,14 +104,14 @@ classdef PassSimulationResult
             time_window_widths = [time_window_widths,time_window_widths(end)];
 
             if isnumeric(time_window_widths)
-                total_sifted  = dot(time_window_widths, result.sifted_key_rate(communicating(1:end-1)));
-                total_secret = dot(time_window_widths, result.secret_key_rate(communicating(1:end-1)));
+                total_sifted  = dot(time_window_widths, result.sifted_key_rate(communicating));
+                total_secret = dot(time_window_widths, result.secret_key_rate(communicating));
                 return
             end
 
             time_seconds = seconds(time_window_widths);
-            total_sifted  = dot(time_seconds, result.sifted_key_rate(communicating(1:end-1)));
-            total_secret = dot(time_seconds, result.secret_key_rate(communicating(1:end-1)));
+            total_sifted  = dot(time_seconds, result.sifted_key_rate(communicating));
+            total_secret = dot(time_seconds, result.secret_key_rate(communicating));
         end
 
         function fig = plot(result, options)

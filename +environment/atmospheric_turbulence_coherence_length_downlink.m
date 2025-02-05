@@ -11,7 +11,7 @@ function atm_turb_cor_len = atmospheric_turbulence_coherence_length_downlink( ..
     result = zeros(size(satellite_altitude));
 
     for i=1:Num_Altitudes
-    result(i) = integral(@(x) fun(x,satellite_altitude(i)), 0, satellite_altitude(i));
+        result(i) = integral(@(x) fun(x,satellite_altitude(i)), 0, satellite_altitude(i));
     end
 
     atm_turb_cor_len = (0.423 ...

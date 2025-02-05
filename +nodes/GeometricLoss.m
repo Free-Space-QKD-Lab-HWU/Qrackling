@@ -1,8 +1,8 @@
-function varargout = GeometricLoss(kind, receiver, transmitter, options)
+function [loss, spot_size, link_length] = GeometricLoss(kind, receiver, transmitter, options)
     arguments
         kind {mustBeMember(kind, ["beacon", "qkd"])}
-        receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
-        transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
+        receiver {utilities.mustBeSubclassOf(receiver,'nodes.Located_Object')}
+        transmitter {utilities.mustBeSubclassOf(transmitter,'nodes.Located_Object')}
         options.LinkLength = []
     end
 
@@ -42,16 +42,4 @@ function varargout = GeometricLoss(kind, receiver, transmitter, options)
 
     n = max(receiver.N_Position, transmitter.N_Position);
     loss = units.Loss("probability", "Geometric", utilities.validateLoss(loss, n));
-
-    nargoutchk(0, 3);
-    varargout{1} = loss;
-
-    if 2 <= nargout()
-        varargout{2} = spot_size;
-    end
-
-    if 3 <= nargout()
-        varargout{3} = link_length;
-    end
-
 end

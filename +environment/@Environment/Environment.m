@@ -9,6 +9,9 @@ classdef Environment
         headings (1, :) {mustBeNumeric}
         elevations (1, :) {mustBeNumeric}
 
+        %a standardised model for turbulence
+        turbulence_model (1,1) environment.Turbulence_Model = environment.Turbulence_Model('Preset','HV5-7');
+
 
         %%%%%%% these quantities should all have dimensions
         %%%%%%% [numel(wavelengths),numel(headings),numel(elevations)]
