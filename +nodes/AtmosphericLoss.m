@@ -37,5 +37,5 @@ function loss = AtmosphericLoss(kind, receiver, transmitter, environment)
     end
 
     n = max(receiver.N_Position, transmitter.N_Position);
-    loss = units.Loss("probability", "Atmospheric", utilities.validateLoss(loss.values, n));
+    loss = units.Loss("probability", "Atmospheric",loss);
 end

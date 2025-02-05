@@ -36,11 +36,11 @@ Env.turbulence_model = environment.Turbulence_Model('Preset','HV5-7');
 %%{
 StartTime = datetime(2023,1,31,4,0,0);
 StopTime = datetime(2023,1,31,5,0,0);
-Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\varying elevation MODTRAN data 3\Dark Environment 5km.mat");
+Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 5km.mat");
 Env.turbulence_model = environment.Turbulence_Model('Preset','2HV5-7');
 %}
-SampleTime = seconds(1);
-Sat=SPOQC(Wavelength,StartTime,StopTime,SampleTime);
+Sat=SPOQC(Wavelength,...
+    'StartTime',StartTime,'StopTime',StopTime);
 
 
 %% simulate a pass
