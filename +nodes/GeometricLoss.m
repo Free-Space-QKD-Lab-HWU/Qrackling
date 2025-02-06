@@ -41,5 +41,5 @@ function [loss, spot_size, link_length] = GeometricLoss(kind, receiver, transmit
     loss(shadowed) = 0;
 
     n = max(receiver.N_Position, transmitter.N_Position);
-    loss = units.Loss("probability", "Geometric",loss);
+    loss = units.Loss(loss);
 end

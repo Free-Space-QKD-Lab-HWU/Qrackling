@@ -158,7 +158,7 @@ classdef Environment
 
             arguments
                 Env environment.Environment
-                data {mustBeMember(data, {'attenuation', 'spectral_radiance'})}
+                data {mustBeMember(data, {'attenuation', 'spectral_radiance','attenuation dB'})}
                 headings {mustBeNumeric, mustBeInRange(headings, 0, 360)}
                 elevations {mustBeNumeric, mustBeInRange(elevations, -90, 90)}
                 wavelengths {mustBeNumeric}
@@ -259,12 +259,9 @@ classdef Environment
             end
 
             % set format of interp_data, use a "Loss.m" class for attenuation
-            switch data
-            case 'spectral_radiance'
-                return
-            otherwise
-                temp = units.Loss(Env.attenuation_unit, "attenuation", interp_data);
-                interp_data = temp.ConvertTo(Env.attenuation_unit);
+            if isequal(data,'attenuation dB')
+                temp = units.Loss(interp_data);
+                interp_data = temp.dB;
             end
 
         end

@@ -64,7 +64,8 @@ function results = QkdPassSimulation(receiver, transmitter, qkd_protocol, option
         sifted_key_rate = zeros(size(dim));
         qber = zeros(size(dim));
 
-        loss_array = loss.TotalLoss("probability").values(elev_mask);
+        loss_array = loss.TotalLoss;
+        loss_array = loss_array(elev_mask);
         noise_array = noise(2).values(elev_mask);
 
         [skr, kr, q] = qkd_protocol.Calculate( ...

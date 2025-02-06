@@ -78,5 +78,5 @@ function [turbulence_loss,turbulent_beam_width,r0] = TurbulenceLoss(kind, receiv
      turbulence_loss = zeros(size(elevation_flags));
      turbulence_loss(elevation_flags) = (geometric_spot_size ./ turbulent_beam_width).^2;
      %convert to loss object
-     turbulence_loss = units.Loss('probability','Turbulence',turbulence_loss);
+     turbulence_loss = units.Loss(turbulence_loss);
 end

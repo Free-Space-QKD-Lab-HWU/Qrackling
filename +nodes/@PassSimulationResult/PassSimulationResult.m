@@ -127,10 +127,10 @@ classdef PassSimulationResult
             x_axis = result.time;
             if numel(result.receiver_name) > 1
                 x_axis = result.time(1, :);
-                total_loss_db = result.loss(1).TotalLoss("dB").values ...
-                    + result.loss(2).TotalLoss("dB").values;
+                total_loss_db = result.loss(1).TotalLoss.dB ...
+                    + result.loss(2).TotalLoss.dB;
             else
-                total_loss_db = result.loss.TotalLoss("dB").values;
+                total_loss_db = result.loss.TotalLoss.dB;
             end
 
             if string(options.x_axis) == "Elevation"
