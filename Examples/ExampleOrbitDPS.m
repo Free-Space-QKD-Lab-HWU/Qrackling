@@ -41,7 +41,7 @@ SimSatellite=nodes.Satellite(Transmitter_Telescope,...
 %2.2 Ground station
 %2.2.1 Detector
 DPS_Detector=components.Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,...
-    "Preset",components.loadPreset("MicroPhotonDevices"));
+    "Preset",'MicroPhotonDevices');
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
 %NOTE only detectors with the 'Visibility' property can be used for COW

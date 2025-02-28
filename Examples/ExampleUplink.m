@@ -14,7 +14,7 @@ SPs = [0.75,0.15,0.1];                                                     %stat
 
 %2.1 Satellite
 %2.1.1 Detector
-MPD_BB84_Detector=components.Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,"Preset",components.loadPreset("MicroPhotonDevices"));
+MPD_BB84_Detector=components.Detector(Wavelength,Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,"Preset","MicroPhotonDevices");
 
 %2.1.2 Transmitter telescope
 Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object

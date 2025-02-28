@@ -1,63 +1,60 @@
-function varargout = linkLoss(kind, receiver, transmitter, loss, options)
-    arguments
-        kind {mustBeMember(kind, ["beacon", "qkd"])}
-        receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
-        transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
-    end
-    arguments (Repeating)
-        loss {mustBeMember(loss, {'geometric', 'optical', 'apt', 'turbulence', 'atmospheric'})}
-    end
-    arguments
-        options.dB logical = false
-        options.SpotSize = []
-        options.LinkLength = []
-        options.environment environment.Environment
-    end
+function [loss_result,extras] = linkLoss(kind, receiver, transmitter, loss, options)
+arguments
+    kind {mustBeMember(kind, ["beacon", "qkd"])}
+    receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
+    transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
+end
+arguments (Repeating)
+    loss {mustBeMember(loss, {'geometric', 'optical', 'apt', 'turbulence', 'atmospheric'})}
+end
+arguments
+    options.dB logical = false
+    options.SpotSize = []
+    options.LinkLength = []
+    options.environment environment.Environment = environment.Environment.empty();
+end
 
-    unit = "probability";
-    if options.dB
-        unit = "dB";
-    end
+unit = "probability";
+if options.dB
+    unit = "dB";
+end
 
-    losses = {};
+losses = {};
 
-    spot_size = options.SpotSize;
-    link_length = options.LinkLength;
+spot_size = options.SpotSize;
+link_length = options.LinkLength;
 
-    if any(contains(string(loss), "geometric"))
-        [res, spot_size, link_length] = ...
-            nodes.GeometricLoss(kind, receiver, transmitter);
-        losses.("geometric") = res.ConvertTo(unit);
-    end
+if any(contains(string(loss), "geometric"))
+    [res, spot_size, link_length] = ...
+        nodes.GeometricLoss(kind, receiver, transmitter);
+    losses.("geometric") = res;
+end
 
-    if any(contains(string(loss), "turbulence"))
-        switch class(receiver)
+if any(contains(string(loss), "turbulence"))
+    switch class(receiver)
         case "nodes.Ground_Station"
             direction = nodes.LinkDirection.Downlink;
         case "nodes.Satellite"
             direction = nodes.LinkDirection.Uplink;
-        end
-
-        fried_param = environment.FriedParameter(direction, "Hufnagel_Valley", environment.HufnagelValley.HV10_10);
-
-        [res, beam_width, r0] = nodes.TurbulenceLoss( ...
-            kind, receiver, transmitter, direction, ...
-            fried_param, ...
-            "LinkLength", link_length, ...
-            "SpotSize", spot_size);
-
-        losses.("turbulence") = res.ConvertTo(unit);
     end
 
-    for l = loss
-        label = l{1};
-        % we potentially have already calculated the geometric and turbulence
-        % losses, so we should skip them
-        if any(contains(fieldnames(losses), label))
-            continue
-        end
+    [res, beam_width, r0] = nodes.TurbulenceLoss( ...
+        kind, receiver, transmitter, direction, ...
+        options.environment.turbulence_model, ...
+        "SpotSize", spot_size);
 
-        switch label
+    losses.("turbulence") = res;
+end
+
+for l = loss
+    label = l{1};
+    % we potentially have already calculated the geometric and turbulence
+    % losses, so we should skip them
+    if any(contains(fieldnames(losses), label))
+        continue
+    end
+
+    switch label
         case 'optical'
             res = nodes.OpticalEfficiencyLoss(kind, receiver, transmitter);
         case 'apt'
@@ -66,32 +63,28 @@ function varargout = linkLoss(kind, receiver, transmitter, loss, options)
             %if isempty(options.environment)
             if ~contains(fieldnames(options), "environment")
                 warning(['Atmospheric loss calculation requires an environment ', ...
-                'See the "Environment" class. Add " "Environment" ', ...
-                'to this functions arguments']);
+                    'See the "Environment" class. Add " "Environment" ', ...
+                    'to this functions arguments']);
             else
                 res = nodes.AtmosphericLoss(kind, receiver, transmitter, options.environment);
             end
-        end
-
-        losses.(label) = res.ConvertTo(unit);
     end
 
-    nargoutchk(0, 3)
+    losses.(label) = res;
+end
 
-    loss_fields = fieldnames(losses);
-    loss_values = struct2cell(losses);
-    n_losses = length(loss_fields);
-    kwargs = cell(2 * n_losses, 1);
-    kwargs(1:2:end) = loss_fields;
-    kwargs(2:2:end) = loss_values;
-    loss_result = nodes.LossResult(kind, kwargs{:});
-    varargout{1} = loss_result;
+nargoutchk(0, 3)
 
-    if 2 <= nargout()
-        extras = {};
-        extras.("turbulent_beam_width") = beam_width;
-        extras.("r0") = r0;
-        extras.("total_loss") = loss_result.TotalLoss(unit);
-        varargout{2} = extras;
-    end
+loss_fields = fieldnames(losses);
+loss_values = struct2cell(losses);
+n_losses = length(loss_fields);
+kwargs = cell(2 * n_losses, 1);
+kwargs(1:2:end) = loss_fields;
+kwargs(2:2:end) = loss_values;
+loss_result = nodes.LossResult(kind, kwargs{:});
+
+extras = {};
+extras.("turbulent_beam_width") = beam_width;
+extras.("r0") = r0;
+extras.("total_loss") = loss_result.TotalLoss;
 end

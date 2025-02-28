@@ -33,7 +33,7 @@ SimSatellite=nodes.Satellite(Transmitter_Telescope,...
 %2.2 Ground station
 %2.2.1 Detector
 Generic_COW_Detector=components.Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,...
-    'Preset',components.loadPreset("Excelitas"));
+    'Preset','Excelitas');
 %TODO: need a detector object preset with visibility
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating

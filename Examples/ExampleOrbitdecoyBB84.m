@@ -29,7 +29,7 @@ SimSatellite=nodes.Satellite(Transmitter_Telescope,...
 
 %2.2 Ground station
 %2.2.1 Detector
-Detector=components.Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,'Preset',components.loadPreset("MicroPhotonDevices"));
+Detector=components.Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,'Preset','MicroPhotonDevices');
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
 

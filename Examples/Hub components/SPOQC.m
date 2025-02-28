@@ -1,27 +1,12 @@
-function HubSat = SPOQC(Wavelength,StartTime,StopTime,SampleTime)
+function HubSat = SPOQC(Wavelength,options)
 %SPOQC Construct a model of the Quantum Comms hub satellite
-
-%% allow variable start and stop time of simulations
-switch nargin
-    case 1
-        StartTime = datetime(2024,1,1,5,0,0);
-        StopTime = datetime(2024,1,1,6,0,0);
-        SampleTime = 1;
-    case 2
-        assert(isdatetime(StartTime));
-        StopTime = StartTime + days(1);
-        SampleTime = 1;
-    case 3
-        assert(isdatetime(StartTime));
-        assert(isdatetime(StopTime));
-        SampleTime = 1;
-    case 4
-        assert(isdatetime(StartTime));
-        assert(isdatetime(StopTime));
-        if isduration(SampleTime)
-            SampleTime = seconds(SampleTime);
-        end
+arguments
+     Wavelength {mustBeMember(Wavelength,[785,808,1550])}
+     options.StartTime datetime = datetime(2024,1,1,5,0,0);
+     options.StopTime datetime = datetime(2024,1,1,6,0,0);
+     options.SampleTime double = 1; %sample time in s
 end
+
 %% check that provided wavelength is one of the intended ones
 assert(ismember(Wavelength,[785,808,1550]),'Wavelength must be one of the intended channels, 780, 808 or 1550 (nm)')
 
@@ -104,9 +89,9 @@ assert(ismember(Wavelength,[785,808,1550]),'Wavelength must be one of the intend
         'rightAscensionOfAscendingNode',-1.5,...            %measure of location of orbit in longitude
         'argumentOfPeriapsis',0,...                         %measurement of location of ellipse nature of orbit in longitude, irrelevant for circular orbits
         'trueAnomaly',0,...                                 %initial position through orbit of satellite
-        'StartTime',StartTime,...                           %start of simulation
-        'StopTime',StopTime,...                             %end of simulation
-        'sampleTime',SampleTime);                           %simulation interval in s
+        'StartTime',options.StartTime,...                           %start of simulation
+        'StopTime',options.StopTime,...                             %end of simulation
+        'sampleTime',options.SampleTime);                           %simulation interval in s
 
     %% passes
     %this orbit will directly overfly Errol between 0700 and 0710 on

@@ -1,14 +1,10 @@
-function varargout = TurbulenceLoss(kind, receiver, transmitter, direction, fried_parameter, options)
+function [turbulence_loss,turbulent_beam_width,r0] = TurbulenceLoss(kind, receiver, transmitter, direction, turbulence_model, options)
     arguments
-        kind {mustBeMember(kind, ["beacon", "qkd"])}
-        receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
-        transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
-        direction nodes.LinkDirection
-        % FIX: why does this produce different values to older method for r0?
-        fried_parameter environment.FriedParameter
-        options.Elevations
-        options.LinkLength = []
-        options.GHV = ghv_defaults('Standard', 'HV10-10')
+        kind (1,1) {mustBeMember(kind, ["beacon", "qkd"])}
+        receiver (1,1) {utilities.mustBeSubclassOf(receiver,'nodes.Located_Object')}
+        transmitter (1,1) {utilities.mustBeSubclassOf(transmitter,'nodes.Located_Object')}
+        direction (1,1) nodes.LinkDirection
+        turbulence_model (1,1) environment.Turbulence_Model = environment.Turbulence_Model("Preset","HV5-7");
         options.SpotSize = []
     end
 
@@ -33,85 +29,54 @@ function varargout = TurbulenceLoss(kind, receiver, transmitter, direction, frie
         error('UNIMPLEMENTED: we should be able to pass elevations in, currently we have to determine which of the inputs is the satellite and which is the ground station.');
     end
 
-    % When we look at the original Satellite_Link_Model.m we can see that 
-    % regardless of whether we are working with a downlink or uplink model the
-    % elevations that we want to capture are always produced with:
-    %   RelativeHeadingAndElevation(Satellite, Ground_Station);
-    % rx_tx = {receiver, transmitter};
-    % [~, elevations, ~] = ...
-    %     rx_tx{sat_index}.location.RelativeHeadingAndElevation(rx_tx{ogs_index}.location);
-    switch class(transmitter)
-    case "nodes.Satellite"
-        [~, elevations, ~] = transmitter.RelativeHeadingAndElevation(receiver);
-    case "nodes.Ground_Station"
-        [~, elevations, ~] = receiver.RelativeHeadingAndElevation(transmitter);
-    end
+    %% compute link geometry
+    [~, elevation, length] = RelativeHeadingAndElevation(transmitter,receiver);
 
-    elevation_flags = elevations > 0;
-    zenith = 90 - elevations(elevation_flags);
-
-    switch class(transmitter)
-    case "nodes.Satellite"
-        altitude = transmitter.Altitude(elevation_flags);
-    case "nodes.Ground_Station"
-        altitude = receiver.Altitude(elevation_flags);
-    end
-
-    % r0 = fried_parameter.AtmosphericTurbulenceCoherenceLength( ...
-    %     altitude, zenith, wavelength, "Wavelength_Unit", "none");
-
-    wavenumber = 2 * pi / (wavelength * (1e-9));
-
+    %also need to work out start and end altitudes
     switch direction
-        case nodes.LinkDirection.Downlink
-    r0 = atmospheric_turbulence_coherence_length_downlink( ...
-        wavenumber, zenith, altitude', options.GHV);
-        case nodes.LinkDirection.Uplink
-    r0 = atmospheric_turbulence_coherence_length_uplink( ...
-        wavenumber, zenith, altitude', options.GHV);
-    end
-    
-    link_length = options.LinkLength;
-    if isempty(options.LinkLength)
-        link_length = receiver.ComputeDistanceBetween(transmitter);
+        case "Downlink"
+            BottomHeight = receiver.Altitude;
+            TopHeight = transmitter.Altitude;
+        case "Uplink"
+            TopHeight = receiver.Altitude;
+            BottomHeight = transmitter.Altitude;
+            %if this is an uplink, elevation will be negative, but for turbulence
+            %calculations we want positive elevation
+            elevation = elevation+180;
     end
 
-    spot_size = options.SpotSize;
+    %% compute what times need calculating for
+    %we only need to calculate turbulence loss for links which have line of
+    %sight, i.e have elevation>0
+    elevation_flags = elevation > 0;
+
+
+    %% calculate turbulence beam spreading
+
+    %first, we need the initial spot size of the link, before turbulence
+    %effects
+    geometric_spot_size = options.SpotSize;
     if isempty(options.SpotSize)
-        switch kind
-        case "beacon"
-            [~, spot_size] = transmitter.Beacon.GetGeoLoss(link_length, receiver.Camera);
-        case "qkd"
-            spot_size = (ones(size(link_length)) ...
-                * transmitter.Telescope.Diameter ...
-                + link_length ...
-                * transmitter.Telescope.FOV);
-        end
+        [~,geometric_spot_size] = nodes.GeometricLoss(kind,receiver,transmitter,"LinkLength",length(elevation_flags));
+    elseif isequal(size(geometric_spot_size),size(length))
+        %might also need to cut geometric_spot_size down to correct length
+        geometric_spot_size = geometric_spot_size(elevation_flags);
     end
 
-    beam_width(~elevation_flags) = 0;
-    beam_width(elevation_flags) = long_term_gaussian_beam_width( ...
-        spot_size(elevation_flags), link_length(elevation_flags), wavenumber, r0);
+    %then we can calculate the beam width after turbulence
+    [turbulent_beam_width,r0] = BeamSpread(turbulence_model,...
+                direction,...
+                wavelength,...
+                elevation(elevation_flags),...
+                length(elevation_flags),...
+                geometric_spot_size,...
+                'BottomHeight',BottomHeight,...
+                'TopHeight',TopHeight);
 
-    % NOTE: Is this true? -> "residual beam wander is not needed here as this is dealt with in"
-    % NOTE: Is this where we need "greenwood_frequency.m"?
 
-    loss(~elevation_flags) = 0;
-    loss(elevation_flags) = ( ...
-        beam_width(elevation_flags) ...
-        ./ spot_size(elevation_flags) ) .^ (-2);
-
-    n = max(receiver.N_Position, transmitter.N_Position);
-    loss = units.Loss("probability", "Turbulence", utilities.validateLoss(loss, n));
-
-    nargoutchk(0, 3)
-    varargout{1} = loss;
-
-    if 2 <= nargout()
-        varargout{2} = beam_width;
-    end
-
-    if 3 <= nargout()
-        varargout{3} = r0;
-    end
+     %% calculate loss using turbulent beam width
+     turbulence_loss = zeros(size(elevation_flags));
+     turbulence_loss(elevation_flags) = (geometric_spot_size ./ turbulent_beam_width).^2;
+     %convert to loss object
+     turbulence_loss = units.Loss(turbulence_loss);
 end

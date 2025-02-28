@@ -36,6 +36,10 @@ function loss = APTLoss(kind, receiver, transmitter)
         loss = loss_tx .* loss_rx;
     end
 
+    %upscale to match other losses
+    if isscalar(loss)
     n = max(receiver.N_Position, transmitter.N_Position);
-    loss = units.Loss("probability", "Acquisition Pointing and Tracking", utilities.validateLoss(loss, n));
+    loss = loss*ones(1,n);
+    end
+    loss = units.Loss(loss);
 end

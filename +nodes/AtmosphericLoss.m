@@ -31,11 +31,11 @@ function loss = AtmosphericLoss(kind, receiver, transmitter, environment)
     % NOTE: mask by elevation >= 0
     loss = environment.Interp("attenuation", abs(headings), abs(elevations), wavelength);
 
-    if any(isnan(loss.values))
+    if any(isnan(loss))
         % disp("something went wrong")
-        loss.values(isnan(loss.values)) = 1;
+        loss.values(isnan(loss)) = 1;
     end
 
     n = max(receiver.N_Position, transmitter.N_Position);
-    loss = units.Loss("probability", "Atmospheric", utilities.validateLoss(loss.values, n));
+    loss = units.Loss(loss);
 end

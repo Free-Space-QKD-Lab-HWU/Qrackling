@@ -21,7 +21,7 @@ function eff = OpticalEfficiencyLoss(kind, receiver, transmitter)
         %% compute received wavelenth from doppler shift
         shifted_wavelength = nodes.Doppler_Shift(receiver, transmitter);
         filter_efficiency = receiver.Detector.Spectral_Filter ...
-            .ComputeTransmission(shifted_wavelength);
+            .ComputeTransmission(shifted_wavelength)';
 
         %% sources of efficiency
         eff = transmitter.Source.Efficiency ...
@@ -32,6 +32,11 @@ function eff = OpticalEfficiencyLoss(kind, receiver, transmitter)
             * filter_efficiency;
     end
 
+    %upscale to match other losses
+    if isscalar(eff)
     n = max(receiver.N_Position, transmitter.N_Position);
-    eff = units.Loss("probability", "Optical", utilities.validateLoss(eff, n));
+    eff = eff*ones(1,n);
+    end
+
+    eff = units.Loss(eff);
 end
