@@ -35,7 +35,7 @@ HOGS_Detector = components.Detector(Channel_Wavelength,Repetition_Rate,...
 Channel_Wavelength = 808;                                    %signal wavelength in nm
 Repetition_Rate = 1E8;                                              %signal rep rate in Hz
 Time_Gate = 2E-9;                                                   %time gate width in s
-Spectral_Filter = SpectralFilter('input_file',[filter_file,filesep(),'FBH850-10.xlsx']);
+Spectral_Filter = components.SpectralFilter('input_file','Examples\Data\spectral filters\FBH810-10.xlsx');
 HOGS_Detector = components.Detector(Channel_Wavelength,Repetition_Rate,...
     Time_Gate,Spectral_Filter, 'Preset', 'Excelitas');
 
@@ -43,7 +43,7 @@ HOGS_Detector = components.Detector(Channel_Wavelength,Repetition_Rate,...
 Channel_Wavelength = 1550;                                    %signal wavelength in nm
 Repetition_Rate = 1;                                              %signal rep rate in Hz
 Time_Gate = 1;                                                   %time gate width in s
-Spectral_Filter = SpectralFilter('input_file',[filter_file,filesep(),'FBH1550-12.xlsx']);
+Spectral_Filter = components.SpectralFilter('input_file','Examples\Data\spectral filters\FBH1550-12.xlsx');
 HOGS_Detector = components.Detector(Channel_Wavelength,Repetition_Rate,...
     Time_Gate,Spectral_Filter, 'Preset', 'Excelitas');
 end

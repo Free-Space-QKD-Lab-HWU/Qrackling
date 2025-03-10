@@ -2,8 +2,8 @@
 
 
 %which channel should be modelled?
-Wavelength = 785;    
-%Wavelength = 808;
+%Wavelength = 785;    
+Wavelength = 808;
 %Wavelength = 1550;
 
 assert(ismember(Wavelength,[785,808,1550]),'Wavelength must be one of the intended channels: 785,850 or 1550')
@@ -21,19 +21,19 @@ OGS=HOGS(Wavelength,'BeaconCamera','Fine');%current HOGS model
 %{
 StartTime = datetime(2022,12,25,6,0,0);
 StopTime = datetime(2022,12,25,7,0,0);
-Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\varying elevation MODTRAN data 3\Dark Environment 50km.mat");
+Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 50km.mat");
 Env.turbulence_model = environment.Turbulence_Model('Preset','10-10');
 %}
 %ok pass: 0610 to 0655 christmas day 2022, 10km visibility
-%{
+%%{
 StartTime = datetime(2023,2,6,3,0,0);
 StopTime = datetime(2023,2,6,5,0,0);
-Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\varying elevation MODTRAN data 3\Dark Environment 10km.mat");
+Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 10km.mat");
 Env.turbulence_model = environment.Turbulence_Model('Preset','HV5-7');
 %}
 
 %worst case pass: 0330 to 0333 4 feb 2023, 2km visibility
-%%{
+%{
 StartTime = datetime(2023,1,31,4,0,0);
 StopTime = datetime(2023,1,31,5,0,0);
 Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 5km.mat");
