@@ -50,5 +50,5 @@ UplinkBeaconResults = beacon.beaconSimulation(Sat,OGS);
 
 %% plot a pass
 plot(PassResult,'x_axis','Time','mask','Elevation');
-plot(DownlinkBeaconResults,"mask","Line of sight",'x_axis','Elevation');
+plot(DownlinkBeaconResults,"mask","Line of sight");
 plot(UplinkBeaconResults,"mask","Line of sight");

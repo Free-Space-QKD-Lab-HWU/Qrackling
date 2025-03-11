@@ -395,7 +395,7 @@ function [loss, noise] = loss_and_noise_for_channel(receiver, transmitter, qkd_p
 
 
         background_radiance = options.Environment.Interp( ...
-            "spectral_radiance", abs(headings), abs(elevations), transmitter.Source.Wavelength);
+            "spectral_radiance", headings, elevations, transmitter.Source.Wavelength);
 
         t = receiver.Detector.Spectral_Filter.transmission;
         w = receiver.Detector.Spectral_Filter.wavelengths;
