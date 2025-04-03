@@ -24,3 +24,6 @@ resources/
 
 #linux shell scripts
 *.sh
+
+# exclude anything sensitive
+*QEYSSAT*
