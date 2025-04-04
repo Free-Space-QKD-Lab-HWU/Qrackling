@@ -5,9 +5,10 @@ classdef bbm92_cw< protocol.proto
         detector_features = protocol.detectorRequirements.features('Dark_Count_Rate')
         efficiency = 0.5
         num_detectors = 4;
+    end
+    properties (SetAccess = public)
         coincidence_window = 1E-9;
     end
-
     methods
         function p = bbm92_cw()
         end
@@ -102,6 +103,9 @@ classdef bbm92_cw< protocol.proto
             %% eq19 we use asymptotic limit in Qrackling
             sifted_rate = protocol.efficiency.*coincidences_measured;
             secret_rate = protocol.efficiency.*coincidences_measured.*(1-2.1*utilities.binaryEntropy(qber));
+
+            %quick check- do not return a negative secret rate
+            secret_rate(secret_rate<0)=0;
 
         end
     end
