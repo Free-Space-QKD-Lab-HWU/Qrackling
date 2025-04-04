@@ -183,5 +183,15 @@ classdef proto
             end
         end
 
+        function x = eq(a,b)
+            arguments
+                a {utilities.mustBeSubclassOf(a,'protocol.proto')}
+                b {utilities.mustBeSubclassOf(b,'protocol.proto')}
+            end
+            
+            %two protocols are equal if they are the same subclass
+            x = isequal(class(a),class(b));
+        end
+
     end
 end

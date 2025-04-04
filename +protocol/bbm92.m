@@ -2,7 +2,7 @@ classdef bbm92 < protocol.proto
     properties (SetAccess=protected)
         method = 'entanglement'
         source_features = protocol.sourceRequirements.features( ...
-            "MPN_Signal", "Coincidence_Window", "State_Prep_Error")
+            "MPN_Signal", "Local_Loss", "State_Prep_Error")
         detector_features = protocol.detectorRequirements.features("Dark_Count_Rate")
         efficiency = 0.5
         num_detectors = 4;
@@ -10,7 +10,7 @@ classdef bbm92 < protocol.proto
 
     methods
         function [secret_key_rate, sifted_key_rate, qber] = QkdModel(Protocol, ...
-            alice, bob, total_loss, background_counts_rate)
+            alice, bob, total_loss, total_erroneous_count_rate)
             % From: Ma, X., Fung, C-H. F., et al. (2007), Quantum Key
             % Distribution with Entangled Photon Sources.
 
@@ -23,7 +23,7 @@ classdef bbm92 < protocol.proto
                     nodes.mustBeReceiverOrTransmitter(bob), ...
                     nodes.mustHaveDetector(bob) }
                 total_loss {mustBeNumeric}
-                background_counts_rate {mustBeNumeric}
+                total_erroneous_count_rate {mustBeNumeric}
             end
 
             % for consistency we want loss and background counts to be in rows
@@ -32,9 +32,9 @@ classdef bbm92 < protocol.proto
                 % got columns so transpose
                 total_loss = total_loss';
             end
-            if RowOrColumn(background_counts_rate) == 2
+            if RowOrColumn(total_erroneous_count_rate) == 2
                 % got columns so transpose
-                background_counts_rate = background_counts_rate';
+                total_erroneous_count_rate = total_erroneous_count_rate';
             end
 
             % now we want to detect if the source is at alice or in the middle
@@ -43,18 +43,18 @@ classdef bbm92 < protocol.proto
                 assert(isscalar(bob), "Can only support a single receiver, when alice has the source");
 
                 % if we got here then we know that alice has the source
-                loss_alice = ones(size(total_loss));
+                loss_alice = alice.Source.Local_Loss;
                 loss_bob = total_loss;
 
                 % alice only has to worry about detector dark counts
-                background_rate_alice = ones(size(total_loss)) ...
+                background_probability_alice = ones(size(total_loss)) ...
                     .* Protocol.BackgroundCountProbability( ...
                         alice.Detector.Dark_Count_Rate * Protocol.num_detectors, ...
                         alice.Detector.Time_Gate_Width);
 
                 % bob has a receiver so can couple to external noise sources
-                background_rate_bob = Protocol.BackgroundCountProbability( ...
-                    background_counts_rate + ...
+                background_probability_bob = Protocol.BackgroundCountProbability( ...
+                    total_erroneous_count_rate + ...
                     bob.Detector.Dark_Count_Rate * Protocol.num_detectors, ...
                     bob.Detector.Time_Gate_Width);
 
@@ -63,48 +63,40 @@ classdef bbm92 < protocol.proto
                 loss_alice = total_loss(1, :);
                 loss_bob = total_loss(2, :);
 
-                if ~any(size(background_counts_rate) == 2)
+                if ~any(size(total_erroneous_count_rate) == 2)
                     % assume same environment at both alice and bob
-                    background_rate_alice = Protocol.BackgroundCountProbability( ...
-                        background_counts_rate + ...
+                    background_probability_alice = Protocol.BackgroundCountProbability( ...
+                        total_erroneous_count_rate + ...
                         Protocol.ReceiverDarkCountRate(alice), ...
                         alice.Detector.Time_Gate_Width);
-                    background_rate_bob = Protocol.BackgroundCountProbability( ...
-                        background_counts_rate + ...
+                    background_probability_bob = Protocol.BackgroundCountProbability( ...
+                        total_erroneous_count_rate + ...
                         Protocol.ReceiverDarkCountRate(bob), ...
                         bob.Detector.Time_Gate_Width);
 
                 elseif numel(bob) == 2
                     % got a pair of receivers so use their specific values
-                    background_rate_alice = Protocol.BackgroundCountProbability( ...
-                        background_counts_rate(1, :) + ...
+                    background_probability_alice = Protocol.BackgroundCountProbability( ...
+                        total_erroneous_count_rate(1, :) + ...
                         Protocol.ReceiverDarkCountRate(bob{1}), ...
                         bob{1}.Detector.Time_Gate_Width);
-                    background_rate_bob = Protocol.BackgroundCountProbability( ...
-                        background_counts_rate(2, :) + ...
+                    background_probability_bob = Protocol.BackgroundCountProbability( ...
+                        total_erroneous_count_rate(2, :) + ...
                         Protocol.ReceiverDarkCountRate(bob{2}), ...
                         bob{2}.Detector.Time_Gate_Width);
 
                 else
                     % we have different conditions at alice and bob locations
-                    background_rate_alice = Protocol.BackgroundCountProbability( ...
-                        background_counts_rate(1, :) + ...
+                    background_probability_alice = Protocol.BackgroundCountProbability( ...
+                        total_erroneous_count_rate(1, :) + ...
                         Protocol.ReceiverDarkCountRate(alice), ...
                         alice.Detector.Time_Gate_Width);
-                    background_rate_bob = Protocol.BackgroundCountProbability( ...
-                        background_counts_rate(2, :) + ...
+                    background_probability_bob = Protocol.BackgroundCountProbability( ...
+                        total_erroneous_count_rate(2, :) + ...
                         Protocol.ReceiverDarkCountRate(bob), ...
                         bob.Detector.Time_Gate_Width);
                 end
             end
-
-            % transmission_alice = loss_alice;
-            % transmission_bob = loss_bob;
-
-            % alice.Detector.Detection_Efficiency
-            % Protocol.ReceiverLoss(alice)
-            % bob.Detector.Detection_Efficiency
-            % Protocol.ReceiverLoss(bob)
 
 
             if ~any(size(total_loss) == 2) % only one set of loss values
@@ -122,12 +114,12 @@ classdef bbm92 < protocol.proto
 
             pairs_per_pulse = alice.Source.MPN_Signal / 2;
             gain = Protocol.gain_overall(transmission_alice, transmission_bob, ...
-                background_rate_alice, background_rate_bob, pairs_per_pulse);
+                background_probability_alice, background_probability_bob, pairs_per_pulse);
 
             qber = Protocol.QBER_net(transmission_alice, transmission_bob, gain, ...
                 pairs_per_pulse, Protocol.efficiency, alice.Source.State_Prep_Error);
 
-            reconciliation_factor = 0.5;
+            reconciliation_factor = Protocol.efficiency;
             skr = Protocol.secure_key_rate(reconciliation_factor, gain, qber, qber);
             %modification: cameron simmons SKR cannot be negative
             skr(skr<0)=0;
@@ -139,12 +131,14 @@ classdef bbm92 < protocol.proto
 
     methods(Static)
 
+        %% eq7- define the yield of different pair number states
         function y = yield(transmission, background_counts, n_pairs)
             arguments
                 transmission (1, :) {mustBeNumeric, mustBeInRange(transmission, 0, 1)}
                 background_counts (1, :) {mustBeNumeric}
                 n_pairs {mustBeNumeric, mustBeGreaterThanOrEqual(n_pairs, 0)}
             end
+            % sub-part of eq7
             y = (1 - (1 - background_counts) .* (1 - transmission)) .^ n_pairs;
         end
 
@@ -157,12 +151,13 @@ classdef bbm92 < protocol.proto
                 background_counts_bob (1, :) {mustBeNumeric}
                 n_pairs {mustBeNumeric, mustBePositive}
             end
-
+            % full yimplements eq7
             y = ...
                 protocol.bbm92.yield(background_counts_alice, transmission_alice, n_pairs) ...
                 .* protocol.bbm92.yield(background_counts_bob, transmission_bob, n_pairs);
         end
 
+        %% eq 5
         function p = emission_probability(n_pairs, pairs_per_pump_pulse)
             arguments
                 n_pairs {mustBeNumeric, mustBePositive, mustBeReal}
@@ -175,6 +170,7 @@ classdef bbm92 < protocol.proto
                 ./ ((1 + pairs_per_pump_pulse) .^ (n_pairs + 2));
         end
 
+        %% eq8
         function g = gain(transmission_alice, transmission_bob, background_counts_alice, ...
             background_counts_bob, n_pairs, pairs_per_pump_pulse)
             arguments
@@ -195,30 +191,7 @@ classdef bbm92 < protocol.proto
             g = y .* p;
         end
 
-        function g = gain_net(transmission_alice, transmission_bob, background_counts_alice, ...
-            background_counts_bob, pairs_per_pump_pulse)
-            arguments
-                transmission_alice (1, :) {mustBeNumeric, mustBeInRange(transmission_alice, 0, 1)}
-                transmission_bob (1, :) {mustBeNumeric, mustBeInRange(transmission_bob, 0, 1)}
-                background_counts_alice (1, :) {mustBeNumeric}
-                background_counts_bob (1, :) {mustBeNumeric}
-                pairs_per_pump_pulse {mustBeNumeric, mustBeReal, ...
-                    mustBeGreaterThanOrEqual(pairs_per_pump_pulse, 0)}
-            end
-
-            Contribution = @(Yield, transmission, N_Pairs) ...
-                (1 - Yield) ./ ((1 + (transmission .* N_Pairs)) .^ 2);
-
-            contrib_alice = Contribution(background_counts_alice, transmission_alice, pairs_per_pump_pulse);
-            contrib_bob = Contribution(background_counts_bob, transmission_bob, pairs_per_pump_pulse);
-
-            contrib_joint = ...
-                ((1 - background_counts_alice) .* (1 - background_counts_bob)) ...
-                ./ ((1 + sum([transmission_alice, transmission_bob, transmission_alice .* transmission_bob] .* pairs_per_pump_pulse)) .^ 2);
-
-            g = 1 - contrib_alice - contrib_bob + contrib_joint;
-        end
-
+        %% eq9
         function g = gain_overall(transmission_alice, transmission_bob, ...
             background_counts_alice, background_counts_bob, pairs_per_pump_pulse)
             arguments
@@ -249,6 +222,7 @@ classdef bbm92 < protocol.proto
 
         end
 
+        %% eq10
         function qber = QBER_net(transmission_alice, transmission_bob, ...
             overall_gain, ...
             pairs_per_pump_pulse, error_random, error_detector)
@@ -281,6 +255,7 @@ classdef bbm92 < protocol.proto
             qber(qber > 0.5) = 0.5;
         end
 
+        %% eq11
         function r = secure_key_rate(basis_reconciliation_factor, ...
             overall_gain, error_bit, error_phase, error_correction_efficiency)
             arguments
@@ -292,20 +267,12 @@ classdef bbm92 < protocol.proto
                 error_correction_efficiency {mustBeNumeric, mustBeReal} = 1.22
             end
 
-            h_bit = protocol.bbm92.binary_entropy(error_bit);
-            h_phase = protocol.bbm92.binary_entropy(error_phase);
+            h_bit = utilities.binaryEntropy(error_bit);
+            h_phase = utilities.binaryEntropy(error_phase);
 
             r = basis_reconciliation_factor .* overall_gain .* ...
                 (1 - (error_correction_efficiency .* h_bit) - h_phase);
         end
-
-        function h = binary_entropy(x)
-            arguments
-                x {mustBeNumeric, mustBeReal, mustBeInRange(x, 0, 1)}
-            end
-            h = -x.*log2(x) - (1-x).*log2(1-x);
-        end
-
     end
 
 end

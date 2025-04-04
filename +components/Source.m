@@ -39,9 +39,9 @@ classdef Source
                     mustBeNonnegative, ...
                     mustBeLessThanOrEqual(Probability_Decoy, 1)}
 
-        %allowed time delay between associated detections in entanglement
-        %protocols
-        Coincidence_Window {mustBeScalarOrEmpty,mustBePositive} = [];
+        %the loss between the source and a local receiver used for
+        %entanglement-based protocols
+        Local_Loss {mustBeInRange(Local_Loss,0,1)} = 1;
     end
 
     methods
@@ -66,7 +66,7 @@ classdef Source
                     mustBeNumeric, ...
                     mustBeNonnegative, ...
                     mustBeLessThanOrEqual(options.Probability_Decoy, 1)}
-                options.Coincidence_Window  {mustBeScalarOrEmpty,mustBePositive} = [];
+                options.Local_Loss  {mustBeInRange(options.Local_Loss,0,1)} = 1;
             end
 
             for option = fieldnames(options)'

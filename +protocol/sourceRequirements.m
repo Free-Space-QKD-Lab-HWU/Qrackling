@@ -10,7 +10,7 @@ classdef sourceRequirements
         g2
         Probability_Signal
         Probability_Decoy
-        Coincidence_Window
+        Local_Loss
     end
 
     methods (Static)

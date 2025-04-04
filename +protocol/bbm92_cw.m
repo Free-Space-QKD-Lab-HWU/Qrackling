@@ -1,7 +1,7 @@
 classdef bbm92_cw< protocol.proto
     properties (SetAccess = protected)
         method = 'prepare_and_measure'
-        source_features = protocol.sourceRequirements.features('MPN_Signal', 'State_Prep_Error')
+        source_features = protocol.sourceRequirements.features('MPN_Signal', 'Local_Loss', 'State_Prep_Error')
         detector_features = protocol.detectorRequirements.features('Dark_Count_Rate')
         efficiency = 0.5
         num_detectors = 4;
@@ -13,7 +13,7 @@ classdef bbm92_cw< protocol.proto
         function p = bbm92_cw()
         end
 
-        function [sifted_rate, secret_rate, qber] = QkdModel( ...
+        function [secret_rate, sifted_rate, qber] = QkdModel( ...
             protocol, Alice, Bob, channel_loss, total_erroneous_counts)
 
             arguments
@@ -29,13 +29,13 @@ classdef bbm92_cw< protocol.proto
             %https://journals.aps.org/pra/pdf/10.1103/PhysRevA.104.022406
             
             %% eq1 define efficiencies to alice and bob (alice is assumed to be at the source)
-            efficiency_alice = Alice.Detector.Detection_Efficiency;
+            efficiency_alice = Alice.Source.Local_Loss * Alice.Detector.Detection_Efficiency;
             efficiency_bob = Bob.Detector.Detection_Efficiency.*channel_loss;
 
             % HACK: Brightness for a downconversion Source might require a 
             % little bit more information than just mean photon number and 
             % repetition rate, for now this will do.
-            brightness = Alice.Source.MPN_Signal * Alice.Source.Repetition_Rate;
+            brightness = Alice.Source.Repetition_Rate;
 
             %% eq2
             singles_alice = brightness .* efficiency_alice;
