@@ -130,7 +130,7 @@ classdef bbm92 < protocol.proto
             reconciliation_factor = 0.5;
             skr = Protocol.secure_key_rate(reconciliation_factor, gain, qber, qber);
             %modification: cameron simmons SKR cannot be negative
-            skr(skr<0)=0
+            skr(skr<0)=0;
 
             sifted_key_rate = alice.Source.Repetition_Rate .* gain;
             secret_key_rate = alice.Source.Repetition_Rate .* skr;
