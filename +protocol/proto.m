@@ -10,14 +10,14 @@ classdef proto
 
     methods (Abstract)
         [secret_key_rate, sifted_key_rate, qber] = QkdModel(protocol, ...
-            transmitter, receiver, total_loss, background_counts_rate);
+            transmitter, receiver, total_loss, total_erroneous_counts);
     end
 
 
     methods
 
         function [secret_rate, sifted_rate, qber] = Calculate(proto, ...
-            transmitter, receiver, total_loss, loss_unit, background_counts)
+            transmitter, receiver, total_loss, loss_unit, background_count_rate)
             arguments
                 proto
                 transmitter {utilities.mustBeSubclassOf(transmitter,'nodes.Optical_Node'),...
@@ -26,7 +26,7 @@ classdef proto
                           nodes.mustHaveDetector(receiver) }
                 total_loss (:, :) {mustBeNumeric}
                 loss_unit {mustBeMember(loss_unit, ["probability", "dB"])}
-                background_counts (:, :, :) {mustBeNumeric}
+                background_count_rate (:, :, :) {mustBeNumeric}
             end
 
             % RowOrColumn = @(arr) sum((size(arr) == min(size(arr))) .* [1, 2]);
@@ -64,7 +64,7 @@ classdef proto
             if min(size(total_loss)) == 2
                 % got different losses for two different channels
                 [secret_rate, sifted_rate, qber] = proto.QkdModel( ...
-                    transmitter, receiver, total_loss, background_counts);
+                    transmitter, receiver, total_loss, background_count_rate);
                 return
             end
 
@@ -73,7 +73,7 @@ classdef proto
             [secret_rate, sifted_rate, qber] = proto.QkdModel( ...
                 transmitter, receiver, ...
                 units.Loss(total_loss), ...
-                background_counts + receiver_dcr);
+                background_count_rate + receiver_dcr);
 
         end
 

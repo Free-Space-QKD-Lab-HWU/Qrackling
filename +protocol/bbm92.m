@@ -16,8 +16,6 @@ classdef bbm92 < protocol.proto
 
             arguments
                 Protocol
-                % alice {mustBeA(alice, ["nodes.Satellite", "nodes.Ground_Station"])}
-                % bob {mustBeA(bob, ["nodes.Satellite", "nodes.Ground_Station"])}
                 alice { ...
                     nodes.mustBeReceiverOrTransmitter(alice), ...
                     nodes.mustHaveSource(alice) }
@@ -41,8 +39,6 @@ classdef bbm92 < protocol.proto
 
             % now we want to detect if the source is at alice or in the middle
             if ~any(size(total_loss) == 2) % only one set of loss values
-
-                %assert(numel(bob) == 1, "Can only support a single receiver, when alice has the source");
 
                 assert(isscalar(bob), "Can only support a single receiver, when alice has the source");
 
@@ -125,7 +121,6 @@ classdef bbm92 < protocol.proto
             end
 
             pairs_per_pulse = alice.Source.MPN_Signal / 2;
-            % pairs_per_pulse = 0.09
             gain = Protocol.gain_overall(transmission_alice, transmission_bob, ...
                 background_rate_alice, background_rate_bob, pairs_per_pulse);
 
@@ -134,6 +129,8 @@ classdef bbm92 < protocol.proto
 
             reconciliation_factor = 0.5;
             skr = Protocol.secure_key_rate(reconciliation_factor, gain, qber, qber);
+            %modification: cameron simmons SKR cannot be negative
+            skr(skr<0)=0
 
             sifted_key_rate = alice.Source.Repetition_Rate .* gain;
             secret_key_rate = alice.Source.Repetition_Rate .* skr;

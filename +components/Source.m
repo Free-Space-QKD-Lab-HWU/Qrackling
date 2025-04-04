@@ -38,6 +38,10 @@ classdef Source
                     mustBeNumeric, ...
                     mustBeNonnegative, ...
                     mustBeLessThanOrEqual(Probability_Decoy, 1)}
+
+        %allowed time delay between associated detections in entanglement
+        %protocols
+        Coincidence_Window {mustBeScalarOrEmpty,mustBePositive} = [];
     end
 
     methods
@@ -62,6 +66,7 @@ classdef Source
                     mustBeNumeric, ...
                     mustBeNonnegative, ...
                     mustBeLessThanOrEqual(options.Probability_Decoy, 1)}
+                options.Coincidence_Window  {mustBeScalarOrEmpty,mustBePositive} = [];
             end
 
             for option = fieldnames(options)'
@@ -101,7 +106,7 @@ classdef Source
                 Source.Probability_Decoy), ...
                 'This has resulted in negative vacuum probability'];
 
-            if total_probability > 1;
+            if total_probability > 1
                 error(msg)
             end
             Source.Probability_Vacuum = 1 - total_probability;
