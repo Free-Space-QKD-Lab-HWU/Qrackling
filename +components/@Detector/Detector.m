@@ -204,8 +204,8 @@ classdef  Detector
                 %compute histogram probability density function and
                 %cumulitive density function
                 Detector.PDF(i) = ...
-                    Detector.Jitter_Histogram(i) / Detector.Total_Counts;
-                Detector.CDF(i) = sum(Detector.PDF(1:i));
+                    Detector.Jitter_Histogram(i) / (Detector.Total_Counts*Detector.Histogram_Bin_Width);
+                Detector.CDF(i) = sum(Detector.PDF(1:i))*Detector.Histogram_Bin_Width;
             end
         end
 
