@@ -8,6 +8,10 @@ classdef decoyBB84 < protocol.proto
         detector_features = protocol.detectorRequirements.features("Dark_Count_Rate", "Time_Gate_Width", "Dead_Time")
         efficiency = 0.5,
         num_detectors = 4;
+        name = 'Decoy BB84';
+        
+        num_transmitters = 1;
+        num_receivers = 1;
     end
 
     methods

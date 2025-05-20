@@ -1,4 +1,4 @@
-classdef bbm92 < protocol.proto
+classdef bbm92_double < protocol.proto
     properties (SetAccess=protected)
         method = 'entanglement'
         source_features = protocol.sourceRequirements.features( ...
@@ -6,10 +6,10 @@ classdef bbm92 < protocol.proto
         detector_features = protocol.detectorRequirements.features("Dark_Count_Rate")
         efficiency = 0.5
         num_detectors = 4;
-        name = 'Point-to-Point BBM92';
+        name = 'Double Receiver BBM92';
         
         num_transmitters = 1;
-        num_receivers = 1;
+        num_receivers = 2;
     end
 
     methods
@@ -30,28 +30,54 @@ classdef bbm92 < protocol.proto
                 total_erroneous_count_rate {mustBeNumeric}
             end
 
-                assert(isscalar(bob), "Can only support a single receiver, when alice has the source");
+            %% first, check that we have the right number of transmitters and receivers
+            proto.mustHaveCorrectTransmittersAndReceivers(alice,bob)
 
-                % if we got here then we know that alice has the source
-                loss_alice = alice.Source.Local_Loss;
-                loss_bob = total_loss;
+                % assume ordering is alice then bob
+                loss_alice = total_loss(1, :);
+                loss_bob = total_loss(2, :);
 
-                % alice only has to worry about detector dark counts
-                background_probability_alice = ones(size(total_loss)) ...
-                    .* Protocol.BackgroundCountProbability( ...
-                        alice.Detector.Dark_Count_Rate * Protocol.num_detectors, ...
+                if ~any(size(total_erroneous_count_rate) == 2)
+                    % assume same environment at both alice and bob
+                    background_probability_alice = Protocol.BackgroundCountProbability( ...
+                        total_erroneous_count_rate + ...
+                        Protocol.ReceiverDarkCountRate(alice), ...
                         alice.Detector.Time_Gate_Width);
+                    background_probability_bob = Protocol.BackgroundCountProbability( ...
+                        total_erroneous_count_rate + ...
+                        Protocol.ReceiverDarkCountRate(bob), ...
+                        bob.Detector.Time_Gate_Width);
 
-                % bob has a receiver so can couple to external noise sources
-                background_probability_bob = Protocol.BackgroundCountProbability( ...
-                    total_erroneous_count_rate + ...
-                    bob.Detector.Dark_Count_Rate * Protocol.num_detectors, ...
-                    bob.Detector.Time_Gate_Width);
+                elseif numel(bob) == 2
+                    % got a pair of receivers so use their specific values
+                    background_probability_alice = Protocol.BackgroundCountProbability( ...
+                        total_erroneous_count_rate(1, :) + ...
+                        Protocol.ReceiverDarkCountRate(bob(1)), ...
+                        bob(1).Detector.Time_Gate_Width);
+                    background_probability_bob = Protocol.BackgroundCountProbability( ...
+                        total_erroneous_count_rate(2, :) + ...
+                        Protocol.ReceiverDarkCountRate(bob(2)), ...
+                        bob(2).Detector.Time_Gate_Width);
 
+                else
+                    % we have different conditions at alice and bob locations
+                    background_probability_alice = Protocol.BackgroundCountProbability( ...
+                        total_erroneous_count_rate(1, :) + ...
+                        Protocol.ReceiverDarkCountRate(alice), ...
+                        alice.Detector.Time_Gate_Width);
+                    background_probability_bob = Protocol.BackgroundCountProbability( ...
+                        total_erroneous_count_rate(2, :) + ...
+                        Protocol.ReceiverDarkCountRate(bob), ...
+                        bob.Detector.Time_Gate_Width);
+                end
 
-                transmission_alice = Protocol.ReceiverLoss(alice) .* loss_alice;
-                transmission_bob = Protocol.ReceiverLoss(bob) .* loss_bob;
-
+                if numel(bob) == 2
+                    transmission_alice = Protocol.ReceiverLoss(bob(1)) .* loss_alice;
+                    transmission_bob = Protocol.ReceiverLoss(bob(2)) .* loss_bob;
+                else
+                    transmission_alice = Protocol.ReceiverLoss(bob) .* loss_alice;
+                    transmission_bob = Protocol.ReceiverLoss(bob) .* loss_bob;
+                end
 
             pairs_per_pulse = alice.Source.MPN_Signal / 2;
             gain = Protocol.gain_overall(transmission_alice, transmission_bob, ...

@@ -5,6 +5,10 @@ classdef bbm92_cw< protocol.proto
         detector_features = protocol.detectorRequirements.features('Dark_Count_Rate')
         efficiency = 0.5
         num_detectors = 4;
+        name = 'Continuous Wave BBM92';
+
+        num_transmitters = 1;
+        num_receivers = 1;
     end
     properties (SetAccess = public)
         coincidence_window = 1E-9;

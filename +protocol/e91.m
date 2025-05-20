@@ -4,6 +4,10 @@ classdef e91 < protocol.proto
         source_features = protocol.sourceRequirements.features("Mean_Photon_Number", "State_Prep_Error", "g2")
         detector_features = protocol.detectorRequirements.features("Dark_Count_Rate", "Time_Gate_Width")
         efficiency = 1
+        name = 'E91';
+
+        num_transmitters = 1;
+        num_receivers = 1;
     end
 
     methods

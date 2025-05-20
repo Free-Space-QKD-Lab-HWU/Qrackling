@@ -9,6 +9,10 @@ classdef cow < protocol.proto
         detector_features = protocol.detectorRequirements.features('Dark_Count_Rate', 'Time_Gate_Width',  'Visibility')
         efficiency = 1,
         num_detectors = 2;
+        name = 'COW';
+
+        num_transmitters = 1;
+        num_receivers = 1;
     end
 
     methods

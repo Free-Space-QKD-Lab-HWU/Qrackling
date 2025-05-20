@@ -34,17 +34,6 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
 
         Times {mustBeA(Times,'datetime')} = datetime.empty  %not sure what this would need to be for datetimes
 
-        %% information about protocol
-        % protocol used (BB84,BBN92,...)
-        %TODO: remvoe protocol from satellite
-        Protocol protocol.proto = protocol.bb84()
-        Protocol_Efficiency{mustBeScalarOrEmpty} = 1;
-
-        %% information about reflection
-        % a surface object detailing angular and spectal dependence of
-        % reflection
-        Surface {isa(Surface,'Surface')}
-
         %% beacon on satellite
         Beacon =[];
         %% beacon camera on satellite

@@ -6,7 +6,12 @@ classdef proto
         detector_features protocol.detectorRequirements
         efficiency
         num_detectors {mustBeNumeric,mustBeNonnegative}
+        name {mustBeText}
+        %the number of transmitters and receivers requires for a protocol
+        num_transmitters
+        num_receivers
     end
+    
 
     methods (Abstract)
         [secret_key_rate, sifted_key_rate, qber] = QkdModel(protocol, ...
@@ -17,19 +22,16 @@ classdef proto
     methods
 
         function [secret_rate, sifted_rate, qber] = Calculate(proto, ...
-            transmitter, receiver, total_loss, loss_unit, background_count_rate)
+            transmitter, receiver, total_loss, background_count_rate)
             arguments
                 proto
                 transmitter {utilities.mustBeSubclassOf(transmitter,'nodes.Optical_Node'),...
                              nodes.mustHaveSource(transmitter) }
                 receiver {utilities.mustBeSubclassOf(receiver,'nodes.Optical_Node'),...
                           nodes.mustHaveDetector(receiver) }
-                total_loss (:, :) {mustBeNumeric}
-                loss_unit {mustBeMember(loss_unit, ["probability", "dB"])}
-                background_count_rate (:, :, :) {mustBeNumeric}
+                total_loss (:, :)
+                background_count_rate (:, :, :)
             end
-
-            % RowOrColumn = @(arr) sum((size(arr) == min(size(arr))) .* [1, 2]);
 
             n_transmitter = numel(transmitter);
             if n_transmitter > 1
@@ -192,6 +194,25 @@ classdef proto
             %two protocols are equal if they are the same subclass
             x = isequal(class(a),class(b));
         end
+    end
+    methods(Static)
+        function mustHaveCorrectTransmittersAndReceivers(proto,transmitters,receivers)
+            %% a validation function which checks that we have the right number of transmitters and receivers for this protocol
+            if isequal(proto.num_transmitters,'n')
+            assert(numel(transmitters)>0,...
+                'This protocol requires non-zero transmitters')
+            else
+            assert(numel(transmitters)==proto.num_transmitters,...
+                '%s requires exactly %i transmitters, %i provided',proto.name,proto.num_transmitters,numel(transmitters))
+            end
 
+            if isequal(proto.num_receivers,'n')
+            assert(numel(receivers)>0,...
+                'This protocol requires non-zero receivers')
+            else
+            assert(numel(receivers)==proto.num_receivers,...
+                '%s requires exactly %i receivers, %i provided',proto.name,proto.num_receivers,numel(receivers))
+            end
+        end
     end
 end

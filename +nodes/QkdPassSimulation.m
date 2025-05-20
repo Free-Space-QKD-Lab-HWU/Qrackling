@@ -1,74 +1,52 @@
-function results = QkdPassSimulation(receiver, transmitter, qkd_protocol, options)
+function results = QkdPassSimulation(receivers, transmitters, qkd_protocol, options)
 %%QKDPASSSIMULATION this function architects the simulation of a QKD pass.
 %%It takes at least one receiver, a transmitter, a protocol and an
 %%(optional) environment, then finds and performs the required links
     arguments
-        receiver { ...
-            nodes.mustBeReceiverOrTransmitter(receiver), ...
-            nodes.mustHaveDetector(receiver) }
-        transmitter { ...
-            nodes.mustBeReceiverOrTransmitter(transmitter), ...
-            nodes.mustHaveSource(transmitter) }
+        receivers { ...
+            nodes.mustBeReceiverOrTransmitter(receivers), ...
+            nodes.mustHaveDetector(receivers) }
+        transmitters { ...
+            nodes.mustBeReceiverOrTransmitter(transmitters), ...
+            nodes.mustHaveSource(transmitters) }
         qkd_protocol protocol.proto
         options.Environment environment.Environment
     end
-
-    protocol_name = class(qkd_protocol);
-
-
+    
     have_environment = any(ismember(fieldnames(options), "Environment"));
 
     % check length of needs_env to pick route
     needs_env = have_environment;
     if have_environment
-        needs_env = map_receivers_and_environments(receiver, "Environment", options.Environment);
+        needs_env = map_receivers_and_environments(receivers, "Environment", options.Environment);
     end
 
-    supports_double_link = string(qkd_protocol.method) == "entanglement";
 
-    [single_links, double_links] = find_links(receiver, transmitter);
+    %% Check that we have the correct number of transmitters and receivers for this protocol
+    qkd_protocol.mustHaveCorrectTransmittersAndReceivers(qkd_protocol,transmitters,receivers)
 
-    args = {{}, {}, qkd_protocol};
-    if have_environment
-        args{end + 1} = "Environment";
-        args{end + 1} = options.Environment(1);
-    end
-
-    loss_dict = dictionary;
-    dark_counts_dict = dictionary;
-    background_counts_dict = dictionary;
-
-    result_dim = [1, numel(single_links) + numel(double_links)];
-    results = createArray(result_dim, "nodes.PassSimulationResult");
-
-    r = 1;
-    for s = [single_links{:}]
-        args{1} = receiver(s.rx_idx);
-        args{2} = transmitter(s.tx_idx);
-        if have_environment
-            args{end} = options.Environment(s.rx_idx);
+    %% Establish the loss and noise between each transmitter and receiver pair
+    loss_results = cell(qkd_protocol.num_transmitters,qkd_protocol.num_receivers);
+    noise_results = cell(qkd_protocol.num_transmitters,qkd_protocol.num_receivers);
+    for transmitter_index = 1:qkd_protocol.num_transmitters
+        for receiver_index = 1:qkd_protocol.num_receivers
+            [loss,noise]=loss_and_noise_for_channel(transmitters(transmitter_index),...
+                                                    receivers(receiver_index),...
+                                                    qkd_protocol,...
+                                                    'Environment',options.Environment);
+            %store loss and noise in cells with index transmitter x
+            %receiver
+            loss_results{transmitter_index,receiver_index} = loss;
+            noise_results{transmitter_index,receiver_index} = noise;
         end
-        [loss, noise] = loss_and_noise_for_channel(args{:});
-        key = [num2str(s.rx_idx), ' ', num2str(s.tx_idx)];
-        loss_dict(key) = loss;
-        dark_counts_dict(key) = noise(1);
-        background_counts_dict(key) = noise(2);
+    end
 
-        elev_mask = s.elevation_mask;
-        dim = size(elev_mask);
-        secret_key_rate = zeros(size(dim));
-        sifted_key_rate = zeros(size(dim));
-        qber = zeros(size(dim));
-
-        loss_array = loss.TotalLoss;
-        loss_array = loss_array(elev_mask);
-        noise_array = noise(2).values(elev_mask);
-
-        [skr, kr, q] = qkd_protocol.Calculate( ...
-            transmitter(s.tx_idx), ...
-            receiver(s.rx_idx), ...
-            loss_array, "probability", ...
-            noise_array);
+    %% Evaluate QKD link
+     [skr, kr, q] = qkd_protocol.Calculate( ...
+            transmitters, ...
+            receivers, ...
+            loss, ...
+            noise.values);
         
         secret_key_rate(elev_mask) = skr;
         sifted_key_rate(elev_mask) = kr;
@@ -83,88 +61,13 @@ function results = QkdPassSimulation(receiver, transmitter, qkd_protocol, option
             "Longitude", transmitter(s.tx_idx).Longitude, ...
             "Altitude",  transmitter(s.tx_idx).Altitude);
 
-        results(r) = nodes.PassSimulationResult( ...
+        results = nodes.PassSimulationResult( ...
             receiver(s.rx_idx).Name, transmitter(s.tx_idx).Name, ...
             tx_loc, rx_loc, ...
             s.direction, s.heading, s.elevation, s.range, s.time, ...
             s.elevation_limit, s.elevation_mask, ...
             loss, noise, ...
             sifted_key_rate, secret_key_rate, qber, protocol_name);
-        r = r + 1;
-    end
-
-    if ~supports_double_link
-        % return here if not capable of double link
-        results = results(1:numel(single_links));
-        return
-    end
-
-    for d = [double_links{:}]
-        % disp(d{1})
-        l1 = d{1}(1);
-        l2 = d{1}(2);
-
-        assert(l1.tx_idx == l2.tx_idx, "Must be addressing same transmitter");
-        assert(l1.rx_idx ~= l2.rx_idx, "Must be addressing different receivers");
-
-        elev_mask = l1.elevation_mask & l2.elevation_mask;
-
-        key1 = [num2str(l1.rx_idx), ' ', num2str(l1.tx_idx)];
-        key2 = [num2str(l2.rx_idx), ' ', num2str(l2.tx_idx)];
-
-        loss_1 = loss_dict(key1).TotalLoss;
-        loss_1 = loss_1(elev_mask);
-        loss_2 = loss_dict(key2).TotalLoss;
-        loss_2 = loss_2(elev_mask);
-
-        noise_1 = background_counts_dict(key1).values(elev_mask);
-        noise_2 = background_counts_dict(key2).values(elev_mask);
-
-        dim = size(elev_mask);
-        secret_key_rate = zeros(size(dim));
-        sifted_key_rate = zeros(size(dim));
-        qber = zeros(size(dim));
-
-        [skr, kr, q] = qkd_protocol.Calculate( ...
-            transmitter(l1.tx_idx), ...
-            [receiver(l1.rx_idx), receiver(l2.rx_idx)], ...
-            [loss_1; loss_2], "probability", ...
-            [noise_1; noise_2]);
-
-        secret_key_rate(elev_mask) = skr;
-        sifted_key_rate(elev_mask) = kr;
-        qber(elev_mask) = q;
-
-        rx_loc = createArray(1, 2, "nodes.Located_Object");
-        rx_loc(1) = nodes.Located_Object().SetPosition( ...
-            "Latitude",  receiver(l1.rx_idx).Latitude, ...
-            "Longitude", receiver(l1.rx_idx).Longitude, ...
-            "Altitude",  receiver(l1.rx_idx).Altitude);
-        rx_loc(2) = nodes.Located_Object().SetPosition( ...
-            "Latitude",  receiver(l2.rx_idx).Latitude, ...
-            "Longitude", receiver(l2.rx_idx).Longitude, ...
-            "Altitude",  receiver(l2.rx_idx).Altitude);
-        tx_loc = nodes.Located_Object().SetPosition( ...
-            "Latitude",  transmitter(l1.tx_idx).Latitude, ...
-            "Longitude", transmitter(l1.tx_idx).Longitude, ...
-            "Altitude",  transmitter(l1.tx_idx).Altitude);
-
-        results(r) = nodes.PassSimulationResult( ...
-            [string(receiver(l1.rx_idx).Name),string(receiver(l2.rx_idx).Name)], transmitter(l1.tx_idx).Name, ...
-            tx_loc, rx_loc, ...
-            [l1.direction, l2.direction], ...
-            [l1.heading; l2.heading], ...
-            [l1.elevation; l2.elevation], ...
-            [l1.range; l2.range], ...
-            [l1.time, l2.time], ...
-            [l1.elevation_limit, l2.elevation_limit], ...
-            elev_mask, ...
-            [loss_dict(key1), loss_dict(key2)], ...
-            [[dark_counts_dict(key1), dark_counts_dict(key2)]; ...
-            [background_counts_dict(key1), background_counts_dict(key2)]], ...
-            sifted_key_rate, secret_key_rate, qber, protocol_name);
-        r = r + 1;
-    end
 end
 
 
@@ -360,14 +263,14 @@ function [single_link_idx, double_link_idx] = find_links(receivers, transmitters
 end
 
 
-function [loss, noise] = loss_and_noise_for_channel(receiver, transmitter, qkd_protocol, options)
+function [loss, noise] = loss_and_noise_for_channel(transmitter, receiver, qkd_protocol, options)
     arguments
-        receiver { ...
-            nodes.mustBeReceiverOrTransmitter(receiver), ...
-            nodes.mustHaveDetector(receiver) }
-        transmitter { ...
+        transmitter (1,1) { ...
             nodes.mustBeReceiverOrTransmitter(transmitter), ...
             nodes.mustHaveSource(transmitter) }
+        receiver (1,1) { ...
+            nodes.mustBeReceiverOrTransmitter(receiver), ...
+            nodes.mustHaveDetector(receiver) }
         qkd_protocol protocol.proto
         options.Environment environment.Environment
     end
@@ -392,7 +295,7 @@ function [loss, noise] = loss_and_noise_for_channel(receiver, transmitter, qkd_p
         link_loss_args{end + 1} = options.Environment;
 
 
-        background_radiance = options.Environment.Interp( ...
+        background_radiance = options.Environment(1).Interp( ...
             "spectral_radiance", headings, elevations, transmitter.Source.Wavelength);
 
         t = receiver.Detector.Spectral_Filter.transmission;

@@ -7,6 +7,10 @@ classdef dps < protocol.proto
             'Dark_Count_Rate', 'Time_Gate_Width', 'Dead_Time', 'QBER_Jitter')
         efficiency = 1
         num_detectors = 2;
+        name = 'DPS';
+
+        num_transmitters = 1;
+        num_receivers = 1;
     end
 
     methods
