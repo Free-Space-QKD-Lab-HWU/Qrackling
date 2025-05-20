@@ -284,17 +284,16 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             t = datetime(LLATData(4,:),'ConvertFrom','epochtime','Epoch',datetime(2023,1,1,0,0,0));
         end
 
-
         function [Satellite, lat, lon, alt, t, vE, vN, vU] = ...
-                            llatAndVelFromScenario(Satellite, varargin)
-            p = inputParser();
-            addRequired(p, 'Satellite');
-            addParameter(p, 'satCommsSatellite', nan);
-            addParameter(p, 'scenario', []);
-            addParameter(p, 'TLE', nan);
-            addParameter(p, 'KeplerElements', []);
-
-            parse(p, Satellite, varargin{:});
+                            llatAndVelFromScenario(Satellite, options)
+            
+            arguments
+                Satellite
+                options.satCommsSatellite = nan;
+                options.scenario = nan;
+                options.TLE = nan;
+                options.KeplerElements = nan;
+            end
 
             % the below coul have been in a switch statement but this would 
             % have been more indententation than is wanted
@@ -313,18 +312,18 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                 % First case: we have been supplied with only a satCommsToolbox
                 % satellite object, get its position, velocity and time 
 
-                [position, velocity, t] = states(p.Results.satCommsSatellite, ...
+                [position, velocity, t] = states(options.satCommsSatellite, ...
                                             'CoordinateFrame', 'geographic');
-                Satellite.Name = p.Results.satCommsSatellite.Name;
+                Satellite.Name = options.satCommsSatellite.Name;
 
-            elseif ~any([isempty(p.Results.scenario), isnan(p.Results.TLE)])
+            elseif ~any([isempty(options.scenario), isnan(options.TLE)])
 
                 % Second case: we have been supplied with a satCommsToolbox
                 % scenario along with some TLE data. So, use the scenario and
                 % the TLE data to construct a satellite and get its position, 
                 % velocity and time steps
 
-                sc_sat = satellite(p.Results.scenario, p.Results.TLE, ...
+                sc_sat = satellite(options.scenario, options.TLE, ...
                                    "Name", Satellite.Name, ...
                                    "OrbitPropagator", "two-body-keplerian");
 
@@ -332,23 +331,23 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                                     sc_sat, 'CoordinateFrame', 'geographic');
                 Satellite.Name = sc_sat.satellite(1).Name;
 
-            elseif ~isempty(p.Results.scenario) ...
-                   && ~isempty(p.Results.KeplerElements)
+            elseif ~isempty(options.scenario) ...
+                   && ~isempty(options.KeplerElements)
 
                 % Third case: same as above except we have received an array of
                 % kepler elements rather than TLE data
 
                 % [sma, ecc, inc, raan, aop, ta] = ...
-                %         utilities.splat(p.Results.KeplerElements);
+                %         utilities.splat(options.KeplerElements);
 
-                sma = p.Results.KeplerElements(1);
-                ecc = p.Results.KeplerElements(2);
-                inc = p.Results.KeplerElements(3);
-                raan = p.Results.KeplerElements(4);
-                aop = p.Results.KeplerElements(5);
-                ta = p.Results.KeplerElements(6);
+                sma = options.KeplerElements(1);
+                ecc = options.KeplerElements(2);
+                inc = options.KeplerElements(3);
+                raan = options.KeplerElements(4);
+                aop = options.KeplerElements(5);
+                ta = options.KeplerElements(6);
 
-                sc_sat = satellite(p.Results.scenario, sma, ecc, inc, ...
+                sc_sat = satellite(options.scenario, sma, ecc, inc, ...
                                    raan, aop, ta, "Name", Satellite.Name, ...
                                    "OrbitPropagator", "two-body-keplerian");
 

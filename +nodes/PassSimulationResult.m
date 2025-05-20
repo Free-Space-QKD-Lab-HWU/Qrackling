@@ -128,9 +128,9 @@ classdef PassSimulationResult
             case "Communication"
                 mask = ~(isnan(result.secret_key_rate) | (result.secret_key_rate <= 0));
             case "Line of sight"
-                mask = result.line_of_sight;
+                mask = result.elevation > 0;
             case "None"
-                mask = true(size(result.communications));
+                mask = true(size(result.elevation));
             end
 
             if isscalar(result.receiver_name)

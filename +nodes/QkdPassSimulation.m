@@ -15,13 +15,6 @@ function results = QkdPassSimulation(receiver, transmitter, qkd_protocol, option
 
     protocol_name = class(qkd_protocol);
 
-    % if isscalar(receiver)
-    %     receiver = {receiver};
-    % end
-    % 
-    % if isscalar(transmitter)
-    %     transmitter = {transmitter};
-    % end
 
     have_environment = any(ismember(fieldnames(options), "Environment"));
 
