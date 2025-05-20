@@ -20,19 +20,15 @@ classdef PassSimulationResult
     end
 
     methods
-        function result = PassSimulationResult(receiver, transmitter, ...
+        function result = PassSimulationResult(receiver_name, transmitter_name, ...
             transmitter_location, receiver_location, ...
             link_direction, heading, elevation, range, time, ...
             limit, elevation_mask, ...
             loss, noise, ...
             sifted_key_rate, secret_key_rate, qber, protocol_name)
             arguments
-                receiver { ...
-                    nodes.mustBeReceiverOrTransmitter(receiver), ...
-                    nodes.mustHaveDetector(receiver) } = {}
-                transmitter { ...
-                    nodes.mustBeReceiverOrTransmitter(transmitter), ...
-                    nodes.mustHaveSource(transmitter) } = {}
+                receiver_name string = ''
+                transmitter_name string = ''
                 transmitter_location (1, :) = nodes.Located_Object.empty(0, 0)
                 receiver_location (1, :) = nodes.Located_Object.empty(0, 0)
                 link_direction nodes.LinkDirection = nodes.LinkDirection.empty(0,0)
@@ -50,22 +46,8 @@ classdef PassSimulationResult
                 protocol_name {mustBeText} = ""
             end
 
-            if isscalar(transmitter)
-                result.transmitter_name = string(utilities.node_name(transmitter));
-            else
-                result.transmitter_name = string( ...
-                    cellfun(@(tx) utilities.node_name(tx), transmitter, ...
-                            "UniformOutput", false));
-            end
-
-            if isscalar(receiver)
-                result.receiver_name = string(utilities.node_name(receiver));
-            else
-                result.receiver_name = string( ...
-                    cellfun(@(tx) utilities.node_name(tx), receiver, ...
-                            "UniformOutput", false));
-            end
-
+            result.receiver_name = receiver_name;
+            result.transmitter_name = transmitter_name;
             result.transmitter_location = transmitter_location;
             result.receiver_location = receiver_location;
 
@@ -125,7 +107,7 @@ classdef PassSimulationResult
 
             x_label = 'Time';
             x_axis = result.time;
-            if numel(result.receiver_name) > 1
+            if numel(result.loss) > 1
                 x_axis = result.time(1, :);
                 total_loss_db = result.loss(1).TotalLoss.dB ...
                     + result.loss(2).TotalLoss.dB;
@@ -151,17 +133,22 @@ classdef PassSimulationResult
                 mask = true(size(result.communications));
             end
 
+            if isscalar(result.receiver_name)
             figure_name = string(result.protocol_name) ...
                 + " simulation from " ...
                 + result.transmitter_name ...
-                + " to ";
-
-            if numel(result.receiver_name) > 1
-                figure_name = figure_name ...
-                    + result.receiver_name{1} + " and " + result.receiver_name{2};
+                + " to "...
+                + result.receiver_name;
             else
-                figure_name = figure_name + result.receiver_name;
+            figure_name = string(result.protocol_name) ...
+                + " simulation from " ...
+                + result.transmitter_name ...
+                + " to "...
+                + result.receiver_name(1)...
+                + " and "...
+                + result.receiver_name(2);
             end
+
 
             fig = figure("Name", figure_name);
             [~] = tiledlayout(3, 3, "TileSpacing", "tight");
@@ -186,7 +173,7 @@ classdef PassSimulationResult
 
             % plot QBER
 
-            if result.receiver_location.N_Position < result.transmitter_location.N_Position
+            if result.receiver_location(1).N_Position < result.transmitter_location.N_Position
                 yyaxis right
                 plot(x_axis(mask), result.qber(mask) .* 100)
                 xlabel(x_label)

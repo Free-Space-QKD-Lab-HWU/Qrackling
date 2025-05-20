@@ -41,7 +41,7 @@ classdef proto
     
             n_receiver = numel(receiver);
             if n_receiver > 1
-                receiver_detectors = cellfun(@(b) proto.CompatibleComponent(b.Detector, b.Name), receiver);
+                receiver_detectors = arrayfun(@(b) proto.CompatibleComponent(b.Detector, b.Name), receiver);
             else
                 receiver_detectors = proto.CompatibleComponent(receiver.Detector, receiver.Name);
             end

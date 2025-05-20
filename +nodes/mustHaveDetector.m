@@ -10,7 +10,7 @@ function mustHaveDetector(receiver)
     end
 
     for i = 1:numel(receiver)
-        r = receiver{i};
+        r = receiver(i);
         if isempty(r.Detector)
             error('%c has no detector object and so cannot be used as a receiver', r.Name)
         end

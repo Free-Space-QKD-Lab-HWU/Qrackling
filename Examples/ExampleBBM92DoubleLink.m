@@ -76,7 +76,7 @@ sim_ground_station_paris = nodes.Ground_Station( ...
 sim_ground_station_inv = sim_ground_station_inv.SetElevationLimit(30);
 sim_ground_station_edi = sim_ground_station_edi.SetElevationLimit(30);
 
-receivers = {sim_ground_station_edi, sim_ground_station_inv, sim_ground_station_paris};
+receivers = [sim_ground_station_edi, sim_ground_station_inv, sim_ground_station_paris];
 transmitters = sim_satellite;
 
 env_2km = environment.Environment.Load(which("Dark Environment 2km.mat"));

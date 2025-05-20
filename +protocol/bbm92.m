@@ -78,12 +78,12 @@ classdef bbm92 < protocol.proto
                     % got a pair of receivers so use their specific values
                     background_probability_alice = Protocol.BackgroundCountProbability( ...
                         total_erroneous_count_rate(1, :) + ...
-                        Protocol.ReceiverDarkCountRate(bob{1}), ...
-                        bob{1}.Detector.Time_Gate_Width);
+                        Protocol.ReceiverDarkCountRate(bob(1)), ...
+                        bob(1).Detector.Time_Gate_Width);
                     background_probability_bob = Protocol.BackgroundCountProbability( ...
                         total_erroneous_count_rate(2, :) + ...
-                        Protocol.ReceiverDarkCountRate(bob{2}), ...
-                        bob{2}.Detector.Time_Gate_Width);
+                        Protocol.ReceiverDarkCountRate(bob(2)), ...
+                        bob(2).Detector.Time_Gate_Width);
 
                 else
                     % we have different conditions at alice and bob locations
@@ -104,8 +104,8 @@ classdef bbm92 < protocol.proto
                 transmission_bob = Protocol.ReceiverLoss(bob) .* loss_bob;
             else % source in middle (double down/up link)
                 if numel(bob) == 2
-                    transmission_alice = Protocol.ReceiverLoss(bob{1}) .* loss_alice;
-                    transmission_bob = Protocol.ReceiverLoss(bob{2}) .* loss_bob;
+                    transmission_alice = Protocol.ReceiverLoss(bob(1)) .* loss_alice;
+                    transmission_bob = Protocol.ReceiverLoss(bob(2)) .* loss_bob;
                 else
                     transmission_alice = Protocol.ReceiverLoss(bob) .* loss_alice;
                     transmission_bob = Protocol.ReceiverLoss(bob) .* loss_bob;

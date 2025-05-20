@@ -26,8 +26,6 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
 
         %atmosphere file location
         Atmosphere_File_Location = [];
-
-        Name = '';
     end
 
     properties (Abstract = false, SetAccess = protected)
@@ -66,7 +64,7 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
     end
 
     methods
-        function [Ground_Station, varargout] = Ground_Station(Telescope, varargin)
+        function [Ground_Station, varargout] = Ground_Station(Telescope, options)
             % GROUND_STATION instantiate a ground station using either its
             % component classes and requiring a name and location (LLA = lat
             % lon alt)
@@ -74,52 +72,44 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
             % Ground_Station should support an empty constructor to be default
             % instantiated correctly
 
+            arguments
+                Telescope (1,1) components.Telescope
+                options.Detector = [];
+                options.Camera = []
+                options.Beacon = [];
+                options.Source = [];
+                options.scenario = nan;
+                options.useSatCommsToolbox logical = false;
+                options.startTime datetime = NaT
+                options.stopTime datetime = NaT
+                options.sampleTime = [];
+                options.latitude (1,1) double = nan;
+                options.longitude (1,1) double = nan;
+                options.altitude (1,1) double = 0;
+                options.LLA = nan;
+                options.Name = 'Unnamed OGS';
+            end
+
             if nargin==0
                 return
             end
 
-            %% construct from inputs
-            p = inputParser;
-            % required inputs
-            addRequired(p, 'Telescope');
-            % optional inputs
-            addParameter(p,'Detector',[])
-            addParameter(p, 'scenario', nan);
-            addParameter(p, 'useSatCommsToolbox', false);
-            addParameter(p, 'startTime', nan);
-            addParameter(p, 'stopTime', nan);
-            addParameter(p, 'sampleTime', nan);
-            addParameter(p, 'latitude', nan);
-            addParameter(p, 'longitude', nan);
-            addParameter(p, 'altitude', 0);
-            addParameter(p, 'LLA', nan);
-            addParameter(p, 'name', 'Bob');
-            addParameter(p, 'Background_Count_Rate_File_Location', 'none');
-            addParameter(p, 'Camera', []);
-            addParameter(p, 'Beacon', []);
-            addParameter(p, 'Source', []);
-            addParameter(p, 'Atmosphere_File_Location',[]);
-            addParameter(p, 'Sky_Brightness_Store_Location','none');
-            addParameter(p, 'Sky_Brightness_Store',[]);
-
-            parse(p, Telescope, varargin{:});
-
             % telescope is a required input
-            Ground_Station.Telescope = p.Results.Telescope;
+            Ground_Station.Telescope = Telescope;
 
             %infer correct wavelength from source or detector
-            if ~isempty(p.Results.Source)
+            if ~isempty(options.Source)
                 %if source is present, use this
-                Ground_Station.Source = p.Results.Source;
+                Ground_Station.Source = options.Source;
                 Ground_Station.Telescope = SetWavelength(Ground_Station.Telescope, ...
                     Ground_Station.Source.Wavelength);
 
-                assert(isempty(p.Results.Detector),...
+                assert(isempty(options.Detector),...
                     'Currently, only a Ground_Station object may only have a detector OR a source');
 
-            elseif ~isempty(p.Results.Detector)
+            elseif ~isempty(options.Detector)
                 %if detector is present, use this
-                Ground_Station.Detector = p.Results.Detector;
+                Ground_Station.Detector = options.Detector;
                 Ground_Station.Telescope = SetWavelength(Ground_Station.Telescope, ...
                     Ground_Station.Detector.Wavelength);
             else
@@ -127,18 +117,18 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
             end
 
             wvl_s = 0;
-            if ~isempty(p.Results.Source)
-                wvl_s = p.Results.Source.Wavelength;
+            if ~isempty(options.Source)
+                wvl_s = options.Source.Wavelength;
             end
 
             wvl_d = 0;
-            if ~isempty(p.Results.Detector)
-                wvl_d = p.Results.Detector.Wavelength;
+            if ~isempty(options.Detector)
+                wvl_d = options.Detector.Wavelength;
             end
 
             wvl_opts = [wvl_s, wvl_d];
             for i = 1:numel(wvl_opts)
-                if wvl_opts(i) ~= 0;
+                if wvl_opts(i) ~= 0
                     break
                 end
             end
@@ -152,19 +142,15 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
                 Ground_Station.Telescope = Ground_Station.Telescope.SetFOV();
             end
 
-            % set Background count rate data
-            % Ground_Station = ReadBackgroundCountRateData(Ground_Station, ...
-            %     p.Results.Background_Count_Rate_File_Location);
-
             % set camera and beacon
-            Ground_Station.Camera = p.Results.Camera;
-            Ground_Station.Beacon = p.Results.Beacon;
+            Ground_Station.Camera = options.Camera;
+            Ground_Station.Beacon = options.Beacon;
 
             %parse location (lat, lon, alt)
-            if isnan(p.Results.LLA)
-                LLA = [p.Results.latitude, p.Results.longitude, p.Results.altitude];
+            if isnan(options.LLA)
+                LLA = [options.latitude, options.longitude, options.altitude];
             else
-                LLA = p.Results.LLA;
+                LLA = options.LLA;
             end
 
             if any(arrayfun(@isnan, LLA))
@@ -179,21 +165,21 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
 
             % set location using custom method
             Ground_Station = SetPosition(Ground_Station, ...
-                'LLA', p.Results.LLA, ...
-                'Name', p.Results.name);
+                'LLA', options.LLA, ...
+                'Name', options.Name);
 
-            if (p.Results.useSatCommsToolbox == true) & (~isobject(p.Results.scenario))
+            if (options.useSatCommsToolbox == true) & (~isobject(options.scenario))
                 Ground_Station.useSatCommsToolbox = true;
-                scenario = utilities.satelliteScenarioWrapper(p.Results.startTime, ...
-                    p.Results.stopTime, ...
+                scenario = utilities.satelliteScenarioWrapper(options.startTime, ...
+                    options.stopTime, ...
                     'sampleTime', ...
-                    p.Results.sampleTime);
+                    options.sampleTime);
                 varargout{1} = scenario;
             end
 
-            if isobject(p.Results.scenario)
+            if isobject(options.scenario)
                 Ground_Station.useSatCommsToolbox = true;
-                scenario = p.Results.scenario;
+                scenario = options.scenario;
             end
 
             if Ground_Station.useSatCommsToolbox == true
@@ -203,97 +189,11 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
                     lon, ...
                     alt, ...
                     'Name', ...
-                    p.Results.name );
+                    options.Name );
             end
 
-            Ground_Station.Name = p.Results.name;
-
-
-            %store atmosphere file location
-            Ground_Station.Atmosphere_File_Location = p.Results.Atmosphere_File_Location;
-            %store Sky_Brightness_Store location
-            Ground_Station.Sky_Brightness_Store_Location = p.Results.Sky_Brightness_Store_Location;
+            Ground_Station.Name = options.Name;
         end
-
-        % function [ogs, varargout] = Ground_Station( ...
-        %     Latitude, Longitude, Altitude, Telescope, options)
-        %     arguments
-        %         Latitude {mustBeNumeric}
-        %         Longitude {mustBeNumeric}
-        %         Altitude {mustBeNumeric}
-        %         Telescope components.Telescope
-        %         options.Source components.Source = []
-        %         options.Detector components.Detector = []
-        %         options.Camera beacon.Camera = []
-        %         options.Beacon beacon.Beacon = []
-        %         options.satelliteScenario {isa(options.satelliteScenario, ['satelliteScenario', 'logical'])} = false
-        %         options.useSatCommsToolbox = false
-        %         options.name = Bob
-        %     end
-
-        %     result = [utilities.sameSize(Latitude, Longitude), ...
-        %               utilities.sameSize(Latitude, Altitude)];
-        %     if any(false == result)
-        %         msg = [ ...
-        %             'Latitude: { ', inputname(1), ' }, ', newline, ...
-        %             'Longitude: { ', inputname(2), ' }, ', newline, ...
-        %             'Altitude: { ', inputname(3), ' }, ', newline, ...
-        %             ' do not have matching sizes. ', newline, ...
-        %             'size(', inputname(1), ') = ', num2str(Latitude), ...
-        %             'size(', inputname(2), ') = ', num2str(Longitude), ...
-        %             'size(', inputname(3), ') = ', num2str(Altitude), ...
-        %                ];
-        %         error(msg);
-        %     end
-
-        %     ogs.Telescope = Telescope;
-
-        %     ogs.Camera = options.Camera;
-        %     ogs.Source = options.Source;
-        %     ogs.Detector = options.Detector;
-        %     ogs.Beacon = options.Beacon;
-
-        %     scenario = [];
-        %     switch class(options.satelliteScenario)
-        %     case 'satelliteScenario'
-        %         scenario = options.satelliteScenario;
-
-        %     case 'logical'
-        %         % we don't currently have a scenario and we want to make one
-        %         msg = [newline, newline, ...
-        %             '##############################', newline, ...
-        %             'Making a new satelliteScenario. If you already have one ', ...
-        %             'and wanted to use it, pass it in as an argument to ', ...
-        %             'Ground_Station.', newline, ...
-        %             'HINT: ogs = nodes.Ground_Station(latitude, longitude, ', ...
-        %             'altitude, telescope, "satelliteScenario", MY_SCENARIO)', ...
-        %             newline, ...
-        %             '##############################', ...
-        %             newline ...
-        %         ];
-        %         warning(msg)
-        %         if true == options.satelliteScenario
-        %             nargoutchk(2);
-        %             scenario = satelliteScenario();
-        %             varargout{1} = scenario;
-        %         end
-        %     end
-
-        %     if ~isempty(scenario)
-        %         %ogs.toolbox_ground_station = groundStation(scenario ...
-        %         %    Latitude, Longitude, Altitude, Name=options.Name);
-        %         ogs.toolbox_ground_station = groundStation(scenario, ...
-        %             Latitude, Longitude, Altitude, 'Name', options.name);
-        %     end
-
-        %     ogs = ogs.SetPosition( ...
-        %         "Latitude",  Latitude,  ...
-        %         "Longitude", Longitude, ...
-        %         "Altitude",  Altitude,  ...
-        %         "Name",      options.name);
-
-        % end
-
 
         function Ground_Station = SetWavelength(Ground_Station, Wavelength)
             % SETWAVELENGTH set the wavelength (in nm) of the receiver and

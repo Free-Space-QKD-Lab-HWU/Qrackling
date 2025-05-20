@@ -5,7 +5,7 @@ function mustBeReceiverOrTransmitter(receiver_or_transmitter)
     end
 
     for i = 1:numel(receiver_or_transmitter)
-        rx_tx = receiver_or_transmitter{i};
+        rx_tx = receiver_or_transmitter(i);
         nodes.mustBeReceiverOrTransmitter(rx_tx)
     end
 end

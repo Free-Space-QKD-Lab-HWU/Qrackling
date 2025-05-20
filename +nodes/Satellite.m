@@ -29,8 +29,6 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
 
     %do not hide small properties
     properties (SetAccess=protected, Hidden=false)
-        % If not set, initialised to UUID
-        Name{mustBeText} = 'Unnamed Satellite';
         %File location for Latitude, Longitude, Altitude and Time data
         Orbit_Data_File_Location{mustBeText} = '';
 
@@ -59,7 +57,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
         % TODO: Simplify kepler elements arguments
         % TODO: Replace 'LLAT', 'TLE', and kepler elements with a {mustbemember}
         % TODO: Why is there still 'ToolBoxSatellite', 'scenario' and 'useSatCommsToolbox' ?
-        function [Satellite, varargout] = Satellite(Telescope, varargin)
+        function [Satellite, varargout] = Satellite(Telescope, options)
 
             % SATELLITE Construct an instance of satellite using an orbital
             % User must provide either an 'OrbitDataFileLocation' file, TLE
@@ -70,126 +68,118 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             % If TLE information or KeplerElements are supplied then a startTime,
             %     stopTime and sampleTime must also be supplied.
 
+            arguments
+                Telescope components.Telescope
+                options.Source = [];
+                options.Detector = [];
+                options.Beacon =[]
+                options.Camera = []
+
+                options.OrbitDataFileLocation = '';
+                options.ToolBoxSatellite = [];
+                options.scenario = nan;
+                options.UseSatCommsToolbox (1,1) logical = false;
+                options.LLAT {mustBeNumeric} = [];
+                options.TLE = [];
+                options.KeplerElements = [];
+                options.semiMajorAxis = nan;
+                options.eccentricity = nan;
+                options.inclination = nan;
+                options.rightAscensionOfAscendingNode = nan;
+                options.argumentOfPeriapsis = nan;
+                options.trueAnomaly = nan;
+                options.startTime datetime = NaT;
+                options.stopTime datetime = NaT;
+                options.sampleTime = NaT
+                options.Name = 'Unnamed Satellite';
+                options.TLE_Uncertainty (1,1) {mustBeNonnegative} = 5E3
+            end
+
+
             %% satellite should support an empty constructor
             if nargin==0
                 return
             end
 
-            p = inputParser();
-
-            addRequired(p, 'Telescope');
-            addParameter(p, 'Source',[]);
-            addParameter(p, 'OrbitDataFileLocation','');
-            addParameter(p, 'ToolBoxSatellite', []);
-            addParameter(p, 'scenario', nan);
-            addParameter(p, 'useSatCommsToolbox', false);
-            addParameter(p, 'LLAT',[]);
-            addParameter(p, 'TLE', []);
-            addParameter(p, 'KeplerElements', []);
-            addParameter(p, 'semiMajorAxis', nan)
-            addParameter(p, 'eccentricity', nan);
-            addParameter(p, 'inclination', nan);
-            addParameter(p, 'rightAscensionOfAscendingNode', nan);
-            addParameter(p, 'argumentOfPeriapsis', nan);
-            addParameter(p, 'trueAnomaly', nan);
-            addParameter(p, 'startTime', []);
-            addParameter(p, 'stopTime', []);
-            addParameter(p, 'sampleTime', []);
-            addParameter(p, 'Name', '');
-            addParameter(p, 'TLE_Uncertainty',5E3);
-            % satellite surface reflection properties
-            % addParameter(p, 'Surface', Satellite_Foil_Surface(4))
-            % addParameter(p, 'Area', [])
-
-            % downlink beacon, if wanted
-            addParameter(p, 'Beacon', [])
-            %up link beacon camera, if wanted
-            addParameter(p, 'Camera', []);
-
-            %detector, for uplink
-            addParameter(p,'Detector',[]);
-
-            parse(p, Telescope, varargin{:});
-
-            sma = p.Results.semiMajorAxis;
-            ecc = p.Results.eccentricity;
-            inc = p.Results.inclination;
-            raan = p.Results.rightAscensionOfAscendingNode;
-            aop = p.Results.argumentOfPeriapsis;
-            ta = p.Results.trueAnomaly;
+            sma = options.semiMajorAxis;
+            ecc = options.eccentricity;
+            inc = options.inclination;
+            raan = options.rightAscensionOfAscendingNode;
+            aop = options.argumentOfPeriapsis;
+            ta = options.trueAnomaly;
 
             hasVelocity = false;
 
             %store kepler elements
             if (~any(isnan(arrayfun(@isnan, [sma, ecc, inc, raan, aop, ta]))) ...
-                    & isempty(p.Results.KeplerElements))
+                    & isempty(options.KeplerElements))
                 KeplerElements = [sma, ecc, inc, raan, aop, ta];
             else
-                KeplerElements = p.Results.KeplerElements;
+                KeplerElements = options.KeplerElements;
             end
             Satellite.Kepler_Elements = KeplerElements;
 
             %store name
-            if ~isempty(p.Results.Name)
-                Satellite.Name = p.Results.Name;
+            if ~isempty(options.Name)
+                Satellite.Name = options.Name;
             end
 
-            if (0 > utilities.nan_present(p.Results.OrbitDataFileLocation, ...
-                    p.Results.scenario, ...
-                    p.Results.ToolBoxSatellite, ...
-                    p.Results.TLE, ...
+            if (0 > utilities.nan_present(options.OrbitDataFileLocation, ...
+                    options.scenario, ...
+                    options.ToolBoxSatellite, ...
+                    options.TLE, ...
                     KeplerElements))
                 error(['Input does not contain one of the following: [', ...
                     'OrbitDataFileLocation', 'TLE', 'KeplerElements', ']']);
             end
 
-            if ~isempty(p.Results.OrbitDataFileLocation)
+            if ~isempty(options.OrbitDataFileLocation)
                 [Satellite, lat, lon, alt, t] = ReadOrbitLLATFile(Satellite,...
-                    p.Results.OrbitDataFileLocation);
-            elseif ~isempty(p.Results.LLAT)
+                    options.OrbitDataFileLocation);
+            elseif ~isempty(options.LLAT)
                 %if LLAT (latitude, longitude, altitude, time) is provided manually, use this
-                LLAT = p.Results.LLAT;
+                LLAT = options.LLAT;
                 lat = LLAT(:,1);
                 lon = LLAT(:,2);
                 alt = LLAT(:,3);
                 time_seconds   = LLAT(:,4);
                 %either refer time in seconds to startTime, or use default
                 %startTime
-                if ~isempty(p.Results.startTime)
+                if ~isempty(options.startTime)
                     t = startTime + seconds(time_seconds);
                 else
                     t= datetime(2000,1,1,12,0,0) + seconds(time_seconds);
                 end
 
-            elseif p.Results.useSatCommsToolbox == true
-                if isempty(p.Results.ToolBoxSatellite) | isempty(p.Results.scenario)
+            elseif options.useSatCommsToolbox == true
+                if isempty(options.ToolBoxSatellite) | isempty(options.scenario)
                     error('No toolbox satellite supplied');
 
                 else
                     [Satellite, lat, lon, alt, t, vE, vN, vU] = ...
                         llatAndVelFromScenario(Satellite, ...
-                        satCommsSatellite=p.Results.ToolBoxSatellite, ...
-                        scenario=p.Results.scenario);
+                        satCommsSatellite=options.ToolBoxSatellite, ...
+                        scenario=options.scenario);
                     hasVelocity = true;
                 end
 
             else
-                if isdatetime(p.Results.startTime)
-                    if isduration(p.Results.sampleTime)
-                        sampleTime = seconds(p.Results.sampleTime);
+                if isdatetime(options.startTime)
+                    if isduration(options.sampleTime)
+                        sampleTime = seconds(options.sampleTime);
                     else
-                        sampleTime = p.Results.sampleTime;
+                        sampleTime = options.sampleTime;
                     end
-                    scenario = utilities.satelliteScenarioWrapper(p.Results.startTime, ...
-                                                        p.Results.stopTime, ...
+                    scenario = utilities.satelliteScenarioWrapper(options.startTime, ...
+                                                        options.stopTime, ...
                                                         'sampleTime',sampleTime);
                 else
-                    scenario = p.Results.scenario;
+                    scenario = options.scenario;
 
                 end
 
                 varargout{1} = scenario;
-                if ~isempty(p.Results.TLE)
+                if ~isempty(options.TLE)
                     [Satellite, lat, lon, alt, t, vE, vN, vU] = llatAndVelFromScenario(...
                         Satellite, 'scenario', scenario, 'TLE', TLE);
                     hasVelocity = true;
@@ -228,19 +218,19 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
 
             Satellite.N_Steps = Satellite.N_Position;
             Satellite.Times = t;
-            Satellite.TLE_Uncertainty = p.Results.TLE_Uncertainty;
+            Satellite.TLE_Uncertainty = options.TLE_Uncertainty;
 
             %% currently, both transmit and receive scopes are the same
-            Satellite.Telescope = p.Results.Telescope;
+            Satellite.Telescope = Telescope;
 
             %infer correct wavelength from source or detector
-            if ~isempty(p.Results.Source)
+            if ~isempty(options.Source)
 
-            Satellite.Source = p.Results.Source;
+            Satellite.Source = options.Source;
             Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
                 Satellite.Source.Wavelength);
-            elseif ~isempty(p.Results.Detector)
-            Satellite.Detector = p.Results.Detector;
+            elseif ~isempty(options.Detector)
+            Satellite.Detector = options.Detector;
             Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
                 Satellite.Detector.Wavelength);
             else
@@ -249,20 +239,12 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             end
 
 
-            %% set surface object of satellite
-            % Satellite.Surface = p.Results.Surface;
-            % %and set area property if given
-            % if ~isempty(p.Results.Area)
-            %     Satellite.Surface = SetArea(Satellite.Surface,p.Results.Area);
-            % end
-
-
             %% set beacon and beaconing camera
-            Satellite.Beacon = p.Results.Beacon;
-            Satellite.Camera = p.Results.Camera;
+            Satellite.Beacon = options.Beacon;
+            Satellite.Camera = options.Camera;
 
             %% add detector if wanted
-            Satellite.Detector = p.Results.Detector;
+            Satellite.Detector = options.Detector;
         end
 
         function [Satellite, lat, lon, alt, t] = ReadOrbitLLATFile(Satellite, ...
@@ -430,7 +412,6 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             Satellite.Reflectivity = reflectivity;
             warning('this behaviour is legacy and may no longer be support. Instead access the "Surface" class of the satellite')
         end
-
 
 
         function OrbitDetails = GetOrbitDetails(Satellite)
