@@ -23,31 +23,69 @@ function results = QkdPassSimulation(receivers, transmitters, qkd_protocol, opti
 
 
     %% Check that we have the correct number of transmitters and receivers for this protocol
-    qkd_protocol.mustHaveCorrectTransmittersAndReceivers(qkd_protocol,transmitters,receivers)
+    qkd_protocol.mustHaveCorrectTransmittersAndReceivers(transmitters,receivers)
+
+    %% what direction are links between 
 
     %% Establish the loss and noise between each transmitter and receiver pair
-    loss_results = cell(qkd_protocol.num_transmitters,qkd_protocol.num_receivers);
-    noise_results = cell(qkd_protocol.num_transmitters,qkd_protocol.num_receivers);
+    %prepare memory
+    loss_results = repmat(nodes.LossResult(),[qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0]);
+    total_loss = zeros(qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0);
+    noise_results = repmat(environment.Noise('',[]),[qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0]);
+    headings = zeros(qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0);
+    elevations = zeros(qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0);
+    elevation_flags = false(qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0);
+    link_directions = repmat(nodes.LinkDirection.Downlink,[qkd_protocol.num_transmitters,qkd_protocol.num_receivers]);
+
+    %iterating over each transmitter-receiver pair
     for transmitter_index = 1:qkd_protocol.num_transmitters
         for receiver_index = 1:qkd_protocol.num_receivers
+            %what direction is the link?
+            if utilities.isSubclassOf(transmitters(transmitter_index),'nodes.Satellite')&&...
+                    utilities.isSubclassOf(receivers(receiver_index),'nodes.Ground_Station')
+                link_directions(transmitter_index,receiver_index)=nodes.LinkDirection.Downlink;
+            elseif utilities.isSubclassOf(receivers(receiver_index),'nodes.Satellite')&&...
+                    utilities.isSubclassOf(transmitters(transmitter_index),'nodes.Ground_Station')
+                link_directions(transmitter_index,receiver_index)=nodes.LinkDirection.Uplink;
+            else
+                error('Unimplemented')
+            end
+            
+            %determine when the link has line of sight
+            switch link_directions(transmitter_index,receiver_index)
+                case nodes.LinkDirection.Downlink
+                    [current_headings,current_elevations] = RelativeHeadingAndElevation(transmitters(transmitter_index),receivers(receiver_index));
+                case nodes.LinkDirection.Uplink
+                    [current_headings,current_elevations] = RelativeHeadingAndElevation(receivers(receiver_index),transmitters(transmitter_index));
+            end
+            current_elevation_flags = current_elevations > 0;
+
+            
+
             [loss,noise]=loss_and_noise_for_channel(transmitters(transmitter_index),...
                                                     receivers(receiver_index),...
                                                     qkd_protocol,...
                                                     'Environment',options.Environment);
             %store loss and noise in cells with index transmitter x
             %receiver
-            loss_results{transmitter_index,receiver_index} = loss;
-            noise_results{transmitter_index,receiver_index} = noise;
+            loss_results(transmitter_index,receiver_index,:) = loss;
+            total_loss(transmitter_index,receiver_index,:) = loss.TotalLoss;
+            noise_results(transmitter_index,receiver_index,:) = noise;
+            headings(transmitter_index,receiver_index,:) = current_headings;
+            elevations(transmitter_index,receiver_index,:) = current_elevations;
+            elevation_flags(transmitter_index,receiver_index,:) = current_elevation_flags;
+            
         end
     end
 
     %% Evaluate QKD link
-     [skr, kr, q] = qkd_protocol.Calculate( ...
-            transmitters, ...
+     [skr, kr, q] = qkd_protocol.Calculate(transmitters, ...
             receivers, ...
-            loss, ...
-            noise.values);
+            total_loss, ...
+            noise_results);
         
+     %% record data in appropriate time stamps
+
         secret_key_rate(elev_mask) = skr;
         sifted_key_rate(elev_mask) = kr;
         qber(elev_mask) = q;

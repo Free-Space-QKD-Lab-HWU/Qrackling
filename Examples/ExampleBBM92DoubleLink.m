@@ -67,16 +67,10 @@ sim_ground_station_inv = nodes.Ground_Station( ...
     'LLA', [57.4778, -4.2247, 10],...
     'Name', 'Inverness');
 
-sim_ground_station_paris = nodes.Ground_Station( ...
-    receiver_telescope,...
-    'Detector', detector,...
-    'LLA', [48.856667, 2.352222, 10],...
-    'name', 'Paris');
-
 sim_ground_station_inv = sim_ground_station_inv.SetElevationLimit(30);
 sim_ground_station_edi = sim_ground_station_edi.SetElevationLimit(30);
 
-receivers = [sim_ground_station_edi, sim_ground_station_inv, sim_ground_station_paris];
+receivers = [sim_ground_station_edi, sim_ground_station_inv];
 transmitters = sim_satellite;
 
 env_2km = environment.Environment.Load(which("Dark Environment 2km.mat"));
@@ -84,10 +78,10 @@ env_5km = environment.Environment.Load(which("Dark Environment 5km.mat"));
 env_10km = environment.Environment.Load(which("Dark Environment 10km.mat"));
 env_50km = environment.Environment.Load(which("Dark Environment 50km.mat"));
 
-proto = protocol.bbm92;
+proto = protocol.bbm92_double;
 
 results = nodes.QkdPassSimulation(receivers, transmitters, proto, ...
-    "Environment", [env_50km, env_10km, env_2km]);
+    "Environment", env_50km);
 
 for result = results
     result.plot()
