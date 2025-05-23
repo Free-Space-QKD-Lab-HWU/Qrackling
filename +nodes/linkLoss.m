@@ -11,25 +11,20 @@ arguments
     options.dB logical = false
     options.SpotSize = []
     options.LinkLength = []
-    options.environment environment.Environment = environment.Environment.empty();
-end
-
-unit = "probability";
-if options.dB
-    unit = "dB";
 end
 
 losses = {};
 
 spot_size = options.SpotSize;
-link_length = options.LinkLength;
 
+%% geometric loss
 if any(contains(string(loss), "geometric"))
-    [res, spot_size, link_length] = ...
+    [res, spot_size, ~] = ...
         nodes.GeometricLoss(kind, receiver, transmitter);
     losses.("geometric") = res;
 end
 
+%% turbulence
 if any(contains(string(loss), "turbulence"))
     switch class(receiver)
         case "nodes.Ground_Station"
@@ -38,40 +33,31 @@ if any(contains(string(loss), "turbulence"))
             direction = nodes.LinkDirection.Uplink;
     end
 
-    [res, beam_width, r0] = nodes.TurbulenceLoss( ...
-        kind, receiver, transmitter, direction, ...
-        options.environment.turbulence_model, ...
-        "SpotSize", spot_size);
-
+   [res, beam_width, r0] = nodes.TurbulenceLoss(kind,...
+                                                receiver,...
+                                                transmitter,...
+                                                direction,...
+                                                "SpotSize", spot_size);
     losses.("turbulence") = res;
 end
 
-for l = loss
-    label = l{1};
-    % we potentially have already calculated the geometric and turbulence
-    % losses, so we should skip them
-    if any(contains(fieldnames(losses), label))
-        continue
-    end
-
-    switch label
-        case 'optical'
-            res = nodes.OpticalEfficiencyLoss(kind, receiver, transmitter);
-        case 'apt'
-            res = nodes.APTLoss(kind, receiver, transmitter);
-        case 'atmospheric'
-            %if isempty(options.environment)
-            if ~contains(fieldnames(options), "environment")
-                warning(['Atmospheric loss calculation requires an environment ', ...
-                    'See the "Environment" class. Add " "Environment" ', ...
-                    'to this functions arguments']);
-            else
-                res = nodes.AtmosphericLoss(kind, receiver, transmitter, options.environment);
-            end
-    end
-
-    losses.(label) = res;
+%% optical (efficiency) loss
+if any(contains(string(loss), "optical"))
+    res = nodes.OpticalEfficiencyLoss(kind, receiver, transmitter);
+    losses.optical = res;
 end
+
+if any(contains(string(loss), "apt"))
+    res = nodes.APTLoss(kind, receiver, transmitter);
+    losses.apt = res;
+end
+
+if any(contains(string(loss), "atmospheric"))
+    res = nodes.AtmosphericLoss(kind, receiver, transmitter, direction);
+    losses.atmospheric = res;
+end
+
+
 
 nargoutchk(0, 3)
 

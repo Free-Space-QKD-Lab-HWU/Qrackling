@@ -37,33 +37,13 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
                                 'Name','Heriot-Watt');
 
 %% 3 create a low visibility environment
-%3.1 load in low-visibility data (choose from MODTRAN files)
-load("Examples/Data/atmospheric transmittance/varying elevation MODTRAN data 3/Elevation_Wavelength_Atmospheric_Transmittance5km.mat","Elevation","Transmittance","Wavelength");
-%we simulate low visibility here. Options are:
-                                                                          %clear,
-                                                                          %100m,
-                                                                          %200m,
-                                                                          %500m,
-                                                                          %1km,
-                                                                          %2km,
-                                                                          %5km,
-                                                                          %10km,
-                                                                          %20km,
-                                                                          %50km
-%3.2 reformat this data to be a wavelength x heading x elevation
-%interpolatable array
-Dummy_Headings = [1,359]; %need to be able to interpolate, so use two heading values
-    % provide two copies of Transmittance to correspond to two headings
-    Transmittance(isnan(Transmittance))=0;
-    Transmittance = permute(Transmittance,[1,3,2]);
-    Transmittance = cat(2,Transmittance,Transmittance);
-%3.3 provide Dummy background spectrum data (zeros)
-Dummy_Spectral_Radiance = zeros(size(Transmittance));
-%3.4 environment
-Env = environment.Environment(Dummy_Headings,Elevation,Wavelength,Dummy_Spectral_Radiance,Transmittance);
+%3.1 load in low-visibility data (choose from MODTRAN-produced environment
+%objects
+Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 2km.mat");
+SimGround_Station.Environment = Env;
 
 %% 4 run and plot simulation
 %4.1 run simulation
-Result=nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.bb84,'Environment',Env);
+Result=nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.bb84);
 %4.2 plot results
 Result.plot()

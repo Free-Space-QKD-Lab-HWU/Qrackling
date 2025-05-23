@@ -18,11 +18,14 @@ Closed_Loop_Pointing_Precision = 1E-6;                                   %rms po
 OGS_Camera_Scope_Diameter = 0.4;                                                %camera telescope diameter in m
 Camera_Exposure_Time = 0.001;                                              %exposure time of beacon cameras in s
 Beacon_Camera_Filter_Width = 10;                                           %camera spectral filter width in nm
+Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 10km.mat"); %use an assumed 10km visibility 
 %% 2. Construct components
 
 %2.1 Satellite
 %2.1.1 Source
-Transmitter_Source=components.Source(Wavelength,"Repetition_Rate",Repetition_Rate);                                %we use default values to simplify this example
+Transmitter_Source=components.Source(Wavelength,"Repetition_Rate",Repetition_Rate,...
+                                     "MPN_Signal",0.7,"MPN_Decoy",0.3,...
+                                     "Probability_Signal",0.75,"Probability_Decoy",0.2);%we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
 Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter,...
@@ -85,7 +88,8 @@ SimGround_Station = nodes.Ground_Station(Receiver_Telescope,...
                                        'LLA',[55.909723, -3.319995,10],...
                                        'Name','Heriot-Watt',...
                                        'Beacon',Uplink_Beacon,...
-                                       'Camera',Downlink_Cam);
+                                       'Camera',Downlink_Cam,...
+                                       'Environment',Env);
 
 %% 3 Compose and run the PassSimulation
 %3.1 run simulation
@@ -93,7 +97,7 @@ Result = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.decoyBB
 DownlinkBeaconResults = beacon.beaconSimulation(SimGround_Station,SimSatellite);
 UplinkBeaconResults = beacon.beaconSimulation(SimSatellite,SimGround_Station);
 %3.2 plot results
-plotResult(Result,SimGround_Station,SimSatellite);
+plot(Result);
 plot(DownlinkBeaconResults);
 plot(UplinkBeaconResults);
 

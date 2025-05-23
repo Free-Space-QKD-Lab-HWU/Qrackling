@@ -64,9 +64,17 @@ classdef proto
 
             end
 
-            %% if a point-to-point link, will need to transpose loss to match row vector count rate
+            %% if a point-to-point link
             if n_transmitter==1 && n_receiver==1
+               % need to squeeze out unnecessary dimensions of data we
+               % provide
+               total_loss = squeeze(total_loss);
+               background_count_rate = squeeze(background_count_rate);
+
+               % will need to transpose loss and bcr to match row vector count rate
                 total_loss = total_loss';
+                background_count_rate = background_count_rate';
+                
             end
             
             %% run model

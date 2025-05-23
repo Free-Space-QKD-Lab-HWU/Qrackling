@@ -22,6 +22,10 @@ classdef Environment
 
         %background light,  quantified as spectral radiance (W/m^2 str nm)
         spectral_radiance {mustBeNumeric, mustBeNonnegative}
+
+        %should we throw a warning, an error or do nothing when asked to
+        %interpolate outside of the given data
+        outside_data_limits_action {mustBeMember(outside_data_limits_action,{'none','warning','error'})} = 'none';
     end
 
     methods (Static)
@@ -185,7 +189,7 @@ classdef Environment
             end
 
             %interpolate
-            if 1 == numel(Env.wavelengths)
+            if isscalar(Env.wavelengths)
                 interp_data = interpn( ...
                     Env.headings, Env.elevations, ...
                     squeeze(Array),           ...
@@ -208,11 +212,16 @@ classdef Environment
                         wavelengths(headings_above_top_indices), ...
                         headings(headings_above_top_indices), ...
                         elevations(headings_above_top_indices));
+                    switch Env.outside_data_limits_action
+                        case 'warning'
+                        warning('Heading goes below minimum provided in environment. Using minimum value of %i degrees',Env.headings(1))
+                        case 'error'
+                        error('Heading goes below minimum provided in environment. Using minimum value of %i degrees',Env.headings(1))
+                    end
                 end
 
                 % detect if some headings were below minimum and interpolate
                 headings_below_bottom_indices = Env.headings(1) > headings&headings >= 0;
-
                 if any(headings_below_bottom_indices)
                     interp_data(headings_below_bottom_indices) = interpn( ...
                         Env.wavelengths, ...
@@ -222,12 +231,17 @@ classdef Environment
                         wavelengths(headings_below_bottom_indices),...
                         headings(headings_below_bottom_indices), ...
                         elevations(headings_below_bottom_indices));
+                    switch Env.outside_data_limits_action
+                        case 'warning'
+                        warning('Heading goes above maximum provided in environment. Using max value of %i degrees',Env.headings(end))
+                        case 'error'
+                        error('Heading goes above maximum provided in environment. Using max value of %i degrees',Env.headings(end))
+                    end
                 end
 
                 % detect if some elevations were below the minimum and use
                 % the nearest value
                 elevations_below_minimum_indices = Env.elevations(1) > elevations;
-
                 if any(elevations_below_minimum_indices)
                     interp_data(elevations_below_minimum_indices) = interpn( ...
                         Env.wavelengths, ...
@@ -235,13 +249,16 @@ classdef Environment
                         Array(:, :, 1), ...
                         wavelengths(elevations_below_minimum_indices), ...
                         headings(elevations_below_minimum_indices));
-                    warning('Elevation goes below minimum provided in environment. Using minimum value of %i degrees',Env.elevations(1))
+                    switch Env.outside_data_limits_action
+                        case 'warning'
+                        warning('Elevation goes below minimum provided in environment. Using min value of %i degrees',Env.elevations(1))
+                        case 'error'
+                        error('Elevation goes below minimum provided in environment. Using min value of %i degrees',Env.elevations(1))
+                    end
                 end
 
-                % detect if some elevations were below the minimum and use
-                % the nearest value
+                % detect if some elevations were were above the maximum
                 elevations_above_maximum_indices = Env.elevations(end) < elevations;
-
                 if any(elevations_above_maximum_indices)
                     interp_data(elevations_above_maximum_indices) = interpn( ...
                         Env.wavelengths, ...
@@ -249,13 +266,18 @@ classdef Environment
                         Array(:, :, end), ...
                         wavelengths(elevations_above_maximum_indices), ...
                         headings(elevations_above_maximum_indices));
-                    warning('Elevation goes below minimum provided in environment. Using nearest value of %i',Env.elevations(1))
+                    switch Env.outside_data_limits_action
+                        case 'warning'
+                        warning('Elevation goes above maximum provided in environment. Using max value of %i degrees',Env.elevations(end))
+                        case 'error'
+                        error('Elevation goes above maximum provided in environment. Using max value of %i degrees',Env.elevations(end))
+                    end
                 end
 
             end
 
             if any(isnan(interp_data))
-                warning('Interpolation failed. this was not corrected by Environment interpolator')
+                error('Interpolation failed. this was not corrected by Environment interpolator')
             end
 
             % set format of interp_data, use a "Loss.m" class for attenuation

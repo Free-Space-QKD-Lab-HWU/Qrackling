@@ -1,4 +1,4 @@
-function results = QkdPassSimulation(receivers, transmitters, qkd_protocol, options)
+function results = QkdPassSimulation(receivers, transmitters, qkd_protocol)
 %%QKDPASSSIMULATION this function architects the simulation of a QKD pass.
 %%It takes at least one receiver, a transmitter, a protocol and an
 %%(optional) environment, then finds and performs the required links
@@ -10,17 +10,7 @@ function results = QkdPassSimulation(receivers, transmitters, qkd_protocol, opti
             nodes.mustBeReceiverOrTransmitter(transmitters), ...
             nodes.mustHaveSource(transmitters) }
         qkd_protocol protocol.proto
-        options.Environment environment.Environment = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 50km.mat")
-    end
-    
-    have_environment = any(ismember(fieldnames(options), "Environment"));
-
-    % check length of needs_env to pick route
-    needs_env = have_environment;
-    if have_environment
-        needs_env = map_receivers_and_environments(receivers, "Environment", options.Environment);
-    end
-
+    end    
 
     %% Check that we have the correct number of transmitters and receivers for this protocol
     qkd_protocol.mustHaveCorrectTransmittersAndReceivers(transmitters,receivers)
@@ -71,8 +61,7 @@ function results = QkdPassSimulation(receivers, transmitters, qkd_protocol, opti
 
             [loss,noise]=loss_and_noise_for_channel(transmitters(transmitter_index),...
                                                     receivers(receiver_index),...
-                                                    qkd_protocol,...
-                                                    'Environment',options.Environment);
+                                                    qkd_protocol);
             %store loss and noise in cells with index transmitter x
             %receiver
             loss_results(transmitter_index,receiver_index) = loss;
@@ -125,7 +114,7 @@ function results = QkdPassSimulation(receivers, transmitters, qkd_protocol, opti
                     ranges(transmitter_index,receiver_index,:),...
                     times(transmitter_index,receiver_index,:), ...
                     elevation_limits(receiver_index),...
-                    elevation_flags(transmitter_index,receiver_index,:), ...
+                    all_elevation_flags, ...
                     loss_results(transmitter_index,receiver_index),...
                     noise_results(transmitter_index,receiver_index,:), ...
                     sifted_key_rate, secret_key_rate, qber, qkd_protocol.name);
@@ -208,6 +197,7 @@ function tt = timetable_for_elevation_window(rel_loc, elev_limit)
     [t_min, t_max] = extrema(rel_loc.time(elev_mask));
     tt = timetable([t_min; t_max]);
 end
+
 
 function [single_link_idx, double_link_idx] = find_links(receivers, transmitters)
 
@@ -326,7 +316,7 @@ function [single_link_idx, double_link_idx] = find_links(receivers, transmitters
 end
 
 
-function [loss, noise] = loss_and_noise_for_channel(transmitter, receiver, qkd_protocol, options)
+function [loss_results, noise] = loss_and_noise_for_channel(transmitter, receiver, qkd_protocol)
     arguments
         transmitter (1,1) { ...
             nodes.mustBeReceiverOrTransmitter(transmitter), ...
@@ -335,32 +325,20 @@ function [loss, noise] = loss_and_noise_for_channel(transmitter, receiver, qkd_p
             nodes.mustBeReceiverOrTransmitter(receiver), ...
             nodes.mustHaveDetector(receiver) }
         qkd_protocol protocol.proto
-        options.Environment environment.Environment
     end
 
-    link_loss_args = {
-        "qkd", receiver, transmitter, ...
-        "apt", "optical", "geometric", "turbulence" ...
-    };
 
+    %% get background light data from ground station's environment
     switch class(transmitter)
     case "nodes.Satellite"
         [headings, elevations, ~] = transmitter.RelativeHeadingAndElevation(receiver);
+        background_radiance = receiver.Environment.Interp( ...
+            "spectral_radiance", headings, elevations, transmitter.Source.Wavelength);
     case "nodes.Ground_Station"
         [headings, elevations, ~] = receiver.RelativeHeadingAndElevation(transmitter);
-    end
-
-    background_counts_per_second = zeros(size(headings));
-
-    if ismember(fieldnames(options), "Environment")
-        link_loss_args{end + 1} = "atmospheric";
-        link_loss_args{end + 1} = "environment";
-        link_loss_args{end + 1} = options.Environment;
-
-
-        background_radiance = options.Environment(1).Interp( ...
+        background_radiance = transmitter.Environment.Interp( ...
             "spectral_radiance", headings, elevations, transmitter.Source.Wavelength);
-
+    end
         t = receiver.Detector.Spectral_Filter.transmission;
         w = receiver.Detector.Spectral_Filter.wavelengths;
         w_range = w(t ~= 0);
@@ -373,17 +351,27 @@ function [loss, noise] = loss_and_noise_for_channel(transmitter, receiver, qkd_p
             filter_width, ...
             1, ...
             receiver.Detector.Wavelength);
-    end
 
-    [loss, ~] = nodes.linkLoss(link_loss_args{:});
 
+    %noise due to detector dark counts
     dark_counts = ones(size(headings)) ...
         .* receiver.Detector.Dark_Count_Rate ...
         .* qkd_protocol.num_detectors;
 
+    %record as noise objects
     noise = [ ...
         environment.Noise("Detector Dark Counts", dark_counts), ...
         environment.Noise("Background Counts", background_counts_per_second), ...
     ];
+
+    %% compute losses
+    [loss_results, ~] = nodes.linkLoss('qkd',...
+                                receiver,...
+                                transmitter,...
+                                'apt',...
+                                'optical',...
+                                'geometric',...
+                                'turbulence',...
+                                'atmospheric');
 end
 

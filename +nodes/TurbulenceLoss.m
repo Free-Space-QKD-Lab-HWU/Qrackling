@@ -1,10 +1,9 @@
-function [turbulence_loss,turbulent_beam_width,r0] = TurbulenceLoss(kind, receiver, transmitter, direction, turbulence_model, options)
+function [turbulence_loss,turbulent_beam_width,r0] = TurbulenceLoss(kind, receiver, transmitter, direction, options)
     arguments
-        kind (1,1) {mustBeMember(kind, ["beacon", "qkd"])}
+        kind {mustBeMember(kind, ["beacon", "qkd"])}
         receiver (1,1) {utilities.mustBeSubclassOf(receiver,'nodes.Located_Object')}
         transmitter (1,1) {utilities.mustBeSubclassOf(transmitter,'nodes.Located_Object')}
         direction (1,1) nodes.LinkDirection
-        turbulence_model (1,1) environment.Turbulence_Model = environment.Turbulence_Model("Preset","HV5-7");
         options.SpotSize = []
     end
 
@@ -25,9 +24,6 @@ function [turbulence_loss,turbulent_beam_width,r0] = TurbulenceLoss(kind, receiv
         wavelength = transmitter.Source.Wavelength;
     end
 
-    if contains(fieldnames(options), 'Elevations')
-        error('UNIMPLEMENTED: we should be able to pass elevations in, currently we have to determine which of the inputs is the satellite and which is the ground station.');
-    end
 
     %% compute link geometry
     [~, elevation, length] = RelativeHeadingAndElevation(transmitter,receiver);
@@ -37,9 +33,11 @@ function [turbulence_loss,turbulent_beam_width,r0] = TurbulenceLoss(kind, receiv
         case "Downlink"
             BottomHeight = receiver.Altitude;
             TopHeight = transmitter.Altitude;
+            turbulence_model = receiver.Environment.turbulence_model;
         case "Uplink"
             TopHeight = receiver.Altitude;
             BottomHeight = transmitter.Altitude;
+            turbulence_model = transmitter.Environment.turbulence_model;
             %if this is an uplink, elevation will be negative, but for turbulence
             %calculations we want positive elevation
             elevation = elevation+180;

@@ -54,18 +54,28 @@ sim_satellite = nodes.Satellite( ...
     'OrbitDataFileLocation', orbit_data_file_location, ...
     'Name', "SPOQC");
 
+%2.2.2 construct environments for our ground stations
+%these examples contain only atmospheric transmittance data. darkness
+%assumed
+env_2km = environment.Environment.Load(which("Dark Environment 2km.mat"));
+env_5km = environment.Environment.Load(which("Dark Environment 5km.mat"));
+env_10km = environment.Environment.Load(which("Dark Environment 10km.mat"));
+env_50km = environment.Environment.Load(which("Dark Environment 50km.mat"));
+
 %2.2.2 construct ground station, use Heriot-Watt as an example
 sim_ground_station_edi = nodes.Ground_Station( ...
     receiver_telescope,...
     'Detector', detector,...
     'LLA', [55.909723, -3.319995,10],...
-    'Name', 'Heriot-Watt');
+    'Name', 'Heriot-Watt',...
+    'Environment',env_10km);
 
 sim_ground_station_inv = nodes.Ground_Station( ...
     receiver_telescope,...
     'Detector', detector,...
     'LLA', [57.4778, -4.2247, 10],...
-    'Name', 'Inverness');
+    'Name', 'Inverness',...
+    'Environment',env_5km);
 
 sim_ground_station_inv = sim_ground_station_inv.SetElevationLimit(30);
 sim_ground_station_edi = sim_ground_station_edi.SetElevationLimit(30);
@@ -73,15 +83,9 @@ sim_ground_station_edi = sim_ground_station_edi.SetElevationLimit(30);
 receivers = [sim_ground_station_edi, sim_ground_station_inv];
 transmitters = sim_satellite;
 
-env_2km = environment.Environment.Load(which("Dark Environment 2km.mat"));
-env_5km = environment.Environment.Load(which("Dark Environment 5km.mat"));
-env_10km = environment.Environment.Load(which("Dark Environment 10km.mat"));
-env_50km = environment.Environment.Load(which("Dark Environment 50km.mat"));
-
 proto = protocol.bbm92_double;
 
-results = nodes.QkdPassSimulation(receivers, transmitters, proto, ...
-    "Environment", env_50km);
+results = nodes.QkdPassSimulation(receivers, transmitters, proto);
 
 for result = results
     result.plot()

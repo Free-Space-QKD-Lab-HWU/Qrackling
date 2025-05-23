@@ -39,12 +39,14 @@ StopTime = datetime(2023,1,31,5,0,0);
 Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 5km.mat");
 Env.turbulence_model = environment.Turbulence_Model('Preset','2HV5-7');
 %}
+
+
 Sat=SPOQC(Wavelength,...
     'StartTime',StartTime,'StopTime',StopTime);
-
+OGS.Environment = Env;
 
 %% simulate a pass
-PassResult = nodes.QkdPassSimulation(OGS,Sat,protocol.decoyBB84,'Environment',Env);
+PassResult = nodes.QkdPassSimulation(OGS,Sat,protocol.decoyBB84);
 DownlinkBeaconResults = beacon.beaconSimulation(OGS,Sat);
 UplinkBeaconResults = beacon.beaconSimulation(Sat,OGS);
 

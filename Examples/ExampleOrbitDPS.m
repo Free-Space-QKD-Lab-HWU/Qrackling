@@ -54,10 +54,9 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
                                 'Detector',DPS_Detector,...
                                 'LLA',[55.909723, -3.319995,10],...
                                 'Name','Heriot-Watt');
-
+%no need to provide an environment. we will use the default
 
 
 %% 3 Compose and run the PassSimulation
 SimResults = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.dps);
-% plotResult(SimResults,SimGround_Station,SimSatellite);
-SimResults.plot()
+plot(SimResults);

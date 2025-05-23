@@ -4,19 +4,11 @@
 classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Transmitter
     % GROUND_STATION an object containing all of the simulation parameters of the ground station
 
-    properties (Abstract = false, SetAccess = protected)
+    properties (Abstract = false, SetAccess = public)
 
         % is is possible to replace this with a hash or index to get the object
         % from the toolbox scenario? Maybe the name is enough?
         toolbox_ground_station
-
-        % path to a file containing the background count rate data for this
-        % ground station (stored in counts/ s steradian nm)
-        Background_Count_Rate_File_Location{mustBeText} = 'none';
-
-        % path to a Sky_Brightness_Store object which unifies the background
-        % light data interface between sources
-        Sky_Brightness_Store_Location{mustBeText} = 'none';
 
         %the camera which receives beacon light, if beaconing is simulated
         Camera = [];
@@ -24,8 +16,11 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
         %uplink beacon, if simulated
         Beacon = [];
 
-        %atmosphere file location
-        Atmosphere_File_Location = [];
+       % enviroment object describing atmospheric loss and background
+        % light
+        Environment (1,1) environment.Environment = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 50km.mat");
+
+
     end
 
     properties (Abstract = false, SetAccess = protected)
@@ -44,23 +39,6 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
 
         % minimum elevation to establish a link in deg
         Elevation_Limit{mustBeScalarOrEmpty} = 30;
-
-        % SMARTS data paths
-        smarts_results = {};
-
-        % SMARTS wavelengths
-        Wavelengths = [];
-
-        % Spectra of atmosphere as received by the ground station in terms of
-        % photon number
-        Sky_Irradiance = [];
-        Sky_Radiance = [];
-
-        % Sky photons calculated from 'Sky_Spectra' via
-        % 'basic classes/sky_photons.m', see reference there for details.
-        Sky_Photons = [];
-        Sky_Photon_Rate = [];
-
     end
 
     methods
@@ -88,6 +66,7 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
                 options.altitude (1,1) double = 0;
                 options.LLA = nan;
                 options.Name = 'Unnamed OGS';
+                options.Environment =  environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 50km.mat")
             end
 
             if nargin==0
@@ -192,7 +171,12 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
                     options.Name );
             end
 
+
+            %set name
             Ground_Station.Name = options.Name;
+
+            %set environment object
+            Ground_Station.Environment = options.Environment;
         end
 
         function Ground_Station = SetWavelength(Ground_Station, Wavelength)
