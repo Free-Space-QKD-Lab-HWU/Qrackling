@@ -18,14 +18,14 @@ OGS=HOGS(Wavelength,'BeaconCamera','Fine');%current HOGS model
 % or using custom start, stop and interval times
 
 %best case pass: 0423 to 0426 31 jan 2023, 50km visibility
-%{
+%%{
 StartTime = datetime(2022,12,25,6,0,0);
 StopTime = datetime(2022,12,25,7,0,0);
 Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 50km.mat");
-Env.turbulence_model = environment.Turbulence_Model('Preset','10-10');
+Env.turbulence_model = environment.Turbulence_Model('Preset','HV10-10');
 %}
 %ok pass: 0610 to 0655 christmas day 2022, 10km visibility
-%%{
+%{
 StartTime = datetime(2023,2,6,3,0,0);
 StopTime = datetime(2023,2,6,5,0,0);
 Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 10km.mat");

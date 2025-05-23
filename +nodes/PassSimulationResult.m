@@ -11,7 +11,7 @@ classdef PassSimulationResult
         range (:, :) {mustBeNumeric} = []
         time (:, :) = []
         elevation_limit = 0
-        elevation_mask (1, :) {mustBeNumericOrLogical} = []
+        elevation_mask logical = false([1,0]);
         loss nodes.LossResult = nodes.LossResult.empty(0, 0)
         noise environment.Noise = environment.Noise.empty(0, 0)
         sifted_key_rate (1, :) {mustBeNumeric} = []
@@ -37,7 +37,7 @@ classdef PassSimulationResult
                 range (:, :) {mustBeNumeric} = []
                 time (:, :) = []
                 limit {mustBeNumeric} = 0
-                elevation_mask (1, :) {mustBeNumericOrLogical} = []
+                elevation_mask logical = false([1,0]);
                 loss nodes.LossResult = nodes.LossResult.empty(0, 0)
                 noise environment.Noise = environment.Noise.empty(0, 0)
                 sifted_key_rate (1, :) {mustBeNumeric} = []
@@ -71,8 +71,13 @@ classdef PassSimulationResult
                 result nodes.PassSimulationResult
             end
 
+            %% get data
             communicating = ~(isnan(result.secret_key_rate) | (result.secret_key_rate <= 0));
             time = result.time(communicating);
+            %time should be a row vector
+            if iscolumn(time)
+                time = time';
+            end
 
             time_window_widths = time(2:end) - time(1:end-1);
             if isempty(time_window_widths)
@@ -105,23 +110,30 @@ classdef PassSimulationResult
                     'Elevation', 'Communication', 'Line of sight', 'None'})} = "Elevation"
             end
 
+            %% create figure
+            figure_name = string(result.protocol_name) ...
+                + " simulation from " ...
+                + result.transmitter_name ...
+                + " to "...
+                + result.receiver_name;
+
+
+
+            fig = figure("Name", figure_name);
+            [~] = tiledlayout(3, 3, "TileSpacing", "tight");
+
+            %% get useful information
+            %x label
+            switch options.x_axis
+                case 'Time'
             x_label = 'Time';
             x_axis = result.time;
-            if numel(result.loss) > 1
-                x_axis = result.time(1, :);
-                total_loss_db = result.loss(1).TotalLoss.dB ...
-                    + result.loss(2).TotalLoss.dB;
-            else
-                total_loss_db = result.loss.TotalLoss.dB;
+                case 'Elevation'
+            x_label = 'Elevation (deg)';
+            x_axis = result.elevation;
             end
-
-            if string(options.x_axis) == "Elevation"
-                x_axis = result.elevation;
-                x_label = 'Elevation (deg)';
-            end
-
-            mask = result.elevation_mask;
-
+            
+            %mask
             switch options.mask
             case "Elevation"
                 mask = result.elevation_mask;
@@ -132,30 +144,11 @@ classdef PassSimulationResult
             case "None"
                 mask = true(size(result.elevation));
             end
-
-            if isscalar(result.receiver_name)
-            figure_name = string(result.protocol_name) ...
-                + " simulation from " ...
-                + result.transmitter_name ...
-                + " to "...
-                + result.receiver_name;
-            else
-            figure_name = string(result.protocol_name) ...
-                + " simulation from " ...
-                + result.transmitter_name ...
-                + " to "...
-                + result.receiver_name(1)...
-                + " and "...
-                + result.receiver_name(2);
-            end
-
-
-            fig = figure("Name", figure_name);
-            [~] = tiledlayout(3, 3, "TileSpacing", "tight");
-
+            
+            %total key
             [total_secure_key, ~] = result.total_key_rates();
 
-            % plot performance
+            %% plot key rates
             nexttile([1, 2])
             yyaxis left
             hold on
@@ -171,16 +164,18 @@ classdef PassSimulationResult
                 'FontName', get(groot,'defaultAxesFontName'), ...
                 'FontSize', get(groot,'defaultAxesFontSize'))
 
-            % plot QBER
+            %% plot QBER
+            yyaxis right
+            plot(x_axis(mask), result.qber(mask) .* 100)
+            xlabel(x_label)
+            ylabel('QBER (%)')
+            legend('Secret Key Rate','Sifted Key Rate','')
+            xlim([min(x_axis(mask)), max(x_axis(mask))])
 
-            if result.receiver_location(1).N_Position < result.transmitter_location.N_Position
-                yyaxis right
-                plot(x_axis(mask), result.qber(mask) .* 100)
-                xlabel(x_label)
-                ylabel('QBER (%)')
-                legend('Secret Key Rate','Sifted Key Rate','')
-                xlim([min(x_axis(mask)), max(x_axis(mask))])
 
+            %% plot map of path
+            switch result.direction
+                case nodes.LinkDirection.Downlink
                 % plot scenario on map
                 nexttile(3, [2, 1])
                 geoplot( ...
@@ -207,7 +202,9 @@ classdef PassSimulationResult
                 geolimits( ...
                     mean([result.receiver_location.Latitude]) + [-4, 4], ...
                     mean([result.receiver_location.Longitude]) + [-4, 4] );
-            else
+
+
+                case nodes.LinkDirection.Uplink
                 yyaxis right
                 plot(x_axis(mask), result.qber(mask) .* 100)
                 xlabel(x_label)
@@ -244,47 +241,13 @@ classdef PassSimulationResult
             end
 
 
-            % plot loss
-            if numel(result.loss) > 1
-                ax1 = nexttile(4);
-                result.loss(1).plotLosses(x_axis, x_label, "mask", mask);
-                xlim([min(x_axis(mask)), max(x_axis(mask))])
-                ax2 = nexttile(5);
-                result.loss(2).plotLosses(x_axis, x_label, "mask", mask);
-                linkaxes([ax1, ax2], 'y')
-                xlim([min(x_axis(mask)), max(x_axis(mask))])
-            else
+            %% plot loss
                 nexttile(4, [1, 2])
                 result.loss.plotLosses(x_axis, x_label, "mask", mask);
                 xlim([min(x_axis(mask)), max(x_axis(mask))])
-            end
 
-            % plot background counts
-            if numel(result.noise) > 2
-                nexttile(7)
-                title('BCR (counts/s)')
-                noise_rx1 = result.noise(:, 1);
-                n_sources = numel(noise_rx1);
-                n_points = numel(noise_rx1(1).values);
-                bcr_data = reshape([noise_rx1.values], [n_points, n_sources]);
-                area(x_axis(mask), bcr_data(mask, :))
-                xlabel(x_label)
-                lgd = legend(noise_rx1.label);
-                lgd.NumColumns = 1;
-                xlim([min(x_axis(mask)), max(x_axis(mask))])
 
-                nexttile(8)
-                title('BCR (counts/s)')
-                noise_rx2 = result.noise(:, 2);
-                n_sources = numel(noise_rx2);
-                n_points = numel(noise_rx2(1).values);
-                bcr_data = reshape([noise_rx2.values], [n_points, n_sources]);
-                area(x_axis(mask), bcr_data(mask, :))
-                xlabel(x_label)
-                lgd = legend(noise_rx2.label);
-                lgd.NumColumns = 1;
-                xlim([min(x_axis(mask)), max(x_axis(mask))])
-            else
+            %% plot background counts
                 nexttile(7, [1, 2])
                 title('BCR (counts/s)')
                 n_sources = numel(result.noise);
@@ -295,10 +258,11 @@ classdef PassSimulationResult
                 lgd = legend(result.noise.label);
                 lgd.NumColumns = 1;
                 xlim([min(x_axis(mask)), max(x_axis(mask))])
-            end
 
+            %% plot link loss tolerance
             nexttile()
             title('Link performance')
+            total_loss_db = result.loss.TotalLoss.dB;
             semilogy(total_loss_db(mask), result.secret_key_rate(mask), 'k-')
             xlabel('Link Loss (dB)')
             ylabel('Secret Key Rate (bps)')

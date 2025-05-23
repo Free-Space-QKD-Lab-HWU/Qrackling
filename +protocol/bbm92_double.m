@@ -34,15 +34,15 @@ classdef bbm92_double < protocol.proto
             Protocol.mustHaveCorrectTransmittersAndReceivers(alice,bobs)
 
                 % assume ordering is alice then bob
-                loss_bob_1 = total_loss{1};
-                loss_bob_2 = total_loss{2};
+                loss_bob_1 = total_loss(1,:);
+                loss_bob_2 = total_loss(2,:);
 
                     % we have different conditions at alice and bob locations
                     background_probability_bob_1 = Protocol.BackgroundCountProbability( ...
-                        total_erroneous_count_rate{1}, ...
+                        total_erroneous_count_rate(1,1,:), ...
                         bobs(1).Detector.Time_Gate_Width);
                     background_probability_bob_2 = Protocol.BackgroundCountProbability( ...
-                        total_erroneous_count_rate{2},...
+                        total_erroneous_count_rate(1,2,:),...
                         bobs(2).Detector.Time_Gate_Width);
 
                     transmission_bob_1 = Protocol.ReceiverLoss(bobs(1)) .* loss_bob_1;

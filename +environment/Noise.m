@@ -6,8 +6,8 @@ classdef Noise
     methods
         function noise = Noise(label, values)
             arguments
-                label {mustBeText}
-                values {mustBeNumeric}
+                label {mustBeText} = ''
+                values {mustBeNumeric} = [];
             end
             noise.label = label;
             noise.values = values;

@@ -40,7 +40,7 @@ classdef proto
             else
                 transmitter_sources = proto.CompatibleComponent(transmitter.Source, transmitter.Name);
             end
-            assert(all(transmitter_sources), "Detector not compatible with protocol")
+            assert(all(transmitter_sources), "Transmitter not compatible with protocol")
 
             n_receiver = numel(receiver);
             if n_receiver > 1
@@ -64,29 +64,16 @@ classdef proto
 
             end
 
-            %% work out the format for losses and background count rates dependent on
-            receiver_dcr = proto.ReceiverDarkCountRate(receiver);
-
-            %% calculate total erroneous count rates at each receiver
-            if proto.num_receivers==1 && proto.num_transmitters==1
-                %if only one receiver, deliver a numeric array of count
-                %rates
-                total_erroneous_count_rate = receiver_dcr + background_count_rate{1}.values;
-            else
-                %otherwise, separate different count rates for different
-                %transmitters/receivers using a cell
-                total_erroneous_count_rate = background_count_rate;
-                for i=1:proto.num_transmitters
-                    for j=1:proto.num_receivers
-                    total_erroneous_count_rate{i,j} = background_count_rate{i,j}.Total;
-                    end
-                end
+            %% if a point-to-point link, will need to transpose loss to match row vector count rate
+            if n_transmitter==1 && n_receiver==1
+                total_loss = total_loss';
             end
-
+            
+            %% run model
             [secret_rate, sifted_rate, qber] = proto.QkdModel( ...
                 transmitter, receiver, ...
                 total_loss, ...
-                total_erroneous_count_rate);
+                background_count_rate);
 
         end
 

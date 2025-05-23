@@ -140,7 +140,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                     t= datetime(2000,1,1,12,0,0) + seconds(time_seconds);
                 end
 
-            elseif options.useSatCommsToolbox == true
+            elseif options.UseSatCommsToolbox == true
                 if isempty(options.ToolBoxSatellite) | isempty(options.scenario)
                     error('No toolbox satellite supplied');
 
@@ -206,7 +206,13 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             end
 
             Satellite.N_Steps = Satellite.N_Position;
+
+            %enforce a time zone on times. if none is provided, assume UTC
+            if isempty(t.TimeZone)
+                t.TimeZone = 'UTC';
+            end
             Satellite.Times = t;
+
             Satellite.TLE_Uncertainty = options.TLE_Uncertainty;
 
             %% currently, both transmit and receive scopes are the same
@@ -295,8 +301,8 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             % of {latitiude, longitude, altitude}, velocities in a 'North-East-
             % Down' format and time in matlab datetime
 
-            if ~isempty(p.Results.scenario) && isnan(p.Results.TLE) ...
-                    && isempty(p.Results.KeplerElements)
+            if ~isempty(options.scenario) && isnan(options.TLE) ...
+                    && isempty(options.KeplerElements)
 
                 % First case: we have been supplied with only a satCommsToolbox
                 % satellite object, get its position, velocity and time 
