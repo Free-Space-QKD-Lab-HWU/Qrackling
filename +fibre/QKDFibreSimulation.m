@@ -1,0 +1,99 @@
+function results = QKDFibreSimulation(receivers, transmitters, fibres, qkd_protocol)
+%%QKDFIBRESIMULATION this function architects the simulation of a fibre QKD
+%%link between a transmitter and receiver
+    arguments
+        receivers { ...
+            nodes.mustBeReceiverOrTransmitter(receivers), ...
+            nodes.mustHaveDetector(receivers) }
+        transmitters { ...
+            nodes.mustBeReceiverOrTransmitter(transmitters), ...
+            nodes.mustHaveSource(transmitters) }
+        fibres fibre.Fibre
+        qkd_protocol protocol.proto
+    end    
+
+    %% Check that we have the correct number of transmitters and receivers for this protocol
+    qkd_protocol.mustHaveCorrectTransmittersAndReceivers(transmitters,receivers)
+
+
+    %% Establish the loss and noise between each transmitter and receiver pair
+    %prepare memory
+    loss_results = repmat(nodes.LossResult(),[qkd_protocol.num_transmitters,qkd_protocol.num_receivers]);
+    total_loss = zeros(qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0);
+    noise_results = repmat(environment.Noise('',[]),[qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0]);
+    total_noise = zeros(qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0);
+    ranges = fibres.length;
+
+    %iterating over each transmitter-receiver pair
+    for receiver_index = 1:qkd_protocol.num_receivers
+        for transmitter_index = 1:qkd_protocol.num_transmitters
+
+            [loss,noise]=loss_and_noise_for_channel(transmitters(transmitter_index),...
+                                                    receivers(receiver_index),...
+                                                    fibres(transmitter_index,receiver_index),...
+                                                    qkd_protocol);
+            %store loss and noise in cells with index transmitter x
+            %receiver
+            loss_results(transmitter_index,receiver_index,1) = loss;
+            total_loss(transmitter_index,receiver_index,1) = loss.TotalLoss;
+            noise_results(transmitter_index,receiver_index,1:numel(noise)) = noise;
+            total_noise(transmitter_index,receiver_index,1) = noise.Total;
+        end
+    end
+
+    %% Evaluate QKD link
+
+    %calculate
+    [secret_key_rate, sifted_key_rate, qber] = qkd_protocol.Calculate(transmitters, ...
+                                                                      receivers, ...
+                                                                      total_loss, ...
+                                                                      total_noise);
+
+
+     %% store results
+     results = repmat(fibre.FibreSimulationResult(),[qkd_protocol.num_transmitters,qkd_protocol.num_receivers]);
+        for receiver_index = 1:qkd_protocol.num_receivers
+            for transmitter_index = 1:qkd_protocol.num_transmitters
+                    results(transmitter_index,receiver_index) = fibre.FibreSimulationResult( ...
+                    receivers(receiver_index).Name, transmitters(transmitter_index).Name, ...
+                    nodes.Located_Object().SetPosition("Latitude",  transmitters(transmitter_index).Latitude,"Longitude", transmitters(transmitter_index).Longitude,"Altitude",  transmitters(transmitter_index).Altitude), ...
+                    nodes.Located_Object().SetPosition( "Latitude",  receivers(receiver_index).Latitude, "Longitude", receivers(receiver_index).Longitude, "Altitude",  receivers(receiver_index).Altitude), ...
+                    ranges(transmitter_index,receiver_index,:),...
+                    datetime('now'),...
+                    loss_results(transmitter_index,receiver_index),...
+                    noise_results(transmitter_index,receiver_index,:), ...
+                    sifted_key_rate, secret_key_rate, qber, qkd_protocol.name);
+            end
+        end
+end
+
+function [loss_results, noise] = loss_and_noise_for_channel(transmitter, receiver, Fibre, qkd_protocol)
+    arguments
+        transmitter (1,1) { ...
+            nodes.mustBeReceiverOrTransmitter(transmitter), ...
+            nodes.mustHaveSource(transmitter) }
+        receiver (1,1) { ...
+            nodes.mustBeReceiverOrTransmitter(receiver), ...
+            nodes.mustHaveDetector(receiver) }
+        Fibre (1,1) fibre.Fibre
+        qkd_protocol protocol.proto
+    end
+
+    %noise due to detector dark counts
+    dark_counts = receiver.Detector.Dark_Count_Rate ...
+        .* qkd_protocol.num_detectors;
+
+    %record as noise objects
+    noise = [ ...
+        environment.Noise("Detector Dark Counts", dark_counts), ...
+    ];
+
+    %% compute losses
+    [loss_results] = fibre.linkLoss(Fibre,...
+                                receiver,...
+                                transmitter,...
+                                'efficiency',...
+                                'fibre',...
+                                'coupling');
+end
+

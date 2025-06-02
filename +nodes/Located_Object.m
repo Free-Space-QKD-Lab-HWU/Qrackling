@@ -26,6 +26,7 @@ classdef Located_Object
         % Length of Latitude, Longitude, Altitude arrays
         % (must all be same length)
         N_Position{mustBeInteger, mustBePositive} = 1;
+        Time (:,1) datetime = datetime.empty();
     end
     properties(Constant=true, Hidden=true)
         % radius of the earth in m (used to compute shadowing)

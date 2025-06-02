@@ -1,8 +1,8 @@
 function eff = OpticalEfficiencyLoss(kind, receiver, transmitter)
     arguments
         kind {mustBeMember(kind, ["beacon", "qkd"])}
-        receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
-        transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
+        receiver {utilities.mustBeSubclassOf(receiver,'nodes.QKD_Receiver')}
+        transmitter {utilities.mustBeSubclassOf(transmitter,'nodes.QKD_Transmitter')}
     end
 
     switch kind

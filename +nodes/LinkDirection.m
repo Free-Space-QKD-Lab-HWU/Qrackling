@@ -13,8 +13,8 @@ classdef LinkDirection
     methods (Static)
         function link_direction = DetermineLinkDirection(receiver, transmitter)
             arguments
-                receiver {utilities.mustBeSubclassOf(receiver,'nodes.Optical_Node')}
-                transmitter {utilities.mustBeSubclassOf(transmitter,'nodes.Optical_Node')}
+                receiver {utilities.mustBeSubclassOf(receiver,'nodes.Free_Space_Optical_Node')}
+                transmitter {utilities.mustBeSubclassOf(transmitter,'nodes.Free_Space_Optical_Node')}
             end
 
             switch class(transmitter)

@@ -1,40 +1,49 @@
 classdef LossResult
-    properties (SetAccess = protected)
+    properties
         kind = []
-        geometric units.Loss = units.Loss.empty(0, 1)
-        optical units.Loss = units.Loss.empty(0, 1)
-        apt units.Loss = units.Loss.empty(0, 1)
-        turbulence units.Loss = units.Loss.empty(0, 1)
-        atmospheric units.Loss = units.Loss.empty(0, 1)
+        losses (:,1) cell
+        numLosses (1,1) {mustBeNumeric}
+        length (1,1) {mustBeNumeric}
     end
     methods
-        function result = LossResult(kind, options)
+        function result = LossResult(kind, Loss)
 
             arguments
                 kind {mustBeMember(kind, ["beacon", "qkd"])} = "qkd"
-                options.geometric
-                options.optical
-                options.apt
-                options.turbulence
-                options.atmospheric
+            end
+            arguments(Repeating)
+                Loss units.Loss
             end
 
             result.kind = kind;
 
-            for fieldname = fieldnames(options)'
-                switch fieldname{1}
-                    case "geometric"
-                        result.geometric = options.geometric;
-                    case "optical"
-                        result.optical = options.optical;
-                    case "apt"
-                        result.apt = options.apt;
-                    case "turbulence"
-                        result.turbulence = options.turbulence;
-                    case "atmospheric"
-                        result.atmospheric = options.atmospheric;
-                end
+            %return straight away if called to construct empty object
+            if isempty(Loss)
+                return
             end
+
+            %store losses in an array
+            result.losses = Loss;
+            num_different_losses = numel(Loss);
+            num_loss_points = numel(Loss{1});
+            for i=1:num_different_losses
+
+                assert(numel(result.losses{i})==num_loss_points,...
+                    'all losses stored must have the same number of elements')
+            end
+
+        end
+
+        function n = get.numLosses(result)
+            n=numel(result.losses);
+        end
+
+        function n = get.length(result)
+            if result.numLosses==0
+                n=0;
+                return
+            end
+            n=numel(result.losses{1});
         end
 
         function loss = TotalLoss(result)
@@ -42,14 +51,18 @@ classdef LossResult
                 result nodes.LossResult
             end
 
-            valid_props = result.Names;
-            total = ones(size(result.(valid_props{1})));
-            for property = valid_props
-                current_loss = result.(property{1});
-                total = total .* current_loss;
+            %create memory
+            loss = double(result.losses{1});
+
+            %iterate over losses, multiplying
+            if ~(result.numLosses==1)
+                for i=2:result.numLosses
+                    loss = loss .* result.losses{i};
+                end
             end
 
-            loss = units.Loss(total);
+            %convert back to loss objevt
+            loss = units.Loss(loss,'Total');
         end
 
         function plotLosses(result, x_axis, x_label, options)
@@ -57,58 +70,88 @@ classdef LossResult
                 result nodes.LossResult
                 x_axis
                 x_label
-                options.mask
-                options.axes
+                options.mask = [];
             end
 
-            have_mask = any(contains(fieldnames(options), "mask"));
-
-            loss_arrays = {};
-            labels = result.Names;
-            i = 1;
-            for name = labels
-                if ~isempty(result.(name{1}))
-                    loss = result.(name{1}).dB;
-
-                    if have_mask
-                        loss = loss(options.mask);
-                    end
-
-                    loss_arrays.(name{1}) = loss;
-                    i = i + 1;
-                end
+            if isempty(options.mask)
+                options.mask = true(result.length,1);
+            end
+            labels = {};
+            loss_dB = [];
+            for i=1:result.numLosses
+                labels = [labels,result.losses{i}.name];
+                whole_loss_dB = result.losses{i}.dB;
+                mask_loss_dB = whole_loss_dB(options.mask);
+                loss_dB = [loss_dB;mask_loss_dB]; %#ok<*AGROW>
             end
 
-            if ismember(fieldnames(options), "axes")
-                area(options.axes, x_axis(options.mask), cell2mat(struct2cell(loss_arrays))');
-            else
-                area(x_axis(options.mask), cell2mat(struct2cell(loss_arrays))');
-            end
-
-            lgd = legend(labels(1:i-1), "Orientation", "horizontal", "Location", "south");
-            lgd.NumColumns = 1;
-
+            area(x_axis(options.mask),loss_dB')
             xlabel(x_label)
             ylabel("Losses (dB)")
+            legend(labels,'location','southeast')
             grid on
 
         end
 
-    
+
         function names = Names(result)
             %return a cell array of characters with the names of different
             %calculated losses (those which are not empty)
+            names = cellfun(@(x) x.name,result.losses,'UniformOutput',false);
+        end
 
+        function losses = get(result,Loss_Names)
+            %%GET return a single loss object, or cell array of loss
+            %%objects, which have the specified name(s)
+            arguments
+                result nodes.LossResult
+            end
+            arguments(Repeating)
+                Loss_Names {mustBeText}
+            end
 
-            props = properties(result);
-            loss_props = props(~contains(props, {'kind'}))';
-            i=1;
-            for loss_property = loss_props
-                if ~isempty(result.(loss_property{1}))
-                names{i} = loss_property{1};
-                i = i + 1;
+            
+            losses = {};
+            %iterating through requested names
+            for loss_name = Loss_Names
+                loss_name = loss_name{1};
+                found = false;
+                %iterating through elements of result, comparing names
+                for loss = result.losses'
+                    loss = loss{1};
+                    if isequal(loss_name,loss.name)
+                        losses = [losses,{loss}];
+                        found = true;
+                        break
+                    end
+                end
+                if found
+                break
+                else
+                error('cannot find loss named %s in lossResult',loss_name);
                 end
             end
+
+
+
+        end
+    
+        function result = addLoss(result,loss)
+            %%ADDLOSS add a new loss term to the LossResult
+            arguments
+                result nodes.LossResult
+            end
+            arguments(Repeating)
+                loss units.Loss
+            end
+
+            %check that losses have same length
+            length = result.length;
+            assert(all(cellfun(@(x) numel(x)==length, loss)),...
+                    'added losses must have same length as existing losses')
+
+            %append losses
+            result.losses = [result.losses;loss];
         end
     end
 end

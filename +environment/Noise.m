@@ -1,5 +1,5 @@
 classdef Noise
-    properties (SetAccess = protected)
+    properties
         label
         values
     end

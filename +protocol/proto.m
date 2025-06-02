@@ -25,10 +25,8 @@ classdef proto
                 transmitter, receiver, total_loss, background_count_rate)
             arguments
                 proto
-                transmitter {utilities.mustBeSubclassOf(transmitter,'nodes.Optical_Node'),...
-                    nodes.mustHaveSource(transmitter) }
-                receiver {utilities.mustBeSubclassOf(receiver,'nodes.Optical_Node'),...
-                    nodes.mustHaveDetector(receiver) }
+                transmitter {utilities.mustBeSubclassOf(transmitter,'nodes.QKD_Transmitter')}
+                receiver {utilities.mustBeSubclassOf(receiver,'nodes.QKD_Receiver')}
                 total_loss (:, :)
                 background_count_rate (:, :, :)
             end
@@ -91,7 +89,7 @@ classdef proto
         function loss = ReceiverLoss(proto, rx)
             arguments
                 proto protocol.proto
-                rx {utilities.mustBeSubclassOf(rx,'nodes.Optical_Node'),...
+                rx {utilities.mustBeSubclassOf(rx,'nodes.QKD_Receiver'),...
                     nodes.mustHaveDetector(rx) }
             end
 

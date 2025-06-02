@@ -1,7 +1,7 @@
 %Author: Cameron Simmons, Peter Barrow
 %Date: 24/1/22
 
-classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Transmitter
+classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Transmitter & nodes.Free_Space_Optical_Node
     % GROUND_STATION an object containing all of the simulation parameters of the ground station
 
     properties (Abstract = false, SetAccess = public)

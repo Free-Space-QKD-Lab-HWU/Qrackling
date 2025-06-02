@@ -1,6 +1,8 @@
 function mustBeReceiverOrTransmitter(receiver_or_transmitter)
     if isscalar(receiver_or_transmitter) && ~isa(receiver_or_transmitter, "cell")
-        mustBeA(receiver_or_transmitter, ["nodes.Satellite", "nodes.Ground_Station"])
+        assert(utilities.isSubclassOf(receiver_or_transmitter, 'nodes.QKD_Transmitter')||...
+               utilities.isSubclassOf(receiver_or_transmitter,'nodes.QKD_Receiver'),...
+               'must either be a QKD_Transmitter or QKD_Receiver')
         return
     end
 

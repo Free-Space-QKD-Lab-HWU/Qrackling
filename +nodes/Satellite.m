@@ -1,7 +1,7 @@
 %Author: Cameron Simmons, Peter Barrow
 %Date: 24/1/22
 
-classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Transmitter
+classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Transmitter & nodes.Free_Space_Optical_Node
     %SATELLITE abstract class containing the satellite properties for simulation
 
     %hide large or uninteresting properties, not abstract for this reason

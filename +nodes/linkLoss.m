@@ -1,4 +1,4 @@
-function [loss_result,extras] = linkLoss(kind, receiver, transmitter, loss, options)
+function [losses,extras] = linkLoss(kind, receiver, transmitter, loss, options)
 arguments
     kind {mustBeMember(kind, ["beacon", "qkd"])}
     receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
@@ -13,15 +13,13 @@ arguments
     options.LinkLength = []
 end
 
-losses = {};
-
 spot_size = options.SpotSize;
 
 %% geometric loss
 if any(contains(string(loss), "geometric"))
     [res, spot_size, ~] = ...
         nodes.GeometricLoss(kind, receiver, transmitter);
-    losses.("geometric") = res;
+    losses=nodes.LossResult('qkd',units.Loss(res,'geometric'));
 end
 
 %% turbulence
@@ -38,39 +36,29 @@ if any(contains(string(loss), "turbulence"))
                                                 transmitter,...
                                                 direction,...
                                                 "SpotSize", spot_size);
-    losses.("turbulence") = res;
+    losses = losses.addLoss(units.Loss(res,'turbulence'));
 end
 
 %% optical (efficiency) loss
 if any(contains(string(loss), "optical"))
     res = nodes.OpticalEfficiencyLoss(kind, receiver, transmitter);
-    losses.optical = res;
+    losses = losses.addLoss(units.Loss(res,'optical'));
 end
 
+%% acquisition, pointing and tracking loss
 if any(contains(string(loss), "apt"))
     res = nodes.APTLoss(kind, receiver, transmitter);
-    losses.apt = res;
+    losses = losses.addLoss(units.Loss(res,'apt'));
 end
 
+%% atmospheric loss
 if any(contains(string(loss), "atmospheric"))
     res = nodes.AtmosphericLoss(kind, receiver, transmitter, direction);
-    losses.atmospheric = res;
+    losses = losses.addLoss(units.Loss(res,'atmospheric'));
 end
-
-
-
-nargoutchk(0, 3)
-
-loss_fields = fieldnames(losses);
-loss_values = struct2cell(losses);
-n_losses = length(loss_fields);
-kwargs = cell(2 * n_losses, 1);
-kwargs(1:2:end) = loss_fields;
-kwargs(2:2:end) = loss_values;
-loss_result = nodes.LossResult(kind, kwargs{:});
 
 extras = {};
 extras.("turbulent_beam_width") = beam_width;
 extras.("r0") = r0;
-extras.("total_loss") = loss_result.TotalLoss;
+extras.("total_loss") = losses.TotalLoss;
 end
