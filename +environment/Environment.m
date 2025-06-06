@@ -276,8 +276,11 @@ classdef Environment
 
             end
 
+
+            %test for failure
             if any(isnan(interp_data))
-                error('Interpolation failed. this was not corrected by Environment interpolator')
+                warning('Interpolation failed. this was not corrected by Environment interpolator')
+                interp_data(isnan(interp_data))=0;
             end
 
             % set format of interp_data, use a "Loss.m" class for attenuation

@@ -198,12 +198,13 @@ classdef PassSimulationResult
                     r = r + 1;
                 end
 
-                legend(labels, 'Location', 'southwest');
+                legend(labels, 'Location', 'north');
                 geolimits( ...
-                    mean([result.receiver_location.Latitude]) + [-4, 4], ...
-                    mean([result.receiver_location.Longitude]) + [-4, 4] );
-
-
+                    mean([result.receiver_location.Latitude]) + [-15, 15], ...
+                    mean([result.receiver_location.Longitude]) + [-15, 15] );
+                axes = gca();
+                axes.FontName = get(groot(),'defaultAxesFontName');
+                axes.FontSize = get(groot(),'defaultAxesFontSize');
                 case nodes.LinkDirection.Uplink
                 yyaxis right
                 plot(x_axis(mask), result.qber(mask) .* 100)
@@ -234,10 +235,13 @@ classdef PassSimulationResult
                     t = t + 1;
                 end
 
-                legend(labels, 'Location', 'southwest');
+                legend(labels, 'Location', 'north');
                 geolimits( ...
-                    mean([result.transmitter_location.Latitude]) + [-4, 4], ...
-                    mean([result.transmitter_location.Longitude]) + [-4, 4] );
+                    mean([result.transmitter_location.Latitude]) + [-15, 15], ...
+                    mean([result.transmitter_location.Longitude]) + [-15, 15] );
+                axes = gca();
+                axes.FontName = get(groot(),'defaultAxesFontName');
+                axes.FontSize = get(groot(),'defaultAxesFontSize');
             end
 
 

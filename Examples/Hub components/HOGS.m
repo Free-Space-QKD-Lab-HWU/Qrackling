@@ -4,7 +4,7 @@ function HOGS = HOGS(Wavelength,options)
 % need to implement the Errol_OGS class to give the correct position
 
 arguments
-    Wavelength {mustBeMember(Wavelength,[785,808,1550])}
+    Wavelength {mustBeMember(Wavelength,[785,808,1550])} = 785;
     options.BeaconCamera {mustBeMember(options.BeaconCamera,{'Coarse','Fine'})} = 'Coarse'
 end
 

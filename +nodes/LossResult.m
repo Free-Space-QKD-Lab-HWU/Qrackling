@@ -88,7 +88,8 @@ classdef LossResult
             area(x_axis(options.mask),loss_dB')
             xlabel(x_label)
             ylabel("Losses (dB)")
-            legend(labels,'location','southeast')
+            legend(labels,'location','south',...
+                   'Orientation','horizontal')
             grid on
 
         end

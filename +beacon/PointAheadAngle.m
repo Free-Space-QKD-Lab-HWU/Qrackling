@@ -5,8 +5,8 @@ function [heading_PAA,elevation_PAA] = PointAheadAngle(Receiver,Transmitter)
     %are related to the ENU (East-North-Up) frame of reference at the
     %transmitter
     arguments
-        Receiver {utilities.mustBeSubclassOf(Receiver,'nodes.Optical_Node')}
-        Transmitter {utilities.mustBeSubclassOf(Transmitter,'nodes.Optical_Node')}
+        Receiver {utilities.mustBeSubclassOf(Receiver,'nodes.Free_Space_Optical_Node')}
+        Transmitter {utilities.mustBeSubclassOf(Transmitter,'nodes.Free_Space_Optical_Node')}
     end
 
     %% get basic information

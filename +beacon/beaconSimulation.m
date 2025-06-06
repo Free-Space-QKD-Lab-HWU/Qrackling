@@ -1,7 +1,7 @@
 function result = beaconSimulation( Receiver,Transmitter, options)
     arguments
-        Receiver {utilities.mustBeSubclassOf(Receiver,'nodes.Optical_Node')}
-        Transmitter {utilities.mustBeSubclassOf(Transmitter,'nodes.Optical_Node')}
+        Receiver {utilities.mustBeSubclassOf(Receiver,'nodes.Free_Space_Optical_Node')}
+        Transmitter {utilities.mustBeSubclassOf(Transmitter,'nodes.Free_Space_Optical_Node')}
         options.Environment environment.Environment
     end
 
