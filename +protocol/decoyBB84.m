@@ -56,13 +56,12 @@ classdef decoyBB84 < protocol.proto
             state_prep_error = alice.Source.State_Prep_Error;
 
             %loss = bob.channel_efficiency;
-            loss = total_loss .* proto.ReceiverLoss(bob);
+            loss = total_loss;
             prob_dark_counts = proto.BackgroundCountProbability( ...
                 total_background_count_rate, ...
                 bob.Detector.Time_Gate_Width);
 
             %% get variables from Detector object
-            %det_eff = bob.Detector.Detection_Efficiency;
             QBER_jitter = bob.Detector.QBER_Jitter;
             %QBER due to polarisation misalignment (in degrees)
             QBER_polarisation_error = sind(bob.Detector.Polarisation_Error);
