@@ -39,7 +39,7 @@ classdef Fibre
             %%CONNECTION_LOSS return the loss due to connectors at both
             %%fibre ends
 
-            loss = units.Loss(fibre.connector_loss{1}*fibre.connector_loss{2},'connector');
+            loss = units.Loss(fibre.connector_loss{1}*fibre.connector_loss{2},'connectors');
         end
 
         function loss = total_loss(fibre)

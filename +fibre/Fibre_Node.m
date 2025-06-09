@@ -2,12 +2,8 @@ classdef Fibre_Node < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Tran
 
     methods
         function [FN] = Fibre_Node(options)
-            % GROUND_STATION instantiate a ground station using either its
-            % component classes and requiring a name and location (LLA = lat
-            % lon alt)
-
-            % Ground_Station should support an empty constructor to be default
-            % instantiated correctly
+            % FIBRE_NODE instantiate an end of a fibre connection with one
+            % or both of a source or detector
 
             arguments
                 options.Detector = [];
@@ -46,4 +42,13 @@ classdef Fibre_Node < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Tran
 
         end
     end
+
+    methods(Static)
+        function FN = empty()
+            FN = fibre.Fibre_Node(...
+                'Source',components.Source(785));
+        end
+
+    end
+
 end

@@ -79,17 +79,19 @@ classdef LossResult
             labels = {};
             loss_dB = [];
             for i=1:result.numLosses
-                labels = [labels,result.losses{i}.name];
                 whole_loss_dB = result.losses{i}.dB;
-                mask_loss_dB = whole_loss_dB(options.mask);
-                loss_dB = [loss_dB;mask_loss_dB]; %#ok<*AGROW>
+                if any(whole_loss_dB~=0)
+                    labels = [labels,result.losses{i}.name];
+                    mask_loss_dB = whole_loss_dB(options.mask);
+                    loss_dB = [loss_dB;mask_loss_dB]; %#ok<*AGROW>
+                end
             end
 
             area(x_axis(options.mask),loss_dB')
             xlabel(x_label)
             ylabel("Losses (dB)")
             legend(labels,'location','south',...
-                   'Orientation','horizontal')
+                'Orientation','horizontal')
             grid on
 
         end
@@ -111,7 +113,7 @@ classdef LossResult
                 Loss_Names {mustBeText}
             end
 
-            
+
             losses = {};
             %iterating through requested names
             for loss_name = Loss_Names
@@ -127,16 +129,16 @@ classdef LossResult
                     end
                 end
                 if found
-                break
+                    break
                 else
-                error('cannot find loss named %s in lossResult',loss_name);
+                    error('cannot find loss named %s in lossResult',loss_name);
                 end
             end
 
 
 
         end
-    
+
         function result = addLoss(result,loss)
             %%ADDLOSS add a new loss term to the LossResult
             arguments
@@ -149,7 +151,7 @@ classdef LossResult
             %check that losses have same length
             length = result.length;
             assert(all(cellfun(@(x) numel(x)==length, loss)),...
-                    'added losses must have same length as existing losses')
+                'added losses must have same length as existing losses')
 
             %append losses
             result.losses = [result.losses;loss];

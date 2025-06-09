@@ -1,104 +1,59 @@
-classdef PassSimulationResult
+classdef PassSimulationResult < nodes.QKDSimulationResult
     properties
-        transmitter_name = []
-        receiver_name = []
-        transmitter_location (1, :) = [] %nodes.Located_Object.empty(0, 0)
-        receiver_location (1, :) = [] %nodes.Located_Object.empty(0, 0)
-        protocol_name = ""
         direction nodes.LinkDirection = nodes.LinkDirection.empty(0,0)
         heading (:, :) {mustBeNumeric} = []
         elevation (:, :) {mustBeNumeric} = []
         range (:, :) {mustBeNumeric} = []
-        time (:, :) = []
         elevation_limit = 0
         elevation_mask logical = false([1,0]);
-        loss nodes.LossResult = nodes.LossResult.empty(0, 0)
-        noise environment.Noise = environment.Noise.empty(0, 0)
-        sifted_key_rate (1, :) {mustBeNumeric} = []
-        secret_key_rate (1, :) {mustBeNumeric} = []
-        qber (1, :) {mustBeNumeric} = []
     end
 
     methods
-        function result = PassSimulationResult(receiver_name, transmitter_name, ...
-            transmitter_location, receiver_location, ...
-            link_direction, heading, elevation, range, time, ...
-            limit, elevation_mask, ...
-            loss, noise, ...
-            sifted_key_rate, secret_key_rate, qber, protocol_name)
+        function result = PassSimulationResult(transmitter,...
+                receiver,...
+                protocol,...
+                link_direction, ...
+                heading, ...
+                elevation, ...
+                range, ...
+                time, ...
+                elevation_mask, ...
+                loss,...
+                noise, ...
+                sifted_key_rate,...
+                secret_key_rate,...
+                qber)
             arguments
-                receiver_name string = ''
-                transmitter_name string = ''
-                transmitter_location (1, :) = nodes.Located_Object.empty(0, 0)
-                receiver_location (1, :) = nodes.Located_Object.empty(0, 0)
+                transmitter
+                receiver
+                protocol
                 link_direction nodes.LinkDirection = nodes.LinkDirection.empty(0,0)
                 heading (:, :) {mustBeNumeric} = []
                 elevation (:, :) {mustBeNumeric} = []
                 range (:, :) {mustBeNumeric} = []
                 time (:, :) = []
-                limit {mustBeNumeric} = 0
                 elevation_mask logical = false([1,0]);
                 loss nodes.LossResult = nodes.LossResult.empty(0, 0)
                 noise environment.Noise = environment.Noise.empty(0, 0)
                 sifted_key_rate (1, :) {mustBeNumeric} = []
                 secret_key_rate (1, :) {mustBeNumeric} = []
                 qber (1, :) {mustBeNumeric} = []
-                protocol_name {mustBeText} = ""
             end
-
-            result.receiver_name = receiver_name;
-            result.transmitter_name = transmitter_name;
-            result.transmitter_location = transmitter_location;
-            result.receiver_location = receiver_location;
+            result@nodes.QKDSimulationResult(transmitter,...
+                receiver,...
+                protocol,...
+                time,...
+                loss,...
+                noise,...
+                sifted_key_rate,...
+                secret_key_rate,...
+                qber)
 
             result.direction = link_direction;
             result.heading = heading;
             result.elevation = elevation;
             result.range = range;
-            result.time = time;
-            result.elevation_limit = limit;
             result.elevation_mask = elevation_mask;
-            result.loss = loss;
-            result.noise = noise;
-            result.sifted_key_rate = sifted_key_rate;
-            result.secret_key_rate = secret_key_rate;
-            result.qber = qber;
-            result.protocol_name = protocol_name;
-        end
-
-        function [total_secret, total_sifted] = total_key_rates(result)
-            arguments
-                result nodes.PassSimulationResult
-            end
-
-            %% get data
-            communicating = ~(isnan(result.secret_key_rate) | (result.secret_key_rate <= 0));
-            time = result.time(communicating);
-            %time should be a row vector
-            if iscolumn(time)
-                time = time';
-            end
-
-            time_window_widths = time(2:end) - time(1:end-1);
-            if isempty(time_window_widths)
-                warning("No communication occurs in this simulation");
-                total_secret = 0;
-                total_sifted = 0;
-                return
-            end
-
-            %pad to match width of other arrays
-            time_window_widths = [time_window_widths,time_window_widths(end)];
-
-            if isnumeric(time_window_widths)
-                total_sifted  = dot(time_window_widths, result.sifted_key_rate(communicating));
-                total_secret = dot(time_window_widths, result.secret_key_rate(communicating));
-                return
-            end
-
-            time_seconds = seconds(time_window_widths);
-            total_sifted  = dot(time_seconds, result.sifted_key_rate(communicating));
-            total_secret = dot(time_seconds, result.secret_key_rate(communicating));
         end
 
         function fig = plot(result, options)
@@ -111,11 +66,11 @@ classdef PassSimulationResult
             end
 
             %% create figure
-            figure_name = string(result.protocol_name) ...
+            figure_name = string(result.protocol.name) ...
                 + " simulation from " ...
-                + result.transmitter_name ...
+                + result.transmitter.Name ...
                 + " to "...
-                + result.receiver_name;
+                + result.receiver.Name;
 
 
 
@@ -126,31 +81,33 @@ classdef PassSimulationResult
             %x label
             switch options.x_axis
                 case 'Time'
-            x_label = 'Time';
-            x_axis = result.time;
+                    x_label = 'Time';
+                    x_axis = result.time;
                 case 'Elevation'
-            x_label = 'Elevation (deg)';
-            x_axis = result.elevation;
+                    x_label = 'Elevation (deg)';
+                    x_axis = result.elevation;
             end
-            
+
             %mask
             switch options.mask
-            case "Elevation"
-                mask = result.elevation_mask;
-            case "Communication"
-                mask = ~(isnan(result.secret_key_rate) | (result.secret_key_rate <= 0));
-            case "Line of sight"
-                mask = result.elevation > 0;
-            case "None"
-                mask = true(size(result.elevation));
+                case "Elevation"
+                    mask = result.elevation_mask;
+                case "Communication"
+                    mask = ~(isnan(result.secret_key_rate) | (result.secret_key_rate <= 0));
+                case "Line of sight"
+                    mask = result.elevation > 0;
+                case "None"
+                    mask = true(size(result.elevation));
             end
-            
+
             %total key
             [total_secure_key, ~] = result.total_key_rates();
 
             %% plot key rates
             nexttile([1, 2])
+            colororder(colororder())
             yyaxis left
+
             hold on
             plot(x_axis(mask), result.secret_key_rate(mask), '-')
             plot(x_axis(mask), result.sifted_key_rate(mask), ':')
@@ -176,92 +133,115 @@ classdef PassSimulationResult
             %% plot map of path
             switch result.direction
                 case nodes.LinkDirection.Downlink
-                % plot scenario on map
-                nexttile(3, [2, 1])
-                geoplot( ...
-                    result.transmitter_location.Latitude, ...
-                    result.transmitter_location.Longitude)
-                hold('on')
-                geoplot( ...
-                    result.transmitter_location.Latitude(mask), ...
-                    result.transmitter_location.Longitude(mask), 'g')
+                    % plot scenario on map
+                    nexttile(3, [2, 1])
+                    geoplot( ...
+                        result.transmitter.Latitude, ...
+                        result.transmitter.Longitude,'.')
+                    hold('on')
+                    geoplot( ...
+                        result.transmitter.Latitude(mask), ...
+                        result.transmitter.Longitude(mask), '.')
 
-                labels = ["Satellite path", strcat(options.mask, " window")];
-                r = 1;
-                for rx_loc = result.receiver_location
+                    labels = ["Satellite path", strcat(options.mask, " window")];
+
+                    %for single receiver
+                    if isscalar(result.receiver)
                     nodes.PassSimulationResult.PlotLOS( ...
-                        rx_loc, ...
-                        mean(result.transmitter_location.Altitude), ...
-                        result.elevation_limit(1))
-                    labels{end + 1} = result.receiver_name{r};
-                    labels{end + 1} = 'Line-of-Sight';
-                    r = r + 1;
-                end
-
-                legend(labels, 'Location', 'north');
-                geolimits( ...
-                    mean([result.receiver_location.Latitude]) + [-15, 15], ...
-                    mean([result.receiver_location.Longitude]) + [-15, 15] );
-                axes = gca();
-                axes.FontName = get(groot(),'defaultAxesFontName');
-                axes.FontSize = get(groot(),'defaultAxesFontSize');
+                            result.receiver, ...
+                            mean(result.transmitter.Altitude), ...
+                            result.receiver.Elevation_Limit)
+                        labels{end + 1} = result.receiver.Name;
+                        labels{end + 1} = 'Line-of-Sight';
+                    else
+                    r = 1;
+                    for rx_loc = result.receiver
+                        nodes.PassSimulationResult.PlotLOS( ...
+                            rx_loc, ...
+                            mean(result.transmitter.Altitude), ...
+                            result.receiver.Elevation_Limit)
+                        labels{end + 1} = result.receiver.Name;
+                        labels{end + 1} = 'Line-of-Sight';
+                        r = r + 1;
+                    end
+                    end
+                    legend(labels, 'Location', 'north');
+                    geolimits( ...
+                        mean([result.receiver.Latitude]) + [-15, 15], ...
+                        mean([result.receiver.Longitude]) + [-15, 15] );
+                    axes = gca();
+                    axes.FontName = get(groot(),'defaultAxesFontName');
+                    axes.FontSize = get(groot(),'defaultAxesFontSize');
                 case nodes.LinkDirection.Uplink
-                yyaxis right
-                plot(x_axis(mask), result.qber(mask) .* 100)
-                xlabel(x_label)
-                ylabel('QBER (%)')
-                legend('Secret Key Rate','Sifted Key Rate','')
-                xlim([min(x_axis(mask)), max(x_axis(mask))])
+                    yyaxis right
+                    plot(x_axis(mask), result.qber(mask) .* 100)
+                    xlabel(x_label)
+                    ylabel('QBER (%)')
+                    legend('Secret Key Rate','Sifted Key Rate','')
+                    xlim([min(x_axis(mask)), max(x_axis(mask))])
 
-                % plot scenario on map
-                nexttile(3, [2, 1])
-                geoplot( ...
-                    result.receiver_location.Latitude, ...
-                    result.receiver_location.Longitude)
-                hold('on')
-                geoplot( ...
-                    result.receiver_location.Latitude(mask), ...
-                    result.receiver_location.Longitude(mask), 'g')
+                    % plot scenario on map
+                    nexttile(3, [2, 1])
+                    geoplot( ...
+                        result.receiver.Latitude, ...
+                        result.receiver.Longitude,'.')
+                    hold('on')
+                    geoplot( ...
+                        result.receiver.Latitude(mask), ...
+                        result.receiver.Longitude(mask), '.')
 
-                labels = ["Satellite path", strcat(options.mask, " window")];
-                t = 1;
-                for tx_loc = result.transmitter_location
-                    nodes.PassSimulationResult.PlotLOS( ...
-                        tx_loc, ...
-                        mean(result.receiver_location.Altitude), ...
-                        result.elevation_limit(1))
-                    labels{end + 1} = result.transmitter_name{t};
-                    labels{end + 1} = 'Line-of-Sight';
-                    t = t + 1;
-                end
+                    labels = ["Satellite path", strcat(options.mask, " window")];
 
-                legend(labels, 'Location', 'north');
-                geolimits( ...
-                    mean([result.transmitter_location.Latitude]) + [-15, 15], ...
-                    mean([result.transmitter_location.Longitude]) + [-15, 15] );
-                axes = gca();
-                axes.FontName = get(groot(),'defaultAxesFontName');
-                axes.FontSize = get(groot(),'defaultAxesFontSize');
+                    %for single transmitter
+                    if isscalar(result.transmitter)
+                        nodes.PassSimulationResult.PlotLOS( ...
+                            result.transmitter, ...
+                            mean(result.receiver.Altitude), ...
+                            result.receiver.Elevation_Limit)
+                        labels{end + 1} = result.transmitter.Name;
+                        labels{end + 1} = 'Line-of-Sight';
+                    
+                   %for multiple transmitters
+                    else
+                        t = 1;
+                        for tx_loc = result.transmitter
+                            nodes.PassSimulationResult.PlotLOS( ...
+                                tx_loc, ...
+                                mean(result.receiver.Altitude), ...
+                                result.receiver.Elevation_Limit)
+                            labels{end + 1} = result.transmitter.Name;
+                            labels{end + 1} = 'Line-of-Sight';
+                            t = t + 1;
+                        end
+                    end
+
+                    legend(labels, 'Location', 'north');
+                    geolimits( ...
+                        mean([result.transmitter.Latitude]) + [-15, 15], ...
+                        mean([result.transmitter.Longitude]) + [-15, 15] );
+                    axes = gca();
+                    axes.FontName = get(groot(),'defaultAxesFontName');
+                    axes.FontSize = get(groot(),'defaultAxesFontSize');
             end
 
 
             %% plot loss
-                nexttile(4, [1, 2])
-                result.loss.plotLosses(x_axis, x_label, "mask", mask);
-                xlim([min(x_axis(mask)), max(x_axis(mask))])
+            nexttile(4, [1, 2])
+            result.loss.plotLosses(x_axis, x_label, "mask", mask);
+            xlim([min(x_axis(mask)), max(x_axis(mask))])
 
 
             %% plot background counts
-                nexttile(7, [1, 2])
-                title('BCR (counts/s)')
-                n_sources = numel(result.noise);
-                n_points = numel(result.noise(1).values);
-                bcr_data = reshape([result.noise.values], [n_points, n_sources]);
-                area(x_axis(mask), bcr_data(mask, :))
-                xlabel(x_label)
-                lgd = legend(result.noise.label);
-                lgd.NumColumns = 1;
-                xlim([min(x_axis(mask)), max(x_axis(mask))])
+            nexttile(7, [1, 2])
+            title('BCR (counts/s)')
+            n_sources = numel(result.noise);
+            n_points = numel(result.noise(1).values);
+            bcr_data = reshape([result.noise.values], [n_points, n_sources]);
+            area(x_axis(mask), bcr_data(mask, :))
+            xlabel(x_label)
+            lgd = legend(result.noise.label);
+            lgd.NumColumns = 1;
+            xlim([min(x_axis(mask)), max(x_axis(mask))])
 
             %% plot link loss tolerance
             nexttile()
@@ -313,7 +293,13 @@ classdef PassSimulationResult
             % leg.String{end + 1} = ogs_name;
             % leg.String{end} = "Ground Station orbit LOS";
         end
-    end
 
+        function result = empty()
+            result = nodes.PassSimulationResult(...
+                fibre.Fibre_Node.empty(),...
+                fibre.Fibre_Node.empty(),...
+                protocol.bb84());
+        end
+    end
 end
 

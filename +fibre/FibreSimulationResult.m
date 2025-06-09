@@ -1,88 +1,42 @@
-classdef FibreSimulationResult
+classdef FibreSimulationResult < nodes.QKDSimulationResult
     properties
-        transmitter_name = []
-        receiver_name = []
-        transmitter_location (1, :) = [] %nodes.Located_Object.empty(0, 0)
-        receiver_location (1, :) = [] %nodes.Located_Object.empty(0, 0)
-        protocol_name = ""
-        range (:, :) {mustBeNumeric} = []
-        time (:, :) = []
-        loss nodes.LossResult = nodes.LossResult.empty(0, 0)
-        noise environment.Noise = environment.Noise.empty(0, 0)
-        sifted_key_rate (1, :) {mustBeNumeric} = []
-        secret_key_rate (1, :) {mustBeNumeric} = []
-        qber (1, :) {mustBeNumeric} = []
+        range (1,:) {mustBeNonnegative}
     end
 
     methods
-        function result = FibreSimulationResult(receiver_name, transmitter_name, ...
-            transmitter_location, receiver_location, ...
-            range, time, ...
+        function result = FibreSimulationResult(transmitter, receiver, protocol, ...
+            time, ...
             loss, noise, ...
-            sifted_key_rate, secret_key_rate, qber, protocol_name)
+            sifted_key_rate, secret_key_rate, qber, range)
             arguments
-                receiver_name string = ''
-                transmitter_name string = ''
-                transmitter_location (1, :) = nodes.Located_Object.empty(0, 0)
-                receiver_location (1, :) = nodes.Located_Object.empty(0, 0)
-                range (:, :) {mustBeNumeric} = []
+                %arguments used by SimulationResult
+                transmitter
+                receiver
+                protocol
                 time (:, :) = []
-                loss nodes.LossResult = nodes.LossResult.empty(0, 0)
+                loss nodes.LossResult = nodes.LossResult.empty()
                 noise environment.Noise = environment.Noise.empty(0, 0)
                 sifted_key_rate (1, :) {mustBeNumeric} = []
                 secret_key_rate (1, :) {mustBeNumeric} = []
                 qber (1, :) {mustBeNumeric} = []
-                protocol_name {mustBeText} = ""
+                %argument stored specific to fibre
+                range (:, :) {mustBeNumeric} = []
             end
 
-            result.receiver_name = receiver_name;
-            result.transmitter_name = transmitter_name;
-            result.transmitter_location = transmitter_location;
-            result.receiver_location = receiver_location;
+            %store properties mandated by SimulationResult
+            result@nodes.QKDSimulationResult(transmitter,...
+                                          receiver,...
+                                          protocol,...
+                                          time,...
+                                          loss,...
+                                          noise,...
+                                          sifted_key_rate,...
+                                          secret_key_rate,...
+                                          qber)
+
+            %store properties for fibre
             result.range = range;
-            result.time = time;
-            result.loss = loss;
-            result.noise = noise;
-            result.sifted_key_rate = sifted_key_rate;
-            result.secret_key_rate = secret_key_rate;
-            result.qber = qber;
-            result.protocol_name = protocol_name;
 
-        end
-
-        function [total_secret, total_sifted] = total_key_rates(result)
-            arguments
-                result fibre.FibreSimulationResult
-            end
-
-            %% get data
-            communicating = ~(isnan(result.secret_key_rate) | (result.secret_key_rate <= 0));
-            time = result.time(communicating);
-            %time should be a row vector
-            if iscolumn(time)
-                time = time';
-            end
-
-            time_window_widths = time(2:end) - time(1:end-1);
-            if isempty(time_window_widths)
-                warning("No communication occurs in this simulation");
-                total_secret = 0;
-                total_sifted = 0;
-                return
-            end
-
-            %pad to match width of other arrays
-            time_window_widths = [time_window_widths,time_window_widths(end)];
-
-            if isnumeric(time_window_widths)
-                total_sifted  = dot(time_window_widths, result.sifted_key_rate(communicating));
-                total_secret = dot(time_window_widths, result.secret_key_rate(communicating));
-                return
-            end
-
-            time_seconds = seconds(time_window_widths);
-            total_sifted  = dot(time_seconds, result.sifted_key_rate(communicating));
-            total_secret = dot(time_seconds, result.secret_key_rate(communicating));
         end
 
         function fig = plot(result, options)
@@ -112,11 +66,11 @@ classdef FibreSimulationResult
             end
 
             %% create figure
-            figure_name = string(result.protocol_name) ...
+            figure_name = string(result.protocol.name) ...
                 + " simulation from " ...
-                + result.transmitter_name ...
+                + result.transmitter.Name ...
                 + " to "...
-                + result.receiver_name;
+                + result.receiver.Name;
 
             fig = figure("Name", figure_name);
             [~] = tiledlayout(3, 3, "TileSpacing", "tight");
@@ -149,7 +103,7 @@ classdef FibreSimulationResult
             xlabel(x_label)
             ylabel('Rate (bits/s)')
             text(0.5, 0.5, ...
-                sprintf('total secret key\ntransfered = %3.2g', total_secure_key), ...
+                sprintf('total secret key\ntransfered = %3.2g/s', total_secure_key), ...
                 'Units', 'Normalized', ...
                 'VerticalAlignment', 'middle', ...
                 'HorizontalAlignment', 'center', ...
@@ -167,14 +121,14 @@ classdef FibreSimulationResult
                 % plot scenario on map
                 nexttile(3, [2, 1])
                 labels = {};
-                for tx_loc = result.transmitter_location
+                for tx_loc = result.transmitter
                     geoplot(tx_loc.Latitude,...
                             tx_loc.Longitude,...
-                            'gx')
+                            'g+')
                     labels = [labels,{['Transmitter: ',tx_loc.Name]}];
                     hold on
                 end
-                for rx_loc = result.receiver_location
+                for rx_loc = result.receiver
                     geoplot(tx_loc.Latitude,...
                             tx_loc.Longitude,...
                             'rx')
@@ -218,5 +172,15 @@ classdef FibreSimulationResult
 
         end
     end
+
+    methods (Static)
+        function result = empty()
+            result = fibre.FibreSimulationResult(...
+                fibre.Fibre_Node.empty(),...
+                fibre.Fibre_Node.empty(),...
+                protocol.bb84());
+        end
+    end
+
 end
 

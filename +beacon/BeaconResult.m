@@ -97,6 +97,7 @@ classdef BeaconResult
 
             %% plot received power and SNR
             subplot(2, 3, [1,2])
+            colororder(colororder())
             yyaxis left
             plot(x_axis(mask), result.received_power(mask));
             ylabel("Beacon Power (W)");
