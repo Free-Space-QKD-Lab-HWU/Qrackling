@@ -38,7 +38,7 @@ assert(ismember(Wavelength,[785,808,1550]),'Wavelength must be one of the intend
     HubSatSource_Rep_Rate = 1E8;                                        %source pulse rate in Hz
     HubSatSource_g2 = 0.01;                                             %source g2 (unitless)
     HubSatSource_Efficiency = 1;                                        %source efficiency (unitless)
-    HubSatSource_State_Prep_Error = 0.0025;                            %source state preparation error probability (unitless)
+    HubSatSource_State_Prep_Error = 0.0025;                             %source state preparation error probability (unitless)
     HubSatSource = components.Source(Wavelength,...
         'MPN_Signal',HubSatSource_MPNs(1),...
         'MPN_Decoy',HubSatSource_MPNs(2),...
@@ -83,10 +83,10 @@ assert(ismember(Wavelength,[785,808,1550]),'Wavelength must be one of the intend
         'Source',HubSatSource,...
         'Beacon',HubSatBeacon,...
         'Camera',HubSatCamera,...
-        'SemiMajorAxis',600E3 + earthRadius,...             %mean orbital radius = Altitude + Earth radius
+        'SemiMajorAxis',500E3 + earthRadius,...             %mean orbital radius = Altitude + Earth radius
         'eccentricity',0,...                                %measure of ellipticity of the orbit, for circular, =0
-        'inclination',9.7065055549e+01,...                  %inclination of orbit in deg- set by sun synchronicity
-        'rightAscensionOfAscendingNode',-1.5,...            %measure of location of orbit in longitude
+        'inclination',97.37585139000001,...                  %inclination of orbit in deg- set by sun synchronicity
+        'rightAscensionOfAscendingNode',105,...            %measure of location of orbit in longitude
         'argumentOfPeriapsis',0,...                         %measurement of location of ellipse nature of orbit in longitude, irrelevant for circular orbits
         'trueAnomaly',0,...                                 %initial position through orbit of satellite
         'StartTime',options.StartTime,...                           %start of simulation
