@@ -5,11 +5,6 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
     % GROUND_STATION an object containing all of the simulation parameters of the ground station
 
     properties (Abstract = false, SetAccess = public)
-
-        % is is possible to replace this with a hash or index to get the object
-        % from the toolbox scenario? Maybe the name is enough?
-        toolbox_ground_station
-
         %the camera which receives beacon light, if beaconing is simulated
         Camera = [];
 
@@ -19,26 +14,10 @@ classdef Ground_Station < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_
        % enviroment object describing atmospheric loss and background
         % light
         Environment (1,1) environment.Environment = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 50km.mat");
-
-
-    end
-
-    properties (Abstract = false, SetAccess = protected)
-        % Heading of the satellite in degrees as seen from the OGS
-        Headings{mustBeVector} = nan;
-
-        % Elevation of the satellite in degrees as seen from the OGS
-        Elevations{mustBeVector} = nan;
-
-        % the coordinates of the satellite relative to the ground station in
-        % metres east, north and up
-        Satellite_ENUs{mustBeNumeric}
-
-        % range to the satellite in m over many time steps
-        Satellite_Ranges{mustBeVector} = nan;
-
+       
         % minimum elevation to establish a link in deg
         Elevation_Limit{mustBeScalarOrEmpty} = 30;
+
     end
 
     methods

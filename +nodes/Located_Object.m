@@ -18,9 +18,7 @@ classdef Located_Object
         Latitude (:,1) {mustBeNumeric} = [];
         Longitude (:,1) {mustBeNumeric} = [];
         Altitude (:,1) {mustBeNumeric} = [];
-        Velocity_East (:,1) {mustBeNumeric} = [];
-        Velocity_North (:,1) {mustBeNumeric} = [];
-        Velocity_Up (:,1) {mustBeNumeric} = [];
+
         Name = 'Unnamed Location';
         useSatCommsToolbox{mustBeNumericOrLogical} = false;
         % Length of Latitude, Longitude, Altitude arrays
@@ -82,12 +80,6 @@ classdef Located_Object
             % else
             %     error('Failed to initialise object: LLA or latitude, longitude altitude vectors incorrect format');
             % end
-        end
-
-        function Located_Object = SetVelocities(Located_Object, velEast, velNorth, velUp)
-            Located_Object.Velocity_East = velEast;
-            Located_Object.Velocity_North = velNorth;
-            Located_Object.Velocity_Up = velUp;
         end
 
         function ENUs = ComputeRelativeCoords(Located_Obj_1, Located_Obj_2)

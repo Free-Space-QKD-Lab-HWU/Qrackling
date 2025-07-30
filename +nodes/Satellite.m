@@ -7,10 +7,6 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
     %hide large or uninteresting properties, not abstract for this reason
     properties (SetAccess=protected, Hidden=true)
 
-        % Kind {mustBeA(Kind, "nodes.Optical_Node")}
-
-        N_Steps{mustBeScalarOrEmpty, mustBePositive}
-
         % If using TLE or KeplerElements to define satellite path we will
         % store the satelliteScenario object as well as the corresponding
         % satellite object
@@ -200,12 +196,6 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                 Longitude = lon, ...
                 Altitude = alt, ...
                 Name = Satellite.Name);
-
-            if true == hasVelocity
-                Satellite = SetVelocities(Satellite, vE, vN, vU);
-            end
-
-            Satellite.N_Steps = Satellite.N_Position;
 
             %enforce a time zone on times. if none is provided, assume UTC
             if isempty(t.TimeZone)
