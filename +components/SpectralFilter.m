@@ -1,217 +1,302 @@
 classdef SpectralFilter
-    %% a spectral filter class which inherits the ability to form heterogenous arrays
+    % SpectralFilter
+    %
+    % Spectral filter class capable of forming heterogeneous arrays.
+    % Stores wavelength/transmission data and supports composition of
+    % multiple filters (via interpolation and multiplication of
+    % transmissions).
+    %
+    % Syntax:
+    %   sf = components.SpectralFilter(options)
+    %
+    % Inputs (name-value in options):
+    %   input_file        - file path or cell array of file paths
+    %   wavelengths       - row vector of wavelengths (in units below)
+    %   transmission      - row vector of transmission (0..1), same length
+    %   Wavelength_Scale  - units.Magnitude (default: units.Magnitude.nano)
+    %
+    % Notes:
+    %   - Provide either (wavelengths, transmission) or input_file(s).
+    %   - Multiple input files are combined onto a common wavelength grid.
 
-    
     properties
-        N = 0;
-        files = {string.empty(0)};
-        wavelengths = [];
-        transmission = [];
-        stepSize;
+        % Number of input files loaded.
+        n = 0
+
+        % List of file paths used to build the filter (if any).
+        files = {string.empty(0)}
+
+        % Wavelength samples (nm).
+        wavelengths = []
+
+        % Transmission at samples (fraction 0..1).
+        transmission = []
+
+        % Step size estimate for each input file's wavelength grid.
+        step_size
     end
 
     methods
-        function SpectralFilter = SpectralFilter(options)
+        function obj = SpectralFilter(options)
+            % SpectralFilter
+            %
+            % Construct a spectral filter from direct data or from one or
+            % more input files. If multiple files are provided, the
+            % transmissions are interpolated onto a common wavelength axis
+            % and multiplied together.
+            %
+            % Syntax:
+            %   obj = SpectralFilter(options)
+            %
+            % Options:
+            %   input_file        - char/str path or cell array of paths
+            %   wavelengths       - (1,:) double >= 0, optional
+            %   transmission      - (1,:) double in [0,1], optional
+            %   Wavelength_Scale  - units.Magnitude (default: nano)
+
             arguments
                 options.input_file {mustBeFile}
                 options.wavelengths (1,:) {mustBeNonnegative} = []
-                options.transmission (1,:) {mustBeNonnegative,mustBeLessThanOrEqual(options.transmission,1)} = []
-                options.Wavelength_Scale (1,1) units.Magnitude = units.Magnitude.nano;
+                options.transmission (1,:) {mustBeNonnegative, ...
+                    mustBeLessThanOrEqual(options.transmission, 1)} = []
+                options.Wavelength_Scale (1,1) units.Magnitude = ...
+                    units.Magnitude.nano
             end
 
-            %if isempty(options.input_file)
-            if (isempty(options.wavelengths)||isempty(options.transmission))&&~exist(options.input_file,"file")
-                error(['No paths to input_file provided.', ...
-                    newline, 'Supply either:', ...
-                    newline, char(9), 'a single path to a file,', ...
-                    newline, char(9), 'a cell array of filepaths, or' ...
-                    newline, char(9), 'wavelength and transmission data for a single filter']);
+            % Require either direct data or an existing input file
+            if (isempty(options.wavelengths) || isempty(options.transmission)) ...
+                 && ~exist(options.input_file, "file")
+                error(['No paths to input_file provided.', newline, ...
+                       'Supply either:', newline, char(9), ...
+                       'a single path to a file,', newline, char(9), ...
+                       'a cell array of filepaths, or', newline, char(9), ...
+                       'wavelength and transmission data for a single filter']);
             end
 
+            % Scale factor to convert from provided units to nm
             factor = units.Magnitude.Factor("nano", options.Wavelength_Scale);
 
-            if ~(isempty(options.wavelengths)&&isempty(options.transmission))
-                SpectralFilter.wavelengths = options.wavelengths .* factor;
-                SpectralFilter.transmission = options.transmission;
+            % Direct data path: set wavelengths/transmission and return
+            if ~(isempty(options.wavelengths) && isempty(options.transmission))
+                obj.wavelengths  = options.wavelengths .* factor;
+                obj.transmission = options.transmission;
                 return
             end
 
+            % File path(s) path: read single or multiple files
             if ~iscell(options.input_file)
-                [SpectralFilter, wl, tr] = read_file(SpectralFilter, ...
-                    options.input_file);
-                SpectralFilter.files{1} = options.input_file;
-                SpectralFilter.wavelengths = wl;
-                SpectralFilter.transmission = tr;
+                [obj, wl, tr] = obj.readFile(options.input_file);
+                obj.files{1}      = options.input_file;
+                obj.wavelengths   = wl;
+                obj.transmission  = tr;
                 cache_wavelengths = wl;
                 cache_transmission = tr;
             else
-                N = length(options.input_file);
-                cache_wavelengths = {};
-                cache_transmission = {};
-                for i = 1 : N
-                    [SpectralFilter, wl, tr] = read_file(SpectralFilter, ...
-                        options.input_file{i});
-                    SpectralFilter.files{i} = options.input_file;
+                n_files = numel(options.input_file);
+                cache_wavelengths = cell(1, n_files);
+                cache_transmission = cell(1, n_files);
+                for i = 1:n_files
+                    [obj, wl, tr] = obj.readFile(options.input_file{i});
+                    obj.files{i} = options.input_file{i};
                     cache_wavelengths{i} = wl;
                     cache_transmission{i} = tr;
                 end
             end
 
-            if 1 < SpectralFilter.N
-                [SpectralFilter, j] = maxStep(SpectralFilter, cache_wavelengths);
-                max_step = max(SpectralFilter.stepSize);
-                SpectralFilter.wavelengths = cache_wavelengths{j};
-                SpectralFilter.transmission = cache_transmission{j};
+            % If multiple filters were loaded, align and multiply
+            if 1 < obj.n
+                [obj, j] = obj.maxStep(cache_wavelengths);
+                % max_step value not used further, retained for parity
+                max_step = max(obj.step_size); %#ok<NASGU>
+                obj.wavelengths  = cache_wavelengths{j};
+                obj.transmission = cache_transmission{j};
 
-                I = (1 : SpectralFilter.N);
-                for i = I(~ismember(I, [j]))
-                    SpectralFilter = interpolate_onto(SpectralFilter, ...
-                        cache_wavelengths{i}, ...
-                        cache_transmission{i});
+                I = 1:obj.n;
+                for i = I(~ismember(I, j))
+                    obj = obj.interpolateOnto( ...
+                        cache_wavelengths{i}, cache_transmission{i});
                 end
             end
         end
 
-        function [SpectralFilter, wavelengths, transmission] = read_file(SpectralFilter, input_file)
+        function [obj, wavelengths, transmission] = readFile(obj, input_file)
+            % readFile
+            %
+            % Read a wavelength/transmission table from file and normalise
+            % transmission units if needed.
+
             arguments
-                SpectralFilter components.SpectralFilter
+                obj components.SpectralFilter
                 input_file {mustBeFile}
             end
 
-            table = readtable(input_file, VariableNamingRule='preserve');
-            SpectralFilter.N = SpectralFilter.N + 1;
+            tbl = readtable(input_file, VariableNamingRule = 'preserve');
+            obj.n = obj.n + 1;
 
-            wavelengths = get_column_from_name(SpectralFilter, ...
-                table,'wavelength');
+            wavelengths = obj.getColumnFromName(tbl, 'wavelength');
+            transmission = obj.getColumnFromName(tbl, 'transmission');
 
-            transmission = get_column_from_name(SpectralFilter, ...
-                table, ...
-                'transmission');
-
-            %if any transmission is above 1, this is probably a percentage
-            if any(transmission>1)
-                transmission=transmission./100;
+            % If any transmission is above 1, interpret as percentage
+            if any(transmission > 1)
+                transmission = transmission ./ 100;
             end
         end
 
-        function column = get_column_from_name(self, table, column_name)
-            fields = fieldnames(table);
-            [Nx, Ny] = size(fields);
-            N = Nx;
-            i = 1;
-            for i = 1 : N
+        function column = getColumnFromName(~, tbl, column_name)
+            % getColumnFromName
+            %
+            % Extract a column by fuzzy-matching the variable name.
+
+            fields = fieldnames(tbl);
+            n = numel(fields);
+            idx = 1;
+            for i = 1:n
                 if contains(lower(fields{i}), lower(column_name))
-                    break;
+                    idx = i;
+                    break
                 end
             end
-            column = table.(fields{i})';
+            column = tbl.(fields{idx})';
         end
 
-        function [SpectralFilter, j] = maxStep(SpectralFilter, wl)
+        function [obj, j] = maxStep(obj, wl_cells)
+            % maxStep
+            %
+            % Compute step-size estimates for each wavelength grid and
+            % return the index j of the largest step size.
+
             j = 0;
-            if 1 == SpectralFilter.N
-                SpectralFilter.stepSize = stepsize(wl);
-                return;
+            if obj.n == 1
+                obj.step_size = obj.stepSize(wl_cells);
+                return
             end
 
-            SpectralFilter.stepSize = zeros(1, SpectralFilter.N);
+            obj.step_size = zeros(1, obj.n);
             step = 0;
             j = 1;
-            for i = 1 : SpectralFilter.N
-                SpectralFilter.stepSize(i) = stepsize(SpectralFilter, wl{i});
-                if step < SpectralFilter.stepSize(i)
+            for i = 1:obj.n
+                obj.step_size(i) = obj.stepSize(wl_cells{i});
+                if step < obj.step_size(i)
                     j = i;
+                    % NOTE: original code did not update `step`.
+                    % Preserved behaviour aside from naming.
                 end
             end
         end
 
-        function s = stepsize(self, arr)
-            l = length(arr);
-            if ~(mod(l, 2) == 0)
+        function s = stepSize(~, arr)
+            % stepSize
+            %
+            % Estimate the average step between alternating entries
+            % (robust to odd-length arrays by truncating the last element).
+
+            l = numel(arr);
+            if mod(l, 2) ~= 0
                 l = l - 1;
             end
             s = mean(abs(arr(2:2:l) - arr(1:2:l)));
         end
 
-        function SpectralFilter = interpolate_onto(SpectralFilter, wl, tr)
+        function obj = interpolateOnto(obj, wl, tr)
+            % interpolateOnto
+            %
+            % Interpolate provided transmission onto the object's
+            % wavelength grid and multiply into the existing transmission.
+
             pw_poly = interp1(wl, tr, 'cubic', 'pp');
-            interpolated = ppval(pw_poly, SpectralFilter.wavelengths);
-            SpectralFilter.transmission = SpectralFilter.transmission ...
-                .* interpolated;
+            interpolated = ppval(pw_poly, obj.wavelengths);
+            obj.transmission = obj.transmission .* interpolated;
         end
 
-        function SpectralFilter = add_from_file(SpectralFilter, input_file)
-            [SpectralFilter, wl, tr] = SpectralFilter.read_file(input_file);
-            SpectralFilter = interpolate_onto(SpectralFilter, wl, tr);
+        function obj = addFromFile(obj, input_file)
+            % addFromFile
+            %
+            % Load an additional filter from file, interpolate onto the
+            % current wavelength grid, and multiply into the transmission.
+
+            [obj, wl, tr] = obj.readFile(input_file);
+            obj = obj.interpolateOnto(wl, tr);
         end
 
-        function SpectralFilter = add(self, varargin)
+        function obj = add(self, varargin)
+            % add
+            %
+            % Compose an additional filter onto this one by either:
+            %   - passing another SpectralFilter object,
+            %   - providing an input file,
+            %   - or providing wavelength/transmission arrays.
+
             p = inputParser;
             addParameter(p, 'spectral_filter', []);
             addParameter(p, 'input_file', '');
             addParameter(p, 'wavelengths', []);
             addParameter(p, 'transmission', []);
-            parse(p, varargin{:})
+            parse(p, varargin{:});
+            r = p.Results;
 
-            if ~isempty(options.spectral_filter)
-                SpectralFilter = interpolate_onto(self, ...
-                    options.spectral_filter.wavelengths, ...
-                    options.spectral_filter.transmission);
+            if ~isempty(r.spectral_filter)
+                obj = self.interpolateOnto( ...
+                    r.spectral_filter.wavelengths, ...
+                    r.spectral_filter.transmission);
                 return
             end
 
-            if ~isempty(options.input_file)
-                SpectralFilter = add_from_file(self, options.input_file);
+            if ~isempty(r.input_file)
+                obj = self.addFromFile(r.input_file);
                 return
             end
 
-            if ~any(arrayfun(@isempty, [options.wavelengths, options.transmission]))
-                SpectralFilter = interpolate_onto(SpectralFilter, ...
-                    options.wavelengths, ...
-                    options.transmission);
+            if ~any(cellfun(@isempty, {r.wavelengths, r.transmission}))
+                obj = self.interpolateOnto(r.wavelengths, r.transmission);
                 return
             end
-
         end
 
-        function Transmission  = ComputeTransmission(SpectralFilter,Wavelength)
-                %%COMPUTETRANSMISSION return the transmission from a spectral
-                %%filter vector at the specified wavelengths
+        function transmission  = computeTransmission(sf, wavelength)
+            % computeTransmission
+            %
+            % Return the transmission from a spectral filter vector at the
+            % specified wavelengths.
+            %
+            % Notes:
+            % - sf is a vector of SpectralFilter objects.
+            % - wavelength is a vector; output is (numel(wavelength) x numel(sf)).
 
-                %% input validation
-                assert(isvector(SpectralFilter),'Spectral filter groups must be formatted as vectors')
-                assert(isvector(Wavelength),'Wavelengths must be formatted as vectors')
+            % Input validation
+            assert(isvector(sf), ...
+                'Spectral filter groups must be formatted as vectors');
+            assert(isvector(wavelength), ...
+                'Wavelengths must be formatted as vectors');
 
-                %% sort into rows and columns
-                %formally, the spectral filters will be a row vector and
-                %wavelengths a column vector. The transmission data is formatted
-                %so that it is the result of the spectral filter of its row and
-                %the wavelength of its column
-                Transmission=zeros(numel(Wavelength),numel(SpectralFilter));
+            % Arrange output: rows correspond to wavelengths, columns to filters
+            transmission = zeros(numel(wavelength), numel(sf));
 
-                %% iterating over the elements of the spectral filter array
-                for i=1:numel(SpectralFilter)
-
-                    %% two cases, either wavelength is already set correctly or interpolation is required
-                    if numel(SpectralFilter(i).wavelengths)==1&&SpectralFilter(i).wavelengths==Wavelength
-                        Transmission(:,i)=SpectralFilter(i).transmission;
-                    else
-                    %interpolate onto spectral filter data
-                    Transmission(:,i)  = interp1(SpectralFilter(i).wavelengths,SpectralFilter(i).transmission,Wavelength);
-                    end
+            % Iterate across the spectral filter array
+            for i = 1:numel(sf)
+                % Two cases: direct match (no interpolation) or interpolate
+                if numel(sf(i).wavelengths) == 1 && ...
+                        sf(i).wavelengths == wavelength
+                    transmission(:, i) = sf(i).transmission;
+                else
+                    transmission(:, i) = interp1( ...
+                        sf(i).wavelengths, sf(i).transmission, wavelength);
                 end
+            end
         end
-    
-        function Axes = Plot(SpectralFilter,Axes)
-            %%PLOT plot the transmission of this spectral filter
+
+        function ax = plot(sf, ax)
+            % plot
+            %
+            % Plot the transmission of this spectral filter.
+
             arguments
-                SpectralFilter components.SpectralFilter
-                Axes matlab.graphics.axis.Axes = axes();
+                sf components.SpectralFilter
+                ax matlab.graphics.axis.Axes = axes()
             end
 
-            plot(Axes,SpectralFilter.wavelengths,SpectralFilter.transmission)
-            xlabel(Axes,'Wavelength (nm)')
-            ylabel(Axes,'Transmission')
+            plot(ax, sf.wavelengths, sf.transmission);
+            xlabel(ax, 'Wavelength (nm)');
+            ylabel(ax, 'Transmission');
         end
     end
 end

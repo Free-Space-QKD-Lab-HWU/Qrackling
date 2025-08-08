@@ -1,48 +1,80 @@
-function [heading_PAA,elevation_PAA] = PointAheadAngle(Receiver,Transmitter)
-    %function returns a 2xn vector of angles in radians representing the point
-    %ahead angle of a beacon from transmitter to receiver. The first row is in
-    %the heading axis, the second row is in the elevation axis. These two axes
-    %are related to the ENU (East-North-Up) frame of reference at the
-    %transmitter
+% pointAheadAngle
+%
+% Returns a 2×n vector of angles in radians representing the point-ahead
+% angle of a beacon from transmitter to receiver. The first row is heading,
+% the second row is elevation. These axes are defined in the ENU (East-North-Up)
+% frame of reference at the transmitter.
+%
+% Syntax:
+% [heading_paa, elevation_paa] = namespace.object.pointAheadAngle(receiver, transmitter)
+%
+% Inputs:
+% receiver - (1x1) object, must be a Free_Space_Optical_Node subclass.
+% transmitter - (1x1) object, must be a Free_Space_Optical_Node subclass.
+%
+% Outputs:
+% heading_paa – (1xn) double, heading component of point-ahead angle.
+% elevation_paa – (1xn) double, elevation component of point-ahead angle.
+
+function [heading_paa, elevation_paa] = pointAheadAngle(receiver, transmitter)
+
     arguments
-        Receiver {utilities.mustBeSubclassOf(Receiver,'nodes.Free_Space_Optical_Node')}
-        Transmitter {utilities.mustBeSubclassOf(Transmitter,'nodes.Free_Space_Optical_Node')}
+        receiver {utilities.mustBeSubclassOf(receiver, 'nodes.Free_Space_Optical_Node')}
+        transmitter {utilities.mustBeSubclassOf(transmitter, 'nodes.Free_Space_Optical_Node')}
     end
 
-    %% get basic information
-    direction = nodes.LinkDirection.DetermineLinkDirection(Receiver,Transmitter);
+
+    %% Get basic information
+
+    direction = nodes.LinkDirection.DetermineLinkDirection(receiver, transmitter);
+
     switch direction
-    case nodes.LinkDirection.Downlink
-        Times = Transmitter.Times;
-    case nodes.LinkDirection.Uplink
-        Times = Receiver.Times;
-    case nodes.LinkDirection.Intersatellite
-        Times = Transmitter.Times;
-    case nodes.LinkDirection.Terrestrial
-        error("UNIMPLEMENTED")
+        case nodes.LinkDirection.Downlink
+            times = transmitter.Times;
+        case nodes.LinkDirection.Uplink
+            times = receiver.Times;
+        case nodes.LinkDirection.Intersatellite
+            times = transmitter.Times;
+        case nodes.LinkDirection.Terrestrial
+            error("UNIMPLEMENTED")
     end
 
-%heading and elevation of receiver relative to transmitter
-[headings, elevations] = RelativeHeadingAndElevation(Receiver,Transmitter);
-%position of receiver relative to transmitter in m east-north-up (evolves
-%with time)
-ENUs = ComputeRelativeCoords(Transmitter,Receiver)';
 
-    c = 2.998E8;
+    %% Compute relative geometry
 
-    % compute relative velocities (in ENU frame)
-    relative_velocities(1,:) = (ENUs(1,1:end-1)-ENUs(1,2:end))./seconds(Times(1:end-1)-Times(2:end));
-    relative_velocities(2,:) = (ENUs(2,1:end-1)-ENUs(2,2:end))./seconds(Times(1:end-1)-Times(2:end));
-    relative_velocities(3,:) = (ENUs(3,1:end-1)-ENUs(3,2:end))./seconds(Times(1:end-1)-Times(2:end));
-    %need to pad this calculation to be same size array
-    relative_velocities = [relative_velocities,relative_velocities(:,end)];
+    % Heading and elevation of receiver relative to transmitter
+    [headings, elevations] = relativeHeadingAndElevation(receiver, transmitter);
 
-%% compute PAA
-%heading
-heading_PAA = (2/c) * (relative_velocities(1,:).*cosd(headings)./cosd(elevations) + ...
-                        -relative_velocities(2,:).*sind(headings)./cosd(elevations));
+    % Position of receiver relative to transmitter in ENU frame (meters)
+    enus = computeRelativeCoords(transmitter, receiver)';
 
-    elevation_PAA = (2/c) * (relative_velocities(1,:).*sind(headings).*sind(elevations) + ...
-                             relative_velocities(2,:).*cosd(headings).*sind(elevations) + ...
-                             relative_velocities(2,:).*sind(elevations));
+
+    %% Compute relative velocities
+
+    c = 2.998e8;  % Speed of light in m/s
+
+    relative_velocities(1, :) = (enus(1, 1:end-1) - enus(1, 2:end)) ...
+        ./ seconds(times(1:end-1) - times(2:end));
+
+    relative_velocities(2, :) = (enus(2, 1:end-1) - enus(2, 2:end)) ...
+        ./ seconds(times(1:end-1) - times(2:end));
+
+    relative_velocities(3, :) = (enus(3, 1:end-1) - enus(3, 2:end)) ...
+        ./ seconds(times(1:end-1) - times(2:end));
+
+    % Pad to match original array size
+    relative_velocities = [relative_velocities, relative_velocities(:, end)];
+
+
+    %% Compute point-ahead angle
+
+    heading_paa = (2 / c) * ( ...
+        relative_velocities(1, :) .* cosd(headings) ./ cosd(elevations) ...
+        - relative_velocities(2, :) .* sind(headings) ./ cosd(elevations) );
+
+    elevation_paa = (2 / c) * ( ...
+        relative_velocities(1, :) .* sind(headings) .* sind(elevations) ...
+        + relative_velocities(2, :) .* cosd(headings) .* sind(elevations) ...
+        + relative_velocities(2, :) .* sind(elevations) );
+
 end

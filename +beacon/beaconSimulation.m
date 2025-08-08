@@ -1,6 +1,17 @@
-% beaconSimulation(Receiver, Transmitter, options)
+% beaconSimulation
 %
-% simulate a beacon link from transmitter to receiver
+% Simulate a beacon link from transmitter to receiver.
+%
+% Syntax:
+% result = beaconSimulation(transmitter, receiver, options)
+%
+% Inputs:
+% transmitter - scalar FreeSpaceOpticalNode, the source of the beacon
+% receiver - scalar FreeSpaceOpticalNode, the receiver of the beacon
+% 
+% Outputs:
+% result – scalar BeaconResult, object containing simulation results
+
 
 function result = beaconSimulation(transmitter, receiver, options)
     arguments
@@ -10,30 +21,20 @@ function result = beaconSimulation(transmitter, receiver, options)
     end
 
     %% determine link geometry
-    receiver_location = nodes.Located_Object();
-    transmitter_location = nodes.Located_Object();
-    direction = nodes.LinkDirection.DetermineLinkDirection(receiver, transmitter);
+    receiver_location = nodes.LocatedObject();
+    transmitter_location = nodes.LocatedObject();
+    direction = nodes.LinkDirection.determineLinkDirection(receiver, transmitter);
 
     switch direction
     case nodes.LinkDirection.Downlink
-        [headings, elevations, ranges] = transmitter.RelativeHeadingAndElevation(receiver);
-        elevation_limit_mask = elevations > receiver.Elevation_Limit;
-        times = transmitter.Times;
-
-        receiver_location = receiver_location.SetPosition( ...
-           'Latitude', receiver.Latitude, ...
-           'Longitude', receiver.Longitude, ...
-           'Altitude', receiver.Altitude);
-
-        transmitter_location = transmitter_location.SetPosition( ...
-           'Latitude', transmitter.Latitude, ...
-           'Longitude', transmitter.Longitude, ...
-           'Altitude', transmitter.Altitude);
+        [headings, elevations, ranges] = transmitter.relativeHeadingAndElevation(receiver);
+        elevation_limit_mask = elevations > receiver.elevation_limit;
+        times = transmitter.times;
 
     case nodes.LinkDirection.Uplink
-        [headings, elevations, ranges] = receiver.RelativeHeadingAndElevation(transmitter);
-        elevation_limit_mask = elevations > transmitter.Elevation_Limit;
-        times = receiver.Times;
+        [headings, elevations, ranges] = receiver.relativeHeadingAndElevation(transmitter);
+        elevation_limit_mask = elevations > transmitter.elevation_limit;
+        times = receiver.times;
 
         receiver_location = receiver_location.SetPosition( ...
            'Latitude', receiver.Latitude, ...

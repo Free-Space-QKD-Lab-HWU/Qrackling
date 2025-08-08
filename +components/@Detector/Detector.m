@@ -1,83 +1,123 @@
-classdef  Detector
-    %DETECTOR provide the properties of the single photon detector to be used for an OGS
+classdef Detector
+    % Detector
+    %
+    % Single‑photon detector model for an optical ground station (OGS).
+    % Describes wavelength, timing, efficiency, noise, and polarization
+    % characteristics used in QKD link simulations.
+    %
+    % Syntax:
+    %   det = components.Detector(...)
+    %
+    % Additional construction details depend on the full class definition.
 
     properties
-        %wavelength (nm) used for communication
-        Wavelength{mustBeScalarOrEmpty, mustBePositive};
 
-        %QBER contribution due to components. timing jitters
-        QBER_Jitter{ ...
+        % Wavelength (nm) used for communication.
+        wavelength {mustBeScalarOrEmpty, mustBePositive}
+
+        % QBER contribution due to timing jitter (fraction in [0, 1]).
+        qber_jitter { ...
             mustBeNonnegative, ...
             mustBeScalarOrEmpty, ...
-            mustBeLessThanOrEqual(QBER_Jitter, 1)};
+            mustBeLessThanOrEqual(qber_jitter, 1) ...
+            }
 
-        %loss due to timing jitter (absolute)- determined by calculation on
-        %construction
-        Jitter_Loss{mustBeNonnegative};
+        % Loss due to timing jitter (absolute) — computed on construction.
+        jitter_loss {mustBeNonnegative}
 
-        %spectral filter model
-        Spectral_Filter
+        % Spectral filter model.
+        spectral_filter
 
-        %width of the time gate used in s
-        Time_Gate_Width{mustBePositive, mustBeScalarOrEmpty};
+        % Width of the time gate used (s).
+        time_gate_width {mustBePositive, mustBeScalarOrEmpty}
 
-        Repetition_Rate{mustBeNonnegative, mustBeScalarOrEmpty};
+        % Repetition rate (Hz).
+        repetition_rate {mustBeNonnegative, mustBeScalarOrEmpty}
 
-        Jitter_Histogram;
-        Histogram_Bin_Width;
-        Total_Counts = 0;
-        CDF;
-        PDF;
+        % Timing‑jitter histogram (counts per bin).
+        jitter_histogram
 
-        % polarisation reference is required for polarisation encoded QKD.
-        % poor polarisation compensation results in high QBER. We describe
-        % the rms error in polarisation compensation which determines QBER in
-        % degrees
-        Polarisation_Error{mustBeScalarOrEmpty, mustBeNonnegative} = asind(1/280);
-        %default value modelled off Micius
+        % Histogram bin width (s).
+        histogram_bin_width
 
-        Wavelength_Range;
-        Dead_Time double;
+        % Total counts accumulated.
+        total_counts = 0
 
-        Efficiencies
-        Detection_Efficiency{ ...
+        % Cumulative distribution function (CDF) of jitter.
+        cdf
+
+        % Probability density function (PDF) of jitter.
+        pdf
+
+        % Polarization compensation error (rms, degrees). Poor compensation
+        % increases QBER. Default value modeled after Micius.
+        polarisation_error {mustBeScalarOrEmpty, mustBeNonnegative} = asind(1/280)
+
+        % Supported wavelength range (nm) or model object.
+        wavelength_range
+
+        % Detector dead time (s).
+        dead_time double
+
+        % Efficiency model (structure or array).
+        efficiencies
+
+        % Overall detection efficiency (fraction in (0, 1]).
+        detection_efficiency { ...
             mustBeScalarOrEmpty, ...
             mustBePositive, ...
-            mustBeLessThanOrEqual(Detection_Efficiency, 1)};
+            mustBeLessThanOrEqual(detection_efficiency, 1) ...
+            }
 
-        %rate at which eroneous counts occur
-        Dark_Count_Rate{mustBeNonnegative,mustBeScalarOrEmpty};
+        % Dark‑count rate (counts per second).
+        dark_count_rate {mustBeNonnegative, mustBeScalarOrEmpty}
 
-        %for phase-based protocols, need a visibility metric
-        Visibility {mustBeInRange(Visibility,0,1)} = 1;
+        % Interferometric visibility for phase‑based protocols (in [0, 1]).
+        visibility {mustBeInRange(visibility, 0, 1)} = 1
 
     end
 
     methods
 
-        function Detector = Detector( ...
-            Wavelength, Repetition_Rate, Time_Gate_Width, ...
-            Spectral_Filter, options)
-            %%DETECTOR Construct a detector object with properties
-            %determined by implementation
+        % Constructor
+        % ---------------------------------------------------------------------
+        function obj = Detector( ...
+                wavelength, repetition_rate, time_gate_width, ...
+                spectral_filter, options)
+            % Detector
+            %
+            % Construct a detector object with properties determined by
+            % implementation or preset data.
+            %
+            % Syntax:
+            %   obj = components.Detector( ...
+            %       wavelength, repetition_rate, time_gate_width, ...
+            %       spectral_filter, options)
+            %
+            % Inputs:
+            %   wavelength        - (1,1) double, wavelength in nm
+            %   repetition_rate   - (1,1) double, repetition rate in Hz
+            %   time_gate_width   - (1,1) double, time gate width in seconds
+            %   spectral_filter   - filter object or numeric width in nm
+            %   options           - struct with name-value pairs
+            %
+            % Outputs:
+            %   obj               - Detector object
 
             arguments
-                Wavelength double
-                Repetition_Rate double
-                Time_Gate_Width double
-                Spectral_Filter
+                wavelength double
+                repetition_rate double
+                time_gate_width double
+                spectral_filter
                 options.Wavelength_Scale units.Magnitude = 'nano'
                 options.Polarisation_Error double = asind(1 / 280)
-                options.Preset {mustBeMember(options.Preset,{'Excelitas',...
-                                                             'Hamamatsu',...
-                                                             'ID_Qube_NIR',...
-                                                             'LaserComponents',...
-                                                             'MicroPhotonDevices',...
-                                                             'PerkinElmer',...
-                                                             'Perfect',...
-                                                             'QuantumOpus1550_CryogenicAmplifier',...
-                                                             'QuantumOpus1550_RoomTempAmplifier' ...
-                                                             'none'})} = 'none'
+                options.Preset {mustBeMember(options.Preset, { ...
+                    'Excelitas', 'Hamamatsu', 'ID_Qube_NIR', ...
+                    'LaserComponents', 'MicroPhotonDevices', ...
+                    'PerkinElmer', 'Perfect', ...
+                    'QuantumOpus1550_CryogenicAmplifier', ...
+                    'QuantumOpus1550_RoomTempAmplifier', ...
+                    'none'})} = 'none'
                 options.Dark_Count_Rate { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Dark_Count_Rate, 0)}
@@ -95,413 +135,491 @@ classdef  Detector
                     mustBeLessThanOrEqual(options.Efficiencies, 1)}
             end
 
-            %% implement detector properties
-            Detector = Detector.SetWavelength(Wavelength, ...
+            % Implement detector properties
+            obj = obj.setWavelength(wavelength, ...
                 "Wavelength_Scale", options.Wavelength_Scale);
 
-            Detector.Time_Gate_Width = Time_Gate_Width;
+            obj.time_gate_width = time_gate_width;
 
-            %two cases for spectral filter, either width in nm (in which
-            %case need to create a SF) or a spectral filter object.
-            if isa(Spectral_Filter,'components.SpectralFilter')
-                Detector.Spectral_Filter = Spectral_Filter;
-            elseif isnumeric(Spectral_Filter)
-                Detector.Spectral_Filter = components.IdealBPFilter( ...
-                    Detector.Wavelength, ...
-                    Spectral_Filter, ...
+            % Two cases for spectral filter: object or numeric width (nm)
+            if isa(spectral_filter, 'components.SpectralFilter')
+                obj.spectral_filter = spectral_filter;
+            elseif isnumeric(spectral_filter)
+                obj.spectral_filter = components.IdealBPFilter( ...
+                    obj.wavelength, spectral_filter, ...
                     "Wavelength_Scale", options.Wavelength_Scale);
             else
-                error('Spectral_Filter can be either a SpectralFilter object or a filter width in nm')
+                error(['spectral_filter must be a SpectralFilter object ' ...
+                    'or a numeric filter width in nm']);
             end
-            Detector.Repetition_Rate = Repetition_Rate;
 
+            obj.repetition_rate = repetition_rate;
 
-            %implement preset or load in custom detector data
-            if isequal(options.Preset,'none')
-                Detector.Dark_Count_Rate = options.Dark_Count_Rate;
-                Detector.Dead_Time = options.Dead_Time;
-                Detector.Efficiencies = options.Efficiencies;
-                Detector.Histogram_Bin_Width = options.Histogram_Bin_Width;
-                Detector.Jitter_Histogram = options.Jitter_Histogram;
-                Detector.Wavelength_Range = units.Magnitude.Convert( ...
+            % Implement preset or custom detector data
+            if isequal(options.Preset, 'none')
+                obj.dark_count_rate     = options.Dark_Count_Rate;
+                obj.dead_time           = options.Dead_Time;
+                obj.efficiencies        = options.Efficiencies;
+                obj.histogram_bin_width = options.Histogram_Bin_Width;
+                obj.jitter_histogram    = options.Jitter_Histogram;
+                obj.wavelength_range    = units.Magnitude.Convert( ...
                     options.Wavelength_Scale, ...
                     "nano", ...
                     options.Wavelength_Range);
-
             else
-                %if preset was provided, load in
+                % If preset provided, load .mat file
                 if isstring(options.Preset)
                     options.Preset = char(options.Preset);
                 end
-                load(['+components\@Detector\presets\',options.Preset,'.mat'],...
-                    'Dark_Count_Rate',...
-                    'Dead_Time',...
-                    'Efficiencies',...
-                    'Histogram_Bin_Width',...
-                    'Jitter_Histogram',...
-                    'Wavelength_Range')
-                
-                Detector.Dark_Count_Rate = Dark_Count_Rate;
-                Detector.Dead_Time = Dead_Time;
-                Detector.Efficiencies = Efficiencies;
-                Detector.Histogram_Bin_Width = Histogram_Bin_Width;
-                Detector.Jitter_Histogram = Jitter_Histogram;
-                Detector.Wavelength_Range = Wavelength_Range;
+                load(['+components\@Detector\presets\', ...
+                    options.Preset, '.mat'], ...
+                    'Dark_Count_Rate', ...
+                    'Dead_Time', ...
+                    'Efficiencies', ...
+                    'Histogram_Bin_Width', ...
+                    'Jitter_Histogram', ...
+                    'Wavelength_Range');
+
+                obj.dark_count_rate     = Dark_Count_Rate;
+                obj.dead_time           = Dead_Time;
+                obj.efficiencies        = Efficiencies;
+                obj.histogram_bin_width = Histogram_Bin_Width;
+                obj.jitter_histogram    = Jitter_Histogram;
+                obj.wavelength_range    = Wavelength_Range;
             end
 
-
-            % compute jitter qber and loss
-            Detector = Detector.DensityFunctions();
-            Detector = Detector.SetJitterPerformance(Repetition_Rate);
-            Detector = Detector.SetDetectionEfficiency(Wavelength=Wavelength);
+            % Compute jitter QBER and loss
+            obj = obj.densityFunctions();
+            obj = obj.setJitterPerformance(repetition_rate);
+            obj = obj.setDetectionEfficiency(Wavelength = wavelength);
         end
 
-        function Detector = SetHistogramBinWidth(Detector,Width)
-            %%SETHISTOGRAMBINWIDTH set how wide the bins are in the jitter
-            %%histogram data provided for this detector
-            Detector.Histogram_Bin_Width = Width;
-            Detector = SetJitterPerformance(Detector, Detector.Repetition_Rate);
+
+        function obj = setHistogramBinWidth(obj, width)
+            % setHistogramBinWidth
+            %
+            % Set the width of the bins in the jitter histogram data.
+            %
+            % Syntax:
+            %   obj = setHistogramBinWidth(obj, width)
+            %
+            % Inputs:
+            %   width - (1,1) double, bin width in seconds
+            %
+            % Outputs:
+            %   obj   - updated Detector object
+
+            obj.histogram_bin_width = width;
+            obj = setJitterPerformance(obj, obj.repetition_rate);
         end
 
-        function Detector = SetWavelength(Detector, Wavelength, options)
+
+        function obj = setWavelength(obj, wavelength, options)
+            % setWavelength
+            %
+            % Set the operating wavelength of the detector, which determines
+            % the detection efficiency.
+            %
+            % Syntax:
+            %   obj = setWavelength(obj, wavelength, options)
+            %
+            % Inputs:
+            %   wavelength - (1,1) double, wavelength in specified units
+            %   options    - struct with:
+            %       Wavelength_Scale (units.Magnitude) default 'nano'
+            %       UpdateEfficiency (logical)         default false
+            %
+            % Outputs:
+            %   obj        - updated Detector object
+
             arguments
-                Detector
-                Wavelength
+                obj
+                wavelength
                 options.Wavelength_Scale units.Magnitude = 'nano'
                 options.UpdateEfficiency logical = false
             end
-            %%SETWAVELENGTH set wavelength at which the detector is
-            %%operating- which will determine detection efficiency
 
-            wavelength_new = units.Magnitude.Convert(options.Wavelength_Scale, "nano", Wavelength);
+            wavelength_new = units.Magnitude.Convert( ...
+                options.Wavelength_Scale, "nano", wavelength);
 
-
-            if options.UpdateEfficiency == true
-                Detector = Detector.SetDetectionEfficiency(Wavelength=Wavelength);
+            if options.UpdateEfficiency
+                obj = obj.setDetectionEfficiency(Wavelength = wavelength);
             end
 
-            Detector.Wavelength = wavelength_new;
+            obj.wavelength = wavelength_new;
         end
 
-        function Detector = SetDeadTime(Detector, Dead_Time)
-            Detector.Dead_Time = Dead_Time;
+
+        function obj = setDeadTime(obj, dead_time)
+            % setDeadTime
+            %
+            % Set the detector dead time in seconds.
+            %
+            % Syntax:
+            %   obj = setDeadTime(obj, dead_time)
+            %
+            % Inputs:
+            %   dead_time - (1,1) double, dead time in seconds
+            %
+            % Outputs:
+            %   obj       - updated Detector object
+
+            obj.dead_time = dead_time;
         end
 
-        function Detector = DensityFunctions(Detector)
-            % Calculate the probability density function and cumulative density
-            % function for the components.derived from the jitter histogram
-            assert(~isempty(Detector.Jitter_Histogram), ...
-                [inputname(1), '.Jitter_Histogram, must not be empty']);
 
-            Detector.Total_Counts = sum(Detector.Jitter_Histogram);
-            N = numel(Detector.Jitter_Histogram);
-            Detector.CDF = zeros(1,N);
-            Detector.PDF = zeros(1,N);
- 
-            %% iterating over elements in the Detector.Jitter_Histogram
-            Detector.PDF(1) = Detector.Jitter_Histogram(1)/(Detector.Total_Counts*Detector.Histogram_Bin_Width);
-            Detector.CDF(1) = 0;
-            for i = 2:N
-                %compute histogram probability density function and
-                %cumulitive density function
-                Detector.PDF(i) = ...
-                    Detector.Jitter_Histogram(i) / (Detector.Total_Counts*Detector.Histogram_Bin_Width);
-                Detector.CDF(i) = sum(Detector.PDF(1:i))*Detector.Histogram_Bin_Width;
+        function obj = densityFunctions(obj)
+            % densityFunctions
+            %
+            % Calculate the probability density function (PDF) and cumulative
+            % density function (CDF) from the jitter histogram.
+            %
+            % Syntax:
+            %   obj = densityFunctions(obj)
+            %
+            % Outputs:
+            %   obj - updated Detector with PDF and CDF
+
+            assert(~isempty(obj.jitter_histogram), ...
+                [inputname(1), '.jitter_histogram must not be empty']);
+
+            obj.total_counts = sum(obj.jitter_histogram);
+            n_bins = numel(obj.jitter_histogram);
+            obj.cdf = zeros(1, n_bins);
+            obj.pdf = zeros(1, n_bins);
+
+            % First bin
+            obj.pdf(1) = obj.jitter_histogram(1) / ...
+                (obj.total_counts * obj.histogram_bin_width);
+            obj.cdf(1) = 0;
+
+            % Remaining bins
+            for i = 2:n_bins
+                obj.pdf(i) = obj.jitter_histogram(i) / ...
+                    (obj.total_counts * obj.histogram_bin_width);
+                obj.cdf(i) = sum(obj.pdf(1:i)) * obj.histogram_bin_width;
             end
         end
 
-        function Detector = SetJitterPerformance(Detector, Repetiton_Rate)
-            % Jitter calculations...
-            % This is a non-trivial component of the model. Depending on the kind
-            % of source, the method to calculate the jitter and so the contribution
-            % it makes to the QBER is different. For weak coherent pulses we must
-            % assume that the repetition rate is equal to the incident photon rate
-            % where the average photon per pulse has been reduced due to loss. This
-            % is different to sources with continuous wave pumping where the only
-            % contribution to QBER from jitter can be from the photons that have
-            % arrived.
-            % TODO
-            % - Does the c.w. case mentioned above hold for heralded source in
-            %   general? i.e. c.w. and pulsed sources of single-photons or 
-            %   entangled photon pairs.
+        function obj = setJitterPerformance(obj, repetition_rate)
+            % setJitterPerformance
+            %
+            % Compute the QBER and loss due to timing jitter and record them in the
+            % detector. For weak coherent pulses, assume the repetition rate equals
+            % the incident photon rate after losses. For continuous-wave sources,
+            % only photons that arrive contribute to jitter-induced QBER.
+            %
+            % Syntax:
+            %   obj = setJitterPerformance(obj, repetition_rate)
+            %
+            % Inputs:
+            %   repetition_rate - (1,1) double, photon arrival rate at detector (Hz)
+            %
+            % Outputs:
+            %   obj             - updated Detector object
 
-            % Repetition Rate: This is the rate of photons ARRIVING at the
-            % detector, this will need to be recalculated for every value of
-            % photons arriving at the detector.
+            % Turn time measures into index increments
+            time_gate_width_idx = 2 * round( ...
+                obj.time_gate_width / (2 * obj.histogram_bin_width));
+            repetition_period_idx = round( ...
+                1 ./ (repetition_rate * obj.histogram_bin_width));
 
-            %%SETJITTERPERFORMANCE compute the QBER and loss due to jitter and record it in the detector.
-
-            %% turn time measures into index increments
-            Time_Gate_Width_Index = 2 * round( ...
-                Detector.Time_Gate_Width / (2 * Detector.Histogram_Bin_Width));
-            Repetition_Period_Index = round( ...
-                1 ./ (Repetiton_Rate * Detector.Histogram_Bin_Width));
-
-            %check that rounding results in reasonable precision
-            if Time_Gate_Width_Index < 10
-                warning('gate width is less than 10 histogram bins resulting in significant rounding errors')
+            % Check that rounding results in reasonable precision
+            if time_gate_width_idx < 10
+                warning(['Gate width is less than 10 histogram bins, which may ', ...
+                    'cause significant rounding errors.'])
             end
-            if Repetition_Period_Index < 10
-                warning('repetition period is less than 10 histogram bins resulting in significant rounding errors')
+            if repetition_period_idx < 10
+                warning(['Repetition period is less than 10 histogram bins, ', ...
+                    'which may cause significant rounding errors.'])
             end
 
-            %% compute mode point
-            [~, Mode_Time_Index] = max(Detector.PDF);
+            % Compute mode point
+            [~, mode_time_idx] = max(obj.pdf);
 
-            N = numel(Detector.Jitter_Histogram);
-            HalfIndex = Time_Gate_Width_Index / 2;
-            %% compute loss
-            Loss =  ...
-                - Detector.CDF(max(Mode_Time_Index - HalfIndex, 1)) ...
-                + Detector.CDF(min(Mode_Time_Index + HalfIndex, N));
+            n_bins   = numel(obj.jitter_histogram);
+            half_idx = time_gate_width_idx / 2;
 
-            %% compute QBER
-            %computing QBER is done by performing a discrete
-            %autocorrelation calculation of the jittter PDF at delays
-            %equal to integer multiples of the photon arrival period
-            QBER = 0;
+            % Compute loss
+            loss = -obj.cdf(max(mode_time_idx - half_idx, 1)) ...
+                + obj.cdf(min(mode_time_idx + half_idx, n_bins));
 
-            %iterating over previous pulses (negative autocorrelation)
-            Current_Mode = Mode_Time_Index + Repetition_Period_Index;
-            while Current_Mode < N
-                QBER = QBER + 0.5 * ( ...
-                    Detector.CDF(min(Current_Mode + HalfIndex, N)) ...
-                    - Detector.CDF(max(Current_Mode - HalfIndex, 1)) ...
-                    );
+            % Compute QBER via discrete autocorrelation of the jitter PDF at delays
+            % equal to integer multiples of the photon arrival period
+            qber = 0;
 
-                Current_Mode = Current_Mode + Repetition_Period_Index;
+            % Iterate over previous pulses (negative autocorrelation)
+            current_mode = mode_time_idx + repetition_period_idx;
+            while current_mode < n_bins
+                qber = qber + 0.5 * ( ...
+                    obj.cdf(min(current_mode + half_idx, n_bins)) ...
+                    - obj.cdf(max(current_mode - half_idx, 1)) );
+                current_mode = current_mode + repetition_period_idx;
             end
 
-            %iterating over forward pulses (positive autocorrelation)
-            Current_Mode = Mode_Time_Index - Repetition_Period_Index;
-            while Current_Mode > 0
-                QBER = QBER + 0.5 * ( ...
-                    Detector.CDF(min(Current_Mode + HalfIndex, N)) ...
-                       - Detector.CDF(max(Current_Mode - HalfIndex, 1)) ...
-                    );
-
-                Current_Mode = Current_Mode - Repetition_Period_Index;
+            % Iterate over forward pulses (positive autocorrelation)
+            current_mode = mode_time_idx - repetition_period_idx;
+            while current_mode > 0
+                qber = qber + 0.5 * ( ...
+                    obj.cdf(min(current_mode + half_idx, n_bins)) ...
+                    - obj.cdf(max(current_mode - half_idx, 1)) );
+                current_mode = current_mode - repetition_period_idx;
             end
 
-            %QBER cannot exceed 0.5 due to this
-            if QBER > 0.5
-                QBER = 0.5;
+            % QBER cannot exceed 0.5 due to this model
+            if qber > 0.5
+                qber = 0.5;
             end
 
-            %% store answers
-            Detector.QBER_Jitter = QBER;
-            Detector.Jitter_Loss = Loss;
+            % Store results
+            obj.qber_jitter = qber;
+            obj.jitter_loss = loss;
         end
 
-        function Det = StretchToNewJitter(Det, TargetJitter)
-            % Set a false value for the jitter.
-            % Useful for exploring implications of reduced/increased detector
-            % timing jitter on QKD protocol / satellite pass simulation
-            FWHM = Det.CalculateJitter();
-            new_bin_width = (TargetJitter / FWHM) * Det.Histogram_Bin_Width;
-            Det = Det.SetHistogramBinWidth(new_bin_width);
-            Det = Det.SetJitterPerformance(Det.Repetition_Rate);
-        end
+        function p = plotDetHistogram(obj)
+            % plotDetHistogram
+            %
+            % Plot the detector's jitter histogram in a focused time window around
+            % the peak, using a simple density-based cutoff to mask low-count bins.
+            %
+            % Syntax:
+            %   p = plotDetHistogram(obj)
+            %
+            % Outputs:
+            %   p - line object handle for the plotted histogram curve
 
-        function [stretched_histogram] = StretchDetHistogram(Det, dead_time)
-            % Set a "false" dead time.
-            % Takes the histogram data, finds the peak and rising edge and then
-            % extends the envelope by (dead time - rising time) forming a 
-            % square function.
-            % NOTE How useful is this function, should this be used to alter 
-            %       the value calculated by SetJitterPerformance?
+            % Build time axis centered around the histogram length
+            n = numel(obj.jitter_histogram);             % number of histogram bins
+            idx = linspace(1, n, n);                     % bin indices
+            times = (idx - n) ./ 2 .* obj.histogram_bin_width;  % bin times (s)
 
-            N = numel(Det.Jitter_Histogram);
-            index = linspace(1, N, N);
-            times = Det.Histogram_Bin_Width .* index;
-
-            peak_loc = index(Det.Jitter_Histogram == max(Det.Jitter_Histogram));
-
-            min_val = 0.01;
-            max_val = 0.01;
-            up_to_max = ( Det.Jitter_Histogram ...
-                          > (min_val * min(Det.Jitter_Histogram)) ) ...
-                        & (times < times(peak_loc));
-
-            rising = up_to_max ...
-                & (Det.Jitter_Histogram > (min_val * max(Det.Jitter_Histogram)));
-
-            after_max = (times > times(peak_loc));
-
-            falling = after_max & ...
-                (Det.Jitter_Histogram > (min_val * max(Det.Jitter_Histogram)));
-
-            rise_time = sum(fliplr(extrema(times(rising))) .* [1, -1]);
-
-            additional_dead_time = dead_time - rise_time;
-            stretched_histogram = Det.Jitter_Histogram;
-            max_time = times(peak_loc) + additional_dead_time;
-            waveform_mask = (times < max_time) & (times > times(peak_loc));
-            stretched_histogram(waveform_mask) = max(Det.Jitter_Histogram);
-        end
-
-        function p = PlotDetHistogram(Det)
-            % TODO Plot everything about the detector highlighting its current state
-            N = numel(Det.Jitter_Histogram);
-            index = linspace(1, N, N);
-            times = (index - N) ./ 2 * Det.Histogram_Bin_Width;
-
-            bins = unique(Det.Jitter_Histogram);
+            % Count occurrences of each unique bin level to set a cutoff
+            bins = unique(obj.jitter_histogram);
             n_bins = numel(bins);
             counts = zeros(1, n_bins);
-            for i = 1:n_bins
-                counts(i) = sum(Det.Jitter_Histogram == bins(i));
+            for k = 1:n_bins
+                counts(k) = sum(obj.jitter_histogram == bins(k));
             end
 
-            Take = @(arraylike, N) arraylike(N);
-            cut_on = Take(bins(log10(counts) < 1), 1);
-            mask = Det.Jitter_Histogram > cut_on;
+            % Mask out sparse levels using a simple log-count threshold
+            take = @(arraylike, k) arraylike(k);
+            cut_on = take(bins(log10(counts) < 1), 1);
+            mask = obj.jitter_histogram > cut_on;
 
-            [~, max_idx] = max(Det.Jitter_Histogram);
-            [~, i_idx] = max(index(mask));
+            % Find window around the histogram peak
+            [~, max_idx] = max(obj.jitter_histogram);
+            [~, i_idx] = max(idx(mask));
 
-            p = plot(times(mask), Det.Jitter_Histogram(mask));
-            xlim(times([max_idx-i_idx, max_idx+i_idx]));
+            % Plot masked histogram and focus x-limits around the peak
+            p = plot(times(mask), obj.jitter_histogram(mask));
+            xlim(times([max_idx - i_idx, max_idx + i_idx]));
         end
 
-        function fig = Plot(Det,fig)
-            %%PLOT plot a summary of the parameters of this detector
+
+        function fig = plot(obj, fig)
+            % plot
+            %
+            % Plot a summary of detector parameters: detection efficiency vs
+            % wavelength, spectral filter transmission, and jitter PDF with gate
+            % and repetition markers.
+            %
+            % Syntax:
+            %   fig = plot(obj)
+            %   fig = plot(obj, fig)
+            %
+            % Inputs:
+            %   fig - optional figure handle; defaults to a new figure
+            %
+            % Outputs:
+            %   fig - figure handle containing the summary plots
+
             arguments
-                Det components.Detector
-                fig matlab.ui.Figure = figure("Name","Detector Summary");
+                obj components.Detector
+                fig matlab.ui.Figure = figure("Name", "Detector Summary")
             end
-            %create fig
-            tiles = tiledlayout(3,1);
 
-            %% plot detection efficiency
-            nexttile(tiles,1)
-            plot(Det.Wavelength_Range,Det.Efficiencies);
-            xlabel('Wavelength (nm)')
-            ylabel('Detection Efficiency')
-            xline(Det.Wavelength,'g--')
-            yline(Det.Detection_Efficiency,'g--')
-            ylim([0,1])
-            xlim([min(Det.Wavelength_Range),max(Det.Wavelength_Range)])
-            text(Det.Wavelength,Det.Detection_Efficiency,0,...
-                sprintf('Detection Efficiency = %.1f%% at %inm',100*Det.Detection_Efficiency,Det.Wavelength),...
-                'VerticalAlignment','bottom',....
-                'HorizontalAlignment','center',...
-                'FontName',get(groot,'defaultAxesFontName'));
-            
-            %% plot spectral filter transmission
-            nexttile(tiles,2)
-            A = gca();
-            Transmission = ComputeTransmission(Det.Spectral_Filter,Det.Wavelength);
-            Plot(Det.Spectral_Filter,A);
-            xline(Det.Wavelength,'g--')
-            yline(Transmission,'g--')
-            xlim([min(Det.Wavelength_Range),max(Det.Wavelength_Range)])
-            ylim([0,1])
-            text(Det.Wavelength,Transmission,0,...
-                sprintf('Transmission = %.1f%% at %inm',100*Transmission,Det.Wavelength),...
-                'VerticalAlignment','bottom',....
-                'HorizontalAlignment','center',...
-                'FontName',get(groot,'defaultAxesFontName'));
+            % Create tiled layout
+            tiles = tiledlayout(3, 1);
 
-            %% plot jitter histogram
-            nexttile(tiles,3)
-            num_jitter_points = numel(Det.PDF);
-            [max_value,max_index] = max(Det.PDF);
-            jitter_times = ((1:num_jitter_points) - max_index)*Det.Histogram_Bin_Width;
-            period = 1./Det.Repetition_Rate;
-            plot(jitter_times,Det.PDF);
+            %% Plot detection efficiency
+            nexttile(tiles, 1);
+            plot(obj.wavelength_range, obj.efficiencies);
+            xlabel('Wavelength (nm)');
+            ylabel('Detection Efficiency');
+            xline(obj.wavelength, 'g--');
+            yline(obj.detection_efficiency, 'g--');
+            ylim([0, 1]);
+            xlim([min(obj.wavelength_range), max(obj.wavelength_range)]);
+            text( ...
+                obj.wavelength, obj.detection_efficiency, 0, ...
+                sprintf('Detection Efficiency = %.1f%% at %inm', ...
+                100 * obj.detection_efficiency, obj.wavelength), ...
+                'VerticalAlignment', 'bottom', ...
+                'HorizontalAlignment', 'center', ...
+                'FontName', get(groot, 'defaultAxesFontName') ...
+                );
+
+            %% Plot spectral filter transmission
+            nexttile(tiles, 2);
+            ax = gca();
+            transmission = computeTransmission(obj.spectral_filter, obj.wavelength);
+            plot(obj.spectral_filter, ax);
+            xline(obj.wavelength, 'g--');
+            yline(transmission, 'g--');
+            xlim([min(obj.wavelength_range), max(obj.wavelength_range)]);
+            ylim([0, 1]);
+            text( ...
+                obj.wavelength, transmission, 0, ...
+                sprintf('Transmission = %.1f%% at %inm', ...
+                100 * transmission, obj.wavelength), ...
+                'VerticalAlignment', 'bottom', ...
+                'HorizontalAlignment', 'center', ...
+                'FontName', get(groot, 'defaultAxesFontName') ...
+                );
+
+            %% Plot jitter PDF and timing markers
+            nexttile(tiles, 3);
+            num_jitter_points = numel(obj.pdf);          % number of PDF samples
+            [max_value, max_index] = max(obj.pdf);       % PDF peak
+            jitter_times = ((1:num_jitter_points) - max_index) ...
+                .* obj.histogram_bin_width;   % time axis (s)
+            period = 1 ./ obj.repetition_rate;           % signal period (s)
+
+            plot(jitter_times, obj.pdf);
             xlabel('Time (s)');
             ylabel('PDF');
 
-            xline(-Det.Time_Gate_Width/2,'b--')
-            xline(Det.Time_Gate_Width/2,'b--')
-            text(Det.Time_Gate_Width/2,max_value/2,0,...
-                sprintf('Time Gate Width = %.2gs',Det.Time_Gate_Width),...
-                'VerticalAlignment','top',....
-                'HorizontalAlignment','left',...
-                'FontName',get(groot,'defaultAxesFontName'),...
-                'Color','b');
+            % Time gate markers
+            xline(-obj.time_gate_width / 2, 'b--');
+            xline( obj.time_gate_width / 2, 'b--');
+            text( ...
+                obj.time_gate_width / 2, max_value / 2, 0, ...
+                sprintf('Time Gate Width = %.2gs', obj.time_gate_width), ...
+                'VerticalAlignment', 'top', ...
+                'HorizontalAlignment', 'left', ...
+                'FontName', get(groot, 'defaultAxesFontName'), ...
+                'Color', 'b' ...
+                );
 
-            xlim([-period,2*period])
-            xline(0,'r--')
-            xline(period,'r--')
-            text(period,max_value/2,0,...
-                sprintf('Repetition Rate = %.2gHz \nSignal Period = %.2gs \n QBER_{jitter}=%.3g%%',Det.Repetition_Rate,period,100*Det.QBER_Jitter),...
-                'VerticalAlignment','top',....
-                'HorizontalAlignment','left',...
-                'FontName',get(groot,'defaultAxesFontName'),...
-                'Color','r');
-
-
-
+            % Repetition markers
+            xlim([-period, 2 * period]);
+            xline(0, 'r--');
+            xline(period, 'r--');
+            text( ...
+                period, max_value / 2, 0, ...
+                sprintf(['Repetition Rate = %.2gHz \nSignal Period = %.2gs \n', ...
+                ' QBER_{jitter}=%.3g%%'], ...
+                obj.repetition_rate, period, 100 * obj.qber_jitter), ...
+                'VerticalAlignment', 'top', ...
+                'HorizontalAlignment', 'left', ...
+                'FontName', get(groot, 'defaultAxesFontName'), ...
+                'Color', 'r' ...
+                );
         end
-        
-        function Det = SetDarkCountRate(Det, DCR)
-            % SetDarkCountRate set detector dark count rate
+
+        function obj = setDarkCountRate(obj, dcr)
+            % setDarkCountRate
+            %
+            % Set the detector dark-count rate (counts per second).
+            %
+            % Syntax:
+            %   obj = setDarkCountRate(obj, dcr)
+            %
+            % Inputs:
+            %   dcr - (1,1) double, nonnegative dark-count rate [counts/s]
+            %
+            % Outputs:
+            %   obj - updated Detector object
+
             arguments
-                Det components.Detector
-                DCR double {mustBeNonnegative}
+                obj components.Detector
+                dcr double {mustBeNonnegative}
             end
-            Det.Dark_Count_Rate = DCR;
+
+            obj.dark_count_rate = dcr;
         end
 
-        function Det = SetPolarisationError(Det, Polarisation_Error)
-            % Set the polarisation error in a
-            % modelled polarisation compensation system
+
+        function obj = setPolarisationError(obj, polarisation_error)
+            % setPolarisationError
+            %
+            % Set the polarisation error (rms, degrees) of the polarisation
+            % compensation system.
+            %
+            % Syntax:
+            %   obj = setPolarisationError(obj, polarisation_error)
+            %
+            % Inputs:
+            %   polarisation_error - (1,1) double in [0, 360]
+            %
+            % Outputs:
+            %   obj - updated Detector object
+
             arguments
-                Det Detector
-                Polarisation_Error double {mustBeNonnegative, ...
-                    mustBeLessThanOrEqual(Polarisation_Error, 360)}
+                obj components.Detector
+                polarisation_error double { ...
+                    mustBeNonnegative, ...
+                    mustBeLessThanOrEqual(polarisation_error, 360)}
             end
 
-            %(polarisation error is recorded in degrees)
-            Det.Polarisation_Error = Polarisation_Error;
+            % Polarisation error is recorded in degrees.
+            obj.polarisation_error = polarisation_error;
         end
 
-        function Detector = SetDetectionEfficiency(Detector, options)
-            % Set detection efficiency according to the options.{Efficiency, 
-            % Wavelength}, only one options can be passed when called otherwise the
-            % function errors:
-            %   - Efficiency: Forces the value, ignoring the Detector.Wavelength_Range
-            %   - Wavelength: Asserts that the detector operates at that wavelength 
-            %       and uses the efficiency at that wavelength and updating the
-            %       wavelength currently set
-            % # Usage
-            % det.SetDetectionEfficiency(Efficiency=0.8)
-            % det.SetDetectionEfficiency(Wavelength=1550)
+
+        function obj = setDetectionEfficiency(obj, options)
+            % setDetectionEfficiency
+            %
+            % Set detection efficiency using either a forced value (Efficiency) or
+            % by specifying a wavelength (Wavelength) to read from the efficiency
+            % curve. Only one option should be supplied.
+            %
+            % Syntax:
+            %   obj = setDetectionEfficiency(obj, Efficiency=value)
+            %   obj = setDetectionEfficiency(obj, Wavelength=value)
+            %
+            % Inputs (name-value options):
+            %   Efficiency - double in [0,1], direct assignment
+            %   Wavelength - double (nm), must be within wavelength_range
+            %
+            % Outputs:
+            %   obj - updated Detector object
+
             arguments
-                Detector
+                obj
                 options.Efficiency double { ...
                     mustBeNonnegative, mustBeLessThanOrEqual(options.Efficiency, 1)}
                 options.Wavelength double {mustBeNonnegative}
             end
 
-            %assert(numel(fieldnames(options)) <= 1, ...
+            % fields = fieldnames(options);
             fields = fieldnames(options);
             assert(~isempty(fields), ...
                 'Either "Efficiency" or "Wavelength" should supplied not both');
 
             if contains(fields, 'Efficiency')
-                Detector.Detection_Efficiency = options.Efficiency;
+                obj.detection_efficiency = options.Efficiency;
                 return
             end
 
             if contains(fields, 'Wavelength')
-                min_wavelength = min(Detector.Wavelength_Range);
-                max_wavelength = max(Detector.Wavelength_Range);
+                min_wavelength = min(obj.wavelength_range);
+                max_wavelength = max(obj.wavelength_range);
                 assert( ...
                     (options.Wavelength >= min_wavelength) & ...
                     (options.Wavelength <= max_wavelength), ...
                     ['Wavelength must be in range: ', num2str(min_wavelength), ...
-                    ' : ', num2str(max_wavelength), '.'])
+                    ' : ', num2str(max_wavelength), '.'] ...
+                    );
 
-                % Detector.SetWavelength(options.Wavelength);
-                Detector.Wavelength = options.Wavelength;
+                % obj.setWavelength(options.Wavelength);
+                obj.wavelength = options.Wavelength;
 
-                pw_poly = interp1(Detector.Wavelength_Range, Detector.Efficiencies, 'cubic', 'pp');
-                Detector.Detection_Efficiency = ppval(pw_poly, options.Wavelength);
+                pw_poly = interp1(obj.wavelength_range, obj.efficiencies, ...
+                    'cubic', 'pp');
+                obj.detection_efficiency = ppval(pw_poly, options.Wavelength);
             end
-
         end
+
     end
 end

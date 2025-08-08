@@ -1,48 +1,68 @@
 classdef Telescope
-    %TELESCOPE contain the relevant properties of optical systems for
-    %transmitters and receivers
+    % Telescope
+    %
+    % Optical system model for transmitters and receivers.
+    % Stores geometry, efficiency, pointing, and field-of-view parameters.
+    %
+    % Syntax:
+    %   tel = components.Telescope(diameter, options)
+    %
+    % Additional options and defaults are provided in the constructor.
 
     properties
-        %diameter of the transmitter in m
-        Diameter{mustBeScalarOrEmpty,mustBePositive};
+        % Diameter of the transmitter aperture (m)
+        diameter {mustBeScalarOrEmpty, mustBePositive}
 
-        %ratio between theoretical and acutal far field divergence angle
-        Far_Field_Divergence_Coefficient{mustBeScalarOrEmpty,mustBeGreaterThanOrEqual(Far_Field_Divergence_Coefficient,1)}=1;
+        % Ratio between theoretical and actual far-field divergence angle
+        far_field_divergence_coefficient {mustBeScalarOrEmpty, ...
+            mustBeGreaterThanOrEqual(far_field_divergence_coefficient, 1)} = 1
 
-        %optical efficiency- from cassegrain telescope obscuration (Link loss analysis for a satellite quantum communication downlink, Single photon group)
-        Optical_Efficiency{mustBeScalarOrEmpty,mustBePositive}=1-0.3^2;
+        % Optical efficiency (Cassegrain telescope obscuration)
+        optical_efficiency {mustBeScalarOrEmpty, mustBePositive} = 1 - 0.3^2
 
-        %rms error in pointing in radians
-        Pointing_Jitter{mustBeScalarOrEmpty,mustBeNonnegative}=10^-6;
+        % RMS pointing jitter (rad)
+        pointing_jitter {mustBeScalarOrEmpty, mustBeNonnegative} = 1e-6
 
-        %focal length (in m_ of the telescope collecting optics
-        Focal_Length {mustBeScalarOrEmpty,mustBeNonnegative}=[];
+        % Focal length (m) of collecting optics
+        focal_length {mustBeScalarOrEmpty, mustBeNonnegative} = []
 
-        %F number is the ratio of focal length to diameter
-        F_Number {mustBeScalarOrEmpty,mustBeNonnegative}=12;   %default is 12
+        % F-number = focal_length / diameter
+        f_number {mustBeScalarOrEmpty, mustBeNonnegative} = 12
 
-        %magnification of telescope- applied directly to beam expansion and
-        %inversely to angle compression
-        Magnification {mustBeScalarOrEmpty,mustBePositive};
+        % Magnification: applied to beam expansion/angle compression
+        magnification {mustBeScalarOrEmpty, mustBePositive}
 
-        %eyepiece focal length (in m) to compute magnification
-        Eyepiece_Focal_Length {mustBeScalarOrEmpty,mustBeNonnegative}= 0.076; %default is 3 inches
+        % Eyepiece focal length (m) for magnification computation
+        eyepiece_focal_length {mustBeScalarOrEmpty, mustBeNonnegative} = 0.076
     end
-    properties(SetAccess=protected)
-        %wavelength of the transmitter (in nm), set by the satellite it is mounted to
-        Wavelength{mustBeScalarOrEmpty,mustBePositive}=[];
 
-        %angle in rads describing spread of photons as the propagate
-        FOV{mustBeScalarOrEmpty,mustBeNonnegative};
+    properties (SetAccess = protected)
+        % Wavelength of transmitter (nm), set by mounting platform
+        wavelength {mustBeScalarOrEmpty, mustBePositive} = []
 
-        %collecting area of the telescope in m^2
-        Collecting_Area (1,1) double {mustBeNonnegative}
+        % Field-of-view (rad) describing beam spread (computed)
+        fov {mustBeScalarOrEmpty, mustBeNonnegative}
+
+        % Collecting area (m^2)
+        collecting_area (1,1) double {mustBeNonnegative}
     end
 
     methods
-        function obj = Telescope(Diameter, options)
-            arguments (Input)
-                Diameter
+        function obj = Telescope(diameter, options)
+            % Telescope constructor
+            %
+            % Syntax:
+            %   obj = Telescope(diameter, options)
+            %
+            % Inputs:
+            %   diameter - (1,1) double, aperture diameter (m)
+            %   options  - name-value struct of optional parameters
+            %
+            % Outputs:
+            %   obj      - Telescope instance
+
+            arguments
+                diameter
                 options.Wavelength = []
                 options.Wavelength_Scale units.Magnitude = "nano"
                 options.Optical_Efficiency = 1 - (0.3 ^ 2)
@@ -53,129 +73,132 @@ classdef Telescope
                 options.FOV
                 options.Focal_Length
             end
-            % arguments (Output)
-            %     obj Telescope
-            % end
 
-            obj.Diameter = Diameter;
-            obj.F_Number = options.F_Number;
-            obj.Focal_Length = obj.F_Number * obj.Diameter;
+            obj.diameter = diameter;
+            obj.f_number = options.F_Number;
+            obj.focal_length = obj.f_number * obj.diameter;
 
             props = properties(obj);
-            hasProp = @(prop) any(contains(props, prop));
-            % Loop over fields that we have and apply specific case
+            has_prop = @(prop) any(contains(props, prop));
+
+            % Apply provided options to matching properties
             for option = fieldnames(options)'
                 opt = option{1};
-                if ~hasProp(opt)
+                if ~has_prop(opt)
                     continue
                 end
                 switch opt
                     case 'Wavelength'
-                        obj = obj.SetWavelength(options.Wavelength, ...
+                        obj = obj.setWavelength(options.Wavelength, ...
                             "Wavelength_Scale", options.Wavelength_Scale);
 
                     case 'FOV'
-                        obj = obj.SetFOV(options.FOV);
+                        obj = obj.setFOV(options.FOV);
 
                     case 'Focal_Length'
-                        obj.Focal_Length = options.Focal_Length;
-                        obj.F_Number = obj.Focal_Length / obj.Diameter;
+                        obj.focal_length = options.Focal_Length;
+                        obj.f_number = obj.focal_length / obj.diameter;
 
                     case 'Pointing_Jitter'
-                        obj = obj.SetPointingJitter(options.Pointing_Jitter);
+                        obj = obj.setPointingJitter(options.Pointing_Jitter);
 
                     otherwise
-                        % Our default case is to just lookup the property by
-                        % name in the class and the options struct and set it
-                        obj.(opt) = options.(opt);
+                        % Default: map OptionName -> property name in snake_case
+                        obj.(lower(opt)) = options.(opt);
                 end
             end
 
-            obj.Magnification = obj.Focal_Length / obj.Eyepiece_Focal_Length;
-
+            obj.magnification = obj.focal_length / obj.eyepiece_focal_length;
         end
 
+        function obj = setWavelength(obj, wavelength, options)
+            % setWavelength
+            %
+            % Set the transmitter wavelength (nm) for this telescope.
+            %
+            % Syntax:
+            %   obj = setWavelength(obj, wavelength, options)
 
-        function obj = SetWavelength(obj, Wavelength, options)
             arguments
                 obj components.Telescope
-                Wavelength
+                wavelength
                 options.Wavelength_Scale units.Magnitude = 'nano'
             end
-            %%SETWAVELENGTH set the wavelength (nm) of the transmitter
-            obj.Wavelength = units.Magnitude.Convert( ...
-                options.Wavelength_Scale, ...
-                "nano", ...
-                Wavelength);
+
+            obj.wavelength = units.Magnitude.Convert( ...
+                options.Wavelength_Scale, "nano", wavelength);
         end
 
-        function Telescope=SetFarFieldDivergenceCoefficient(Telescope,FOV,Wavelength,Diameter)
-            %%SETFARFIELDDIVERGENCECOEFFICIENT set the FFDC required to
-            %%maintain a given FOV at a given wavelegngth
+        function obj = setFarFieldDivergenceCoefficient(obj, fov, wavelength, diameter)
+            % setFarFieldDivergenceCoefficient
+            %
+            % Set the divergence coefficient required to maintain a given
+            % FOV at a given wavelength and diameter.
 
-            if isempty(FOV)||isempty(Wavelength)
-                Telescope.Far_Field_Divergence_Coefficient=1;
+            if isempty(fov) || isempty(wavelength)
+                obj.far_field_divergence_coefficient = 1;
                 return
             end
 
-            Far_Field_Divergence_Coefficient=FOV/(2.44 *( Wavelength * 10^-9 )/ Diameter);
+            coeff = fov / (2.44 * (wavelength * 1e-9) / diameter);
 
-            %check that this farfield divergence coeff is not impossible
-                if Far_Field_Divergence_Coefficient <1
-                    warning('Requested FOV is narrower than diffraction limit. Reverting to diffraction limit');
-                    Telescope.Far_Field_Divergence_Coefficient = 1;
-                else
-                    Telescope.Far_Field_Divergence_Coefficient = Far_Field_Divergence_Coefficient;
-                end
+            if coeff < 1
+                warning(['Requested FOV is narrower than diffraction limit. ', ...
+                         'Reverting to diffraction limit']);
+                obj.far_field_divergence_coefficient = 1;
+            else
+                obj.far_field_divergence_coefficient = coeff;
+            end
         end
 
-        function Telescope=SetDiameter(Telescope,Diameter)
-            %%SETWAVELENGTH set the diameter (in m) of the transmitter
-            Telescope.Diameter=Diameter;
+        function obj = setDiameter(obj, diameter)
+            % setDiameter
+            %
+            % Set the diameter (m) of the transmitter aperture.
+            obj.diameter = diameter;
         end
 
-        function Telescope=SetPointingJitter(Telescope,Pointing_Jitter)
-            %%SETPOINTINGJITTER set pointing jitter of the OGS
-            Telescope.Pointing_Jitter=Pointing_Jitter;
+        function obj = setPointingJitter(obj, pointing_jitter)
+            % setPointingJitter
+            %
+            % Set the RMS pointing jitter (rad) of the OGS.
+            obj.pointing_jitter = pointing_jitter;
         end
 
-        function Telescope = SetFOV(Telescope, FOV)
-            %%SETFOV set the FOV of a telescope by updating the far field
-            %%divergence coefficient to suit
+        function obj = setFOV(obj, fov)
+            % setFOV
+            %
+            % Set the telescope FOV (rad) indirectly by updating the
+            % far-field divergence coefficient.
 
-            if isempty(Telescope.Wavelength)
+            if isempty(obj.wavelength)
                 error('cannot set FOV without first setting wavelength')
             end
 
-            Telescope = SetFarFieldDivergenceCoefficient(Telescope,FOV,Telescope.Wavelength,Telescope.Diameter);
-
+            obj = obj.setFarFieldDivergenceCoefficient( ...
+                fov, obj.wavelength, obj.diameter);
         end
 
-        function Area = get.Collecting_Area(Telescope)
-            %%COLLECTINGAREA return the total collecting area of the telescope in
-            %%m^2
-
-            Area = (pi/4)*Telescope.Diameter^2;
+        function area = get.collecting_area(obj)
+            % collecting_area (getter)
+            %
+            % Return the total collecting area of the telescope (m^2).
+            area = (pi / 4) * obj.diameter^2;
         end
 
-        function FOV = get.FOV(Telescope)
-            %%FOV return the FOV of the telescope in radians, computed by
-            %%scaling the divergence limited FOV
-
-            %compute the diffraction-limited FOV at a particular wavelength
-            %with a modification
-            %see
-            % Chunmei Zhang, Alfonso Tello, Ugo Zanforlin, Gerald S. Buller,
-            % and Ross J. Donaldson "Link loss analysis for a satellite quantum
-            % communication down-link", Proc. SPIE 11540, Emerging Imaging and
-            % Sensing Technologies for Security and Defence V; and Advanced
-            % Manufacturing Technologies for Micro- and Nanosystems in Security
-            % and Defence III, 1154007 (20 September 2020);
-            % https://doi.org/10.1117/12.2573489
-            FOV = 2.44 ...
-                * Telescope.Far_Field_Divergence_Coefficient ...
-                *( Telescope.Wavelength * 10^-9 ) ...
-                / Telescope.Diameter;
+        function fov = get.fov(obj)
+            % fov (getter)
+            %
+            % Return the FOV (rad), scaling the diffraction-limited FOV by
+            % the far-field divergence coefficient.
+            %
+            % Reference:
+            % Zhang et al., "Link loss analysis for a satellite quantum
+            % communication down-link", Proc. SPIE 11540 (2020).
+            fov = 2.44 ...
+                * obj.far_field_divergence_coefficient ...
+                * (obj.wavelength * 1e-9) ...
+                / obj.diameter;
         end
     end
 end

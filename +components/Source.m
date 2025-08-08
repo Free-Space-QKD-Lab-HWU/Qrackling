@@ -1,56 +1,66 @@
 classdef Source
-    %Source object containing transmitter details
+    % Source
+    %
+    % Transmitter source model containing key parameters for a QKD system.
+    % Stores wavelength, repetition rate, state probabilities, and losses.
+    %
+    % Syntax:
+    %   src = components.Source(wavelength, options)
+    %
+    % Additional options and defaults are given in the constructor.
 
-    properties(SetAccess = protected)
-        %wavelength of the source (in nm),  set by the satellite it is mounted to
-        Wavelength{mustBeScalarOrEmpty, mustBePositive};
-        Units units.Magnitude
+    properties (SetAccess = protected)
+        % Wavelength of the source (nm), set by the mounting platform.
+        wavelength {mustBeScalarOrEmpty, mustBePositive}
 
-        %number of photon pulses per s (Hz)
-        Repetition_Rate{mustBeScalarOrEmpty, mustBeNonnegative} = 10^9;
+        % Wavelength units (e.g., 'nano' for nm).
+        units units.Magnitude
 
-        %transmitter power efficiency
-        Efficiency{mustBeScalarOrEmpty, mustBePositive} = 1;
+        % Number of photon pulses per second (Hz).
+        repetition_rate {mustBeScalarOrEmpty, mustBeNonnegative} = 1e9
 
-        %average number of photons per pulse
-        MPN_Signal {mustBeNumeric, mustBeNonnegative} = 0.01
-        MPN_Vacuum {mustBeNumeric, mustBeNonnegative} = 0
-        MPN_Decoy {mustBeNumeric, mustBeNonnegative} % optional
+        % Transmitter power efficiency (fraction).
+        efficiency {mustBeScalarOrEmpty, mustBePositive} = 1
 
-        %convolution of errors due to state preparation (as a fraction)
-        % Error when encoding polariation, i.e. accidentally encoding 'H'
-        % when trying to encode 'V'
-        State_Prep_Error{mustBeScalarOrEmpty, mustBeNonnegative} = 0.01;
+        % Average photons per pulse for signal, vacuum, decoy.
+        mpn_signal {mustBeNumeric, mustBeNonnegative} = 0.01
+        mpn_vacuum {mustBeNumeric, mustBeNonnegative} = 0
+        mpn_decoy  {mustBeNumeric, mustBeNonnegative} % optional
 
-        %normalised autocorrelation of emitted photon at zero delay
-        g2{mustBeScalarOrEmpty, mustBeNonnegative} = 0.01;
+        % State preparation error fraction.
+        state_prep_error {mustBeScalarOrEmpty, mustBeNonnegative} = 0.01
 
-        %probability of emitting the different states used (for decoyBB84 and COW)
-        Probability_Signal { ...
-                    mustBeNumeric, ...
-                    mustBeNonnegative, ...
-                    mustBeLessThanOrEqual(Probability_Signal, 1)}
-        Probability_Vacuum { ...
-                    mustBeNumeric, ...
-                    mustBeNonnegative, ...
-                    mustBeLessThanOrEqual(Probability_Vacuum, 1)}
-        Probability_Decoy { ...
-                    mustBeNumeric, ...
-                    mustBeNonnegative, ...
-                    mustBeLessThanOrEqual(Probability_Decoy, 1)}
+        % Normalised autocorrelation at zero delay (g2).
+        g2 {mustBeScalarOrEmpty, mustBeNonnegative} = 0.01
 
-        %the loss between the source and a local receiver used for
-        %entanglement-based protocols
-        Local_Loss {mustBeInRange(Local_Loss,0,1)} = 1;
+        % Probabilities of emitting different states.
+        probability_signal {mustBeNumeric, mustBeNonnegative, ...
+            mustBeLessThanOrEqual(probability_signal, 1)}
+        probability_vacuum {mustBeNumeric, mustBeNonnegative, ...
+            mustBeLessThanOrEqual(probability_vacuum, 1)}
+        probability_decoy {mustBeNumeric, mustBeNonnegative, ...
+            mustBeLessThanOrEqual(probability_decoy, 1)}
+
+        % Loss between source and local receiver for entanglement protocols.
+        local_loss {mustBeInRange(local_loss, 0, 1)} = 1
     end
 
     methods
-        % function obj  =  Source(Wavelength, varargin)
-        %     %%SOURCE construct a source object
+        function obj = Source(wavelength, options)
+            % Source constructor.
+            %
+            % Syntax:
+            %   obj = Source(wavelength, options)
+            %
+            % Inputs:
+            %   wavelength - (1,1) double, wavelength in given units
+            %   options    - name-value arguments for other parameters
+            %
+            % Outputs:
+            %   obj        - Source object
 
-        function obj = Source(Wavelength, options)
             arguments
-                Wavelength
+                wavelength
                 options.Wavelength_Scale units.Magnitude = "nano"
                 options.Repetition_Rate = 1e9
                 options.Efficiency = 1
@@ -58,130 +68,177 @@ classdef Source
                 options.MPN_Decoy
                 options.State_Prep_Error = 0.01
                 options.g2 = 0.01
-                options.Probability_Signal { ...
-                    mustBeNumeric, ...
+                options.Probability_Signal {mustBeNumeric, ...
                     mustBeNonnegative, ...
                     mustBeLessThanOrEqual(options.Probability_Signal, 1)} = 1
-                options.Probability_Decoy { ...
-                    mustBeNumeric, ...
+                options.Probability_Decoy {mustBeNumeric, ...
                     mustBeNonnegative, ...
                     mustBeLessThanOrEqual(options.Probability_Decoy, 1)}
-                options.Local_Loss  {mustBeInRange(options.Local_Loss,0,1)} = 1;
+                options.Local_Loss {mustBeInRange(options.Local_Loss, 0, 1)} = 1
             end
 
             for option = fieldnames(options)'
                 opt = option{1};
                 switch opt
                     case 'Wavelength_Scale'
-                        obj = obj.SetWavelength(Wavelength, ...
+                        obj = obj.setWavelength(wavelength, ...
                             "Wavelength_Scale", options.Wavelength_Scale);
                     case 'Repetition_Rate'
-                        obj = obj.SetRepetitionRate(options.Repetition_Rate);
+                        obj = obj.setRepetitionRate(options.Repetition_Rate);
                     otherwise
-                        obj.(opt) = options.(opt);
+                        obj.(matlab.lang.makeValidName(lower(opt))) = ...
+                            options.(opt);
                 end
             end
-
-            obj = obj.UpdateVacuumProbability();
-
         end
 
-        function Source = UpdateVacuumProbability(Source)
+        function obj = updateVacuumProbability(obj)
+            % updateVacuumProbability
+            %
+            % Calculate and set the vacuum state probability based on the
+            % configured signal and (optionally) decoy state probabilities.
+            % If the decoy probability is not set, vacuum is simply
+            % 1 − probability_signal.
+
             arguments
-                Source
+                obj
             end
 
-            if isempty(Source.Probability_Decoy)
-                Source.Probability_Vacuum = 1 - Source.Probability_Signal;
+            if isempty(obj.probability_decoy)
+                obj.probability_vacuum = 1 - obj.probability_signal;
                 return
             end
 
-
-            total_probability = Source.Probability_Signal + Source.Probability_Decoy;
+            total_probability = obj.probability_signal + obj.probability_decoy;
 
             msg = [sprintf( ...
-                '\nSum of state probabilities exceeds 1:\n\tSignal = %s\n\tVacuum = % s\n\tDecoy = %s\n\t', ...
-                Source.Probability_Signal, ...
+                '\nSum of state probabilities exceeds 1:\n\tSignal = %s\n\t' + ...
+                'Vacuum = %s\n\tDecoy = %s\n\t', ...
+                obj.probability_signal, ...
                 1 - total_probability, ...
-                Source.Probability_Decoy), ...
+                obj.probability_decoy), ...
                 'This has resulted in negative vacuum probability'];
 
             if total_probability > 1
-                error(msg)
+                error(msg);
             end
-            Source.Probability_Vacuum = 1 - total_probability;
+
+            obj.probability_vacuum = 1 - total_probability;
         end
 
-        function Source = SetWavelength(Source, Wavelength, options)
+
+        function obj = setWavelength(obj, wavelength, options)
+            % setWavelength
+            %
+            % Set the wavelength (nm) of the source.
+            %
+            % Syntax:
+            %   obj = setWavelength(obj, wavelength, options)
+            %
+            % Inputs:
+            %   wavelength - (1,1) double, wavelength to set
+            %   options    - struct with field Wavelength_Scale
+            %
+            % Outputs:
+            %   obj        - updated Source object
+
             arguments
-                Source
-                Wavelength
+                obj
+                wavelength
                 options.Wavelength_Scale units.Magnitude = "nano"
             end
-            %%SETWAVELENGTH set the wavelength (nm) of the source
-            Source.Wavelength = units.Magnitude.Convert( ...
-                options.Wavelength_Scale, "nano", Wavelength);
-            Source.Units = options.Wavelength_Scale;
+
+            obj.wavelength = units.Magnitude.Convert( ...
+                options.Wavelength_Scale, "nano", wavelength);
+            obj.units = options.Wavelength_Scale;
         end
 
-        function Source = SetRepetitionRate(Source, Repetition_Rate)
-            %%SETREPETITIONRATE set the repetition rate (Hz) of the source
-            Source.Repetition_Rate = Repetition_Rate;
+
+        function obj = setRepetitionRate(obj, repetition_rate)
+            % setRepetitionRate
+            %
+            % Set the repetition rate (Hz) of the source.
+
+            obj.repetition_rate = repetition_rate;
         end
 
-        function Source = SetEfficiency(Source, Efficiency)
-            %%SETEFICIENCY set the source efficiency
-            Source.Efficiency = Efficiency;
+
+        function obj = setEfficiency(obj, efficiency)
+            % setEfficiency
+            %
+            % Set the transmitter/source efficiency (fraction).
+
+            obj.efficiency = efficiency;
         end
 
-        function Source = SetMeanPhotonNumber(Source, State, Mean_Photon_Number)
+
+        function obj = setMeanPhotonNumber(obj, state, mean_photon_number)
+            % setMeanPhotonNumber
+            %
+            % Set the mean photon number for the given state.
+            %
+            % Inputs:
+            %   state              - 'Signal' or 'Decoy'
+            %   mean_photon_number - nonnegative double
+
             arguments
-                Source
-                State {mustBeMember(State, {"Signal", "Decoy"})}
-                Mean_Photon_Number {mustBeNumeric, mustBeNonnegative}
+                obj
+                state {mustBeMember(state, {"Signal", "Decoy"})}
+                mean_photon_number {mustBeNumeric, mustBeNonnegative}
             end
-            %%SETMEANPHOTONNUMBER set the mean photon number(s) of the
-            %%source
-            switch State
-            case "Signal"
-                Source.MPN_Signal = Mean_Photon_Number;
-            case "Decoy"
-                Source.MPN_Decoy = Mean_Photon_Number;
+
+            switch state
+                case "Signal"
+                    obj.mpn_signal = mean_photon_number;
+                case "Decoy"
+                    obj.mpn_decoy = mean_photon_number;
             end
         end
 
-        function Source = SetStateProbabilities(Source, State, Probability)
+
+        function obj = setStateProbabilities(obj, state, probability)
+            % setStateProbabilities
+            %
+            % Set the probability of a given state and update the vacuum
+            % probability accordingly.
+            %
+            % Inputs:
+            %   state       - 'Signal' or 'Decoy'
+            %   probability - (1,1) double in [0,1]
+
             arguments
-                Source
-                State {mustBeMember(State, {"Signal", "Decoy"})}
-                Probability { ...
-                    mustBeNumeric, ...
-                    mustBeNonnegative, ...
-                    mustBeLessThanOrEqual(Probability, 1)}
-            end
-            %%SETSTATEPROBABILITIES set the probabilities of states for the
-            %%source
-            %Source.State_Probabilities = State_Probabilities;
-            switch State
-            case "Signal"
-                Source.Probability_Signal = Probability;
-            case "Decoy"
-                Source.Probability_Decoy = Probability
+                obj
+                state {mustBeMember(state, {"Signal", "Decoy"})}
+                probability {mustBeNumeric, mustBeNonnegative, ...
+                    mustBeLessThanOrEqual(probability, 1)}
             end
 
-            Source = Source.UpdateVacuumProbability();
+            switch state
+                case "Signal"
+                    obj.probability_signal = probability;
+                case "Decoy"
+                    obj.probability_decoy = probability;
+            end
+
+            obj = obj.updateVacuumProbability();
         end
 
-        function Source = Setg2(Source, g2)
-            %%SETG2 set the g2 value of the source
-            Source.g2 = g2;
+
+        function obj = setg2(obj, g2_value)
+            % setg2
+            %
+            % Set the g2 value for the source.
+
+            obj.g2 = g2_value;
         end
 
-        function Source = SetStatePrepError(Source, State_Prep_Error)
-            %%SETSTATEPREPERROR set the probability of a quantum state
-            %%being prepared incorrectly
-            Source.State_Prep_Error = State_Prep_Error;
-        end
 
+        function obj = setStatePrepError(obj, state_prep_error)
+            % setStatePrepError
+            %
+            % Set the probability of preparing a quantum state incorrectly.
+
+            obj.state_prep_error = state_prep_error;
+        end
     end
 end

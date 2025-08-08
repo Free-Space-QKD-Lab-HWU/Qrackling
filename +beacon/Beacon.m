@@ -11,7 +11,7 @@ classdef(Abstract) Beacon
 
     properties
         % optical power sent by the beacon in W.
-        power(1,1) double {mustBeNonnegative}
+        power (1,1) double {mustBeNonnegative}
 
         % Wavelength of the optical signal in nm.
         wavelength (1,1) double {mustBeNonnegative}
@@ -99,18 +99,18 @@ classdef(Abstract) Beacon
         % geoSpotDiameter (shape same as range) 1-$\sigma$ diameter of
         % geometrically spread spot in m 
         % 
-        % geoLoss is a unitless ratio, geoSpotDiameter is the spot diameter
+        % GeoLoss is a unitless ratio, geoSpotDiameter is the spot diameter
         % at the receiver in m.
         % 
-        % must take at least vector angle input and produce the same shaped
-        % output of intensity values
+        % Must take at least vector angle input and produce the same shaped
+        % output of intensity values.
     end
 
     methods
         function pointing_jitter =  get.pointing_jitter(Beacon)
         % get.pointing_jitter
         % 
-        % return the pointing jitter of the contained telescope
+        % Return the pointing jitter of the contained telescope.
         %
         % Syntax:
         % pointing_jitter =  get.pointing_jitter(Beacon)
@@ -126,7 +126,7 @@ classdef(Abstract) Beacon
         function total_efficiency = get.total_efficiency(Beacon)
         % get.total_efficiency
         % 
-        % return the end-to-end power efficiency of the beacon
+        % Return the end-to-end power efficiency of the beacon.
         %
         % Syntax:
         % total_efficiency = get.total_efficiency(Beacon)
