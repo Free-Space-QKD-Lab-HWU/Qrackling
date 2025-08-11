@@ -1,42 +1,57 @@
-function shadowed = InEarthsShadow(A, B)
+function shadowed = inEarthsShadow(A, B)
+% inEarthsShadow
+%
+% Determine whether the line-of-sight between two located objects passes
+% through the Earth.
+%
+% Syntax:
+% shadowed = inEarthsShadow(A, B)
+%
+% Inputs:
+% A - nodes.Located_Object (e.g., satellite or ground station)
+% B - nodes.Located_Object
+%
+% Output:
+% shadowed - logical array indicating whether the path is obstructed by Earth
+
     arguments
         A nodes.Located_Object
         B nodes.Located_Object
     end
 
-    %% get the two XYZ positions of the two objects
-    [X1, Y1, Z1] = GetXYZ(A);
-    Pos_A = [X1, Y1, Z1];
-    [X2, Y2, Z2] = GetXYZ(B);
-    Pos_B = [X2, Y2, Z2];
 
-    %% determine the minimum radius from earth's centre of the line between these two
-    Dot_product = sum(Pos_A .* Pos_B, 2);
-    Lambda_min = (utilities.Row2Norms(Pos_A).^2 - Dot_product) ...
-        ./ (utilities.Row2Norms(Pos_A).^2 + utilities.Row2Norms(Pos_B).^2 - 2 .* Dot_product);
+    %% Get XYZ positions of both objects
+    [x1, y1, z1] = getXyz(A);
+    pos_a = [x1, y1, z1];
 
-    Pos_min = Pos_A .* (1 - Lambda_min) + Pos_B .* Lambda_min;
-    %check lambda for not being inside bounds
-    %if Lambda_min is <0 this indicates the the first position
-    %is the lowest radius
-    %Pos_A may be an array or a vector
-    if isvector(Pos_A)
-        Pos_min(Lambda_min < 0, :) = ones(sum(Lambda_min < 0), 1) * Pos_A;
+    [x2, y2, z2] = getXyz(B);
+    pos_b = [x2, y2, z2];
+
+
+    %% Compute minimum radius from Earth's center along the line AB
+    dot_product = sum(pos_a .* pos_b, 2);
+
+    lambda_min = (utilities.Row2Norms(pos_a).^2 - dot_product) ...
+        ./ (utilities.Row2Norms(pos_a).^2 + utilities.Row2Norms(pos_b).^2 - 2 .* dot_product);
+
+    pos_min = pos_a .* (1 - lambda_min) + pos_b .* lambda_min;
+
+
+    %% Clamp lambda to endpoints if outside [0, 1]
+    if isvector(pos_a)
+        pos_min(lambda_min < 0, :) = ones(sum(lambda_min < 0), 1) * pos_a;
     else
-        Pos_min(Lambda_min < 0, :) = Pos_A(Lambda_min < 0, :);
+        pos_min(lambda_min < 0, :) = pos_a(lambda_min < 0, :);
     end
 
-    %if lambda_min>1 this indicates that the 2nd position 9is
-    %the lowest radius
-    if isvector(Pos_B)
-        Pos_min(Lambda_min > 1, :) = ones(sum(Lambda_min > 1), 1) * Pos_B;
+    if isvector(pos_b)
+        pos_min(lambda_min > 1, :) = ones(sum(lambda_min > 1), 1) * pos_b;
     else
-        Pos_min(Lambda_min > 1, :) = Pos_B(Lambda_min > 1, :);
+        pos_min(lambda_min > 1, :) = pos_b(lambda_min > 1, :);
     end
 
-    %produce a located_object at this minimum point by converting
-    %to spherical coords and then geographic coords
-    R_min = utilities.Row2Norms(Pos_min);
 
-    shadowed = R_min < A.Earth_Radius;
+    %% Determine whether minimum point is inside Earth's radius
+    r_min = vecnorm(pos_min,2,2);
+    shadowed = r_min < A.earth_radius;
 end

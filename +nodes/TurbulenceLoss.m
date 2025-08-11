@@ -1,80 +1,98 @@
-function [turbulence_loss,turbulent_beam_width,r0] = TurbulenceLoss(kind, receiver, transmitter, direction, options)
+function [turbulence_loss, turbulent_beam_width, r0] = turbulenceLoss( ...
+        kind, receiver, transmitter, direction, options)
+% turbulenceLoss
+%
+% Computes the turbulence-induced loss for a free-space optical link.
+% Applies beam spreading models based on elevation, wavelength, and
+% atmospheric turbulence profiles.
+%
+% Syntax:
+% [turbulence_loss, turbulent_beam_width, r0] = ...
+%     turbulenceLoss(kind, receiver, transmitter, direction, options)
+%
+% Inputs:
+% kind        - (1,1) string, either "beacon" or "qkd"
+% receiver    - (1,1) nodes.Located_Object, receiving node
+% transmitter - (1,1) nodes.Located_Object, transmitting node
+% direction   - (1,1) nodes.LinkDirection, link direction
+% options     - struct with optional field:
+%   .SpotSize - (1,N) double, geometric spot size (optional)
+%
+% Outputs:
+% turbulence_loss      - (1,N) units.Loss, loss due to turbulence
+% turbulent_beam_width - (1,N) double, beam width after turbulence
+% r0                   - (1,N) double, Fried parameter
+
     arguments
         kind {mustBeMember(kind, ["beacon", "qkd"])}
-        receiver (1,1) {utilities.mustBeSubclassOf(receiver,'nodes.Located_Object')}
-        transmitter (1,1) {utilities.mustBeSubclassOf(transmitter,'nodes.Located_Object')}
+        receiver (1,1) {utilities.mustBeSubclassOf(receiver, 'nodes.Located_Object')}
+        transmitter (1,1) {utilities.mustBeSubclassOf(transmitter, 'nodes.Located_Object')}
         direction (1,1) nodes.LinkDirection
         options.SpotSize = []
     end
 
-    % wavelength must come from a source, this will be in nm
-    % wavelength = units.Magnitude.Convert("nano", "none", transmitter.source.Wavelength);
+    %% Determine wavelength
     switch kind
-    case "beacon"
-        if isempty(transmitter.Beacon)
-            error(['Transmitter.Beacon of ', inputname(1), ' must not be empty'])
-        end
+        case "beacon"
+            if isempty(transmitter.Beacon)
+                error('Transmitter.Beacon must not be empty')
+            end
+            if isempty(receiver.Camera)
+                error('Receiver.Camera must not be empty')
+            end
+            wavelength = transmitter.Beacon.Wavelength;
 
-        if isempty(receiver.Camera)
-            error(['Receiver.Camera of ', inputname(2), ' must not be empty'])
-        end
-
-        wavelength = transmitter.Beacon.Wavelength;
-    case "qkd"
-        wavelength = transmitter.Source.Wavelength;
+        case "qkd"
+            wavelength = transmitter.Source.Wavelength;
     end
 
+    %% Compute link geometry
+    [~, elevation, link_length] = RelativeHeadingAndElevation(transmitter, receiver);
 
-    %% compute link geometry
-    [~, elevation, length] = RelativeHeadingAndElevation(transmitter,receiver);
-
-    %also need to work out start and end altitudes
+    %% Determine altitude bounds and turbulence model
     switch direction
-        case "Downlink"
-            BottomHeight = receiver.Altitude;
-            TopHeight = transmitter.Altitude;
+        case nodes.LinkDirection.Downlink
+            bottom_height = receiver.Altitude;
+            top_height = transmitter.Altitude;
             turbulence_model = receiver.Environment.turbulence_model;
-        case "Uplink"
-            TopHeight = receiver.Altitude;
-            BottomHeight = transmitter.Altitude;
+
+        case nodes.LinkDirection.Uplink
+            bottom_height = transmitter.Altitude;
+            top_height = receiver.Altitude;
             turbulence_model = transmitter.Environment.turbulence_model;
-            %if this is an uplink, elevation will be negative, but for turbulence
-            %calculations we want positive elevation
-            elevation = elevation+180;
+
+            % Elevation must be positive for turbulence calculations
+            elevation = elevation + 180;
     end
 
-    %% compute what times need calculating for
-    %we only need to calculate turbulence loss for links which have line of
-    %sight, i.e have elevation>0
+    %% Identify valid time steps
     elevation_flags = elevation > 0;
 
-
-    %% calculate turbulence beam spreading
-
-    %first, we need the initial spot size of the link, before turbulence
-    %effects
+    %% Determine geometric spot size
     geometric_spot_size = options.SpotSize;
-    if isempty(options.SpotSize)
-        [~,geometric_spot_size] = nodes.GeometricLoss(kind,receiver,transmitter,"LinkLength",length(elevation_flags));
-    elseif isequal(size(geometric_spot_size),size(length))
-        %might also need to cut geometric_spot_size down to correct length
+
+    if isempty(geometric_spot_size)
+        [~, geometric_spot_size] = nodes.geometricLoss( ...
+            kind, receiver, transmitter, "LinkLength", link_length(elevation_flags));
+    elseif isequal(size(geometric_spot_size), size(link_length))
         geometric_spot_size = geometric_spot_size(elevation_flags);
     end
 
-    %then we can calculate the beam width after turbulence
-    [turbulent_beam_width,r0] = BeamSpread(turbulence_model,...
-                direction,...
-                wavelength,...
-                elevation(elevation_flags),...
-                length(elevation_flags),...
-                geometric_spot_size,...
-                'BottomHeight',BottomHeight,...
-                'TopHeight',TopHeight);
+    %% Compute beam spreading due to turbulence
+    [turbulent_beam_width, r0] = BeamSpread( ...
+        turbulence_model, ...
+        direction, ...
+        wavelength, ...
+        elevation(elevation_flags), ...
+        link_length(elevation_flags), ...
+        geometric_spot_size, ...
+        'BottomHeight', bottom_height, ...
+        'TopHeight', top_height);
 
+    %% Compute turbulence loss
+    turbulence_loss = zeros(size(elevation_flags));
+    turbulence_loss(elevation_flags) = ...
+        (geometric_spot_size ./ turbulent_beam_width).^2;
 
-     %% calculate loss using turbulent beam width
-     turbulence_loss = zeros(size(elevation_flags));
-     turbulence_loss(elevation_flags) = (geometric_spot_size ./ turbulent_beam_width).^2;
-     %convert to loss object
-     turbulence_loss = units.Loss(turbulence_loss);
+    turbulence_loss = units.Loss(turbulence_loss);
 end

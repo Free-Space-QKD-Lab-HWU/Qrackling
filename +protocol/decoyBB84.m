@@ -1,149 +1,186 @@
-classdef decoyBB84 < protocol.proto
+classdef DecoyBB84 < protocol.Proto
+
+    % DecoyBB84
+    %
+    % Implements the BB84 quantum key distribution protocol with decoy states.
+    % Based on realistic device modeling and multiphoton detection analysis.
+    %
+    % Syntax:
+    % Output = protocol.DecoyBB84(Input1, Input2, …)
+
     properties (SetAccess = protected)
-        method = 'prepare_and_measure'
-        source_features = protocol.sourceRequirements.features( ...
+        method = 'prepare_and_measure';
+        source_features = protocol.SourceRequirements.features( ...
             "MPN_Signal", "Probability_Signal", ...
-            "MPN_Decoy",  "Probability_Decoy",  ...
-            "State_Prep_Error")
-        detector_features = protocol.detectorRequirements.features("Dark_Count_Rate", "Time_Gate_Width", "Dead_Time")
-        efficiency = 0.5,
+            "MPN_Decoy", "Probability_Decoy", ...
+            "State_Prep_Error");
+        detector_features = protocol.DetectorRequirements.features( ...
+            "Dark_Count_Rate", "Time_Gate_Width", "Dead_Time");
+        efficiency = 0.5;
         num_detectors = 4;
         name = 'Decoy BB84';
-        
+
         num_transmitters = 1;
         num_receivers = 1;
     end
 
     methods
-        function protocol = decoyBB84()
+
+        function protocol = DecoyBB84()
+            % DecoyBB84
+            %
+            % Constructor for the DecoyBB84 protocol class.
+            %
+            % Syntax:
+            % protocol = protocol.DecoyBB84()
+
+            % No initialization required
         end
 
-        function [SKR_decoyBB84, Sifted_Key_Rate, QBER] = QkdModel(proto, ...
-            alice, bob, total_loss, total_background_count_rate)
+        function [skr_decoy_bb84, sifted_key_rate, qber] = qkdModel(proto, ...
+                alice, bob, total_loss, total_background_count_rate)
+            % qkdModel
+            %
+            % Computes the secure key rate, sifted key rate, and QBER for the
+            % BB84 protocol with decoy states.
+            %
+            % Syntax:
+            % [skr_decoy_bb84, sifted_key_rate, qber] = protocol.DecoyBB84.qkdModel(...)
+            %
+            % Inputs:
+            % proto - (1x1) DecoyBB84 object
+            % alice - (1x1) node with source
+            % bob - (1x1) node with detector
+            % total_loss - (1xN) numeric, total channel loss
+            % total_background_count_rate - (1xN) numeric, external noise rate
+            %
+            % Outputs:
+            % skr_decoy_bb84 - (1xN) numeric, secure key rate
+            % sifted_key_rate - (1xN) numeric, sifted key rate
+            % qber - (1xN) numeric, quantum bit error rate
 
-        %% Function -- BB84Decoy_model
-        % Author    -- Alfonso Tello Castillo
-        % Date      -- July 2020
-        % Function to compute sifted key rate and QBER of the BB84 decoy state protocol
-        % -------------------------------------------------------------------
-        %
-        % BB84Decoy_model(MPN, State_p, state_prep_error, rep_rate,...
-        %   det_eff, prob_dark_counts, loss, prot_eff, qber_jitter, dead_time)
-        %
-        % ########################################
-        % INPUTS:
-        % 
-        % MPN = mean photon number per state (must be row vector)
-        % State_p = probability of each state (must be row vector)
-        % state_prep_error = convolution of errors due to state preparation (as a fraction)
-        % rep_rate = Repetition rate [Hz]
-        % det_eff = Detection efficiency of receivers' detectors
-        % prob_dark_counts = Probability of dark counts of receivers' detetcors
-        % loss = Transmission loss [dB]
-        % prot_eff = Protocol efficiency
-        % qber_jitter = QBER contribution due to detectors' timing jitters
-        % dead_time = Dead time of the detector
-        % 
-        % OUTPUTS:
-        % 
-        % SKR_decoyBB84 = secure key rate [bit/s]
-        % qber = QBER of the transmission system [%]
-        % ########################################
-        % From thesis "(2005) Xiongfeng Ma - Security of Quantum Key Distribution with 
-        % Realistic Devices", although these equations are fairly known
-
+            % Get repetition rate and state preparation error
             rep_rate = alice.Source.Repetition_Rate;
             state_prep_error = alice.Source.State_Prep_Error;
 
-            %loss = bob.channel_efficiency;
+            % Total transmission loss
             loss = total_loss;
-            prob_dark_counts = proto.BackgroundCountProbability( ...
-                total_background_count_rate, ...
-                bob.Detector.Time_Gate_Width);
 
-            %% get variables from Detector object
-            QBER_jitter = bob.Detector.QBER_Jitter;
-            %QBER due to polarisation misalignment (in degrees)
-            QBER_polarisation_error = sind(bob.Detector.Polarisation_Error);
+            % Estimate probability of dark counts
+            prob_dark_counts = proto.backgroundCountProbability( ...
+                total_background_count_rate, bob.Detector.Time_Gate_Width);
 
-            %Detection_Probability = (MPN .* State_p)' * loss + prob_dark_counts;
+            % QBER contributions from detector jitter and polarisation misalignment
+            qber_jitter = bob.Detector.QBER_Jitter;
+            qber_polarisation_error = sind(bob.Detector.Polarisation_Error);
+
+            % Extract mean photon numbers and state probabilities
             mpn = [alice.Source.MPN_Signal, alice.Source.MPN_Decoy, alice.Source.MPN_Vacuum];
             state_probability = [ ...
                 alice.Source.Probability_Signal, ...
                 alice.Source.Probability_Decoy, ...
                 alice.Source.Probability_Vacuum];
 
+            % Calculate expected emission per state
             emission = mpn .* state_probability;
+
+            % Detection probability per state (signal, decoy, vacuum)
             detection_probabilities = (emission' .* loss) + prob_dark_counts;
 
-            QBER_cod = state_prep_error;
-            QBER_noise = 0.5 * prob_dark_counts ./ detection_probabilities;
-            %QBER_jitter = qber_jitter;
-            %bob.Detector = SetJitterPerformance(bob.Detector, sum(pD) * rep_rate);
+            % QBER contributions
+            qber_cod = state_prep_error;
+            qber_noise = 0.5 * prob_dark_counts ./ detection_probabilities;
 
-            % To avoid that due to QBER_cod and QBER_jitter (fixed) the QBER
-            % can go higher than 50%, which doesn't make sense
-            QBER = min(...
-                QBER_cod + QBER_noise + QBER_jitter + QBER_polarisation_error, ...
+            % Total QBER, capped at 0.5
+            qber = min( ...
+                qber_cod + qber_noise + qber_jitter + qber_polarisation_error, ...
                 0.5);
 
-            % Estimation of the Secret Key Rate
+            % Estimate multiphoton contribution for decoy state
             pM_weak = photonDetc(emission(2), 2, loss, prob_dark_counts)';
-            pS_weak = detection_probabilities(2,:) - pM_weak - prob_dark_counts * exp(-emission(2));
 
-            QBERs = (QBER(2,:) .* detection_probabilities(2,:) ...
+            % Estimate single-photon contribution for decoy state
+            pS_weak = detection_probabilities(2,:) - pM_weak - ...
+                prob_dark_counts * exp(-emission(2));
+
+            % QBER for single-photon decoy state
+            qber_s = (qber(2,:) .* detection_probabilities(2,:) ...
                 - 0.5 * prob_dark_counts * exp(-emission(2))) ./ pS_weak;
 
+            % Estimate single-photon contribution for signal state
             pS_signal = photonDetc(emission(1), 1, loss, prob_dark_counts);
 
+            % Error correction efficiency
             f = 1.2;
 
-            %% this is the key generation rate
-            Ideal_Secret_Key_Rate = proto.efficiency * ( -detection_probabilities(1,:) * f .* H(QBER(1,:) ) + pS_signal .* ( 1 - H(QBERs) ) );
+            % Final secure key rate (Ma et al. 2005)
+            ideal_secret_key_rate = proto.efficiency * ( ...
+                -detection_probabilities(1,:) * f .* H(qber(1,:)) + ...
+                pS_signal .* (1 - H(qber_s)) );
 
-            Sifted_Key_Rate = pS_signal * proto.efficiency * rep_rate;
+            % Sifted key rate
+            sifted_key_rate = pS_signal * proto.efficiency * rep_rate;
 
-            %SKR_decoyBB84 = min(R_sifted, 1/dead_time);
-            %disp([num2str(R), ' ', num2str(SKR_decoyBB84), ' ', num2str(test)]);
-            %SKR_decoyBB84 = R_sifted;
+            % Apply dead time constraint
+            skr_decoy_bb84 = min(rep_rate * ideal_secret_key_rate, 1 / bob.Detector.Dead_Time);
 
-            SKR_decoyBB84 = min(rep_rate * Ideal_Secret_Key_Rate, 1 / bob.Detector.Dead_Time);
-            %SKR_decoyBB84 = R;
-            %disp(SKR_decoyBB84);
-            %SKR_decoyBB84(isnan(R_sifted)) = NaN;
-            SKR_decoyBB84(isnan(SKR_decoyBB84)) = NaN;
-            %% modification cjs
-            %do not allow negative SKR
-            SKR_decoyBB84(SKR_decoyBB84<0)=0;
+            % Ensure SKR is non-negative and defined
+            skr_decoy_bb84(isnan(skr_decoy_bb84)) = NaN;
+            skr_decoy_bb84(skr_decoy_bb84 < 0) = 0;
 
-            %% modification cjs
-            %SKR cannot be negative. negative results should be replaced by
-            %zero
-            %SKR_decoyBB84(SKR_decoyBB84 < 0)=0;
-            %disp(sum(SKR_decoyBB84));
-            %output only signal state QBER
-            QBER=QBER(1,:);
-
+            % Output only signal state QBER
+            qber = qber(1,:);
         end
 
     end
+
 end
 
-function [prob] = photonDetc(mu, n, t, p_dark)
-    % if n == 1, probability of single photon detection
+function prob = photonDetc(mu, n, t, p_dark)
+    % photonDetc
+    %
+    % Computes the probability of photon detection for single or multiphoton states.
+    %
+    % Syntax:
+    % prob = photonDetc(mu, n, t, p_dark)
+    %
+    % Inputs:
+    % mu - (1x1) numeric, mean photon number
+    % n - (scalar or vector) photon count
+    % t - (1xN) numeric, transmission
+    % p_dark - (1xN) numeric, dark count probability
+    %
+    % Outputs:
+    % prob - (1xN) numeric, detection probability
+
     if n == 1
-        prob = (1 - (1-t).^n)*(mu^n)/factorial(n)*exp(-mu) + p_dark*mu*exp(-mu);
-    % if n > 1, probability of multiphoton detection
+        % Single-photon detection probability
+        prob = (1 - (1 - t).^n) * (mu^n) / factorial(n) * exp(-mu) + ...
+               p_dark * mu * exp(-mu);
     else
+        % Multiphoton detection probability (n = 2 to 5)
         n = 2:5;
-        prob = (1 - (1-t').^n).* (mu.^n)./factorial(n)*exp(-mu);
-        prob = (sum(prob,2)' + p_dark*(1 - (1 + mu)*exp(-mu)))';
+        prob = (1 - (1 - t').^n) .* (mu.^n) ./ factorial(n) * exp(-mu);
+        prob = (sum(prob, 2)' + p_dark .* (1 - (1 + mu) * exp(-mu)))';
     end
 end
 
-function [entropy] = H(x)
-    if (x > 0 & x < 1)
-        entropy = (-x.*log2(x) - (1 - x).*log2(1 - x));
+function entropy = H(x)
+    % H
+    %
+    % Computes the binary entropy of a probability value.
+    %
+    % Syntax:
+    % entropy = H(x)
+    %
+    % Inputs:
+    % x - (1xN) numeric, probability values in [0, 1]
+    %
+    % Outputs:
+    % entropy - (1xN) numeric, binary entropy
+
+    if all(x > 0 & x < 1)
+        entropy = -x .* log2(x) - (1 - x) .* log2(1 - x);
     else
         entropy = NaN;
     end

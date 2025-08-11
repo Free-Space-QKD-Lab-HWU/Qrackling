@@ -39,12 +39,14 @@ classdef Telescope
     properties (SetAccess = protected)
         % Wavelength of transmitter (nm), set by mounting platform
         wavelength {mustBeScalarOrEmpty, mustBePositive} = []
+    end
 
-        % Field-of-view (rad) describing beam spread (computed)
-        fov {mustBeScalarOrEmpty, mustBeNonnegative}
+    properties (Dependent, SetAccess = private)
+        % Field-of-view (rad), computed from wavelength and geometry
+        fov
 
-        % Collecting area (m^2)
-        collecting_area (1,1) double {mustBeNonnegative}
+        % Collecting area (m^2), computed from diameter
+        collecting_area
     end
 
     methods

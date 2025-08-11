@@ -1,7 +1,16 @@
-function results = QkdPassSimulation(receivers, transmitters, qkd_protocol)
-%%QKDPASSSIMULATION this function architects the simulation of a QKD pass.
-%%It takes at least one receiver, a transmitter, a protocol and an
-%%(optional) environment, then finds and performs the required links
+function results = qkdPassSimulation(receivers, transmitters, qkd_protocol)
+% qkdPassSimulation
+%
+% Architects and executes a QKD pass simulation between transmitter-receiver pairs.
+%
+% Inputs:
+% receivers     - array of QKD_Receiver or QKD_Transmitter objects with detectors
+% transmitters  - array of QKD_Transmitter or QKD_Receiver objects with sources
+% qkd_protocol  - protocol.proto object defining simulation logic
+%
+% Output:
+% results - array of nodes.PassSimulationResult objects
+
     arguments
         receivers { ...
             nodes.mustBeReceiverOrTransmitter(receivers), ...
@@ -10,175 +19,168 @@ function results = QkdPassSimulation(receivers, transmitters, qkd_protocol)
             nodes.mustBeReceiverOrTransmitter(transmitters), ...
             nodes.mustHaveSource(transmitters) }
         qkd_protocol protocol.proto
-    end    
-
-    %% Check that we have the correct number of transmitters and receivers for this protocol
-    qkd_protocol.mustHaveCorrectTransmittersAndReceivers(transmitters,receivers)
-
-    %% what direction are links between 
-
-    %% Establish the loss and noise between each transmitter and receiver pair
-    %prepare memory
-    loss_results = repmat(nodes.LossResult(),[qkd_protocol.num_transmitters,qkd_protocol.num_receivers]);
-    total_loss = zeros(qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0);
-    noise_results = repmat(environment.Noise('',[]),[qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0]);
-    total_noise = zeros(qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0);
-    headings = zeros(qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0);
-    elevations = zeros(qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0);
-    ranges = zeros(qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0);
-    times = NaT(qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0,'TimeZone','UTC');
-    elevation_flags = false(qkd_protocol.num_transmitters,qkd_protocol.num_receivers,0);
-    link_directions = repmat(nodes.LinkDirection.Downlink,[qkd_protocol.num_transmitters,qkd_protocol.num_receivers]);
-    elevation_limits = zeros(1,qkd_protocol.num_receivers);
-
-    %iterating over each transmitter-receiver pair
-    for receiver_index = 1:qkd_protocol.num_receivers
-        for transmitter_index = 1:qkd_protocol.num_transmitters
-            %what direction is the link?
-            if utilities.isSubclassOf(transmitters(transmitter_index),'nodes.Satellite')&&...
-                    utilities.isSubclassOf(receivers(receiver_index),'nodes.Ground_Station')
-                link_directions(transmitter_index,receiver_index)=nodes.LinkDirection.Downlink;
-            elseif utilities.isSubclassOf(receivers(receiver_index),'nodes.Satellite')&&...
-                    utilities.isSubclassOf(transmitters(transmitter_index),'nodes.Ground_Station')
-                link_directions(transmitter_index,receiver_index)=nodes.LinkDirection.Uplink;
-            else
-                error('Unimplemented')
-            end
-            
-            %determine when the link has line of sight
-            switch link_directions(transmitter_index,receiver_index)
-                case nodes.LinkDirection.Downlink
-                    [current_headings,current_elevations,current_ranges] = RelativeHeadingAndElevation(transmitters(transmitter_index),receivers(receiver_index));
-                    current_time = transmitters(transmitter_index).Times;
-                case nodes.LinkDirection.Uplink
-                    [current_headings,current_elevations,current_ranges] = RelativeHeadingAndElevation(receivers(receiver_index),transmitters(transmitter_index));
-                    current_time = transmitters(transmitter_index).Times;
-            end
-            current_elevation_flags = current_elevations > receivers(receiver_index).Elevation_Limit;
-            num_time_steps = numel(current_time);
-
-            
-
-            [loss,noise]=loss_and_noise_for_channel(transmitters(transmitter_index),...
-                                                    receivers(receiver_index),...
-                                                    qkd_protocol);
-            %store loss and noise in cells with index transmitter x
-            %receiver
-            loss_results(transmitter_index,receiver_index) = loss;
-            total_loss(transmitter_index,receiver_index,1:num_time_steps) = loss.TotalLoss;
-            noise_results(transmitter_index,receiver_index,1:numel(noise)) = noise;
-            total_noise(transmitter_index,receiver_index,1:num_time_steps) = noise.Total;
-            headings(transmitter_index,receiver_index,1:num_time_steps) = current_headings;
-            elevations(transmitter_index,receiver_index,1:num_time_steps) = current_elevations;
-            ranges(transmitter_index,receiver_index,1:num_time_steps) = current_ranges;
-            times(transmitter_index,receiver_index,1:num_time_steps) = current_time;
-            elevation_flags(transmitter_index,receiver_index,1:num_time_steps) = current_elevation_flags;
-        end
-
-        %record elevation limit of this receiver
-        elevation_limits(receiver_index)=receivers(receiver_index).Elevation_Limit;
     end
 
-    %% specifically calculate where all elevation limits are met
-    all_elevation_flags = squeeze(all(elevation_flags,[1,2]));
-    total_loss_all_elevation_flags = total_loss(:,:,all_elevation_flags);
-    total_noise_all_elevation_flags = total_noise(:,:,all_elevation_flags);
+    % Validate transmitter/receiver compatibility
+    qkd_protocol.mustHaveCorrectTransmittersAndReceivers(transmitters, receivers)
 
-    %% Evaluate QKD link
-    %prepare memory which is zero outside elevation limits
-    secret_key_rate = zeros(1,num_time_steps);
-    sifted_key_rate = zeros(1,num_time_steps);
-    qber = 0.5*ones(1,num_time_steps);
+    % Preallocate memory
+    n_tx = qkd_protocol.num_transmitters;
+    n_rx = qkd_protocol.num_receivers;
 
-    %calculate
-    [secret_key_rate_elevation_flag, sifted_key_rate_elevation_flag, qber_elevation_flag] = qkd_protocol.Calculate(transmitters, ...
-                                                                      receivers, ...
-                                                                      total_loss_all_elevation_flags, ...
-                                                                      total_noise_all_elevation_flags);
-    %transfer to appropriate point in time-domain memory
-    secret_key_rate(all_elevation_flags) = secret_key_rate_elevation_flag;
-    sifted_key_rate(all_elevation_flags) = sifted_key_rate_elevation_flag;
-    qber(all_elevation_flags) = qber_elevation_flag;
+    loss_results = repmat(nodes.LossResult(), [n_tx, n_rx]);
+    total_loss = zeros(n_tx, n_rx, 0);
+    noise_results = repmat(environment.Noise('', []), [n_tx, n_rx, 0]);
+    total_noise = zeros(n_tx, n_rx, 0);
+    headings = zeros(n_tx, n_rx, 0);
+    elevations = zeros(n_tx, n_rx, 0);
+    ranges = zeros(n_tx, n_rx, 0);
+    times = NaT(n_tx, n_rx, 0, 'TimeZone', 'UTC');
+    elevation_flags = false(n_tx, n_rx, 0);
+    link_directions = repmat(nodes.LinkDirection.Downlink, [n_tx, n_rx]);
+    elevation_limits = zeros(1, n_rx);
 
-     %% store results
-     results = repmat(nodes.PassSimulationResult.empty,[qkd_protocol.num_transmitters,qkd_protocol.num_receivers]);
-        for receiver_index = 1:qkd_protocol.num_receivers
-            for transmitter_index = 1:qkd_protocol.num_transmitters
-                results(transmitter_index,receiver_index) = nodes.PassSimulationResult( ...
-                    transmitters(transmitter_index),...
-                    receivers(receiver_index),...
-                    qkd_protocol,...
-                    link_directions(transmitter_index,receiver_index),...
-                    headings(transmitter_index,receiver_index,:),...
-                    elevations(transmitter_index,receiver_index,:),....
-                    ranges(transmitter_index,receiver_index,:),...
-                    times(transmitter_index,receiver_index,:), ...
-                    all_elevation_flags, ...
-                    loss_results(transmitter_index,receiver_index),...
-                    noise_results(transmitter_index,receiver_index,:), ...
-                    sifted_key_rate,...
-                    secret_key_rate, ...
-                    qber);
+    % Loop over transmitter-receiver pairs
+    for rx_idx = 1:n_rx
+        for tx_idx = 1:n_tx
+            tx = transmitters(tx_idx);
+            rx = receivers(rx_idx);
+
+            % Determine link direction
+            if utilities.isSubclassOf(tx, 'nodes.Satellite') && ...
+               utilities.isSubclassOf(rx, 'nodes.Ground_Station')
+                link_directions(tx_idx, rx_idx) = nodes.LinkDirection.Downlink;
+            elseif utilities.isSubclassOf(rx, 'nodes.Satellite') && ...
+                   utilities.isSubclassOf(tx, 'nodes.Ground_Station')
+                link_directions(tx_idx, rx_idx) = nodes.LinkDirection.Uplink;
+            else
+                error('Unimplemented link configuration')
             end
+
+            % Compute geometry
+            switch link_directions(tx_idx, rx_idx)
+                case nodes.LinkDirection.Downlink
+                    [hdg, elev, rng] = RelativeHeadingAndElevation(tx, rx);
+                    t = tx.Times;
+                case nodes.LinkDirection.Uplink
+                    [hdg, elev, rng] = RelativeHeadingAndElevation(rx, tx);
+                    t = tx.Times;
+            end
+
+            elev_flag = elev > rx.Elevation_Limit;
+            n_steps = numel(t);
+
+            % Compute loss and noise
+            [loss, noise] = lossAndNoiseForChannel(tx, rx, qkd_protocol);
+
+            % Store results
+            loss_results(tx_idx, rx_idx) = loss;
+            total_loss(tx_idx, rx_idx, 1:n_steps) = loss.TotalLoss;
+            noise_results(tx_idx, rx_idx, 1:numel(noise)) = noise;
+            total_noise(tx_idx, rx_idx, 1:n_steps) = noise.Total;
+            headings(tx_idx, rx_idx, 1:n_steps) = hdg;
+            elevations(tx_idx, rx_idx, 1:n_steps) = elev;
+            ranges(tx_idx, rx_idx, 1:n_steps) = rng;
+            times(tx_idx, rx_idx, 1:n_steps) = t;
+            elevation_flags(tx_idx, rx_idx, 1:n_steps) = elev_flag;
         end
+
+        elevation_limits(rx_idx) = receivers(rx_idx).Elevation_Limit;
+    end
+
+    % Identify valid time steps across all links
+    all_elevation_flags = squeeze(all(elevation_flags, [1, 2]));
+    total_loss_valid = total_loss(:, :, all_elevation_flags);
+    total_noise_valid = total_noise(:, :, all_elevation_flags);
+
+    % Evaluate QKD protocol
+    secret_key_rate = zeros(1, n_steps);
+    sifted_key_rate = zeros(1, n_steps);
+    qber = 0.5 * ones(1, n_steps);
+
+    [skr_valid, skt_valid, qber_valid] = qkd_protocol.Calculate( ...
+        transmitters, receivers, total_loss_valid, total_noise_valid);
+
+    secret_key_rate(all_elevation_flags) = skr_valid;
+    sifted_key_rate(all_elevation_flags) = skt_valid;
+    qber(all_elevation_flags) = qber_valid;
+
+    % Construct result objects
+    results = repmat(nodes.PassSimulationResult.empty(), [n_tx, n_rx]);
+    for rx_idx = 1:n_rx
+        for tx_idx = 1:n_tx
+            results(tx_idx, rx_idx) = nodes.PassSimulationResult( ...
+                transmitters(tx_idx), ...
+                receivers(rx_idx), ...
+                qkd_protocol, ...
+                link_directions(tx_idx, rx_idx), ...
+                headings(tx_idx, rx_idx, :), ...
+                elevations(tx_idx, rx_idx, :), ...
+                ranges(tx_idx, rx_idx, :), ...
+                times(tx_idx, rx_idx, :), ...
+                all_elevation_flags, ...
+                loss_results(tx_idx, rx_idx), ...
+                noise_results(tx_idx, rx_idx, :), ...
+                sifted_key_rate, ...
+                secret_key_rate, ...
+                qber);
+        end
+    end
 end
 
-function [loss_results, noise] = loss_and_noise_for_channel(transmitter, receiver, qkd_protocol)
+function [loss_results, noise] = lossAndNoiseForChannel(transmitter, receiver, qkd_protocol)
+% lossAndNoiseForChannel
+%
+% Computes loss and noise for a given transmitter-receiver pair.
+
     arguments
-        transmitter (1,1) { ...
+        transmitter (1, 1) { ...
             nodes.mustBeReceiverOrTransmitter(transmitter), ...
             nodes.mustHaveSource(transmitter) }
-        receiver (1,1) { ...
+        receiver (1, 1) { ...
             nodes.mustBeReceiverOrTransmitter(receiver), ...
             nodes.mustHaveDetector(receiver) }
         qkd_protocol protocol.proto
     end
 
-
-    %% get background light data from ground station's environment
+    % Get background radiance
     switch class(transmitter)
-    case "nodes.Satellite"
-        [headings, elevations, ~] = transmitter.RelativeHeadingAndElevation(receiver);
-        background_radiance = receiver.Environment.Interp( ...
-            "spectral_radiance", headings, elevations, transmitter.Source.Wavelength);
-    case "nodes.Ground_Station"
-        [headings, elevations, ~] = receiver.RelativeHeadingAndElevation(transmitter);
-        background_radiance = transmitter.Environment.Interp( ...
-            "spectral_radiance", headings, elevations, transmitter.Source.Wavelength);
+        case "nodes.Satellite"
+            [hdg, elev, ~] = transmitter.RelativeHeadingAndElevation(receiver);
+            background_radiance = receiver.Environment.Interp( ...
+                "spectral_radiance", hdg, elev, transmitter.Source.Wavelength);
+        case "nodes.Ground_Station"
+            [hdg, elev, ~] = receiver.RelativeHeadingAndElevation(transmitter);
+            background_radiance = transmitter.Environment.Interp( ...
+                "spectral_radiance", hdg, elev, transmitter.Source.Wavelength);
     end
-        t = receiver.Detector.Spectral_Filter.transmission;
-        w = receiver.Detector.Spectral_Filter.wavelengths;
-        w_range = w(t ~= 0);
-        filter_width = max(w_range) - min(w_range);
 
-        background_counts_per_second = environment.countRateFromRadiance( ...
-            background_radiance, ...
-            receiver.Telescope.FOV, ...
-            receiver.Telescope.Diameter, ...
-            filter_width, ...
-            1, ...
-            receiver.Detector.Wavelength);
+    % Filter width
+    t = receiver.Detector.Spectral_Filter.transmission;
+    w = receiver.Detector.Spectral_Filter.wavelengths;
+    w_range = w(t ~= 0);
+    filter_width = max(w_range) - min(w_range);
 
+    % Background counts
+    background_counts = environment.countRateFromRadiance( ...
+        background_radiance, ...
+        receiver.Telescope.FOV, ...
+        receiver.Telescope.Diameter, ...
+        filter_width, ...
+        1, ...
+        receiver.Detector.Wavelength);
 
-    %noise due to detector dark counts
-    dark_counts = ones(size(headings)) ...
-        .* receiver.Detector.Dark_Count_Rate ...
-        .* qkd_protocol.num_detectors;
+    % Dark counts
+    dark_counts = ones(size(hdg)) * receiver.Detector.Dark_Count_Rate * qkd_protocol.num_detectors;
 
-    %record as noise objects
+    % Package noise
     noise = [ ...
         environment.Noise("Detector Dark Counts", dark_counts), ...
-        environment.Noise("Background Counts", background_counts_per_second), ...
+        environment.Noise("Background Counts", background_counts) ...
     ];
 
-    %% compute losses
-    [loss_results, ~] = nodes.linkLoss('qkd',...
-                                receiver,...
-                                transmitter,...
-                                'apt',...
-                                'optical',...
-                                'geometric',...
-                                'turbulence',...
-                                'atmospheric');
+    % Compute losses
+    [loss_results, ~] = nodes.linkLoss("qkd", ...
+        receiver, transmitter, ...
+        "apt", "optical", "geometric", "turbulence", "atmospheric");
 end
-

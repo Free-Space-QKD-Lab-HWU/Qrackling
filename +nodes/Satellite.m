@@ -1,91 +1,106 @@
-%Author: Cameron Simmons, Peter Barrow
-%Date: 24/1/22
+classdef Satellite < nodes.Located_Object & nodes.QKDReceiver & nodes.QKDTransmitter & nodes.Free_Space_Optical_Node
+    % Satellite
+    %
+    % Abstract class containing satellite properties for QKD simulation.
+    % Supports initialization via orbit data file, TLE, or Kepler elements.
+    % Implements both transmitter and receiver interfaces.
+    %
+    % Syntax:
+    % sat = nodes.Satellite(telescope, options)
+    %
+    % The satellite must be initialized with either:
+    % - OrbitDataFileLocation
+    % - TLE (Two-Line Element set)
+    % - KeplerElements
+    %
+    % If TLE or KeplerElements are used, startTime, stopTime, and sampleTime
+    % must also be provided.
 
-classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Transmitter & nodes.Free_Space_Optical_Node
-    %SATELLITE abstract class containing the satellite properties for simulation
+    %% Hidden properties for orbital modeling
+    properties (SetAccess = protected, Hidden = true)
+        % satellite_scenario - satelliteScenario object (if toolbox used)
+        satellite_scenario
 
-    %hide large or uninteresting properties, not abstract for this reason
-    properties (SetAccess=protected, Hidden=true)
+        % sc_sat - satellite object from toolbox
+        sc_sat
 
-        % If using TLE or KeplerElements to define satellite path we will
-        % store the satelliteScenario object as well as the corresponding
-        % satellite object
-        satellite_scenario;
-        sc_sat;
-        Kepler_Elements;    %the kepler elements of a satellite are:
-        %Semimajor axis (m)
-        %eccentricity (0-1)
-        %inclination (deg)
-        %right argument of the ascending node
-        %argument of periapsis
-        %true anomaly
+        % kepler_elements - [sma, ecc, inc, raan, aop, ta]
+        Kepler_Elements
 
-        TLE_Uncertainty {mustBeScalarOrEmpty,mustBeNonnegative} = 5E3;  %uncertainty in satellite orbital position (in lat and long) in m
+        % tle_uncertainty - (1,1) double, uncertainty in orbital position (m)
+        TLE_Uncertainty {mustBeScalarOrEmpty, mustBeNonnegative} = 5E3
     end
 
-    %do not hide small properties
-    properties (SetAccess=protected, Hidden=false)
-        %File location for Latitude, Longitude, Altitude and Time data
-        Orbit_Data_File_Location{mustBeText} = '';
+    %% Public satellite properties
+    properties (SetAccess = protected, Hidden = false)
+        % orbit_data_file_location - (1,1) string, path to orbit data file
+        Orbit_Data_File_Location {mustBeText} = ''
 
-        Times {mustBeA(Times,'datetime')} = datetime.empty  %not sure what this would need to be for datetimes
+        % times - (1,N) datetime, satellite timestamps
+        Times {mustBeA(Times, 'datetime')} = datetime.empty()
 
-        %% beacon on satellite
-        Beacon =[];
-        %% beacon camera on satellite
-        Camera = [];
+        % beacon - (1,1) object, beacon source on satellite
+        Beacon = []
+
+        % camera - (1,1) object, beaconing camera on satellite
+        Camera = []
     end
+
 
     methods
-        % FIX: Input validation here is a mess, clean up
-        % TODO: Arguments block
-        % TODO: Simplify kepler elements arguments
-        % TODO: Replace 'LLAT', 'TLE', and kepler elements with a {mustbemember}
-        % TODO: Why is there still 'ToolBoxSatellite', 'scenario' and 'useSatCommsToolbox' ?
-        function [Satellite, varargout] = Satellite(Telescope, options)
-
-            % SATELLITE Construct an instance of satellite using an orbital
-            % User must provide either an 'OrbitDataFileLocation' file, TLE
-            % information or KeplerElements, if more than once of these is
-            % provided the precedence listed here is applied. I.e. if both
-            % 'OrbitDataFileLocation' and KeplerElements are supplied the
-            % 'OrbitDataFileLocation' will be used.
-            % If TLE information or KeplerElements are supplied then a startTime,
-            %     stopTime and sampleTime must also be supplied.
+        function [satellite, varargout] = Satellite(telescope, options)
+            % Satellite
+            %
+            % Constructs a Satellite object using orbital data or orbital elements.
+            %
+            % Syntax:
+            % [satellite, scenario] = nodes.Satellite(telescope, options)
+            %
+            % Inputs:
+            % telescope - (1,1) components.Telescope, optical system
+            % options   - struct with fields:
+            %   .Source, .Detector, .Beacon, .Camera
+            %   .OrbitDataFileLocation, .TLE, .KeplerElements
+            %   .startTime, .stopTime, .sampleTime
+            %   .ToolBoxSatellite, .scenario
+            %   .TLE_Uncertainty
+            %
+            % Outputs:
+            % satellite - (1,1) nodes.Satellite object
+            % scenario  - optional satelliteScenario object (if generated)
 
             arguments
-                Telescope components.Telescope
-                options.Source = [];
-                options.Detector = [];
-                options.Beacon =[]
+                telescope components.Telescope
+                options.Source = []
+                options.Detector = []
+                options.Beacon = []
                 options.Camera = []
-
-                options.OrbitDataFileLocation = '';
-                options.ToolBoxSatellite = [];
-                options.scenario = nan;
-                options.UseSatCommsToolbox (1,1) logical = false;
-                options.LLAT {mustBeNumeric} = [];
-                options.TLE = [];
-                options.KeplerElements = [];
-                options.semiMajorAxis = nan;
-                options.eccentricity = nan;
-                options.inclination = nan;
-                options.rightAscensionOfAscendingNode = nan;
-                options.argumentOfPeriapsis = nan;
-                options.trueAnomaly = nan;
-                options.startTime datetime = NaT;
-                options.stopTime datetime = NaT;
+                options.OrbitDataFileLocation = ''
+                options.ToolBoxSatellite = []
+                options.scenario = nan
+                options.UseSatCommsToolbox (1,1) logical = false
+                options.LLAT {mustBeNumeric} = []
+                options.TLE = []
+                options.KeplerElements = []
+                options.semiMajorAxis = nan
+                options.eccentricity = nan
+                options.inclination = nan
+                options.rightAscensionOfAscendingNode = nan
+                options.argumentOfPeriapsis = nan
+                options.trueAnomaly = nan
+                options.startTime datetime = NaT
+                options.stopTime datetime = NaT
                 options.sampleTime = NaT
-                options.Name = 'Unnamed Satellite';
+                options.Name = 'Unnamed Satellite'
                 options.TLE_Uncertainty (1,1) {mustBeNonnegative} = 5E3
             end
 
-
-            %% satellite should support an empty constructor
-            if nargin==0
+            %% Support empty constructor
+            if nargin == 0
                 return
             end
 
+            %% Extract and store Kepler elements
             sma = options.semiMajorAxis;
             ecc = options.eccentricity;
             inc = options.inclination;
@@ -93,334 +108,324 @@ classdef Satellite < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
             aop = options.argumentOfPeriapsis;
             ta = options.trueAnomaly;
 
-            hasVelocity = false;
-
-            %store kepler elements
-            if (~any(isnan(arrayfun(@isnan, [sma, ecc, inc, raan, aop, ta]))) ...
-                    & isempty(options.KeplerElements))
-                KeplerElements = [sma, ecc, inc, raan, aop, ta];
+            if ~any(isnan([sma, ecc, inc, raan, aop, ta])) && isempty(options.KeplerElements)
+                kepler_elements = [sma, ecc, inc, raan, aop, ta];
             else
-                KeplerElements = options.KeplerElements;
-            end
-            Satellite.Kepler_Elements = KeplerElements;
-
-            %store name
-            if ~isempty(options.Name)
-                Satellite.Name = options.Name;
+                kepler_elements = options.KeplerElements;
             end
 
-            if (0 > utilities.nan_present(options.OrbitDataFileLocation, ...
+            satellite.Kepler_Elements = kepler_elements;
+
+            %% Store name
+            satellite.Name = options.Name;
+
+            %% Validate orbital input
+            if 0 > utilities.nan_present( ...
+                    options.OrbitDataFileLocation, ...
                     options.scenario, ...
                     options.ToolBoxSatellite, ...
                     options.TLE, ...
-                    KeplerElements))
-                error(['Input does not contain one of the following: [', ...
-                    'OrbitDataFileLocation', 'TLE', 'KeplerElements', ']']);
+                    kepler_elements)
+                error('Must provide one of: OrbitDataFileLocation, TLE, or KeplerElements')
             end
 
+            %% Load orbit data
             if ~isempty(options.OrbitDataFileLocation)
-                [Satellite, lat, lon, alt, t] = ReadOrbitLLATFile(Satellite,...
-                    options.OrbitDataFileLocation);
+                [satellite, lat, lon, alt, t] = ReadOrbitLLATFile(satellite, options.OrbitDataFileLocation);
+
             elseif ~isempty(options.LLAT)
-                %if LLAT (latitude, longitude, altitude, time) is provided manually, use this
-                LLAT = options.LLAT;
-                lat = LLAT(:,1);
-                lon = LLAT(:,2);
-                alt = LLAT(:,3);
-                time_seconds   = LLAT(:,4);
-                %either refer time in seconds to startTime, or use default
-                %startTime
+                llat = options.LLAT;
+                lat = llat(:, 1);
+                lon = llat(:, 2);
+                alt = llat(:, 3);
+                time_seconds = llat(:, 4);
+
                 if ~isempty(options.startTime)
-                    t = startTime + seconds(time_seconds);
+                    t = options.startTime + seconds(time_seconds);
                 else
-                    t= datetime(2000,1,1,12,0,0) + seconds(time_seconds);
+                    t = datetime(2000, 1, 1, 12, 0, 0) + seconds(time_seconds);
                 end
 
-            elseif options.UseSatCommsToolbox == true
-                if isempty(options.ToolBoxSatellite) | isempty(options.scenario)
-                    error('No toolbox satellite supplied');
-
-                else
-                    [Satellite, lat, lon, alt, t, vE, vN, vU] = ...
-                        llatAndVelFromScenario(Satellite, ...
-                        satCommsSatellite=options.ToolBoxSatellite, ...
-                        scenario=options.scenario);
-                    hasVelocity = true;
+            elseif options.UseSatCommsToolbox
+                if isempty(options.ToolBoxSatellite) || isempty(options.scenario)
+                    error('Toolbox satellite and scenario must be provided')
                 end
+
+                [satellite, lat, lon, alt, t] = llatFromScenario( ...
+                    satellite, ...
+                    satCommsSatellite = options.ToolBoxSatellite, ...
+                    scenario = options.scenario);
 
             else
                 if isdatetime(options.startTime)
                     if isduration(options.sampleTime)
-                        sampleTime = seconds(options.sampleTime);
+                        sample_time = seconds(options.sampleTime);
                     else
-                        sampleTime = options.sampleTime;
+                        sample_time = options.sampleTime;
                     end
-                    scenario = utilities.satelliteScenarioWrapper(options.startTime, ...
-                                                        options.stopTime, ...
-                                                        'sampleTime',sampleTime);
+
+                    scenario = satelliteScenario( ...
+                        options.startTime, options.stopTime, ...
+                        'sampleTime', sample_time);
                 else
                     scenario = options.scenario;
-
                 end
 
                 varargout{1} = scenario;
-                if ~isempty(options.TLE)
-                    [Satellite, lat, lon, alt, t, vE, vN, vU] = llatAndVelFromScenario(...
-                        Satellite, 'scenario', scenario, 'TLE', TLE);
-                    hasVelocity = true;
 
-                elseif ~isempty(KeplerElements)
-                    [~, cols] = size(KeplerElements);
-                    if cols ~= 6
-                        error(['Require all 6 Kepler Elements, in order:', ...
-                          newline, char(9), 'semiMajorAxis', ...
-                          newline, char(9), 'eccentricity', ...
-                          newline, char(9), 'inclination', ...
-                          newline, char(9), 'rightAscensionOfAscendingNode', ...
-                          newline, char(9), 'argumentOfPeriapsis', ...
-                          newline, char(9), 'trueAnomaly'])
+                if ~isempty(options.TLE)
+                    [satellite, lat, lon, alt, t] = llatFromScenario( ...
+                        satellite, 'scenario', scenario, 'TLE', options.TLE);
+
+                elseif ~isempty(kepler_elements)
+                    if size(kepler_elements, 2) ~= 6
+                        error(['Require all 6 Kepler Elements: ', ...
+                            'semiMajorAxis, eccentricity, inclination, ', ...
+                            'RAAN, argumentOfPeriapsis, trueAnomaly'])
                     end
-                    [Satellite, lat, lon, alt, t, vE, vN, vU] = llatAndVelFromScenario(...
-                        Satellite, 'scenario', scenario, 'KeplerElements', KeplerElements);
-                    hasVelocity = true;
+
+                    [satellite, lat, lon, alt, t] = llatFromScenario( ...
+                        satellite, 'scenario', scenario, 'KeplerElements', kepler_elements);
                 end
             end
 
-            %check data is compatible
+            %% Validate orbit data dimensions
             if ~utilities.AreSameDimensions(t, lat, lon, alt)
-                error('Latitude, Longitude, Altitude and Time data must be of the same length')
+                error('Latitude, Longitude, Altitude, and Time must be same length')
             end
-            %set N_Steps
-            Satellite = SetPosition(Satellite, ...
-                Latitude = lat, ...
-                Longitude = lon, ...
-                Altitude = alt, ...
-                Name = Satellite.Name);
 
-            %enforce a time zone on times. if none is provided, assume UTC
+            %% Set position and timestamps
+            satellite = SetPosition(satellite, ...
+                Latitude = lat, Longitude = lon, Altitude = alt, Name = satellite.Name);
+
             if isempty(t.TimeZone)
                 t.TimeZone = 'UTC';
             end
-            Satellite.Times = t;
 
-            Satellite.TLE_Uncertainty = options.TLE_Uncertainty;
+            satellite.Times = t;
+            satellite.TLE_Uncertainty = options.TLE_Uncertainty;
 
-            %% currently, both transmit and receive scopes are the same
-            Satellite.Telescope = Telescope;
+            %% Assign telescope and wavelength
+            satellite.Telescope = telescope;
 
-            %infer correct wavelength from source or detector
             if ~isempty(options.Source)
+                satellite.Source = options.Source;
+                satellite.Telescope = SetWavelength(telescope, options.Source.Wavelength);
 
-            Satellite.Source = options.Source;
-            Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
-                Satellite.Source.Wavelength);
             elseif ~isempty(options.Detector)
-            Satellite.Detector = options.Detector;
-            Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
-                Satellite.Detector.Wavelength);
+                satellite.Detector = options.Detector;
+                satellite.Telescope = SetWavelength(telescope, options.Detector.Wavelength);
+
             else
-                %error('must provide either a source or detector')
-                warning('must provide either a source or detector')
+                warning('Must provide either a source or detector')
             end
 
+            %% Assign beacon and camera
+            satellite.Beacon = options.Beacon;
+            satellite.Camera = options.Camera;
 
-            %% set beacon and beaconing camera
-            Satellite.Beacon = options.Beacon;
-            Satellite.Camera = options.Camera;
-
-            %% add detector if wanted
-            Satellite.Detector = options.Detector;
+            %% Reassign detector if needed
+            satellite.Detector = options.Detector;
         end
 
-        function [Satellite, lat, lon, alt, t] = ReadOrbitLLATFile(Satellite, ...
-                Orbit_Data_File_Location)
-            %ReadOrbitLLATFile Read in the given (or internally pointed to
-            %if no file is given) orbit data file
-            %% add orbit files to path
-
-            % TODO: LocationofFile function is deprecated with module structure
-            addpath(utilities.LocationofFile(Orbit_Data_File_Location));
+        function [satellite, lat, lon, alt, t] = readOrbitLLATFile( ...
+                satellite, orbit_data_file_location)
+            % readOrbitLLATFile
+            %
+            % Reads a .txt file containing satellite orbit data in LLAT format.
+            %
+            % Syntax:
+            % [satellite, lat, lon, alt, t] = satellite.readOrbitLLATFile(file_path)
+            %
+            % Inputs:
+            % orbit_data_file_location - (1,1) string, path to LLAT file
+            %
+            % Outputs:
+            % lat - (1,N) double, latitude in degrees
+            % lon - (1,N) double, longitude in degrees
+            % alt - (1,N) double, altitude in meters
+            % t   - (1,N) datetime, timestamps
 
             if nargin < 2
-                error('ReadOrbitLLATFile takes only a satellite object and .txt file location as arguments');
+                error('readOrbitLLATFile requires a satellite and file path')
             end
 
-            %if a file is provided, use this file location
-            if ~(exist(Orbit_Data_File_Location, 'file'))
-                error('cannot find a text file of that name and location');
+            if ~exist(orbit_data_file_location, 'file')
+                error('Cannot find orbit data file at specified location')
             end
-            Satellite.Orbit_Data_File_Location=Orbit_Data_File_Location;
 
-            %% read orbit data file
-            %% open the file and assign it an ID
-            FileID=fopen(Orbit_Data_File_Location);
+            addpath(utilities.LocationofFile(orbit_data_file_location))
+            satellite.Orbit_Data_File_Location = orbit_data_file_location;
 
-            %% read file as an arrray
-            LLATData=fscanf(FileID, '%f, %f, %f, %f', [4, inf]);
-            %% close the file
-            fclose(FileID);
+            file_id = fopen(orbit_data_file_location);
+            llat_data = fscanf(file_id, '%f, %f, %f, %f', [4, inf]);
+            fclose(file_id);
 
-            %% store data
-            % Separate rows into LLA and T
-            lat = LLATData(1,:);
-            lon = LLATData(2,:);
-            alt = LLATData(3,:) * 1000; %conversion to m from km
-            %time must now conform to being a datetime object
-            t = datetime(LLATData(4,:),'ConvertFrom','epochtime','Epoch',datetime(2023,1,1,0,0,0));
+            lat = llat_data(1, :);
+            lon = llat_data(2, :);
+            alt = llat_data(3, :) * 1000;
+            t = datetime(llat_data(4, :), ...
+                'ConvertFrom', 'epochtime', ...
+                'Epoch', datetime(2023, 1, 1, 0, 0, 0));
         end
 
-        function [Satellite, lat, lon, alt, t, vE, vN, vU] = ...
-                            llatAndVelFromScenario(Satellite, options)
-            
+
+        function [satellite, lat, lon, alt, t] = ...
+                llatFromScenario(satellite, options)
+            % llatFromScenario
+            %
+            % Extracts position and time from a satellite scenario.
+            %
+            % Syntax:
+            % [satellite, lat, lon, alt, t] = ...
+            %     satellite.llatFromScenario(options)
+            %
+            % Inputs:
+            % options - struct with fields:
+            %   .satCommsSatellite, .scenario, .TLE, .KeplerElements
+            %
+            % Outputs:
+            % lat, lon, alt - (1,N) double, geographic coordinates
+            % t             - (1,N) datetime, timestamps
+            % v_e, v_n, v_u - (1,N) double, ENU velocity components
+
             arguments
-                Satellite
-                options.satCommsSatellite = nan;
-                options.scenario = nan;
-                options.TLE = nan;
-                options.KeplerElements = nan;
+                satellite
+                options.satCommsSatellite = nan
+                options.scenario = nan
+                options.TLE = nan
+                options.KeplerElements = nan
             end
 
-            % the below coul have been in a switch statement but this would 
-            % have been more indententation than is wanted
-
-            % Conditionally get the position, velocity and time for a satellite
-            % described by the input arguments. The 'states' function from the 
-            % satellite communications toolbox can be supplied with a relevent
-            % 'CoordinateFrame' argument to set the format of the return values.
-            % Here they have been set to 'geographic' giving a result in terms
-            % of {latitiude, longitude, altitude}, velocities in a 'North-East-
-            % Down' format and time in matlab datetime
-
-            if ~isempty(options.scenario) && isnan(options.TLE) ...
-                    && isempty(options.KeplerElements)
-
-                % First case: we have been supplied with only a satCommsToolbox
-                % satellite object, get its position, velocity and time 
-
+            if ~isempty(options.scenario) && isnan(options.TLE) && ...
+                    isempty(options.KeplerElements)
                 [position, velocity, t] = states(options.satCommsSatellite, ...
-                                            'CoordinateFrame', 'geographic');
-                Satellite.Name = options.satCommsSatellite.Name;
+                    'CoordinateFrame', 'geographic');
+                satellite.Name = options.satCommsSatellite.Name;
 
-            elseif ~any([isempty(options.scenario), isnan(options.TLE)])
-
-                % Second case: we have been supplied with a satCommsToolbox
-                % scenario along with some TLE data. So, use the scenario and
-                % the TLE data to construct a satellite and get its position, 
-                % velocity and time steps
-
+            elseif ~isempty(options.scenario) && ~isnan(options.TLE)
                 sc_sat = satellite(options.scenario, options.TLE, ...
-                                   "Name", Satellite.Name, ...
-                                   "OrbitPropagator", "two-body-keplerian");
+                    "Name", satellite.Name, ...
+                    "OrbitPropagator", "two-body-keplerian");
 
-                [position, velocity, t] = states(...
-                                    sc_sat, 'CoordinateFrame', 'geographic');
-                Satellite.Name = sc_sat.satellite(1).Name;
+                [position, velocity, t] = states(sc_sat, 'CoordinateFrame', 'geographic');
+                satellite.Name = sc_sat.satellite(1).Name;
 
-            elseif ~isempty(options.scenario) ...
-                   && ~isempty(options.KeplerElements)
+            elseif ~isempty(options.scenario) && ~isempty(options.KeplerElements)
+                ke = options.KeplerElements;
+                sc_sat = satellite(options.scenario, ke(1), ke(2), ke(3), ...
+                    ke(4), ke(5), ke(6), ...
+                    "Name", satellite.Name, ...
+                    "OrbitPropagator", "two-body-keplerian");
 
-                % Third case: same as above except we have received an array of
-                % kepler elements rather than TLE data
-
-                % [sma, ecc, inc, raan, aop, ta] = ...
-                %         utilities.splat(options.KeplerElements);
-
-                sma = options.KeplerElements(1);
-                ecc = options.KeplerElements(2);
-                inc = options.KeplerElements(3);
-                raan = options.KeplerElements(4);
-                aop = options.KeplerElements(5);
-                ta = options.KeplerElements(6);
-
-                sc_sat = satellite(options.scenario, sma, ecc, inc, ...
-                                   raan, aop, ta, "Name", Satellite.Name, ...
-                                   "OrbitPropagator", "two-body-keplerian");
-
-                [position, velocity, t] = states(...
-                                sc_sat, 'CoordinateFrame', 'geographic');
-                Satellite.Name = sc_sat.Name;
+                [position, velocity, t] = states(sc_sat, 'CoordinateFrame', 'geographic');
+                satellite.Name = sc_sat.Name;
             end
 
-            % Next break out the position matrix into an array each for:
-            %   - {latitiude, longitude, altitude}
             lat = position(1, :);
             lon = position(2, :);
             alt = position(3, :);
-
-            % Since we work in the East-North-Up coordinate frame we need to 
-            % change the format of the velocities from NED to ENU.
-            % See 'basic classes/utilities.m for details.
-            velocity_enu = utilities.ned2enu(velocity);
-            vE = velocity_enu(1, :);
-            vN = velocity_enu(2, :);
-            vU = velocity_enu(3, :);
         end
 
 
-        function Satellite = SetWavelength(Satellite, Wavelength)
-            %%SETWAVELENGTH set the wavelength property of the internal
-            %%transmitter
-            Satellite.Source = SetWavelength(Satellite.Source, Wavelength);
-            Satellite.Telescope = SetWavelength(Satellite.Telescope, ...
-                Wavelength);
-        end
+        function satellite = setWavelength(satellite, wavelength)
+            % setWavelength
+            %
+            % Sets the wavelength for both source and telescope.
+            %
+            % Syntax:
+            % satellite = satellite.setWavelength(wavelength)
 
-        
-        function Satellite = SetSource(Satellite, Source)
-            Satellite.Source = Source;
-            Satellite = Satellite.SetWavelength(Source.Wavelength);
-        end
-
-
-        function Distances = ComputeDistancesTo(Satellite, LLA)
-            %%COMPUTEDISTANCESTO return the distances to a fixed LLA over a
-            %%satellite pass
-            %% convert from LLA of satellite to ENU relative to ground station
-            LLA_satellite = [Satellite.Latitudes', ...
-                Satellite.Longitudes', ...
-                Satellite.Altitudes'];
-
-            ENU = lla2enu(LLA_satellite, LLA, "ellipsoid");
-            Distances = utilities.Row2Norms(ENU);
+            satellite.Source = SetWavelength(satellite.Source, wavelength);
+            satellite.Telescope = SetWavelength(satellite.Telescope, wavelength);
         end
 
 
-        function Satellite = SetFrontalArea(Satellite, Area)
-            %%SETFRONTALAREA set the frontal area property
-            Satellite.Surface = SetArea(Satellite.Surface, Area);
+        function satellite = setSource(satellite, source)
+            % setSource
+            %
+            % Assigns a source and updates wavelength accordingly.
+            %
+            % Syntax:
+            % satellite = satellite.setSource(source)
+
+            satellite.Source = source;
+            satellite = satellite.setWavelength(source.Wavelength);
         end
 
 
-        function Satellite = SetReflectivity(Satellite, reflectivity)
-            %%SETFRONTALAREA set the frontal area property
-            Satellite.Reflectivity = reflectivity;
-            warning('this behaviour is legacy and may no longer be support. Instead access the "Surface" class of the satellite')
+        function distances = computeDistancesTo(satellite, lla)
+            % computeDistancesTo
+            %
+            % Computes ENU distances from satellite to a fixed LLA.
+            %
+            % Syntax:
+            % distances = satellite.computeDistancesTo(lla)
+
+            lla_sat = [satellite.Latitudes', ...
+                satellite.Longitudes', ...
+                satellite.Altitudes'];
+
+            enu = lla2enu(lla_sat, lla, "ellipsoid");
+            distances = utilities.Row2Norms(enu);
         end
 
 
-        function OrbitDetails = GetOrbitDetails(Satellite)
-            %% return the orbit details sufficient to create a MATLAB satellite object
-            %returned asa cell array of arguments (give to function using
-            %OrbitDetails{:})
-         
-            OrbitDetails = timetable(Satellite.Times',[Satellite.Latitude,Satellite.Longitude,Satellite.Altitude]);
-            OrbitDetails = {OrbitDetails,...
-                            'CoordinateFrame','geographic',...
-                            'Name',Satellite.Name};
+        function satellite = setFrontalArea(satellite, area)
+            % setFrontalArea
+            %
+            % Sets the frontal area of the satellite surface.
+            %
+            % Syntax:
+            % satellite = satellite.setFrontalArea(area)
+
+            satellite.Surface = SetArea(satellite.Surface, area);
         end
-    
 
-        function [Satellite_Scenario,Sim_Sat] = AddSimulatorSatellite(Satellite,Satellite_Scenario)
-            %%ADDSIMULATORSATELLITE add a MATLAB simulator representation of this satellite to
-            %%the existing satelliteScenario
 
-            %% get details of satellite
-            SatDetails = GetOrbitDetails(Satellite);
-            %include satellite
-            Sim_Sat = satellite(Satellite_Scenario, SatDetails{:});
-            %modify labelling
-            Sim_Sat.LabelFontSize = 25;
-            Sim_Sat.MarkerSize = 12;
+        function satellite = setReflectivity(satellite, reflectivity)
+            % setReflectivity
+            %
+            % Sets the reflectivity of the satellite surface.
+            %
+            % Syntax:
+            % satellite = satellite.setReflectivity(reflectivity)
+
+            satellite.Reflectivity = reflectivity;
+            warning(['This behavior is legacy and may be deprecated. ', ...
+                'Use the Surface class instead.'])
+        end
+
+
+        function orbit_details = getOrbitDetails(satellite)
+            % getOrbitDetails
+            %
+            % Returns orbit details for constructing a MATLAB satellite object.
+            %
+            % Syntax:
+            % orbit_details = satellite.getOrbitDetails()
+
+            orbit_details = timetable(satellite.Times', ...
+                [satellite.Latitude, satellite.Longitude, satellite.Altitude]);
+
+            orbit_details = {orbit_details, ...
+                'CoordinateFrame', 'geographic', ...
+                'Name', satellite.Name};
+        end
+
+
+        function [scenario, sim_sat] = addSimulatorSatellite(satellite, scenario)
+            % addSimulatorSatellite
+            %
+            % Adds a MATLAB simulator representation of this satellite.
+            %
+            % Syntax:
+            % [scenario, sim_sat] = satellite.addSimulatorSatellite(scenario)
+
+            sat_details = satellite.getOrbitDetails();
+            sim_sat = satellite(scenario, sat_details{:});
+            sim_sat.LabelFontSize = 25;
+            sim_sat.MarkerSize = 12;
         end
     end
 end

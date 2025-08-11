@@ -1,41 +1,57 @@
 classdef QKDSimulationResult
-    %%SIMULATIONRESULT a notionally abstract class which provides an interface for
-    %%simulation results
-    properties (Access=public)
-        transmitter (1,1) {utilities.mustBeSubclassOf(transmitter,'nodes.QKD_Transmitter')} = fibre.Fibre_Node.empty()
-        receiver (1,1) {utilities.mustBeSubclassOf(receiver,'nodes.QKD_Receiver')} = fibre.Fibre_Node.empty()
-        protocol (1,1) {utilities.mustBeSubclassOf(protocol,'protocol.proto')} = protocol.bb84()
+% QKDSimulationResult
+%
+% Abstract base class for storing and analyzing QKD simulation results.
+% Subclasses must implement plot and empty methods.
+
+    properties (Access = public)
+        % transmitter - QKD transmitter node
+        transmitter (1, 1) {utilities.mustBeSubclassOf(transmitter, 'nodes.QKD_Transmitter')} = fibre.Fibre_Node.empty()
+
+        % receiver - QKD receiver node
+        receiver (1, 1) {utilities.mustBeSubclassOf(receiver, 'nodes.QKD_Receiver')} = fibre.Fibre_Node.empty()
+
+        % protocol - QKD protocol object
+        protocol (1, 1) {utilities.mustBeSubclassOf(protocol, 'protocol.proto')} = protocol.bb84()
+
+        % time - simulation time vector
         time (1, :) = []
+
+        % loss - total loss result
         loss nodes.LossResult {mustBeScalarOrEmpty} = nodes.LossResult.empty()
-        noise environment.Noise = environment.Noise.empty(0,0)
+
+        % noise - array of noise sources
+        noise environment.Noise = environment.Noise.empty(0, 0)
+
+        % sifted_key_rate - sifted key rate over time
         sifted_key_rate (1, :) {mustBeNumeric} = []
+
+        % secret_key_rate - secret key rate over time
         secret_key_rate (1, :) {mustBeNumeric} = []
+
+        % qber - quantum bit error rate over time
         qber (1, :) {mustBeNumeric} = []
     end
 
+
     methods
-        function result = QKDSimulationResult(transmitter,...
-                                       receiver,...
-                                       protocol,...
-                                       time,...
-                                       loss,...
-                                       noise,...
-                                       sifted_key_rate,...
-                                       secret_key_rate,...
-                                       qber)
+        function result = QKDSimulationResult( ...
+                transmitter, receiver, protocol, time, ...
+                loss, noise, sifted_key_rate, secret_key_rate, qber)
+        % QKDSimulationResult constructor
+
             arguments
-                    transmitter (1,1) {utilities.mustBeSubclassOf(transmitter,'nodes.QKD_Transmitter')}
-                    receiver (1,1) {utilities.mustBeSubclassOf(receiver,'nodes.QKD_Receiver')}
-                    protocol (1,1) {utilities.mustBeSubclassOf(protocol,'protocol.proto')}
-                    time (1, :) = []
-                    loss nodes.LossResult {mustBeScalarOrEmpty} = nodes.LossResult.empty()
-                    noise environment.Noise = environment.Noise.empty(0, 0)
-                    sifted_key_rate (1, :) {mustBeNumeric} = []
-                    secret_key_rate (1, :) {mustBeNumeric} = []
-                    qber (1, :) {mustBeNumeric} = []
+                transmitter (1, 1) {utilities.mustBeSubclassOf(transmitter, 'nodes.QKD_Transmitter')}
+                receiver (1, 1) {utilities.mustBeSubclassOf(receiver, 'nodes.QKD_Receiver')}
+                protocol (1, 1) {utilities.mustBeSubclassOf(protocol, 'protocol.proto')}
+                time (1, :) = []
+                loss nodes.LossResult {mustBeScalarOrEmpty} = nodes.LossResult.empty()
+                noise environment.Noise = environment.Noise.empty(0, 0)
+                sifted_key_rate (1, :) {mustBeNumeric} = []
+                secret_key_rate (1, :) {mustBeNumeric} = []
+                qber (1, :) {mustBeNumeric} = []
             end
 
-            %record data
             result.transmitter = transmitter;
             result.receiver = receiver;
             result.protocol = protocol;
@@ -47,20 +63,25 @@ classdef QKDSimulationResult
             result.qber = qber;
         end
 
+
         function [total_secret, total_sifted] = total_key_rates(result)
+        % total_key_rates
+        %
+        % Computes total secret and sifted key rates over valid communication windows.
+
             arguments
                 result nodes.QKDSimulationResult
             end
 
-            %% get data
-            communicating = ~(isnan(result.secret_key_rate) | (result.secret_key_rate <= 0));
+            communicating = ~(isnan(result.secret_key_rate) | result.secret_key_rate <= 0);
             time = result.time(communicating);
-            %time should be a row vector
+
             if iscolumn(time)
                 time = time';
             end
 
             time_window_widths = time(2:end) - time(1:end-1);
+
             if isempty(time_window_widths)
                 warning("No communication occurs in this simulation");
                 total_secret = 0;
@@ -68,26 +89,25 @@ classdef QKDSimulationResult
                 return
             end
 
-            %pad to match width of other arrays
-            time_window_widths = [time_window_widths,time_window_widths(end)];
+            time_window_widths = [time_window_widths, time_window_widths(end)];
 
             if isnumeric(time_window_widths)
                 total_sifted  = dot(time_window_widths, result.sifted_key_rate(communicating));
                 total_secret = dot(time_window_widths, result.secret_key_rate(communicating));
-                return
+            else
+                time_seconds = seconds(time_window_widths);
+                total_sifted  = dot(time_seconds, result.sifted_key_rate(communicating));
+                total_secret = dot(time_seconds, result.secret_key_rate(communicating));
             end
-
-            time_seconds = seconds(time_window_widths);
-            total_sifted  = dot(time_seconds, result.sifted_key_rate(communicating));
-            total_secret = dot(time_seconds, result.secret_key_rate(communicating));
         end
     end
 
-    %new SimulationResult objects must implement these methods
+
     methods (Abstract)
-         fig = plot(result)
+        fig = plot(result)
     end
-    methods (Abstract,Static)
-         result = empty()
+
+    methods (Abstract, Static)
+        result = empty()
     end
 end

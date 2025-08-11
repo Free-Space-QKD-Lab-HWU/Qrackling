@@ -1,135 +1,108 @@
-classdef bb84 < protocol.proto
+classdef BB84 < protocol.proto
+% BB84
+%
+% Implements the BB84 quantum key distribution protocol using prepare-and-measure
+% techniques. This class models the protocol's behavior including key rate and QBER
+% calculations.
+%
+% Syntax:
+% Output = protocol.Bb84(Input1, Input2, …)
+%
+% This implementation is based on the paper:
+% "Security aspects of quantum key distribution with sub-Poisson light",
+% Physical Review Letters, Waks et al.
+
     properties (SetAccess = protected)
         method = 'prepare_and_measure'
+
         source_features = protocol.sourceRequirements.features( ...
             "g2", "MPN_Signal", "Probability_Signal", "State_Prep_Error")
+
         detector_features = protocol.detectorRequirements.features( ...
             "Dark_Count_Rate", "Time_Gate_Width", "Dead_Time")
-        efficiency = 0.5
-        num_detectors = 4;
-        name = 'BB84';
 
-        num_transmitters = 1;
-        num_receivers = 1;
+        efficiency = 0.5
+        num_detectors = 4
+        name = 'BB84'
+
+        num_transmitters = 1
+        num_receivers = 1
     end
 
     methods
-        function p = bb84()
+        function p = BB84()
         end
 
-        function [secret_rate, sifted_rate, qber] = QkdModel(proto, ...
-            Alice, Bob, total_loss, total_background_count_rate)
-        % Function to compute sifted key rate and QBER of the BB84 protocol with
-        % single photon Sources
-        % -------------------------------------------------------------------
+        function [secret_rate, sifted_rate, qber] = qkdModel(proto, ...
+                Alice, Bob, total_loss, total_background_count_rate)
+        % qkdModel
         %
-        % This function is written by either Alfonso or Ugo and modified by Cameron
-        % it is based on the paper: Security aspects of quantum key distribution with
-        % sub-Poisson light, Physical review letters,Waks, Edo, Santori, Charles, 
-        % Yamamoto, Yoshihisa
+        % Computes the sifted key rate and QBER for the BB84 protocol using
+        % single-photon sources.
         %
-        % ########################################
-        % INPUTS:
+        % Syntax:
+        % [secret_rate, sifted_rate, qber] = protocol.bb84.qkdModel(proto, Alice, Bob, ...)
         %
-        % MPN = mean photon number of the Source
-        % g2 = second order autocorrelation function [g^2(0)] (for a single-photon 
-        %   Source this should be zero)
-        % state_prep_error = convolution of errors due to state preparation (as a fraction)
-        % rep_rate = Repetition rate [Hz]
-        % det_eff = Detection efficiency of receivers' Detectors
-        % prob_dark_counts = Probability of dark counts of receivers' detetcors
-        % loss = Transmission loss [dB]
-        % prot_eff = Protocol efficiency
-        % qber_jitter = QBER contribution due to Detectors' timing jitters
+        % Inputs:
+        % Alice, Bob - Transmitter and receiver objects
+        % total_loss - (1x1) double, total transmission loss [dB]
+        % total_background_count_rate - (1x1) double, background count rate
         %
-        % OUTPUTS:
-        %
-        % sifted_rate = secure key rate [bit/s]
-        % qber = QBER of the transmission system [%]
-        % ########################################
+        % Outputs:
+        % secret_rate - (1x1) double, secure key rate [bit/s]
+        % sifted_rate - (1x1) double, sifted key rate [bit/s]
+        % qber - (1x1) double, quantum bit error rate [%]
 
+            %% Extract source parameters
             MPN = Alice.Source.MPN_Signal;
             g2 = Alice.Source.g2;
             state_prep_error = Alice.Source.State_Prep_Error;
             rep_rate = Alice.Source.Repetition_Rate;
 
-            % detection efficiency is included in loss
-            % eta = Bob.Detector.Detection_Efficiency;
+            %% Estimate background count probability
+            prob_dark = proto.backgroundCountProbability( ...
+                total_background_count_rate, Bob.Detector.Time_Gate_Width);
 
-            % probability of dark counts (Bob's detetcion stage - convolution of all 
-            % Detectors used by Bob)
-            %prob_dark = prob_dark_counts;
-            prob_dark = proto.BackgroundCountProbability(total_background_count_rate,Bob.Detector.Time_Gate_Width);
-
-            % probability of a single detection event 
-            % prob_click = MPN * eta * total_loss + prob_dark;
+            %% Estimate detection probability
             prob_click = MPN * total_loss + prob_dark;
 
-            % probability that the Source generated more than one photon
+            %% Multi-photon probability
             prob_multi = 0.5 * MPN.^2 * g2;
 
-            % fraction of detection events originating from single photons
+            %% Single-photon fraction
             beta = (prob_click - prob_multi) ./ prob_click;
 
-            %convolution of state preparation errors
-            %( imperfect polarisation optics, channel dechoerence, imperfect state 
-            % preparation )
+            %% State preparation error
             mu = state_prep_error;
 
-            % probability of a signal event (Bob's estimation based on Alice's 
-            % original signal)
+            %% Signal probability
             prob_signal = MPN .* total_loss;
 
-            % QBER
-            % qber due to polarisation compensation error is the sine of the mean error
-            % angle (in degrees)
-
-            %Bob.Detector = SetJitterPerformance(Bob.Detector, Rate_In);
+            %% QBER components
             qber_jitter = Bob.Detector.QBER_Jitter;
             qber_polarisation_error = sind(Bob.Detector.Polarisation_Error);
 
-            % size(mu)
-            % size(prob_signal)
-            % size(prob_dark)
-            % size(prob_click)
-            % size(qber_jitter)
-            % size(qber_polarisation_error)
-            % add up qbers. since small, neglect overlapping probabilities
+            %% Total QBER
             qber = (mu * prob_signal + prob_dark .* 0.5) ...
                 ./ prob_click + qber_jitter + qber_polarisation_error;
-            % CS modified qber cannot exceed 0.5
             qber(qber > 0.5) = 0.5;
 
-            % compression function (account's for Eve's attacks on the raw quantum key)
-            %size(qber)
-            %size(beta)
+            %% Privacy amplification factor
             tau = -log2(0.5 + 2*qber./beta - 2*(qber./beta).^2);
-            % cs modified if qber./beta>1+ a bit, then tau is complex. In this case 
-            % tau should return 0
-            tau(~(imag(tau)==0))=0;
+            tau(~(imag(tau) == 0)) = 0;
 
-            % function characterising the performance of the error correction algorithm
-            % [f(QBER) is always >= 1 where the equality holds for a lossless/perfect 
-            % algorithm], this has been extrapolated from the paper
+            %% Error correction efficiency
             f = 1.366 .* qber + 1.117;
 
-            % binary entropy function, a.k.a. h(x)
-            bin_ent = -qber.*log2(qber) - (1-qber).*log2(1-qber);
+            %% Binary entropy
+            bin_ent = -qber .* log2(qber) - (1 - qber) .* log2(1 - qber);
 
-            % secret key rate
+            %% Sifted key rate
             sifted_rate = rep_rate .* proto.efficiency .* prob_click;
-            % size(sifted_rate)
-            % size(beta)
-            % size(tau)
-            % size(f)
-            % size(bin_ent)
-            secret_rate = sifted_rate .* (beta .* tau - f .* bin_ent);
-            secret_rate(secret_rate < 0) = 0; 
-            % cs modification: output sifted key rate of zero in place of nan when 
-            % calculation returns zero
-            % altered 1/dead time limit to allow vectorised operation
-        end
 
+            %% Secret key rate
+            secret_rate = sifted_rate .* (beta .* tau - f .* bin_ent);
+            secret_rate(secret_rate < 0) = 0;
+        end
     end
 end
-

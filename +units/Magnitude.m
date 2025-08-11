@@ -11,9 +11,14 @@ classdef Magnitude
         Tera
     end
 
-    methods(Static)
+    methods (Static)
 
-        function e = Exponent(magnitude)
+        function e = exponent(magnitude)
+            % Returns the base-10 exponent associated with a magnitude.
+            %
+            % Syntax:
+            % e = Magnitude.exponent(magnitude)
+
             arguments
                 magnitude units.Magnitude
             end
@@ -40,37 +45,53 @@ classdef Magnitude
             end
         end
 
-        function r = Ratio(A, B)
-            arguments
-                A units.Magnitude
-                B units.Magnitude
-            end
-            r = units.Magnitude.Exponent(B) - units.Magnitude.Exponent(A);
-        end
-
-        function f = Factor(A, B)
-            %% How many of 'A' in 'B'
-            arguments
-                A units.Magnitude
-                B units.Magnitude
-            end
-            f = 10 ^ units.Magnitude.Ratio(A, B);
-        end
-
-        function result = Convert(A, B, values)
-            % Converts values of magnitude 'A' to values with magnitude 'B'
+        function r = ratio(A, B)
+            % Returns the exponent difference between two magnitudes.
             %
-            % wavelength = 1.55; % wavelength in microns
-            % wvl_in_nm = units.Magnitude.Convert("micro", "nano", wavelength);
-            % assert(wvl_in_nm == 1550)
+            % Syntax:
+            % r = Magnitude.ratio(A, B)
+
+            arguments
+                A units.Magnitude
+                B units.Magnitude
+            end
+
+            r = units.Magnitude.exponent(B) - units.Magnitude.exponent(A);
+        end
+
+        function f = factor(A, B)
+            % Returns the scaling factor from magnitude A to magnitude B.
+            %
+            % Syntax:
+            % f = Magnitude.factor(A, B)
+
+            arguments
+                A units.Magnitude
+                B units.Magnitude
+            end
+
+            f = 10 ^ units.Magnitude.ratio(A, B);
+        end
+
+        function result = convert(A, B, values)
+            % Converts values from magnitude A to magnitude B.
+            %
+            % Syntax:
+            % result = Magnitude.convert(A, B, values)
+
             arguments
                 A units.Magnitude
                 B units.Magnitude
                 values
             end
-            result = values .* units.Magnitude.Factor(B, A);
+
+            result = values .* units.Magnitude.factor(B, A);
+
+            % Example:
+            % wavelength = 1.55; % microns
+            % wvl_in_nm = Magnitude.convert(Magnitude.micro, Magnitude.nano, wavelength);
+            % assert(wvl_in_nm == 1550);
         end
 
     end
-
 end

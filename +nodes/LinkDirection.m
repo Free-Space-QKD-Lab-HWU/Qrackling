@@ -1,78 +1,122 @@
 classdef LinkDirection
+% LinkDirection
+%
+% Enumeration of different link directions modeled in the optical simulation.
+%
+% Syntax:
+% dir = nodes.LinkDirection.Downlink
+
     enumeration
         Downlink
         Uplink
         Intersatellite
         Terrestrial
-        % TODO: add a HAP type, free space in atmosphere
-        % TODO add fibre link -> should only require adding a field to ground ...
-        % will need to add an optional argument to DetermineLinkDirection so that
-        % we can find fibre links
+        % TODO: Add HAP type (free-space in atmosphere)
+        % TODO: Add fibre link support via optional argument to determineLinkDirection
     end
 
+
     methods (Static)
-        function link_direction = DetermineLinkDirection(receiver, transmitter)
+        function link_direction = determineLinkDirection(receiver, transmitter)
+        % determineLinkDirection
+        %
+        % Determine the link direction between a transmitter and receiver.
+        %
+        % Syntax:
+        % link_direction = LinkDirection.determineLinkDirection(receiver, transmitter)
+        %
+        % Inputs:
+        % receiver    - subclass of nodes.FreeSpaceOpticalNode
+        % transmitter - subclass of nodes.FreeSpaceOpticalNode
+        %
+        % Output:
+        % link_direction - LinkDirection enum value
+
             arguments
-                receiver {utilities.mustBeSubclassOf(receiver,'nodes.Free_Space_Optical_Node')}
-                transmitter {utilities.mustBeSubclassOf(transmitter,'nodes.Free_Space_Optical_Node')}
+                receiver {utilities.mustBeSubclassOf(receiver, 'nodes.FreeSpaceOpticalNode')}
+                transmitter {utilities.mustBeSubclassOf(transmitter, 'nodes.FreeSpaceOpticalNode')}
             end
 
             switch class(transmitter)
-
-            case "nodes.Satellite"
-                switch class(receiver)
-
                 case "nodes.Satellite"
-                    link_direction = nodes.LinkDirection.Intersatellite;
+                    switch class(receiver)
+                        case "nodes.Satellite"
+                            link_direction = nodes.LinkDirection.Intersatellite;
+                        case "nodes.GroundStation"
+                            link_direction = nodes.LinkDirection.Downlink;
+                    end
 
-                case "nodes.Ground_Station"
-                    link_direction = nodes.LinkDirection.Downlink;
-                end
-
-            case "nodes.Ground_Station"
-                switch class(receiver)
-
-                case "nodes.Satellite"
-                    link_direction = nodes.LinkDirection.Uplink;
-
-                case "nodes.Ground_Station"
-                    link_direction = nodes.LinkDirection.Terrestrial;
-                end
-
+                case "nodes.GroundStation"
+                    switch class(receiver)
+                        case "nodes.Satellite"
+                            link_direction = nodes.LinkDirection.Uplink;
+                        case "nodes.GroundStation"
+                            link_direction = nodes.LinkDirection.Terrestrial;
+                    end
             end
         end
 
-        function h = LayerHeight(Link, Slant_Range, Zenith_Angle)
+
+        function h = layerHeight(link, slant_range, zenith_angle)
+        % layerHeight
+        %
+        % Compute the height of an atmospheric layer intersected by a slanted link.
+        %
+        % Syntax:
+        % h = LinkDirection.layerHeight(link, slant_range, zenith_angle)
+        %
+        % Inputs:
+        % link         - LinkDirection enum value
+        % slant_range  - numeric, slant path length (km)
+        % zenith_angle - numeric, zenith angle (degrees)
+        %
+        % Output:
+        % h - numeric, height of the layer (km)
+
             arguments
-                Link LinkDirection
-                Slant_Range {mustBeReal, mustBeNumeric, mustBePositive}
-                Zenith_Angle {mustBeReal, mustBeNumeric}
+                link LinkDirection
+                slant_range {mustBeReal, mustBeNumeric, mustBePositive}
+                zenith_angle {mustBeReal, mustBeNumeric}
             end
 
-            switch Link
+            switch link
                 case LinkDirection.Downlink
-                    h = LinkDirection.Height(Slant_Range, Zenith_Angle, xi);
-                    return
+                    h = LinkDirection.height(slant_range, zenith_angle, 0.5);
                 case LinkDirection.Uplink
-                    h = LinkDirection.Height(Slant_Range, Zenith_Angle, 1-xi);
-                    return
+                    h = LinkDirection.height(slant_range, zenith_angle, 0.5);
             end
         end
 
-        function h = Height(Slant_Range, Zenith_Angle, Xi)
+
+        function h = height(slant_range, zenith_angle, xi)
+        % height
+        %
+        % Compute the height above Earth's surface for a slanted optical link.
+        %
+        % Syntax:
+        % h = LinkDirection.height(slant_range, zenith_angle, xi)
+        %
+        % Inputs:
+        % slant_range  - numeric, slant path length (km)
+        % zenith_angle - numeric, zenith angle (degrees)
+        % xi           - numeric, fractional distance along slant path (0 < xi ≤ 1)
+        %
+        % Output:
+        % h - numeric, height above Earth's surface (km)
+
             arguments
-                Slant_Range {mustBeReal, mustBeNumeric, mustBePositive}
-                Zenith_Angle {mustBeReal, mustBeNumeric}
-                Xi {mustBeReal, mustBePositive, mustBeLessThanOrEqual(Xi, 1)}
+                slant_range {mustBeReal, mustBeNumeric, mustBePositive}
+                zenith_angle {mustBeReal, mustBeNumeric}
+                xi {mustBeReal, mustBePositive, mustBeLessThanOrEqual(xi, 1)}
             end
 
-            Earth_Radius = 6371; % km
+            earth_radius = 6371;  % km
 
-            ratio = (Slant_Range .* Xi) ./ Earth_Radius;
+            ratio = (slant_range .* xi) ./ earth_radius;
 
-            h = (Earth_Radius ...
-                .* sqrt(1 + (2 .* ratio .* cosd(Zenith_Angle)) + (ratio .^ 2))) ...
-                - Earth_Radius;
+            h = (earth_radius ...
+                .* sqrt(1 + (2 .* ratio .* cosd(zenith_angle)) + (ratio .^ 2))) ...
+                - earth_radius;
         end
     end
 end
