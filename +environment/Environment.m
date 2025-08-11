@@ -22,8 +22,8 @@ classdef Environment
         elevations (1, :) {mustBeNumeric}
 
         % A standardised model for turbulence
-        turbulence_model (1,1) environment.Turbulence_Model = ...
-            environment.Turbulence_Model('Preset', 'HV5-7')
+        turbulence_model (1,1) environment.TurbulenceModel = ...
+            environment.TurbulenceModel('Preset', 'HV5-7')
 
         % Atmospheric attenuation (in absolute terms) for the full atmosphere
         % thickness. Dimensions: [numel(wavelengths), numel(headings), numel(elevations)]
@@ -158,9 +158,9 @@ classdef Environment
 
             % Sort, tidy and bound inputs
             % Heading, elevation and wavelength must be increasing
-            assert(environment.Environment.IsIncreasing(headings), 'headings must be increasing');
-            assert(environment.Environment.IsIncreasing(elevations), 'elevations must be increasing');
-            assert(environment.Environment.IsIncreasing(wavelengths), 'wavelengths must be increasing');
+            assert(environment.Environment.isIncreasing(headings), 'headings must be increasing');
+            assert(environment.Environment.isIncreasing(elevations), 'elevations must be increasing');
+            assert(environment.Environment.isIncreasing(wavelengths), 'wavelengths must be increasing');
 
             % All vectors should be rows
             if iscolumn(headings)

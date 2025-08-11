@@ -1,5 +1,5 @@
-classdef GroundStation < nodes.Located_Object & nodes.QKD_Receiver & ...
-        nodes.QKD_Transmitter & nodes.FreeSpaceOpticalNode
+classdef GroundStation < nodes.LocatedObject & nodes.QKDReceiver & ...
+        nodes.QKDTransmitter & nodes.FreeSpaceOpticalNode
     % GroundStation
     %
     % An object containing all simulation parameters for a ground station
@@ -17,7 +17,7 @@ classdef GroundStation < nodes.Located_Object & nodes.QKD_Receiver & ...
 
         % environment - describes atmospheric loss and background light
         environment (1,1) environment.Environment = ...
-            environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 50km.mat")
+            environment.Environment.load("Examples\Data\atmospheric transmittance\Dark Environment 50km.mat")
 
         % elevation_limit - minimum elevation to establish a link (degrees)
         elevation_limit {mustBeScalarOrEmpty} = 30
@@ -134,11 +134,11 @@ classdef GroundStation < nodes.Located_Object & nodes.QKD_Receiver & ...
             end
 
             if isobject(options.scenario)
-                ground_station.useSatCommsToolbox = true;
+                ground_station.use_sat_comms_toolbox = true;
                 scenario = options.scenario;
             end
 
-            if ground_station.useSatCommsToolbox
+            if ground_station.use_sat_comms_toolbox
                 ground_station.toolbox_groundStation = groundStation( ...
                     scenario, lat, lon, alt, 'Name', options.Name);
             end

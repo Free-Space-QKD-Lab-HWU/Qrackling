@@ -74,7 +74,7 @@ classdef SpectralFilter
             end
 
             % Scale factor to convert from provided units to nm
-            factor = units.Magnitude.Factor("nano", options.Wavelength_Scale);
+            factor = units.Magnitude.factor("nano", options.Wavelength_Scale);
 
             % Direct data path: set wavelengths/transmission and return
             if ~(isempty(options.wavelengths) && isempty(options.transmission))

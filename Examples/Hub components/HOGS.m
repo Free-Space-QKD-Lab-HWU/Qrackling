@@ -83,21 +83,21 @@ Beacon_Power = 40E-3;                                                           
 Beacon_Wavelength = 850;                                                        %uplink beacon wavelength in nm
 BeaconPointingPrecision = 1E-6;                                                 %beacon pointing precision (coarse pointing precision) in rads
 Beacon_Beam_Divergence =49.9E-6; %7mrad = 0.5 deg is the divergence of RAL's uplink beacon system. 50urad is our uplink beacon divergence
-Beacon_Telescope = SetWavelength(HOGS_Telescope,Beacon_Wavelength);
-Beacon_Telescope = SetFOV(Beacon_Telescope,Beacon_Beam_Divergence);
+Beacon_Telescope = setWavelength(HOGS_Telescope,Beacon_Wavelength);
+Beacon_Telescope = setFOV(Beacon_Telescope,Beacon_Beam_Divergence);
 %initially, uncertainty in satellite position is 5km and range is roughly
 %500km/sin(30), so pointing precision is on the order 5mrads.
 BeaconEfficiency = 1;                                                           %beacon optical efficiency (unitless)
-HOGSBeacon = beacon.Gaussian_Beacon(Beacon_Telescope,Beacon_Power,Beacon_Wavelength,...
+HOGSBeacon = beacon.GaussianBeacon(Beacon_Telescope,Beacon_Power,Beacon_Wavelength,...
     "Power_Efficiency", BeaconEfficiency, "Pointing_Jitter",  BeaconPointingPrecision);
 
 
 %a standard enviroment
 %for now we assume darkness and 20km visibility
-Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 20km.mat");
+Env = environment.Environment.load("Examples\Data\atmospheric transmittance\Dark Environment 20km.mat");
 
 %% construct OGS at Errol
-HOGS=nodes.Ground_Station(HOGS_Telescope,...
+HOGS=nodes.GroundStation(HOGS_Telescope,...
                 'Detector',HOGS_Detector,...
                 'Camera',HOGS_Camera,...
                 'Beacon',HOGSBeacon,...

@@ -1,5 +1,5 @@
-classdef Turbulence_Model
-    % Turbulence_Model
+classdef TurbulenceModel
+    % TurbulenceModel
     %
     % Contains arguments describing atmospheric turbulence according to the
     % Hufnagel-Valley model.
@@ -15,8 +15,8 @@ classdef Turbulence_Model
     % ground to a satellite", doi: 10.1515/aot-2020-0017
     %
     % Syntax:
-    % hv = environment.Turbulence_Model('Preset', 'HV5-7')
-    % hv = environment.Turbulence_Model('Preset', 'none', ...
+    % hv = environment.TurbulenceModel('Preset', 'HV5-7')
+    % hv = environment.TurbulenceModel('Preset', 'none', ...
     %     'magnitudes', M, 'heights', H)
 
     
@@ -38,10 +38,10 @@ classdef Turbulence_Model
 
     %% Public methods
     methods
-        function hv = Turbulence_Model(options)
-            % Turbulence_Model
+        function hv = TurbulenceModel(options)
+            % TurbulenceModel
             %
-            % Construct a Turbulence_Model object, using either a preset or
+            % Construct a TurbulenceModel object, using either a preset or
             % user-specified magnitudes and heights.
             %
             % Name-Value options:
@@ -89,13 +89,13 @@ classdef Turbulence_Model
         end
 
 
-        function cn2_val = cn2(turbulence_model, h)
+        function cn2_val = cn2(TurbulenceModel, h)
             % cn2
             %
             % Compute the HV model Cn^2 value at altitude h.
             %
             % Syntax:
-            % cn2_val = cn2(turbulence_model, h)
+            % cn2_val = cn2(TurbulenceModel, h)
             %
             % Inputs:
             % h - nonnegative altitude(s) in m
@@ -104,7 +104,7 @@ classdef Turbulence_Model
             % cn2_val - same size as h
 
             arguments
-                turbulence_model environment.Turbulence_Model
+                TurbulenceModel environment.TurbulenceModel
                 h {mustBeNonnegative}
             end
 
@@ -112,15 +112,15 @@ classdef Turbulence_Model
             cn2_val = 0;
 
             % Sum exponential contributions
-            for i = 1:numel(turbulence_model.magnitudes)
+            for i = 1:numel(TurbulenceModel.magnitudes)
                 cn2_val = cn2_val + ...
-                    turbulence_model.magnitudes(i) .* ...
-                    exp(-h / turbulence_model.heights(i));
+                    TurbulenceModel.magnitudes(i) .* ...
+                    exp(-h / TurbulenceModel.heights(i));
             end
         end
 
 
-        function r0_val = r0(turbulence_model, ...
+        function r0_val = r0(TurbulenceModel, ...
                 link_direction, ...
                 wavelength, ...
                 elevation, ...
@@ -130,7 +130,7 @@ classdef Turbulence_Model
             % Compute the Fried parameter (r0) for given link conditions.
             %
             % Syntax:
-            % r0_val = r0(turbulence_model, link_direction, wavelength, ...
+            % r0_val = r0(TurbulenceModel, link_direction, wavelength, ...
             %     elevation, 'BottomHeight', b, 'TopHeight', t)
             %
             % Inputs:
@@ -144,7 +144,7 @@ classdef Turbulence_Model
             % r0_val - same size as elevation
 
             arguments
-                turbulence_model (1, 1) environment.Turbulence_Model
+                TurbulenceModel (1, 1) environment.TurbulenceModel
                 link_direction (1, 1) nodes.LinkDirection
                 wavelength (1, 1) {mustBeNonnegative}
                 elevation {mustBeNonnegative}
@@ -165,11 +165,11 @@ classdef Turbulence_Model
             % Define integrand based on link direction
             switch link_direction
                 case nodes.LinkDirection.Uplink
-                    integrand = @(h, top, bottom) cn2(turbulence_model, h) .* ...
+                    integrand = @(h, top, bottom) cn2(TurbulenceModel, h) .* ...
                         ((1 - (h - bottom) ./ (top - bottom)) .^ (5/3));
 
                 case nodes.LinkDirection.Downlink
-                    integrand = @(h, top, bottom) cn2(turbulence_model, h) .* ...
+                    integrand = @(h, top, bottom) cn2(TurbulenceModel, h) .* ...
                         (((h - bottom) ./ (top - bottom)) .^ (5/3));
 
                 case nodes.LinkDirection.Intersatellite
@@ -198,7 +198,7 @@ classdef Turbulence_Model
         end
 
 
-        function [expanded_beam, r0_val] = beamSpread(turbulence_model, ...
+        function [expanded_beam, r0_val] = beamSpread(TurbulenceModel, ...
                 link_direction, ...
                 wavelength, ...
                 elevation, ...
@@ -210,7 +210,7 @@ classdef Turbulence_Model
             % Compute turbulent beam spreading for a link.
             %
             % Syntax:
-            % [expanded_beam, r0_val] = beamSpread(turbulence_model, ...
+            % [expanded_beam, r0_val] = beamSpread(TurbulenceModel, ...
             %     link_direction, wavelength, elevation, length, ...
             %     geometric_beam_width, 'BottomHeight', b, 'TopHeight', t)
             %
@@ -219,7 +219,7 @@ classdef Turbulence_Model
             % r0_val        - Fried parameter (m)
 
             arguments
-                turbulence_model (1, 1) environment.Turbulence_Model
+                TurbulenceModel (1, 1) environment.TurbulenceModel
                 link_direction (1, 1) nodes.LinkDirection
                 wavelength (1, 1) {mustBeNonnegative}
 
@@ -238,7 +238,7 @@ classdef Turbulence_Model
                    'elevation, length and geometric_beam_width must have the same dimensions');
 
             %% First, compute r0
-            r0_val = r0(turbulence_model, ...
+            r0_val = r0(TurbulenceModel, ...
                 link_direction, ...
                 wavelength, ...
                 elevation, ...

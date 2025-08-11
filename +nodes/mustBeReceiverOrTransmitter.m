@@ -10,11 +10,11 @@ function mustBeReceiverOrTransmitter(receiver_or_transmitter)
 % obj - scalar or array of QKD node objects
 
     if isscalar(receiver_or_transmitter) && ~isa(receiver_or_transmitter, "cell")
-        is_valid = utilities.isSubclassOf(receiver_or_transmitter, 'nodes.QKD_Transmitter') || ...
-                   utilities.isSubclassOf(receiver_or_transmitter, 'nodes.QKD_Receiver');
+        is_valid = utilities.isSubclassOf(receiver_or_transmitter, 'nodes.QKDTransmitter') || ...
+                   utilities.isSubclassOf(receiver_or_transmitter, 'nodes.QKDReceiver');
 
         assert(is_valid, ...
-            'Input must be either a QKD_Transmitter or QKD_Receiver');
+            'Input must be either a QKDTransmitter or QKDReceiver');
         return
     end
 

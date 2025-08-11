@@ -239,7 +239,7 @@ classdef Detector
                 options.UpdateEfficiency logical = false
             end
 
-            wavelength_new = units.Magnitude.Convert( ...
+            wavelength_new = units.Magnitude.convert( ...
                 options.Wavelength_Scale, "nano", wavelength);
 
             if options.UpdateEfficiency

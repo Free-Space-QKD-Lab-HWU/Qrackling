@@ -61,7 +61,7 @@ assert(ismember(Wavelength,[785,808,1550]),'Wavelength must be one of the intend
     % HubSatBeacon = Flat_Top_Beacon(BeaconTelescope,BeaconPower,BeaconWavelength,...
     %     'Power_Efficiency',BeaconEfficiency,...
     %     'Pointing_Jitter',BeaconPointingPrecision);
-    HubSatBeacon = beacon.Flat_Top_Beacon(BeaconTelescope,BeaconPower,BeaconWavelength);
+    HubSatBeacon = beacon.FlatTopBeacon(BeaconTelescope,BeaconPower,BeaconWavelength);
 
     %camera
     Camera_Scope_Diameter = 0.08;

@@ -12,6 +12,6 @@ classdef (Abstract) QKDTransmitter
 
     properties
         % source - (1,1) object containing transmitter details
-        Source = []
+        source = []
     end
 end

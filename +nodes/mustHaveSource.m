@@ -10,16 +10,16 @@ function mustHaveSource(transmitter)
 % transmitter - scalar or cell array of transmitter objects with a Source property
 
     if isscalar(transmitter) && ~isa(transmitter, "cell")
-        if isempty(transmitter.Source)
-            error('%s has no source object and cannot be used as a transmitter', transmitter.Name)
+        if isempty(transmitter.source)
+            error('%s has no source object and cannot be used as a transmitter', transmitter.name)
         end
         return
     end
 
     for i = 1:numel(transmitter)
         t = transmitter{i};
-        if isempty(t.Source)
-            error('%s has no source object and cannot be used as a transmitter', t.Name)
+        if isempty(t.source)
+            error('%s has no source object and cannot be used as a transmitter', t.name)
         end
     end
 end

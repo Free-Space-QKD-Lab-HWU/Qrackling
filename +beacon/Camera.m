@@ -72,7 +72,7 @@ classdef Camera
                 options.pixels = [1080,1080]
             end
 
-            C.telescope = telescope.SetWavelength(options.wavelength);
+            C.telescope = telescope.setWavelength(options.wavelength);
             C.quantum_efficiency = options.quantum_efficiency;
             C.exposure_time = options.exposure_time;
             C.spectral_filter_width = options.spectral_filter_width;

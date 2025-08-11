@@ -10,6 +10,6 @@ classdef (Abstract) QKDReceiver
 
     properties
         % detector - (1,1) object representing the receiver's detection module
-        Detector = []
+        detector = []
     end
 end

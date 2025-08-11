@@ -148,7 +148,7 @@ classdef Source
                 options.Wavelength_Scale units.Magnitude = "nano"
             end
 
-            obj.wavelength = units.Magnitude.Convert( ...
+            obj.wavelength = units.Magnitude.convert( ...
                 options.Wavelength_Scale, "nano", wavelength);
             obj.units = options.Wavelength_Scale;
         end

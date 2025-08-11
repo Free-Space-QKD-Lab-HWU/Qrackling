@@ -1,4 +1,4 @@
-classdef Satellite < nodes.Located_Object & nodes.QKDReceiver & nodes.QKDTransmitter & nodes.Free_Space_Optical_Node
+classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmitter & nodes.FreeSpaceOpticalNode
     % Satellite
     %
     % Abstract class containing satellite properties for QKD simulation.
@@ -25,25 +25,25 @@ classdef Satellite < nodes.Located_Object & nodes.QKDReceiver & nodes.QKDTransmi
         sc_sat
 
         % kepler_elements - [sma, ecc, inc, raan, aop, ta]
-        Kepler_Elements
+        kepler_elements
 
         % tle_uncertainty - (1,1) double, uncertainty in orbital position (m)
-        TLE_Uncertainty {mustBeScalarOrEmpty, mustBeNonnegative} = 5E3
+        tle_uncertainty {mustBeScalarOrEmpty, mustBeNonnegative} = 5E3
     end
 
     %% Public satellite properties
     properties (SetAccess = protected, Hidden = false)
         % orbit_data_file_location - (1,1) string, path to orbit data file
-        Orbit_Data_File_Location {mustBeText} = ''
+        orbit_file_data_location {mustBeText} = ''
 
         % times - (1,N) datetime, satellite timestamps
-        Times {mustBeA(Times, 'datetime')} = datetime.empty()
+        times {mustBeA(times, 'datetime')} = datetime.empty()
 
         % beacon - (1,1) object, beacon source on satellite
-        Beacon = []
+        beacon = []
 
         % camera - (1,1) object, beaconing camera on satellite
-        Camera = []
+        camera = []
     end
 
 
@@ -114,20 +114,19 @@ classdef Satellite < nodes.Located_Object & nodes.QKDReceiver & nodes.QKDTransmi
                 kepler_elements = options.KeplerElements;
             end
 
-            satellite.Kepler_Elements = kepler_elements;
+            satellite.kepler_elements = kepler_elements;
 
             %% Store name
-            satellite.Name = options.Name;
+            satellite.name = options.Name;
 
             %% Validate orbital input
-            if 0 > utilities.nan_present( ...
-                    options.OrbitDataFileLocation, ...
-                    options.scenario, ...
-                    options.ToolBoxSatellite, ...
-                    options.TLE, ...
-                    kepler_elements)
-                error('Must provide one of: OrbitDataFileLocation, TLE, or KeplerElements')
-            end
+            assert(any([~isnan(options.OrbitDataFileLocation), ...
+                       ~isnan(options.scenario), ...
+                       ~isnan(options.ToolBoxSatellite), ...
+                       ~isnan(options.TLE), ...
+                       ~isnan(kepler_elements)]), ...
+                              ['Must provide one of: OrbitDataFileLocation,' ...
+                              'TLE, or KeplerElements'])
 
             %% Load orbit data
             if ~isempty(options.OrbitDataFileLocation)
@@ -165,8 +164,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKDReceiver & nodes.QKDTransmi
                     end
 
                     scenario = satelliteScenario( ...
-                        options.startTime, options.stopTime, ...
-                        'sampleTime', sample_time);
+                        options.startTime, options.stopTime, sample_time);
                 else
                     scenario = options.scenario;
                 end
@@ -190,42 +188,42 @@ classdef Satellite < nodes.Located_Object & nodes.QKDReceiver & nodes.QKDTransmi
             end
 
             %% Validate orbit data dimensions
-            if ~utilities.AreSameDimensions(t, lat, lon, alt)
+            if ~utilities.areSameDimensions(t, lat, lon, alt)
                 error('Latitude, Longitude, Altitude, and Time must be same length')
             end
 
             %% Set position and timestamps
-            satellite = SetPosition(satellite, ...
-                Latitude = lat, Longitude = lon, Altitude = alt, Name = satellite.Name);
+            satellite = setPosition(satellite, ...
+                Latitude = lat, Longitude = lon, Altitude = alt, Name = satellite.name);
 
             if isempty(t.TimeZone)
                 t.TimeZone = 'UTC';
             end
 
-            satellite.Times = t;
-            satellite.TLE_Uncertainty = options.TLE_Uncertainty;
+            satellite.times = t;
+            satellite.tle_uncertainty = options.TLE_Uncertainty;
 
             %% Assign telescope and wavelength
-            satellite.Telescope = telescope;
+            satellite.telescope = telescope;
 
             if ~isempty(options.Source)
-                satellite.Source = options.Source;
-                satellite.Telescope = SetWavelength(telescope, options.Source.Wavelength);
+                satellite.source = options.Source;
+                satellite.telescope = setWavelength(telescope, options.Source.wavelength);
 
             elseif ~isempty(options.Detector)
-                satellite.Detector = options.Detector;
-                satellite.Telescope = SetWavelength(telescope, options.Detector.Wavelength);
+                satellite.detector = options.Detector;
+                satellite.telescope = setWavelength(telescope, options.Detector.wavelength);
 
             else
                 warning('Must provide either a source or detector')
             end
 
             %% Assign beacon and camera
-            satellite.Beacon = options.Beacon;
-            satellite.Camera = options.Camera;
+            satellite.beacon = options.Beacon;
+            satellite.camera = options.Camera;
 
             %% Reassign detector if needed
-            satellite.Detector = options.Detector;
+            satellite.detector = options.Detector;
         end
 
         function [satellite, lat, lon, alt, t] = readOrbitLLATFile( ...
@@ -255,7 +253,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKDReceiver & nodes.QKDTransmi
             end
 
             addpath(utilities.LocationofFile(orbit_data_file_location))
-            satellite.Orbit_Data_File_Location = orbit_data_file_location;
+            satellite.orbit_file_data_location = orbit_data_file_location;
 
             file_id = fopen(orbit_data_file_location);
             llat_data = fscanf(file_id, '%f, %f, %f, %f', [4, inf]);
@@ -270,8 +268,8 @@ classdef Satellite < nodes.Located_Object & nodes.QKDReceiver & nodes.QKDTransmi
         end
 
 
-        function [satellite, lat, lon, alt, t] = ...
-                llatFromScenario(satellite, options)
+        function [Satellite, lat, lon, alt, t] = ...
+                llatFromScenario(Satellite, options)
             % llatFromScenario
             %
             % Extracts position and time from a satellite scenario.
@@ -290,7 +288,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKDReceiver & nodes.QKDTransmi
             % v_e, v_n, v_u - (1,N) double, ENU velocity components
 
             arguments
-                satellite
+                Satellite
                 options.satCommsSatellite = nan
                 options.scenario = nan
                 options.TLE = nan
@@ -301,25 +299,25 @@ classdef Satellite < nodes.Located_Object & nodes.QKDReceiver & nodes.QKDTransmi
                     isempty(options.KeplerElements)
                 [position, velocity, t] = states(options.satCommsSatellite, ...
                     'CoordinateFrame', 'geographic');
-                satellite.Name = options.satCommsSatellite.Name;
+                Satellite.name = options.satCommsSatellite.Name;
 
             elseif ~isempty(options.scenario) && ~isnan(options.TLE)
                 sc_sat = satellite(options.scenario, options.TLE, ...
-                    "Name", satellite.Name, ...
+                    "Name", Satellite.name, ...
                     "OrbitPropagator", "two-body-keplerian");
 
                 [position, velocity, t] = states(sc_sat, 'CoordinateFrame', 'geographic');
-                satellite.Name = sc_sat.satellite(1).Name;
+                Satellite.name = sc_sat.satellite(1).Name;
 
             elseif ~isempty(options.scenario) && ~isempty(options.KeplerElements)
                 ke = options.KeplerElements;
                 sc_sat = satellite(options.scenario, ke(1), ke(2), ke(3), ...
                     ke(4), ke(5), ke(6), ...
-                    "Name", satellite.Name, ...
+                    "Name", Satellite.name, ...
                     "OrbitPropagator", "two-body-keplerian");
 
                 [position, velocity, t] = states(sc_sat, 'CoordinateFrame', 'geographic');
-                satellite.Name = sc_sat.Name;
+                Satellite.name = sc_sat.Name;
             end
 
             lat = position(1, :);
@@ -336,8 +334,8 @@ classdef Satellite < nodes.Located_Object & nodes.QKDReceiver & nodes.QKDTransmi
             % Syntax:
             % satellite = satellite.setWavelength(wavelength)
 
-            satellite.Source = SetWavelength(satellite.Source, wavelength);
-            satellite.Telescope = SetWavelength(satellite.Telescope, wavelength);
+            satellite.source = SetWavelength(satellite.Source, wavelength);
+            satellite.telescope = SetWavelength(satellite.telescope, wavelength);
         end
 
 
@@ -349,7 +347,7 @@ classdef Satellite < nodes.Located_Object & nodes.QKDReceiver & nodes.QKDTransmi
             % Syntax:
             % satellite = satellite.setSource(source)
 
-            satellite.Source = source;
+            satellite.source = source;
             satellite = satellite.setWavelength(source.Wavelength);
         end
 
@@ -362,40 +360,13 @@ classdef Satellite < nodes.Located_Object & nodes.QKDReceiver & nodes.QKDTransmi
             % Syntax:
             % distances = satellite.computeDistancesTo(lla)
 
-            lla_sat = [satellite.Latitudes', ...
-                satellite.Longitudes', ...
-                satellite.Altitudes'];
+            lla_sat = [satellite.latitudes', ...
+                satellite.longitudes', ...
+                satellite.altitudes'];
 
             enu = lla2enu(lla_sat, lla, "ellipsoid");
             distances = utilities.Row2Norms(enu);
         end
-
-
-        function satellite = setFrontalArea(satellite, area)
-            % setFrontalArea
-            %
-            % Sets the frontal area of the satellite surface.
-            %
-            % Syntax:
-            % satellite = satellite.setFrontalArea(area)
-
-            satellite.Surface = SetArea(satellite.Surface, area);
-        end
-
-
-        function satellite = setReflectivity(satellite, reflectivity)
-            % setReflectivity
-            %
-            % Sets the reflectivity of the satellite surface.
-            %
-            % Syntax:
-            % satellite = satellite.setReflectivity(reflectivity)
-
-            satellite.Reflectivity = reflectivity;
-            warning(['This behavior is legacy and may be deprecated. ', ...
-                'Use the Surface class instead.'])
-        end
-
 
         function orbit_details = getOrbitDetails(satellite)
             % getOrbitDetails
@@ -405,12 +376,12 @@ classdef Satellite < nodes.Located_Object & nodes.QKDReceiver & nodes.QKDTransmi
             % Syntax:
             % orbit_details = satellite.getOrbitDetails()
 
-            orbit_details = timetable(satellite.Times', ...
-                [satellite.Latitude, satellite.Longitude, satellite.Altitude]);
+            orbit_details = timetable(satellite.times', ...
+                [satellite.latitude, satellite.longitude, satellite.altitude]);
 
             orbit_details = {orbit_details, ...
                 'CoordinateFrame', 'geographic', ...
-                'Name', satellite.Name};
+                'Name', satellite.name};
         end
 
 

@@ -40,17 +40,21 @@ classdef FlatTopBeacon < beacon.Beacon
                 telescope components.Telescope
                 power
                 wavelength
-                options.limit_half_angle = telescope.FOV/2
+                options.limit_half_angle = []
             end
             
             %% construct abstract beacon class
             FTB@beacon.Beacon(telescope, power, wavelength);
 
             % set half-angle if specified, otherwise use telescope FOV
+            if ~isempty(options.limit_half_angle)
             FTB.limit_half_angle = options.limit_half_angle;
+            else
+            FTB.limit_half_angle = FTB.telescope.fov;
+            end
         end
 
-        function loss = getAPTLoss(FlatTopBeacon, Camera)
+        function loss = aptLoss(FlatTopBeacon, Camera)
                 % getAPTLoss(FlatTopBeacon, Camera)
                 % 
                 % Overload the aptLoss method to be specific to a flat top
@@ -77,7 +81,7 @@ classdef FlatTopBeacon < beacon.Beacon
 
         end
 
-        function [geoLoss,geoSpotDiameter] = getGeoLoss(FlatTopBeacon, Range, Camera)
+        function [geoLoss,geoSpotDiameter] = geoLoss(FlatTopBeacon, Range, Camera)
             % getGeoLoss
             %
             % Calculates the geometric loss incurred due to the spreading of the beacon beam.

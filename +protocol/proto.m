@@ -21,9 +21,7 @@ classdef Proto
 
     methods (Abstract)
 
-        function [secret_key_rate, sifted_key_rate, qber] = qkdModel(protocol, ...
-            transmitter, receiver, total_loss, total_erroneous_counts)
-        end
+            qkdModel()
 
     end
 
