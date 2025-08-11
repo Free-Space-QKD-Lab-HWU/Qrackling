@@ -60,26 +60,26 @@ classdef DecoyBB84 < protocol.Proto
             % qber - (1xN) numeric, quantum bit error rate
 
             % Get repetition rate and state preparation error
-            rep_rate = alice.Source.Repetition_Rate;
-            state_prep_error = alice.Source.State_Prep_Error;
+            rep_rate = alice.source.repetition_rate;
+            state_prep_error = alice.source.state_prep_error;
 
             % Total transmission loss
             loss = total_loss;
 
             % Estimate probability of dark counts
             prob_dark_counts = proto.backgroundCountProbability( ...
-                total_background_count_rate, bob.Detector.Time_Gate_Width);
+                total_background_count_rate, bob.detector.time_gate_width);
 
             % QBER contributions from detector jitter and polarisation misalignment
-            qber_jitter = bob.Detector.QBER_Jitter;
-            qber_polarisation_error = sind(bob.Detector.Polarisation_Error);
+            qber_jitter = bob.detector.qber_jitter;
+            qber_polarisation_error = sind(bob.detector.polarisation_error);
 
             % Extract mean photon numbers and state probabilities
-            mpn = [alice.Source.MPN_Signal, alice.Source.MPN_Decoy, alice.Source.MPN_Vacuum];
+            mpn = [alice.source.mpn_signal, alice.source.mpn_decoy, alice.source.mpn_vacuum];
             state_probability = [ ...
-                alice.Source.Probability_Signal, ...
-                alice.Source.Probability_Decoy, ...
-                alice.Source.Probability_Vacuum];
+                alice.source.probability_signal, ...
+                alice.source.probability_decoy, ...
+                alice.source.probability_vacuum];
 
             % Calculate expected emission per state
             emission = mpn .* state_probability;
@@ -122,7 +122,7 @@ classdef DecoyBB84 < protocol.Proto
             sifted_key_rate = pS_signal * proto.efficiency * rep_rate;
 
             % Apply dead time constraint
-            skr_decoy_bb84 = min(rep_rate * ideal_secret_key_rate, 1 / bob.Detector.Dead_Time);
+            skr_decoy_bb84 = min(rep_rate * ideal_secret_key_rate, 1 / bob.detector.dead_time);
 
             % Ensure SKR is non-negative and defined
             skr_decoy_bb84(isnan(skr_decoy_bb84)) = NaN;

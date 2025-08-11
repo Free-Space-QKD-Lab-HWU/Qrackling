@@ -17,8 +17,8 @@ function loss = aptLoss(kind, receiver, transmitter)
 
     arguments
         kind {mustBeMember(kind, ["beacon", "qkd"])}
-        receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
-        transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
+        receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.GroundStation"])}
+        transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.GroundStation"])}
     end
 
 

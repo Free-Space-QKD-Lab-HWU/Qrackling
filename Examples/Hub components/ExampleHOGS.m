@@ -6,7 +6,7 @@
 Wavelength = 808;
 %Wavelength = 1550;
 
-assert(ismember(Wavelength,[785,808,1550]),'Wavelength must be one of the intended channels: 785,850 or 1550')
+assert(ismember(Wavelength,[785,808,1550]),'Wavelength must be one of the intended channels: 785, 850 or 1550')
 
 
 %% model HOGS

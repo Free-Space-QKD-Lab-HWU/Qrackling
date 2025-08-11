@@ -15,8 +15,8 @@ function shadowed = inEarthsShadow(A, B)
 % shadowed - logical array indicating whether the path is obstructed by Earth
 
     arguments
-        A nodes.Located_Object
-        B nodes.Located_Object
+        A nodes.LocatedObject
+        B nodes.LocatedObject
     end
 
 
@@ -31,8 +31,8 @@ function shadowed = inEarthsShadow(A, B)
     %% Compute minimum radius from Earth's center along the line AB
     dot_product = sum(pos_a .* pos_b, 2);
 
-    lambda_min = (utilities.Row2Norms(pos_a).^2 - dot_product) ...
-        ./ (utilities.Row2Norms(pos_a).^2 + utilities.Row2Norms(pos_b).^2 - 2 .* dot_product);
+    lambda_min = (utilities.row2Norms(pos_a).^2 - dot_product) ...
+        ./ (utilities.row2Norms(pos_a).^2 + utilities.row2Norms(pos_b).^2 - 2 .* dot_product);
 
     pos_min = pos_a .* (1 - lambda_min) + pos_b .* lambda_min;
 

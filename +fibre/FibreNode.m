@@ -1,4 +1,4 @@
-classdef FibreNode < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Transmitter
+classdef FibreNode < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmitter
 % Fibre_Node
 % Represents an end of a fibre connection with one or both of a QKD source
 % or detector, plus geographic location and timestamp.
@@ -30,9 +30,9 @@ classdef FibreNode < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
 
             % Choose source or detector
             if ~isempty(options.Source)
-                FN.Source = options.Source;
+                FN.source = options.Source;
             elseif ~isempty(options.Detector)
-                FN.Detector = options.Detector;
+                FN.detector = options.Detector;
             else
                 error('Fibre_Node:MissingEndpoint', ...
                       'Must provide either a Source or a Detector.')
@@ -51,14 +51,14 @@ classdef FibreNode < nodes.Located_Object & nodes.QKD_Receiver & nodes.QKD_Trans
                 'Name', options.Name);
 
             % Set timestamp
-            FN.Time = options.Time;
+            FN.time = options.Time;
         end
     end
 
     methods (Static)
         function FN = empty()
         % empty  Create a default Fibre_Node with a 785 nm Source
-            FN = fibre.Fibre_Node('Source', components.Source(785));
+            FN = fibre.FibreNode('Source', components.Source(785));
         end
     end
 end

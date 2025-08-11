@@ -25,8 +25,8 @@ function [turbulence_loss, turbulent_beam_width, r0] = turbulenceLoss( ...
 
     arguments
         kind {mustBeMember(kind, ["beacon", "qkd"])}
-        receiver (1,1) {utilities.mustBeSubclassOf(receiver, 'nodes.Located_Object')}
-        transmitter (1,1) {utilities.mustBeSubclassOf(transmitter, 'nodes.Located_Object')}
+        receiver (1,1) {utilities.mustBeSubclassOf(receiver, 'nodes.LocatedObject')}
+        transmitter (1,1) {utilities.mustBeSubclassOf(transmitter, 'nodes.LocatedObject')}
         direction (1,1) nodes.LinkDirection
         options.SpotSize = []
     end
@@ -40,26 +40,26 @@ function [turbulence_loss, turbulent_beam_width, r0] = turbulenceLoss( ...
             if isempty(receiver.Camera)
                 error('Receiver.Camera must not be empty')
             end
-            wavelength = transmitter.Beacon.Wavelength;
+            wavelength = transmitter.beacon.wavelength;
 
         case "qkd"
-            wavelength = transmitter.Source.Wavelength;
+            wavelength = transmitter.source.wavelength;
     end
 
     %% Compute link geometry
-    [~, elevation, link_length] = RelativeHeadingAndElevation(transmitter, receiver);
+    [~, elevation, link_length] = relativeHeadingAndElevation(transmitter, receiver);
 
     %% Determine altitude bounds and turbulence model
     switch direction
         case nodes.LinkDirection.Downlink
-            bottom_height = receiver.Altitude;
-            top_height = transmitter.Altitude;
-            turbulence_model = receiver.Environment.turbulence_model;
+            bottom_height = receiver.altitude;
+            top_height = transmitter.altitude;
+            turbulence_model = receiver.environment.turbulence_model;
 
         case nodes.LinkDirection.Uplink
-            bottom_height = transmitter.Altitude;
-            top_height = receiver.Altitude;
-            turbulence_model = transmitter.Environment.turbulence_model;
+            bottom_height = transmitter.altitude;
+            top_height = receiver.altitude;
+            turbulence_model = transmitter.environment.turbulence_model;
 
             % Elevation must be positive for turbulence calculations
             elevation = elevation + 180;
@@ -79,7 +79,7 @@ function [turbulence_loss, turbulent_beam_width, r0] = turbulenceLoss( ...
     end
 
     %% Compute beam spreading due to turbulence
-    [turbulent_beam_width, r0] = BeamSpread( ...
+    [turbulent_beam_width, r0] = beamSpread( ...
         turbulence_model, ...
         direction, ...
         wavelength, ...

@@ -1,4 +1,4 @@
-classdef BB84 < protocol.proto
+classdef BB84 < protocol.Proto
 % BB84
 %
 % Implements the BB84 quantum key distribution protocol using prepare-and-measure
@@ -15,10 +15,10 @@ classdef BB84 < protocol.proto
     properties (SetAccess = protected)
         method = 'prepare_and_measure'
 
-        source_features = protocol.sourceRequirements.features( ...
+        source_features = protocol.SourceRequirements.features( ...
             "g2", "MPN_Signal", "Probability_Signal", "State_Prep_Error")
 
-        detector_features = protocol.detectorRequirements.features( ...
+        detector_features = protocol.DetectorRequirements.features( ...
             "Dark_Count_Rate", "Time_Gate_Width", "Dead_Time")
 
         efficiency = 0.5

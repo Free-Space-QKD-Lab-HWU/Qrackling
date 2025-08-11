@@ -72,8 +72,8 @@ classdef LossResult
         end
 
 
-        function loss = TotalLoss(result)
-        % TotalLoss
+        function loss = totalLoss(result)
+        % totalLoss
         %
         % Compute the total loss by multiplying all loss objects.
         %

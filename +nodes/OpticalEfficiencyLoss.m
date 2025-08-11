@@ -16,8 +16,8 @@ function eff = opticalEfficiencyLoss(kind, receiver, transmitter)
 
     arguments
         kind {mustBeMember(kind, ["beacon", "qkd"])}
-        receiver {utilities.mustBeSubclassOf(receiver, 'nodes.QKD_Receiver')}
-        transmitter {utilities.mustBeSubclassOf(transmitter, 'nodes.QKD_Transmitter')}
+        receiver {utilities.mustBeSubclassOf(receiver, 'nodes.QKDReceiver')}
+        transmitter {utilities.mustBeSubclassOf(transmitter, 'nodes.QKDTransmitter')}
     end
 
     switch kind
@@ -34,22 +34,22 @@ function eff = opticalEfficiencyLoss(kind, receiver, transmitter)
 
         case "qkd"
             % Compute received wavelength from Doppler shift
-            shifted_wavelength = nodes.Doppler_Shift(receiver, transmitter);
-            filter_efficiency = receiver.Detector.Spectral_Filter ...
-                .ComputeTransmission(shifted_wavelength)';
+            shifted_wavelength = nodes.dopplerShift(receiver, transmitter);
+            filter_efficiency = receiver.detector.spectral_filter ...
+                .computeTransmission(shifted_wavelength)';
 
             % Combine all efficiency sources
-            eff = transmitter.Source.Efficiency ...
-                * transmitter.Telescope.Optical_Efficiency ...
-                * receiver.Detector.Detection_Efficiency ...
-                * receiver.Detector.Jitter_Loss ...
-                * receiver.Telescope.Optical_Efficiency ...
+            eff = transmitter.source.efficiency ...
+                * transmitter.telescope.optical_efficiency ...
+                * receiver.detector.detection_efficiency ...
+                * receiver.detector.jitter_loss ...
+                * receiver.telescope.optical_efficiency ...
                 * filter_efficiency;
     end
 
     % Expand scalar efficiency to match number of positions
     if isscalar(eff)
-        n = max(receiver.N_Position, transmitter.N_Position);
+        n = max(receiver.n_Position, transmitter.n_Position);
         eff = eff * ones(1, n);
     end
 

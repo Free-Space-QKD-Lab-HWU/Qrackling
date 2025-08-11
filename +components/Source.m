@@ -36,13 +36,17 @@ classdef Source
         % Probabilities of emitting different states.
         probability_signal {mustBeNumeric, mustBeNonnegative, ...
             mustBeLessThanOrEqual(probability_signal, 1)}
-        probability_vacuum {mustBeNumeric, mustBeNonnegative, ...
-            mustBeLessThanOrEqual(probability_vacuum, 1)}
         probability_decoy {mustBeNumeric, mustBeNonnegative, ...
             mustBeLessThanOrEqual(probability_decoy, 1)}
 
         % Loss between source and local receiver for entanglement protocols.
         local_loss {mustBeInRange(local_loss, 0, 1)} = 1
+    end
+
+    properties(Dependent)
+        %probability of no photon sent
+        probability_vacuum {mustBeNumeric, mustBeNonnegative, ...
+            mustBeLessThanOrEqual(probability_vacuum, 1)}
     end
 
     methods
@@ -92,7 +96,7 @@ classdef Source
             end
         end
 
-        function obj = updateVacuumProbability(obj)
+        function p_vacuum = get.probability_vacuum(obj)
             % updateVacuumProbability
             %
             % Calculate and set the vacuum state probability based on the
@@ -111,19 +115,11 @@ classdef Source
 
             total_probability = obj.probability_signal + obj.probability_decoy;
 
-            msg = [sprintf( ...
-                '\nSum of state probabilities exceeds 1:\n\tSignal = %s\n\t' + ...
-                'Vacuum = %s\n\tDecoy = %s\n\t', ...
-                obj.probability_signal, ...
-                1 - total_probability, ...
-                obj.probability_decoy), ...
-                'This has resulted in negative vacuum probability'];
-
             if total_probability > 1
-                error(msg);
+                error('probabilities of signal and decoy must not sum to more than 1');
             end
 
-            obj.probability_vacuum = 1 - total_probability;
+            p_vacuum = 1 - total_probability;
         end
 
 

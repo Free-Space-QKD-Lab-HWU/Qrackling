@@ -1,4 +1,4 @@
-classdef BBM92CW < protocol.proto
+classdef BBM92CW < protocol.Proto
 % BBM92CW
 %
 % Implements the continuous-wave BBM92 quantum key distribution protocol.
@@ -13,10 +13,10 @@ classdef BBM92CW < protocol.proto
     properties (SetAccess = protected)
         method = 'prepare_and_measure'
 
-        source_features = protocol.sourceRequirements.features( ...
+        source_features = protocol.SourceRequirements.features( ...
             'MPN_Signal', 'Local_Loss', 'State_Prep_Error')
 
-        detector_features = protocol.detectorRequirements.features( ...
+        detector_features = protocol.DetectorRequirements.features( ...
             'Dark_Count_Rate')
 
         efficiency = 0.5

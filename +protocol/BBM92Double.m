@@ -1,4 +1,4 @@
-classdef BBM92Double < protocol.proto
+classdef BBM92Double < protocol.Proto
 % BBM92Double
 %
 % Implements the BBM92 protocol with two receivers using entangled photon pairs.
@@ -13,10 +13,10 @@ classdef BBM92Double < protocol.proto
     properties (SetAccess = protected)
         method = 'entanglement'
 
-        source_features = protocol.sourceRequirements.features( ...
+        source_features = protocol.SourceRequirements.features( ...
             "MPN_Signal", "Local_Loss", "State_Prep_Error")
 
-        detector_features = protocol.detectorRequirements.features( ...
+        detector_features = protocol.DetectorRequirements.features( ...
             "Dark_Count_Rate")
 
         efficiency = 0.5

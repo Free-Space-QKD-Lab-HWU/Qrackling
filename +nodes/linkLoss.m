@@ -92,5 +92,5 @@ function [losses, extras] = linkLoss(kind, receiver, transmitter, loss, options)
     extras = struct();
     extras.turbulent_beam_width = beam_width;
     extras.r0 = r0;
-    extras.total_loss = losses.total_loss;
+    extras.total_loss = losses.totalLoss;
 end

@@ -15,13 +15,13 @@ function shifted_wavelength = dopplerShift(receiver, transmitter)
 % shifted_wavelength - numeric array of Doppler-shifted wavelengths
 
     arguments
-        receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.Ground_Station"])}
-        transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.Ground_Station"])}
+        receiver {mustBeA(receiver, ["nodes.Satellite", "nodes.GroundStation"])}
+        transmitter {mustBeA(transmitter, ["nodes.Satellite", "nodes.GroundStation"])}
     end
 
 
     %% Determine link direction and timestamps
-    link_direction = nodes.LinkDirection.DetermineLinkDirection(receiver, transmitter);
+    link_direction = nodes.LinkDirection.determineLinkDirection(receiver, transmitter);
 
     switch link_direction
         case 'Uplink'

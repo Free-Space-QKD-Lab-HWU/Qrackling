@@ -20,8 +20,8 @@ function [loss, spot_size, link_length] = geometricLoss(kind, receiver, transmit
 
     arguments
         kind {mustBeMember(kind, ["beacon", "qkd"])}
-        receiver {utilities.mustBeSubclassOf(receiver, 'nodes.Located_Object')}
-        transmitter {utilities.mustBeSubclassOf(transmitter, 'nodes.Located_Object')}
+        receiver {utilities.mustBeSubclassOf(receiver, 'nodes.LocatedObject')}
+        transmitter {utilities.mustBeSubclassOf(transmitter, 'nodes.LocatedObject')}
         options.LinkLength = []
     end
 

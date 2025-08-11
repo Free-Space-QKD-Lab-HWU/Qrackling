@@ -25,11 +25,11 @@ function counts = countRateFromRadiance(radiance, FOV, receiver_diameter, ...
         ['Incompatible sizes for radiance and wavelength. ', ...
          'Must be size(radiance) = (A, B) with size(wavelengths) = (1, A)']);
 
-    % wavelengths_nm = units.Magnitude.Convert(unit, "nano", wavelengths);
-    % filter_width_nm = units.Magnitude.Convert(unit, "nano", filter_width);
+    % wavelengths_nm = units.Magnitude.convert(unit, "nano", wavelengths);
+    % filter_width_nm = units.Magnitude.convert(unit, "nano", filter_width);
 
-    wavelengths_nm = units.Magnitude.Convert(unit, "none", wavelengths);
-    filter_width_nm = units.Magnitude.Convert(unit, "none", filter_width);
+    wavelengths_nm = units.Magnitude.convert(unit, "none", wavelengths);
+    filter_width_nm = units.Magnitude.convert(unit, "none", filter_width);
 
     h = 6.62607015*10^-34; % plank's constant
     c = 299792458; % speed of light

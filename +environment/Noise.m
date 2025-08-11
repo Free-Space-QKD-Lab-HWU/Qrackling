@@ -12,7 +12,7 @@ classdef Noise
     %% Properties
     properties
         % A descriptive label for this noise source
-        label {mustBeText}
+        label {mustBeText} = ''
 
         % Numeric array of noise values
         values {mustBeNumeric}
@@ -59,7 +59,7 @@ classdef Noise
             % total – numeric array, sum across noise_array(:).values
 
             arguments
-                noise_array Noise
+                noise_array environment.Noise
             end
 
             % Prepare initial total from the first element

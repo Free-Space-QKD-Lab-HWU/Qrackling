@@ -46,34 +46,34 @@ classdef Proto
 
             arguments
                 proto
-                transmitter {utilities.mustBeSubclassOf(transmitter, 'nodes.QKD_Transmitter')}
-                receiver {utilities.mustBeSubclassOf(receiver, 'nodes.QKD_Receiver')}
+                transmitter {utilities.mustBeSubclassOf(transmitter, 'nodes.QKDTransmitter')}
+                receiver {utilities.mustBeSubclassOf(receiver, 'nodes.QKDReceiver')}
                 total_loss (:, :)
                 background_count_rate (:, :, :)
             end
 
             % Check transmitter compatibility
             if numel(transmitter) > 1
-                transmitter_sources = cellfun(@(a) proto.compatibleComponent(a.source, a.Name), transmitter);
+                transmitter_sources = cellfun(@(a) proto.compatibleComponent(a.source, a.name), transmitter);
             else
-                transmitter_sources = proto.compatibleComponent(transmitter.Source, transmitter.Name);
+                transmitter_sources = proto.compatibleComponent(transmitter.source, transmitter.name);
             end
             assert(all(transmitter_sources), "Transmitter not compatible with protocol");
 
             % Check receiver compatibility
             if numel(receiver) > 1
-                receiver_detectors = arrayfun(@(b) proto.compatibleComponent(b.Detector, b.Name), receiver);
+                receiver_detectors = arrayfun(@(b) proto.compatibleComponent(b.detector, b.name), receiver);
             else
-                receiver_detectors = proto.compatibleComponent(receiver.Detector, receiver.Name);
+                receiver_detectors = proto.compatibleComponent(receiver.detector, receiver.name);
             end
             assert(all(receiver_detectors), "Detector not compatible with protocol");
 
             % Additional check for entanglement protocols
             if string(proto.method) == "entanglement"
                 if numel(transmitter) > 1
-                    transmitter_detectors = cellfun(@(a) proto.compatibleComponent(a.Detector, a.Name), transmitter);
+                    transmitter_detectors = cellfun(@(a) proto.compatibleComponent(a.detector, a.name), transmitter);
                 else
-                    transmitter_detectors = proto.compatibleComponent(transmitter.Detector, transmitter.Name);
+                    transmitter_detectors = proto.compatibleComponent(transmitter.detector, transmitter.name);
                 end
                 if sum(transmitter_detectors) + sum(receiver_detectors) < 2
                     error("Not enough compatible detectors for protocol");
@@ -106,12 +106,12 @@ classdef Proto
             end
 
             if proto.num_detectors == 1 || isscalar(rx)
-                loss = rx.Detector.Detection_Efficiency;
+                loss = rx.detector.detection_efficiency;
                 return;
             end
 
             % Multi-detector case: average efficiency
-            loss = sum(rx.Detector.Detection_Efficiency ./ proto.num_detectors);
+            loss = sum(rx.detector.detection_efficiency ./ proto.num_detectors);
         end
 
         function dcrs = receiverDarkCountRate(proto, receivers)
@@ -131,11 +131,11 @@ classdef Proto
             for i = 1:numel(receivers)
                 receiver = receivers(i);
                 if isscalar(receiver.Detector)
-                    current_dcr = receiver.Detector.Dark_Count_Rate .* proto.num_detectors;
+                    current_dcr = receiver.detector.dark_count_rate .* proto.num_detectors;
                 else
-                    assert(numel(receiver.Detector) == proto.num_detectors, ...
+                    assert(numel(receiver.detector) == proto.num_detectors, ...
                         'Receiver must have either a single detector or one per mode');
-                    current_dcr = sum(receiver.Detector.Dark_Count_Rate);
+                    current_dcr = sum(receiver.detector.dark_count_rate);
                 end
                 dcrs(i) = current_dcr;
             end

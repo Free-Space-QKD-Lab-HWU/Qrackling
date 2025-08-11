@@ -6,13 +6,13 @@ classdef QKDSimulationResult
 
     properties (Access = public)
         % transmitter - QKD transmitter node
-        transmitter (1, 1) {utilities.mustBeSubclassOf(transmitter, 'nodes.QKD_Transmitter')} = fibre.Fibre_Node.empty()
+        transmitter (1, 1) {utilities.mustBeSubclassOf(transmitter, 'nodes.QKDTransmitter')} = fibre.FibreNode.empty()
 
         % receiver - QKD receiver node
-        receiver (1, 1) {utilities.mustBeSubclassOf(receiver, 'nodes.QKD_Receiver')} = fibre.Fibre_Node.empty()
+        receiver (1, 1) {utilities.mustBeSubclassOf(receiver, 'nodes.QKDReceiver')} = fibre.FibreNode.empty()
 
         % protocol - QKD protocol object
-        protocol (1, 1) {utilities.mustBeSubclassOf(protocol, 'protocol.proto')} = protocol.bb84()
+        protocol (1, 1) {utilities.mustBeSubclassOf(protocol, 'protocol.Proto')} = protocol.BB84()
 
         % time - simulation time vector
         time (1, :) = []
@@ -41,9 +41,9 @@ classdef QKDSimulationResult
         % QKDSimulationResult constructor
 
             arguments
-                transmitter (1, 1) {utilities.mustBeSubclassOf(transmitter, 'nodes.QKD_Transmitter')}
-                receiver (1, 1) {utilities.mustBeSubclassOf(receiver, 'nodes.QKD_Receiver')}
-                protocol (1, 1) {utilities.mustBeSubclassOf(protocol, 'protocol.proto')}
+                transmitter (1, 1) {utilities.mustBeSubclassOf(transmitter, 'nodes.QKDTransmitter')}
+                receiver (1, 1) {utilities.mustBeSubclassOf(receiver, 'nodes.QKDReceiver')}
+                protocol (1, 1) {utilities.mustBeSubclassOf(protocol, 'protocol.Proto')}
                 time (1, :) = []
                 loss nodes.LossResult {mustBeScalarOrEmpty} = nodes.LossResult.empty()
                 noise environment.Noise = environment.Noise.empty(0, 0)

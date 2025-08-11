@@ -48,10 +48,10 @@ function results = qkdPassSimulation(receivers, transmitters, qkd_protocol)
 
             % Determine link direction
             if utilities.isSubclassOf(tx, 'nodes.Satellite') && ...
-               utilities.isSubclassOf(rx, 'nodes.Ground_Station')
+               utilities.isSubclassOf(rx, 'nodes.GroundStation')
                 link_directions(tx_idx, rx_idx) = nodes.LinkDirection.Downlink;
             elseif utilities.isSubclassOf(rx, 'nodes.Satellite') && ...
-                   utilities.isSubclassOf(tx, 'nodes.Ground_Station')
+                   utilities.isSubclassOf(tx, 'nodes.GroundStation')
                 link_directions(tx_idx, rx_idx) = nodes.LinkDirection.Uplink;
             else
                 error('Unimplemented link configuration')
@@ -60,14 +60,14 @@ function results = qkdPassSimulation(receivers, transmitters, qkd_protocol)
             % Compute geometry
             switch link_directions(tx_idx, rx_idx)
                 case nodes.LinkDirection.Downlink
-                    [hdg, elev, rng] = RelativeHeadingAndElevation(tx, rx);
-                    t = tx.Times;
+                    [hdg, elev, rng] = relativeHeadingAndElevation(tx, rx);
+                    t = tx.times;
                 case nodes.LinkDirection.Uplink
-                    [hdg, elev, rng] = RelativeHeadingAndElevation(rx, tx);
-                    t = tx.Times;
+                    [hdg, elev, rng] = relativeHeadingAndElevation(rx, tx);
+                    t = tx.times;
             end
 
-            elev_flag = elev > rx.Elevation_Limit;
+            elev_flag = elev > rx.elevation_limit;
             n_steps = numel(t);
 
             % Compute loss and noise
@@ -75,9 +75,9 @@ function results = qkdPassSimulation(receivers, transmitters, qkd_protocol)
 
             % Store results
             loss_results(tx_idx, rx_idx) = loss;
-            total_loss(tx_idx, rx_idx, 1:n_steps) = loss.TotalLoss;
+            total_loss(tx_idx, rx_idx, 1:n_steps) = loss.totalLoss;
             noise_results(tx_idx, rx_idx, 1:numel(noise)) = noise;
-            total_noise(tx_idx, rx_idx, 1:n_steps) = noise.Total;
+            total_noise(tx_idx, rx_idx, 1:n_steps) = noise.total;
             headings(tx_idx, rx_idx, 1:n_steps) = hdg;
             elevations(tx_idx, rx_idx, 1:n_steps) = elev;
             ranges(tx_idx, rx_idx, 1:n_steps) = rng;
@@ -85,7 +85,7 @@ function results = qkdPassSimulation(receivers, transmitters, qkd_protocol)
             elevation_flags(tx_idx, rx_idx, 1:n_steps) = elev_flag;
         end
 
-        elevation_limits(rx_idx) = receivers(rx_idx).Elevation_Limit;
+        elevation_limits(rx_idx) = receivers(rx_idx).elevation_limit;
     end
 
     % Identify valid time steps across all links
@@ -98,7 +98,7 @@ function results = qkdPassSimulation(receivers, transmitters, qkd_protocol)
     sifted_key_rate = zeros(1, n_steps);
     qber = 0.5 * ones(1, n_steps);
 
-    [skr_valid, skt_valid, qber_valid] = qkd_protocol.Calculate( ...
+    [skr_valid, skt_valid, qber_valid] = qkd_protocol.calculate( ...
         transmitters, receivers, total_loss_valid, total_noise_valid);
 
     secret_key_rate(all_elevation_flags) = skr_valid;
@@ -140,38 +140,38 @@ function [loss_results, noise] = lossAndNoiseForChannel(transmitter, receiver, q
         receiver (1, 1) { ...
             nodes.mustBeReceiverOrTransmitter(receiver), ...
             nodes.mustHaveDetector(receiver) }
-        qkd_protocol protocol.proto
+        qkd_protocol protocol.Proto
     end
 
     % Get background radiance
     switch class(transmitter)
         case "nodes.Satellite"
-            [hdg, elev, ~] = transmitter.RelativeHeadingAndElevation(receiver);
-            background_radiance = receiver.Environment.Interp( ...
-                "spectral_radiance", hdg, elev, transmitter.Source.Wavelength);
+            [hdg, elev, ~] = transmitter.relativeHeadingAndElevation(receiver);
+            background_radiance = receiver.environment.interp( ...
+                "spectral_radiance", hdg, elev, transmitter.source.wavelength);
         case "nodes.Ground_Station"
-            [hdg, elev, ~] = receiver.RelativeHeadingAndElevation(transmitter);
-            background_radiance = transmitter.Environment.Interp( ...
-                "spectral_radiance", hdg, elev, transmitter.Source.Wavelength);
+            [hdg, elev, ~] = receiver.relativeHeadingAndElevation(transmitter);
+            background_radiance = transmitter.environment.interp( ...
+                "spectral_radiance", hdg, elev, transmitter.source.wavelength);
     end
 
     % Filter width
-    t = receiver.Detector.Spectral_Filter.transmission;
-    w = receiver.Detector.Spectral_Filter.wavelengths;
+    t = receiver.detector.spectral_filter.transmission;
+    w = receiver.detector.spectral_filter.wavelengths;
     w_range = w(t ~= 0);
     filter_width = max(w_range) - min(w_range);
 
     % Background counts
     background_counts = environment.countRateFromRadiance( ...
         background_radiance, ...
-        receiver.Telescope.FOV, ...
-        receiver.Telescope.Diameter, ...
+        receiver.telescope.fov, ...
+        receiver.telescope.diameter, ...
         filter_width, ...
         1, ...
-        receiver.Detector.Wavelength);
+        receiver.detector.wavelength);
 
     % Dark counts
-    dark_counts = ones(size(hdg)) * receiver.Detector.Dark_Count_Rate * qkd_protocol.num_detectors;
+    dark_counts = ones(size(hdg)) * receiver.detector.dark_count_rate * qkd_protocol.num_detectors;
 
     % Package noise
     noise = [ ...
