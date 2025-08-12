@@ -1,37 +1,37 @@
 % a simulation of BB84 with limited visibility
 
 %% 1. Choose parameters
-Wavelength=690;                                                            %wavelength is measured in nm
-Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
-OrbitDataFileLocation='100kmSSOrbitLLAT.txt';                                %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
-Receiver_Telescope_Diameter=1;                                           
-Time_Gate_Width=1E-10;                                                      %times are measured in s
-Spectral_Filter_Width=10;                                                  %consistemt with wavelength, spectral width is measured in nm                           
+wavelength=690;                                                            %wavelength is measured in nm
+transmitter_telescope_diameter=0.1;                                        %diameters are measured in m
+orbit_data_file_location='100kmSSOrbitLLAT.txt';                                %orbits are described by files containing latitude, longitude, altitude and time stamps. These are in the 'orbit modelling resources' folder
+receiver_telescope_diameter=1;                                           
+time_gate_width=1E-10;                                                      %times are measured in s
+spectral_filter_width=10;                                                  %consistemt with wavelength, spectral width is measured in nm                           
 % %% 2. Construct components
 
 %2.1 Satellite
 %2.1.1 Source
-Transmitter_Source=components.Source(Wavelength);                                       %we use default values to simplify this example
+Transmitter_Source=components.Source(wavelength);                                       %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
-Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter);        %do not need to specify wavelength as this will be set by satellite object
+Transmitter_Telescope=components.Telescope(transmitter_telescope_diameter);        %do not need to specify wavelength as this will be set by satellite object
 
 %2.1.3 Construct satellite
 SimSatellite=nodes.Satellite(Transmitter_Telescope,...
                         'Source',Transmitter_Source,...
-                        'OrbitDataFileLocation',OrbitDataFileLocation);
+                        'OrbitDataFileLocation',orbit_data_file_location);
 
 %2.2 Ground station
 %2.2.1 Detector
-Detector=components.Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,'Preset','PerkinElmer');
+Detector=components.Detector(wavelength,Transmitter_Source.repetition_rate,time_gate_width,spectral_filter_width,'Preset','PerkinElmer');
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
 
 %2.2.2 Receiver telescope
-Receiver_Telescope=components.Telescope(Receiver_Telescope_Diameter);
+Receiver_Telescope=components.Telescope(receiver_telescope_diameter);
 
 %2.2.3 construct ground station, use Heriot-Watt as an example
-SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
+SimGround_Station=nodes.GroundStation(Receiver_Telescope,...
                                 'Detector',Detector,...
                                 'LLA',[55.909723, -3.319995,10],...
                                 'Name','Heriot-Watt');
@@ -39,11 +39,11 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
 %% 3 create a low visibility environment
 %3.1 load in low-visibility data (choose from MODTRAN-produced environment
 %objects
-Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 2km.mat");
-SimGround_Station.Environment = Env;
+Env = environment.Environment.load("Examples\Data\atmospheric transmittance\Dark Environment 2km.mat");
+SimGround_Station.environment = Env;
 
 %% 4 run and plot simulation
 %4.1 run simulation
-Result=nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.bb84);
+Result=nodes.qkdPassSimulation(SimGround_Station,SimSatellite,protocol.BB84);
 %4.2 plot results
 Result.plot()

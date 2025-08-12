@@ -34,11 +34,11 @@ function [turbulence_loss, turbulent_beam_width, r0] = turbulenceLoss( ...
     %% Determine wavelength
     switch kind
         case "beacon"
-            if isempty(transmitter.Beacon)
-                error('Transmitter.Beacon must not be empty')
+            if isempty(transmitter.beacon)
+                error('Transmitter.beacon must not be empty')
             end
-            if isempty(receiver.Camera)
-                error('Receiver.Camera must not be empty')
+            if isempty(receiver.camera)
+                error('Receiver.camera must not be empty')
             end
             wavelength = transmitter.beacon.wavelength;
 

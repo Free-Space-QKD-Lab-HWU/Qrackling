@@ -120,7 +120,7 @@ classdef(Abstract) Beacon
         % 
         % Outputs:
         % pointing_jitter (1,1) in radians root-mean-square
-            pointing_jitter = Beacon.telescope.Pointing_Jitter;
+            pointing_jitter = Beacon.telescope.pointing_jitter;
         end
 
         function total_efficiency = get.total_efficiency(Beacon)

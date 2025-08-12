@@ -130,7 +130,7 @@ classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
 
             %% Load orbit data
             if ~isempty(options.OrbitDataFileLocation)
-                [satellite, lat, lon, alt, t] = ReadOrbitLLATFile(satellite, options.OrbitDataFileLocation);
+                [satellite, lat, lon, alt, t] = readOrbitLLATFile(satellite, options.OrbitDataFileLocation);
 
             elseif ~isempty(options.LLAT)
                 llat = options.LLAT;
@@ -188,7 +188,7 @@ classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
             end
 
             %% Validate orbit data dimensions
-            if ~utilities.areSameDimensions(t, lat, lon, alt)
+            if ~utilities.haveEqualDimensions(t, lat, lon, alt)
                 error('Latitude, Longitude, Altitude, and Time must be same length')
             end
 
@@ -252,7 +252,8 @@ classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
                 error('Cannot find orbit data file at specified location')
             end
 
-            addpath(utilities.LocationofFile(orbit_data_file_location))
+            [folder_path,~,~] = fileparts(which(orbit_data_file_location));
+            addpath(folder_path)
             satellite.orbit_file_data_location = orbit_data_file_location;
 
             file_id = fopen(orbit_data_file_location);

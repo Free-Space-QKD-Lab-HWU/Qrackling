@@ -61,37 +61,37 @@ classdef BBM92 < protocol.Proto
             assert(isscalar(bob), ...
                 "Can only support a single receiver, when alice has the source");
 
-            loss_alice = alice.Source.Local_Loss;
+            loss_alice = alice.source.local_loss;
             loss_bob = total_loss;
 
             background_probability_alice = ones(size(total_loss)) .* ...
                 protocol.backgroundCountProbability( ...
-                alice.Detector.Dark_Count_Rate * protocol.num_detectors, ...
-                alice.Detector.Time_Gate_Width);
+                alice.detector.dark_count_rate * protocol.num_detectors, ...
+                alice.detector.time_gate_width);
 
             background_probability_bob = protocol.backgroundCountProbability( ...
                 total_erroneous_count_rate + ...
-                bob.Detector.Dark_Count_Rate * protocol.num_detectors, ...
-                bob.Detector.Time_Gate_Width);
+                bob.detector.dark_count_rate * protocol.num_detectors, ...
+                bob.detector.time_gate_width);
 
             transmission_alice = protocol.receiverLoss(alice) .* loss_alice;
             transmission_bob = protocol.receiverLoss(bob) .* loss_bob;
 
-            pairs_per_pulse = alice.Source.MPN_Signal / 2;
+            pairs_per_pulse = alice.source.mpn_signal / 2;
 
             gain = protocol.gainOverall(transmission_alice, transmission_bob, ...
                 background_probability_alice, background_probability_bob, pairs_per_pulse);
 
             qber = protocol.qberNet(transmission_alice, transmission_bob, gain, ...
-                pairs_per_pulse, protocol.efficiency, alice.Source.State_Prep_Error);
+                pairs_per_pulse, protocol.efficiency, alice.source.state_prep_error);
 
             reconciliation_factor = protocol.efficiency;
             skr = protocol.secureKeyRate(reconciliation_factor, gain, qber, qber);
 
             skr(skr < 0) = 0;
 
-            sifted_key_rate = alice.Source.Repetition_Rate .* gain;
-            secret_key_rate = alice.Source.Repetition_Rate .* skr;
+            sifted_key_rate = alice.source.repetition_rate .* gain;
+            secret_key_rate = alice.source.repetition_rate .* skr;
         end
     end
 

@@ -1,5 +1,5 @@
-function results = QKDFibreSimulation(receivers, transmitters, fibres, qkd_protocol)
-% QKDFibreSimulation
+function results = qkdFibreSimulation(receivers, transmitters, fibres, qkd_protocol)
+% 2
 %
 % Architect and execute a fibre-based QKD simulation between transmitters
 % and receivers using a specified protocol.
@@ -24,7 +24,7 @@ function results = QKDFibreSimulation(receivers, transmitters, fibres, qkd_proto
             nodes.mustBeReceiverOrTransmitter(transmitters), ...
             nodes.mustHaveSource(transmitters) }
         fibres fibre.Fibre
-        qkd_protocol protocol.proto
+        qkd_protocol protocol.Proto
     end
 
 
@@ -59,15 +59,15 @@ function results = QKDFibreSimulation(receivers, transmitters, fibres, qkd_proto
                 qkd_protocol);
 
             loss_results(transmitter_index, receiver_index, 1) = loss;
-            total_loss(transmitter_index, receiver_index, 1) = loss.TotalLoss;
+            total_loss(transmitter_index, receiver_index, 1) = loss.totalLoss;
             noise_results(transmitter_index, receiver_index, 1:numel(noise)) = noise;
-            total_noise(transmitter_index, receiver_index, 1) = noise.Total;
+            total_noise(transmitter_index, receiver_index, 1) = noise.total;
         end
     end
 
 
     %% Evaluate QKD performance
-    [secret_key_rate, sifted_key_rate, qber] = qkd_protocol.Calculate( ...
+    [secret_key_rate, sifted_key_rate, qber] = qkd_protocol.calculate( ...
         transmitters, receivers, total_loss, total_noise);
 
 
@@ -91,7 +91,7 @@ function results = QKDFibreSimulation(receivers, transmitters, fibres, qkd_proto
 end
 
 
-function [loss_results, noise] = lossAndNoiseForChannel(transmitter, receiver, fibre, qkd_protocol)
+function [loss_results, noise] = lossAndNoiseForChannel(transmitter, receiver, fibre_model, qkd_protocol)
 % lossAndNoiseForChannel
 %
 % Compute channel-specific loss and noise between a transmitter and receiver
@@ -117,13 +117,13 @@ function [loss_results, noise] = lossAndNoiseForChannel(transmitter, receiver, f
         receiver (1, 1) { ...
             nodes.mustBeReceiverOrTransmitter(receiver), ...
             nodes.mustHaveDetector(receiver) }
-        fibre (1, 1) fibre.Fibre
-        qkd_protocol protocol.proto
+        fibre_model (1, 1) fibre.Fibre
+        qkd_protocol protocol.Proto
     end
 
 
     %% Detector dark counts
-    dark_counts = receiver.Detector.Dark_Count_Rate * qkd_protocol.num_detectors;
+    dark_counts = receiver.detector.dark_count_rate * qkd_protocol.num_detectors;
 
     noise = [ ...
         environment.Noise("Detector Dark Counts", dark_counts) ...
@@ -131,7 +131,7 @@ function [loss_results, noise] = lossAndNoiseForChannel(transmitter, receiver, f
 
 
     %% Compute losses
-    loss_results = fibre.linkLoss(fibre, receiver, transmitter, ...
+    loss_results = fibre.linkLoss(fibre_model, receiver, transmitter, ...
         'source efficiency', ...
         'detector efficiency', ...
         'jitter', ...

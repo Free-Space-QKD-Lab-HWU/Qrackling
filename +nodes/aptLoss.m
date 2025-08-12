@@ -36,7 +36,7 @@ function loss = aptLoss(kind, receiver, transmitter)
                 error(['receiver.camera of ', inputname(2), ' must not be empty']);
             end
 
-            loss = transmitter.beacon.getAptLoss(receiver.camera);
+            loss = transmitter.beacon.aptLoss(receiver.camera);
 
         case "qkd"
             % Transmitter pointing loss (Gaussian beam)

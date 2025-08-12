@@ -74,14 +74,14 @@ classdef FlatTopBeacon < beacon.Beacon
                 % loss - scalar numeric, in absolute units (0,1)
 
             %% compute intensity distribution function at this angle
-            Downlink_APT_Loss = 1-exp(-(FlatTopBeacon.limit_half_angle).^2./(8*FlatTopBeacon.Pointing_Jitter.^2));
-            Uplooking_APT_Loss= 1-exp(-(Camera.FOV).^2./(8*Camera.Telescope.Pointing_Jitter.^2));
+            Downlink_APT_Loss = 1-exp(-(FlatTopBeacon.limit_half_angle).^2./(8*FlatTopBeacon.pointing_jitter.^2));
+            Uplooking_APT_Loss= 1-exp(-(Camera.fov).^2./(8*Camera.telescope.pointing_jitter.^2));
             %take product 
             loss = Downlink_APT_Loss.*Uplooking_APT_Loss;
 
         end
 
-        function [geoLoss,geoSpotDiameter] = geoLoss(FlatTopBeacon, Range, Camera)
+        function [geoLoss,geo_spot_diameter] = geoLoss(FlatTopBeacon, range, camera)
             % getGeoLoss
             %
             % Calculates the geometric loss incurred due to the spreading of the beacon beam.
@@ -106,13 +106,13 @@ classdef FlatTopBeacon < beacon.Beacon
             % diameter of the beam spot in m.
         
         %output should always be row vector. convert range to row if column
-        if iscolumn(Range)
-            Range = Range';
+        if iscolumn(range)
+            range = range';
         end
 
 
-        geoSpotDiameter = FlatTopBeacon.Telescope.Diameter + (2*FlatTopBeacon.limit_half_angle*Range);
-        geoLoss = Camera.Collecting_Area./((pi/4)*geoSpotDiameter.^2);
+        geo_spot_diameter = FlatTopBeacon.telescope.diameter + (2*FlatTopBeacon.limit_half_angle*range);
+        geoLoss = camera.collecting_area./((pi/4)*geo_spot_diameter.^2);
         end
     end
 end

@@ -14,26 +14,32 @@ classdef Fibre
 %   Lt = f.totalLoss();        % total fibre loss
 
     properties
-        length_m       {mustBeNonnegative} = 0          % length in m
-        loss_rate_db_m {mustBeNonnegative} = 0.00016     % loss rate in dB/m
+        length       {mustBeNonnegative} = 0          % length in m
+        loss_rate {mustBeNonnegative} = 0.00016     % loss rate in dB/m
         connector_loss (1,2) cell                        % connector losses as units.Loss
     end
 
+    properties(Dependent)
+        distance_loss
+        connections_loss
+        total_loss
+    end
+
     methods
-        function f = Fibre(length_m, options)
+        function f = Fibre(length, options)
         % fibre constructor
-        % length_m in metres.
+        % length in metres.
         % options.loss_rate in dB/km (converted to dB/m internally).
         % options.connector_loss in dB; scalar applies to both ends, or [a b].
 
             arguments
-                length_m {mustBeNonnegative}
+                length {mustBeNonnegative}
                 options.loss_rate {mustBeNonnegative} = 0.16
                 options.connector_loss {mustBeNonnegative} = 0.5
             end
 
-            f.length_m = length_m;
-            f.loss_rate_db_m = options.loss_rate / 1000; % dB/m
+            f.length = length;
+            f.loss_rate = options.loss_rate / 1000; % dB/m
 
             if isscalar(options.connector_loss)
                 L = units.Loss(options.connector_loss);
@@ -44,31 +50,31 @@ classdef Fibre
             end
         end
 
-        function loss = distanceLoss(fibre)
+        function loss = get.distance_loss(fibre)
         % distanceLoss  Loss due to absorption in the fibre
             arguments
-                fibre Fibre
+                fibre fibre.Fibre
             end
 
-            loss_dB = fibre.length_m * fibre.loss_rate_db_m;
+            loss_dB = fibre.length * fibre.loss_rate;
             loss = units.Loss(10.^(-loss_dB/10), 'distance');
         end
 
-        function loss = connectionsLoss(fibre)
+        function loss = get.connections_loss(fibre)
         % connectionsLoss  Loss due to both connectors
             L1 = fibre.connector_loss{1};
             L2 = fibre.connector_loss{2};
             loss = units.Loss(L1 * L2, 'connectors');
         end
 
-        function loss = totalLoss(fibre)
+        function loss = get.total_loss(fibre)
         % totalLoss  Combined distance and connector losses
             arguments
-                fibre Fibre
+                fibre fibre.Fibre
             end
 
-            Ld = fibre.distanceLoss();
-            Lc = fibre.connectionsLoss();
+            Ld = fibre.distance_loss;
+            Lc = fibre.connections_loss;
             loss = units.Loss(Ld * Lc, 'fibre');
         end
     end

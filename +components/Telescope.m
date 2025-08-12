@@ -29,9 +29,6 @@ classdef Telescope
         % F-number = focal_length / diameter
         f_number {mustBeScalarOrEmpty, mustBeNonnegative} = 12
 
-        % Magnification: applied to beam expansion/angle compression
-        magnification {mustBeScalarOrEmpty, mustBePositive}
-
         % Eyepiece focal length (m) for magnification computation
         eyepiece_focal_length {mustBeScalarOrEmpty, mustBeNonnegative} = 0.076
     end
@@ -47,6 +44,9 @@ classdef Telescope
 
         % Collecting area (m^2), computed from diameter
         collecting_area
+
+        % Magnification: applied to beam expansion/angle compression
+        magnification {mustBeScalarOrEmpty, mustBePositive}
     end
 
     methods
@@ -76,41 +76,22 @@ classdef Telescope
                 options.Focal_Length
             end
 
+            % require properties
             obj.diameter = diameter;
             obj.f_number = options.F_Number;
             obj.focal_length = obj.f_number * obj.diameter;
+            obj.pointing_jitter = options.Pointing_Jitter;
 
-            props = properties(obj);
-            has_prop = @(prop) any(contains(props, prop));
-
-            % Apply provided options to matching properties
-            for option = fieldnames(options)'
-                opt = option{1};
-                if ~has_prop(opt)
-                    continue
-                end
-                switch opt
-                    case 'Wavelength'
-                        obj = obj.setWavelength(options.Wavelength, ...
-                            "Wavelength_Scale", options.Wavelength_Scale);
-
-                    case 'FOV'
-                        obj = obj.setFOV(options.FOV);
-
-                    case 'Focal_Length'
-                        obj.focal_length = options.Focal_Length;
-                        obj.f_number = obj.focal_length / obj.diameter;
-
-                    case 'Pointing_Jitter'
-                        obj = obj.setPointingJitter(options.Pointing_Jitter);
-
-                    otherwise
-                        % Default: map OptionName -> property name in snake_case
-                        obj.(lower(opt)) = options.(opt);
-                end
+            % optional properties
+            if ismember('Wavelength',fields(options))
+            obj = obj.setWavelength(options.Wavelength);
             end
-
-            obj.magnification = obj.focal_length / obj.eyepiece_focal_length;
+            if ismember('FOV',fields(options))
+            obj = obj.setFOV(options.FOV);
+            end
+            if ismember('Focal_Length',fields(options))
+            obj.focal_length = options.Focal_Length;
+            end
         end
 
         function obj = setWavelength(obj, wavelength, options)
@@ -201,6 +182,15 @@ classdef Telescope
                 * obj.far_field_divergence_coefficient ...
                 * (obj.wavelength * 1e-9) ...
                 / obj.diameter;
+        end
+
+        function mag = get.magnification(obj)
+            % magnification (getter)
+            %
+            % Return the magnification of the telescope
+            %
+
+            mag = obj.focal_length / obj.eyepiece_focal_length;
         end
     end
 end

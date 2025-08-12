@@ -18,7 +18,7 @@ function mustHaveDetector(receiver)
 
     for i = 1:numel(receiver)
         r = receiver(i);
-        if isempty(r.Detector)
+        if isempty(r.detector)
             error('%s has no detector object and cannot be used as a receiver', r.Name)
         end
     end

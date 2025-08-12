@@ -73,7 +73,7 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
             end
 
             figure_name = string(result.protocol.name) + " simulation from " ...
-                + result.transmitter.Name + " to " + result.receiver.Name;
+                + result.transmitter.name + " to " + result.receiver.name;
 
             fig = figure("Name", figure_name);
             tiledlayout(3, 3, "TileSpacing", "tight");
@@ -101,7 +101,7 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
             end
 
             % Compute total key
-            [total_secure_key, ~] = result.total_key_rates();
+            [total_secure_key, ~] = result.totalKeyRates();
 
             % Plot key rates
             nexttile([1, 2])
@@ -132,67 +132,67 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
             % Plot map
             nexttile(3, [2, 1])
             if result.direction == nodes.LinkDirection.Downlink
-                geoplot(result.transmitter.Latitude, result.transmitter.Longitude, '.')
+                geoplot(result.transmitter.latitude, result.transmitter.longitude, '.')
                 hold on
-                geoplot(result.transmitter.Latitude(mask), result.transmitter.Longitude(mask), '.')
+                geoplot(result.transmitter.latitude(mask), result.transmitter.longitude(mask), '.')
 
                 labels = ["Satellite path", strcat(options.mask, " window")];
 
                 if isscalar(result.receiver)
-                    nodes.PassSimulationResult.PlotLOS( ...
+                    nodes.PassSimulationResult.plotLOS( ...
                         result.receiver, ...
-                        mean(result.transmitter.Altitude), ...
-                        result.receiver.Elevation_Limit)
-                    labels{end + 1} = result.receiver.Name;
-                    labels{end + 1} = "Line-of-Sight";
+                        mean(result.transmitter.altitude), ...
+                        result.receiver.elevation_limit)
+                    labels{end + 1} = result.receiver.name;
+                    labels{end + 1} = 'Line-of-Sight';
                 else
                     for rx_loc = result.receiver
-                        nodes.PassSimulationResult.PlotLOS( ...
+                        nodes.PassSimulationResult.plotLOS( ...
                             rx_loc, ...
-                            mean(result.transmitter.Altitude), ...
-                            result.receiver.Elevation_Limit)
-                        labels{end + 1} = rx_loc.Name;
-                        labels{end + 1} = "Line-of-Sight";
+                            mean(result.transmitter.altitude), ...
+                            result.receiver.elevation_limit)
+                        labels{end + 1} = rx_loc.name;
+                        labels{end + 1} = 'Line-of-Sight';
                     end
                 end
 
                 legend(labels, "Location", "north")
                 geolimits( ...
-                    mean([result.receiver.Latitude]) + [-15, 15], ...
-                    mean([result.receiver.Longitude]) + [-15, 15])
+                    mean([result.receiver.latitude]) + [-15, 15], ...
+                    mean([result.receiver.longitude]) + [-15, 15])
                 axes = gca();
                 axes.FontName = get(groot(), "defaultAxesFontName");
                 axes.FontSize = get(groot(), "defaultAxesFontSize");
 
             elseif result.direction == nodes.LinkDirection.Uplink
-                geoplot(result.receiver.Latitude, result.receiver.Longitude, '.')
+                geoplot(result.receiver.latitude, result.receiver.longitude, '.')
                 hold on
-                geoplot(result.receiver.Latitude(mask), result.receiver.Longitude(mask), '.')
+                geoplot(result.receiver.latitude(mask), result.receiver.longitude(mask), '.')
 
                 labels = ["Ground station", strcat(options.mask, " window")];
 
                 if isscalar(result.transmitter)
-                    nodes.PassSimulationResult.PlotLOS( ...
+                    nodes.PassSimulationResult.plotLOS( ...
                         result.transmitter, ...
-                        mean(result.receiver.Altitude), ...
-                        result.receiver.Elevation_Limit)
-                    labels{end + 1} = result.transmitter.Name;
-                    labels{end + 1} = "Line-of-Sight";
+                        mean(result.receiver.altitude), ...
+                        result.transmitter.elevation_limit)
+                    labels{end + 1} = result.transmitter.name;
+                    labels{end + 1} = 'Line-of-Sight';
                 else
                     for tx_loc = result.transmitter
-                        nodes.PassSimulationResult.PlotLOS( ...
+                        nodes.PassSimulationResult.plotLOS( ...
                             tx_loc, ...
-                            mean(result.receiver.Altitude), ...
-                            result.receiver.Elevation_Limit)
-                        labels{end + 1} = tx_loc.Name;
-                        labels{end + 1} = "Line-of-Sight";
+                            mean(result.receiver.altitude), ...
+                            result.transmitter.elevation_limit)
+                        labels{end + 1} = result.transmitter.name;
+                        labels{end + 1} = 'Line-of-Sight';
                     end
                 end
 
                 legend(labels, "Location", "north")
                 geolimits( ...
-                    mean([result.transmitter.Latitude]) + [-15, 15], ...
-                    mean([result.transmitter.Longitude]) + [-15, 15])
+                    mean([result.transmitter.latitude]) + [-15, 15], ...
+                    mean([result.transmitter.longitude]) + [-15, 15])
                 axes = gca();
                 axes.FontName = get(groot(), "defaultAxesFontName");
                 axes.FontSize = get(groot(), "defaultAxesFontSize");
@@ -218,7 +218,7 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
             % Plot link loss tolerance
             nexttile()
             title("Link performance")
-            total_loss_db = result.loss.TotalLoss.dB;
+            total_loss_db = result.loss.totalLoss.dB;
             semilogy(total_loss_db(mask), result.secret_key_rate(mask), 'k-')
             xlabel("Link Loss (dB)")
             ylabel("Secret Key Rate (bps)")
@@ -231,35 +231,35 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
 
 
     methods (Static)
-        function PlotLOS(ogs_location, sat_altitude, elevation_limit)
+        function plotLOS(ogs_location, sat_altitude, elevation_limit)
         % PlotLOS
         %
         % Plots the line-of-sight window from a ground station to a satellite altitude.
 
             arguments
-                ogs_location nodes.Located_Object
+                ogs_location nodes.LocatedObject
                 sat_altitude (1, :) {mustBeNumeric}
                 elevation_limit {mustBeNumeric}
             end
 
             % Plot ground station
-            geoplot(ogs_location.Latitude, ogs_location.Longitude, 'k*', 'MarkerSize', 20)
+            geoplot(ogs_location.latitude, ogs_location.longitude, 'k*', 'MarkerSize', 20)
             hold on
 
             % Plot elevation window
-            Headings = 1:359;
-            WindowLat = zeros(1, 359);
-            WindowLon = zeros(1, 359);
-            ArcDistance = utilities.ComputeLOSWindow(sat_altitude, elevation_limit);
+            headings = 1:359;
+            window_lat = zeros(1, 359);
+            window_lon = zeros(1, 359);
+            arc_distance = utilities.computeLOSWindow(sat_altitude, elevation_limit);
 
-            for Heading = Headings
-                [CurrentWindowLat, CurrentWindowLon] = utilities.MoveAlongSurface( ...
-                    ogs_location.Latitude, ogs_location.Longitude, ArcDistance, Heading);
-                WindowLat(Heading) = CurrentWindowLat;
-                WindowLon(Heading) = CurrentWindowLon;
+            for heading = headings
+                [current_window_lat, current_window_lon] = utilities.moveAlongSurface( ...
+                    ogs_location.latitude, ogs_location.longitude, arc_distance, heading);
+                window_lat(heading) = current_window_lat;
+                window_lon(heading) = current_window_lon;
             end
 
-            geoplot(WindowLat, WindowLon, 'k--')
+            geoplot(window_lat, window_lon, 'k--')
         end
 
 

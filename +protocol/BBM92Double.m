@@ -69,17 +69,17 @@ classdef BBM92Double < protocol.Proto
 
             %% Background count probabilities
             background_probability_bob_1 = Protocol.backgroundCountProbability( ...
-                total_erroneous_count_rate(1, 1, :), bobs(1).Detector.Time_Gate_Width);
+                total_erroneous_count_rate(1, 1, :), bobs(1).detector.time_gate_width);
 
             background_probability_bob_2 = Protocol.backgroundCountProbability( ...
-                total_erroneous_count_rate(1, 2, :), bobs(2).Detector.Time_Gate_Width);
+                total_erroneous_count_rate(1, 2, :), bobs(2).detector.time_gate_width);
 
             %% Transmission efficiencies
             transmission_bob_1 = Protocol.receiverLoss(bobs(1)) .* loss_bob_1;
             transmission_bob_2 = Protocol.receiverLoss(bobs(2)) .* loss_bob_2;
 
             %% Photon pair generation
-            pairs_per_pulse = alice.Source.MPN_Signal / 2;
+            pairs_per_pulse = alice.source.mpn_signal / 2;
 
             %% Overall gain
             gain = Protocol.gainOverall(transmission_bob_1, transmission_bob_2, ...
@@ -89,15 +89,15 @@ classdef BBM92Double < protocol.Proto
             %% QBER
             qber = Protocol.qberNet(transmission_bob_1, transmission_bob_2, ...
                 gain, pairs_per_pulse, Protocol.efficiency, ...
-                alice.Source.State_Prep_Error);
+                alice.source.state_prep_error);
 
             %% Secure key rate
             reconciliation_factor = Protocol.efficiency;
             skr = Protocol.secureKeyRate(reconciliation_factor, gain, qber, qber);
             skr(skr < 0) = 0;
 
-            sifted_key_rate = alice.Source.Repetition_Rate .* gain;
-            secret_key_rate = alice.Source.Repetition_Rate .* skr;
+            sifted_key_rate = alice.source.repetition_rate .* gain;
+            secret_key_rate = alice.source.repetition_rate .* skr;
         end
     end
 

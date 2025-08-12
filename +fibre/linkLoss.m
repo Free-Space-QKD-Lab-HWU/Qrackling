@@ -20,8 +20,8 @@ function loss_result = linkLoss(fibre, receiver, transmitter, losses)
 
     arguments
         fibre fibre.Fibre
-        receiver {utilities.mustBeSubclassOf(receiver, 'nodes.QKD_Receiver')}
-        transmitter {utilities.mustBeSubclassOf(transmitter, 'nodes.QKD_Transmitter')}
+        receiver {utilities.mustBeSubclassOf(receiver, 'nodes.QKDReceiver')}
+        transmitter {utilities.mustBeSubclassOf(transmitter, 'nodes.QKDTransmitter')}
     end
 
     arguments (Repeating)
@@ -37,28 +37,28 @@ function loss_result = linkLoss(fibre, receiver, transmitter, losses)
 
     %% Coupling loss
     if any(contains(string(losses), "coupling"))
-        loss_result = loss_result.addLoss(fibre.connections_loss());
+        loss_result = loss_result.addLoss(fibre.connections_loss);
     end
 
 
     %% Source efficiency
     if any(contains(string(losses), "source efficiency"))
         loss_result = loss_result.addLoss( ...
-            units.Loss(transmitter.Source.Efficiency, 'source efficiency'));
+            units.Loss(transmitter.source.efficiency, 'source efficiency'));
     end
 
 
     %% Detector efficiency
     if any(contains(string(losses), "detector efficiency"))
         loss_result = loss_result.addLoss( ...
-            units.Loss(receiver.Detector.Detection_Efficiency, 'detector efficiency'));
+            units.Loss(receiver.detector.detection_efficiency, 'detector efficiency'));
     end
 
 
     %% Jitter
     if any(contains(string(losses), "jitter"))
         loss_result = loss_result.addLoss( ...
-            units.Loss(receiver.Detector.Jitter_Loss, 'jitter'));
+            units.Loss(receiver.detector.jitter_loss, 'jitter'));
     end
 
 end

@@ -60,7 +60,7 @@ classdef GroundStation < nodes.LocatedObject & nodes.QKDReceiver & ...
                 options.altitude (1,1) double = 0
                 options.LLA = nan
                 options.Name = 'Unnamed OGS'
-                options.Environment = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 50km.mat")
+                options.Environment = environment.Environment.load("Examples\Data\atmospheric transmittance\Dark Environment 50km.mat")
             end
 
             if nargin == 0

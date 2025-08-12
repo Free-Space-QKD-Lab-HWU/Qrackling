@@ -23,8 +23,7 @@ classdef Camera
         quantum_efficiency  double {mustBeNonnegative,mustBeLessThanOrEqual(quantum_efficiency,1)} = 1;
         % exposure time for operation of the camera in s
         exposure_time (1, 1) double {mustBePositive} = 1;
-        %the wavelength in nm at which the camera is operating
-        wavelength (1, 1) double {mustBeScalarOrEmpty}
+
         % the spectral width of the (assumed brick-wall) filter on the camera
         spectral_filter_width (1, 1) double {mustBeNonnegative} = 10;
         % noise (in coulombs) incurred by reading out a whole image
@@ -35,6 +34,18 @@ classdef Camera
         full_well_capacity (1, 1) double = 13500;
         % number of pixels in camera x and y directions
         pixels (1, 2) double {mustBePositive} = [1080, 1080];
+    end
+
+    properties (Dependent)
+        %the full efficiency of telescope and camera
+        total_efficiency (1, 1) double {mustBeScalarOrEmpty}
+
+        %the wavelength in nm at which the camera is operating
+        wavelength (1, 1) double {mustBeScalarOrEmpty}
+
+        % the field of view of the imaging sensor through the telescope
+        % (rads)
+        fov (1, 1) double {mustBeScalarOrEmpty}
     end
 
     properties (Constant)
@@ -101,10 +112,10 @@ classdef Camera
             % area - scalar numeric, collecting area of camera in m^2
 
 
-            area = Camera.telescope.Collecting_Area;
+            area = Camera.telescope.collecting_area;
         end
 
-        function fov = fov(Camera)
+        function fov = get.fov(Camera)
             % fov
             % 
             % Returns the field of view of the camera.
@@ -122,7 +133,7 @@ classdef Camera
             %field of view of camera without attached telescope
             Camera_FOV = (Camera.detector_diameter/Camera.focal_length);
             %field of view of camera looking through telescope
-            fov = Camera_FOV/Camera.telescope.Magnification;
+            fov = Camera_FOV/Camera.telescope.magnification;
 
         end
 
@@ -139,7 +150,7 @@ classdef Camera
             % 
             % Outputs:
             % wl - scalar numeric, wavelength of camera in nm
-            wl = Camera.telescope.Wavelength;
+            wl = Camera.telescope.wavelength;
         end
 
         function E = photonEnergy(Camera)
@@ -156,10 +167,10 @@ classdef Camera
             % 
             % Outputs:
             % E - scalar numeric, energy of a photon in Joules.
-            E = Camera.h*Camera.c/(Camera.wavelength*1E-9);
+            E = Camera.h*Camera.c./(Camera.wavelength*1E-9);
         end
 
-        function te = totalEfficiency(Camera)
+        function te = get.total_efficiency(Camera)
             % totalEfficiency
             % 
             % Returns the end-to-end power efficiency of the camera
@@ -172,7 +183,7 @@ classdef Camera
             % 
             % Outputs:
             % te - scalar numeric, efficiency in absolute units (0,1)
-            te = Camera.quantum_efficiency*Camera.telescope.Optical_Efficiency;
+            te = Camera.quantum_efficiency*Camera.telescope.optical_efficiency;
         end
 
         function n = noise(Camera)
@@ -192,7 +203,7 @@ classdef Camera
             n = sqrt(Camera.readout_noise^2 + (Camera.exposure_time*Camera.dark_current_noise)^2);
         end
 
-        function [snr,snr_dB] = snr(Camera, input_power, external_noise_photons)
+        function [snr,snr_dB] = snr(Camera, input_power, external_noise)
             % snr
             % 
             % returns the signal to noise ratio of the camera tracking
@@ -217,7 +228,7 @@ classdef Camera
 
             %% Signal energy
             signal_energy = input_power * Camera.exposure_time * Camera.quantum_efficiency;
-            signal_photons = signal_energy/Camera.photonEnergy;
+            signal_photons = signal_energy./Camera.photonEnergy;
 
             %simulate saturation of the well (pixel saturation)
             signal_photons_per_exposure = min(signal_photons,Camera.full_well_capacity);

@@ -64,7 +64,7 @@ classdef QKDSimulationResult
         end
 
 
-        function [total_secret, total_sifted] = total_key_rates(result)
+        function [total_secret, total_sifted] = totalKeyRates(result)
         % total_key_rates
         %
         % Computes total secret and sifted key rates over valid communication windows.

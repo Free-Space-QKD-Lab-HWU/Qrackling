@@ -101,7 +101,7 @@ classdef Proto
 
             arguments
                 proto protocol.Proto
-                rx {utilities.mustBeSubclassOf(rx, 'nodes.QKD_Receiver'), ...
+                rx {utilities.mustBeSubclassOf(rx, 'nodes.QKDReceiver'), ...
                     nodes.mustHaveDetector(rx)}
             end
 

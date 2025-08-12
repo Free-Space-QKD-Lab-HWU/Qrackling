@@ -22,15 +22,15 @@ function eff = opticalEfficiencyLoss(kind, receiver, transmitter)
 
     switch kind
         case "beacon"
-            if isempty(transmitter.Beacon)
-                error('Transmitter.Beacon of %s must not be empty', inputname(3))
+            if isempty(transmitter.beacon)
+                error('Transmitter.beacon of %s must not be empty', inputname(3))
             end
 
-            if isempty(receiver.Camera)
-                error('Receiver.Camera of %s must not be empty', inputname(2))
+            if isempty(receiver.camera)
+                error('Receiver.camera of %s must not be empty', inputname(2))
             end
 
-            eff = transmitter.Beacon.Total_Efficiency * receiver.Camera.Total_Efficiency;
+            eff = transmitter.beacon.total_efficiency * receiver.camera.total_efficiency;
 
         case "qkd"
             % Compute received wavelength from Doppler shift
@@ -49,7 +49,7 @@ function eff = opticalEfficiencyLoss(kind, receiver, transmitter)
 
     % Expand scalar efficiency to match number of positions
     if isscalar(eff)
-        n = max(receiver.n_Position, transmitter.n_Position);
+        n = max(receiver.n_position, transmitter.n_position);
         eff = eff * ones(1, n);
     end
 

@@ -17,9 +17,9 @@
 
 classdef BeaconResult
     properties (SetAccess = protected)
-        transmitter (1,1) {utilities.mustBeSubclassOf(transmitter,'nodes.Free_Space_Optical_Node')}
-        receiver (1,1) {utilities.mustBeSubclassOf(receiver,'nodes.Free_Space_Optical_Node')}
-        link_direction (1,1) nodes.LinkDirection
+        transmitter (1,1)
+        receiver (1,1)
+        link_direction (1,1) nodes.LinkDirection = nodes.LinkDirection.Downlink
         heading (1,:) {mustBeNumeric}
         elevation (1,:) {mustBeNumeric}
         range (1,:) {mustBeNonnegative}
@@ -31,8 +31,11 @@ classdef BeaconResult
         background_counts (1,:) {mustBeNonnegative}
         received_power (1,:) {mustBeNonnegative}
         snr (1,:) {mustBeNumeric}
-        snr_dB (1,:) {mustBeNumeric}
         point_ahead_angle (2,:) {mustBeNumeric} = zeros(2,0)
+    end
+
+    properties(Dependent)
+        snr_db (1,:) {mustBeNumeric} %snr in dB
     end
 
     methods
@@ -97,8 +100,8 @@ classdef BeaconResult
             % result (1,1) BeaconResult
 
             arguments
-                transmitter (1,1) {utilities.mustBeSubclassOf(transmitter,'nodes.Free_Space_Optical_Node')}
-                receiver (1,1) {utilities.mustBeSubclassOf(receiver,'nodes.Free_Space_Optical_Node')}
+                transmitter (1,1) {utilities.mustBeSubclassOf(transmitter,'nodes.FreeSpaceOpticalNode')}
+                receiver (1,1) {utilities.mustBeSubclassOf(receiver,'nodes.FreeSpaceOpticalNode')}
                 link_direction (1,1) nodes.LinkDirection
                 heading (1,:) {mustBeNumeric}
                 elevation (1,:) {mustBeNumeric}
@@ -179,8 +182,8 @@ classdef BeaconResult
                 mask = true(size(result.communications));
             end
 
-            fig = figure("Name", ['Beacon simulation from ', ...
-                result.transmitter_name, ' to ', result.receiver_name], ...
+            fig = figure("Name", "Beacon simulation from " + ...
+                result.transmitter.name + " to " + result.receiver.name, ...
                 "WindowState", "maximized");
 
 
@@ -286,7 +289,7 @@ classdef BeaconResult
             writelines(strcat(timestring,', ',xstring,', ',ystring),Name,'WriteMode','append')
         end
     
-        function snr_dB = get.snr_dB(result)
+        function snr_dB = get.snr_db(result)
                 % get.snr_dB
                 % 
                 % return signal-to-noise-ratio of beacon link in dB
@@ -299,7 +302,7 @@ classdef BeaconResult
                 % 
                 % Outputs:
                 % snr_dB - row vector of SNR values in dB
-            snr_dB = 10*log10(result.snr)
+            snr_dB = 10*log10(result.snr);
         end
     end
 end

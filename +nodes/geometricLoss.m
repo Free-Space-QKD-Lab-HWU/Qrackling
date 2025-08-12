@@ -44,7 +44,7 @@ function [loss, spot_size, link_length] = geometricLoss(kind, receiver, transmit
                 error(['receiver.camera of ', inputname(2), ' must not be empty']);
             end
 
-            [loss, spot_size] = transmitter.beacon.getGeoLoss(link_length, receiver.camera);
+            [loss, spot_size] = transmitter.beacon.geoLoss(link_length, receiver.camera);
 
         case "qkd"
             spot_size = (ones(size(link_length)) * transmitter.telescope.diameter ...

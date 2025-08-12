@@ -54,20 +54,20 @@ classdef BB84 < protocol.Proto
         % qber - (1x1) double, quantum bit error rate [%]
 
             %% Extract source parameters
-            MPN = Alice.Source.MPN_Signal;
-            g2 = Alice.Source.g2;
-            state_prep_error = Alice.Source.State_Prep_Error;
-            rep_rate = Alice.Source.Repetition_Rate;
+            mpn = Alice.source.mpn_signal;
+            g2 = Alice.source.g2;
+            state_prep_error = Alice.source.state_prep_error;
+            rep_rate = Alice.source.repetition_rate;
 
             %% Estimate background count probability
             prob_dark = proto.backgroundCountProbability( ...
-                total_background_count_rate, Bob.Detector.Time_Gate_Width);
+                total_background_count_rate, Bob.detector.time_gate_width);
 
             %% Estimate detection probability
-            prob_click = MPN * total_loss + prob_dark;
+            prob_click = mpn * total_loss + prob_dark;
 
             %% Multi-photon probability
-            prob_multi = 0.5 * MPN.^2 * g2;
+            prob_multi = 0.5 * mpn.^2 * g2;
 
             %% Single-photon fraction
             beta = (prob_click - prob_multi) ./ prob_click;
@@ -76,11 +76,11 @@ classdef BB84 < protocol.Proto
             mu = state_prep_error;
 
             %% Signal probability
-            prob_signal = MPN .* total_loss;
+            prob_signal = mpn .* total_loss;
 
             %% QBER components
-            qber_jitter = Bob.Detector.QBER_Jitter;
-            qber_polarisation_error = sind(Bob.Detector.Polarisation_Error);
+            qber_jitter = Bob.detector.qber_jitter;
+            qber_polarisation_error = sind(Bob.detector.polarisation_error);
 
             %% Total QBER
             qber = (mu * prob_signal + prob_dark .* 0.5) ...

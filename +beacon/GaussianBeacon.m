@@ -84,7 +84,7 @@ classdef GaussianBeacon < beacon.Beacon
                 + gaussian_beacon.pointing_jitter ^ 2 );
 
             uplooking_apt_loss = 1 - exp( ...
-                -(camera.FOV) .^ 2 ...
+                -(camera.fov) .^ 2 ...
                 / (8 * camera.telescope.pointing_jitter .^ 2) );
 
             % Take product
@@ -118,7 +118,7 @@ classdef GaussianBeacon < beacon.Beacon
 
             geo_loss = (sqrt(pi) / 8) ...
                 * camera.collecting_area ...
-                / (pi * (geo_spot_diameter / 2) .^ 2);
+                ./ (pi * (geo_spot_diameter / 2) .^ 2);
 
         end
 

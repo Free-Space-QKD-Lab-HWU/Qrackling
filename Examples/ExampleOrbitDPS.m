@@ -1,26 +1,26 @@
 % a simulation of a differential phase shift protocol satellite pass
 
 %% 1. Choose parameters
-Wavelength=780;                                                            %wavelength is measured in nm
-Transmitter_Telescope_Diameter=0.1;                                        %diameters are measured in m
-Receiver_Telescope_Diameter=1;                                           
-Time_Gate_Width=1E-10;                                                      %times are measured in s
-Spectral_Filter_Width=1;                                                  %consistemt with wavelength, spectral width is measured in nm
-Repetition_Rate = 1E8;  
-SPs = [0.9,0.1];
-MPN = 0.9;
+wavelength=780;                                                            %wavelength is measured in nm
+transmitter_telescope_diameter=0.1;                                        %diameters are measured in m
+receiver_telescope_diameter=1;                                           
+time_gate_width=1E-10;                                                      %times are measured in s
+spectral_filter_width=1;                                                  %consistemt with wavelength, spectral width is measured in nm
+repetition_rate = 1E8;  
+state_probabilities = [0.9,0.1];
+mean_photon_numbers = 0.9;
 %% 2. Construct components
 
 %2.1 Satellite
 %2.1.1 Source
-Transmitter_Source=components.Source(Wavelength,...
-                          'Repetition_Rate',Repetition_Rate,...
-                          'MPN_Signal',MPN,...
-                          'Probability_Signal',SPs(1),...
-                          'Probability_Decoy',SPs(2));        %we use default values to simplify this example
+Transmitter_Source=components.Source(wavelength,...
+                          'Repetition_Rate',repetition_rate,...
+                          'MPN_Signal',mean_photon_numbers,...
+                          'Probability_Signal',state_probabilities(1),...
+                          'Probability_Decoy',state_probabilities(2));        %we use default values to simplify this example
 
 %2.1.2 Transmitter telescope
-Transmitter_Telescope=components.Telescope(Transmitter_Telescope_Diameter);           %do not need to specify wavelength as this will be set by satellite object
+Transmitter_Telescope=components.Telescope(transmitter_telescope_diameter);           %do not need to specify wavelength as this will be set by satellite object
 
 %2.1.3 Construct satellite
 StartTime = datetime(2022,12,25,6,0,0);
@@ -40,17 +40,17 @@ SimSatellite=nodes.Satellite(Transmitter_Telescope,...
 
 %2.2 Ground station
 %2.2.1 Detector
-DPS_Detector=components.Detector(Wavelength,Transmitter_Source.Repetition_Rate,Time_Gate_Width,Spectral_Filter_Width,...
+DPS_Detector=components.Detector(wavelength,Transmitter_Source.repetition_rate,time_gate_width,spectral_filter_width,...
     "Preset",'MicroPhotonDevices');
 %need to provide repetition rate in order to compute QBER and loss due to
 %time gating
 %NOTE only detectors with the 'Visibility' property can be used for COW
 
 %2.2.2 Receiver telescope
-Receiver_Telescope=components.Telescope(Receiver_Telescope_Diameter);
+Receiver_Telescope=components.Telescope(receiver_telescope_diameter);
 
 %2.2.3 construct ground station, use Chilbolton as an example
-SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
+SimGround_Station=nodes.GroundStation(Receiver_Telescope,...
                                 'Detector',DPS_Detector,...
                                 'LLA',[55.909723, -3.319995,10],...
                                 'Name','Heriot-Watt');
@@ -58,5 +58,5 @@ SimGround_Station=nodes.Ground_Station(Receiver_Telescope,...
 
 
 %% 3 Compose and run the PassSimulation
-SimResults = nodes.QkdPassSimulation(SimGround_Station,SimSatellite,protocol.dps);
+SimResults = nodes.qkdPassSimulation(SimGround_Station,SimSatellite,protocol.DPS);
 plot(SimResults);

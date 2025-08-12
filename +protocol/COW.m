@@ -58,32 +58,32 @@ classdef COW < protocol.Proto
             % sifted_rate - (1xN) numeric, sifted key rate
             % qber - (1xN) numeric, quantum bit error rate
 
-            MPN = alice.Source.MPN_Signal;
-            state_prep_error = alice.Source.State_Prep_Error;
-            rep_rate = alice.Source.Repetition_Rate;
-            decoy_prob = alice.Source.Probability_Decoy;
-            dead_time = bob.Detector.Dead_Time;
+            mpn = alice.source.mpn_signal;
+            state_prep_error = alice.source.state_prep_error;
+            rep_rate = alice.source.repetition_rate;
+            decoy_prob = alice.source.probability_decoy;
+            dead_time = bob.detector.dead_time;
 
             f = 1.2;
 
             T = total_loss;
-            R = MPN .* T;
+            R = mpn .* T;
 
             prob_dark_counts = proto.backgroundCountProbability( ...
-                total_background_count_rate, bob.Detector.Time_Gate_Width);
-            P_click = R + prob_dark_counts;
+                total_background_count_rate, bob.detector.time_gate_width);
+            p_click = R + prob_dark_counts;
 
             rate_in = 0.5 * R * rep_rate + prob_dark_counts * rep_rate;
             sifted_rate = min(rate_in, 1 / dead_time);
 
-            qber_jitter = bob.Detector.QBER_Jitter;
-            qber_dark = 0.5 * prob_dark_counts ./ P_click;
+            qber_jitter = bob.detector.qber_jitter;
+            qber_dark = 0.5 * prob_dark_counts ./ p_click;
 
             qnber = (1 - qber_dark) .* (1 - qber_jitter) .* (1 - state_prep_error);
             qber = 1 - qnber;
 
-            visibility = bob.Detector.Visibility;
-            Xcow = qber + (1 - qber) .* H((1 + eps(MPN, visibility)) ./ 2);
+            visibility = bob.detector.visibility;
+            Xcow = qber + (1 - qber) .* H((1 + eps(mpn, visibility)) ./ 2);
 
             secret_rate = sifted_rate .* (1 - f * H(qber) - Xcow) .* ...
                 (1 - decoy_prob) * proto.efficiency;

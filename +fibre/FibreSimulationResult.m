@@ -111,7 +111,7 @@ classdef FibreSimulationResult < nodes.QKDSimulationResult
 
             %% Create figure
             figure_name = string(result.protocol.name) + " simulation from " ...
-                + result.transmitter.Name + " to " + result.receiver.Name;
+                + result.transmitter.name + " to " + result.receiver.name;
 
             fig = figure("Name", figure_name);
             tiledlayout(3, 3, "TileSpacing", "tight");
@@ -162,16 +162,16 @@ classdef FibreSimulationResult < nodes.QKDSimulationResult
             %% Map of path
             nexttile(3, [2, 1]);
             labels = {};
-            hold on;
 
             for tx_loc = result.transmitter
-                geoplot(tx_loc.Latitude, tx_loc.Longitude, 'g+');
-                labels = [labels, {['Transmitter: ', tx_loc.Name]}]; %#ok<AGROW>
+                geoplot(tx_loc.latitude, tx_loc.longitude, 'g+');
+                hold on
+                labels = [labels, {['Transmitter: ', tx_loc.name]}]; %#ok<AGROW>
             end
 
             for rx_loc = result.receiver
-                geoplot(rx_loc.Latitude, rx_loc.Longitude, 'rx');
-                labels = [labels, {['Receiver: ', rx_loc.Name]}]; %#ok<AGROW>
+                geoplot(rx_loc.latitude, rx_loc.longitude, 'rx');
+                labels = [labels, {['Receiver: ', rx_loc.name]}]; %#ok<AGROW>
             end
 
             legend(labels, 'Location', 'southwest');
@@ -197,7 +197,7 @@ classdef FibreSimulationResult < nodes.QKDSimulationResult
             %% Link performance vs total loss
             nexttile();
             title('Link performance');
-            total_loss_db = result.loss.TotalLoss.dB;
+            total_loss_db = result.loss.totalLoss.dB;
             semilogy(total_loss_db(mask), result.secret_key_rate(mask), 'k-');
             xlabel('Link Loss (dB)');
             ylabel('Secret Key Rate (bps)');
@@ -222,9 +222,9 @@ classdef FibreSimulationResult < nodes.QKDSimulationResult
         % result - empty FibreSimulationResult object
 
             result = fibre.FibreSimulationResult( ...
-                fibre.Fibre_Node.empty(), ...
-                fibre.Fibre_Node.empty(), ...
-                protocol.bb84());
+                fibre.FibreNode.empty(), ...
+                fibre.FibreNode.empty(), ...
+                protocol.BB84());
         end
     end
 end

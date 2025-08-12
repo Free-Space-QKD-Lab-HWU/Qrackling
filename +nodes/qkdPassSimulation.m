@@ -62,12 +62,15 @@ function results = qkdPassSimulation(receivers, transmitters, qkd_protocol)
                 case nodes.LinkDirection.Downlink
                     [hdg, elev, rng] = relativeHeadingAndElevation(tx, rx);
                     t = tx.times;
+                    elev_flag = elev > rx.elevation_limit;
+                    elevation_limits(rx_idx) = receivers(rx_idx).elevation_limit;
                 case nodes.LinkDirection.Uplink
                     [hdg, elev, rng] = relativeHeadingAndElevation(rx, tx);
-                    t = tx.times;
+                    t = rx.times;
+                    elev_flag = elev > tx.elevation_limit;
+                    elevation_limits(rx_idx) = transmitters(tx_idx).elevation_limit;
             end
 
-            elev_flag = elev > rx.elevation_limit;
             n_steps = numel(t);
 
             % Compute loss and noise
@@ -85,7 +88,7 @@ function results = qkdPassSimulation(receivers, transmitters, qkd_protocol)
             elevation_flags(tx_idx, rx_idx, 1:n_steps) = elev_flag;
         end
 
-        elevation_limits(rx_idx) = receivers(rx_idx).elevation_limit;
+
     end
 
     % Identify valid time steps across all links
@@ -149,7 +152,7 @@ function [loss_results, noise] = lossAndNoiseForChannel(transmitter, receiver, q
             [hdg, elev, ~] = transmitter.relativeHeadingAndElevation(receiver);
             background_radiance = receiver.environment.interp( ...
                 "spectral_radiance", hdg, elev, transmitter.source.wavelength);
-        case "nodes.Ground_Station"
+        case "nodes.GroundStation"
             [hdg, elev, ~] = receiver.relativeHeadingAndElevation(transmitter);
             background_radiance = transmitter.environment.interp( ...
                 "spectral_radiance", hdg, elev, transmitter.source.wavelength);
