@@ -35,7 +35,7 @@ classdef BBM92Double < protocol.Proto
         % Computes the sifted and secure key rates for BBM92 with two receivers.
         %
         % Syntax:
-        % [secret_key_rate, sifted_key_rate, qber] = protocol.bbm92_double.qkdModel(...)
+        % [secret_key_rate, sifted_key_rate, qber] = protocol.BBM92Double.qkdModel(...)
         %
         % Inputs:
         % alice - Transmitter node with source
@@ -121,8 +121,8 @@ classdef BBM92Double < protocol.Proto
                 n_pairs {mustBeNumeric, mustBePositive}
             end
             y = ...
-                protocol.bbm92.yield(background_counts_alice, transmission_alice, n_pairs) ...
-                .* protocol.bbm92.yield(background_counts_bob, transmission_bob, n_pairs);
+                protocol.BBM92.yield(background_counts_alice, transmission_alice, n_pairs) ...
+                .* protocol.BBM92.yield(background_counts_bob, transmission_bob, n_pairs);
         end
 
         function p = emissionProbability(n_pairs, pairs_per_pump_pulse)
@@ -147,10 +147,10 @@ classdef BBM92Double < protocol.Proto
                 pairs_per_pump_pulse {mustBeNumeric, mustBeReal, ...
                     mustBeGreaterThanOrEqual(pairs_per_pump_pulse, 0)}
             end
-            y = protocol.bbm92.yieldConditional(transmission_alice, transmission_bob, ...
+            y = protocol.BBM92.yieldConditional(transmission_alice, transmission_bob, ...
                 background_counts_alice, background_counts_bob, n_pairs);
 
-            p = protocol.bbm92.emissionProbability(n_pairs, pairs_per_pump_pulse);
+            p = protocol.BBM92.emissionProbability(n_pairs, pairs_per_pump_pulse);
 
             g = y .* p;
         end

@@ -335,8 +335,8 @@ classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
             % Syntax:
             % satellite = satellite.setWavelength(wavelength)
 
-            satellite.source = SetWavelength(satellite.Source, wavelength);
-            satellite.telescope = SetWavelength(satellite.telescope, wavelength);
+            satellite.source = setWavelength(satellite.Source, wavelength);
+            satellite.telescope = setWavelength(satellite.telescope, wavelength);
         end
 
 

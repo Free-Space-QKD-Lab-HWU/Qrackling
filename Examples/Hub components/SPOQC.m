@@ -2,8 +2,8 @@ function HubSat = SPOQC(Wavelength,options)
 %SPOQC Construct a model of the Quantum Comms hub satellite
 arguments
      Wavelength {mustBeMember(Wavelength,[785,808,1550])}
-     options.StartTime datetime = datetime(2024,1,1,5,0,0);
-     options.StopTime datetime = datetime(2024,1,1,6,0,0);
+     options.StartTime datetime = datetime(2000,5,20,18,0,0);
+     options.StopTime datetime = datetime(2000,5,21,6,0,0);
      options.SampleTime double = 1; %sample time in s
 end
 

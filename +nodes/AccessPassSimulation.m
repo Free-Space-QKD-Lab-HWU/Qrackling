@@ -20,7 +20,7 @@ function access_table = AccessPassSimulation(satellite, ground_station, options)
 
     arguments
         satellite nodes.Satellite
-        ground_station nodes.Ground_Station
+        ground_station nodes.GroundStation
         options.start_time datetime = datetime('now')
         options.stop_time datetime = datetime('now') + days(1)
         options.sample_time duration = seconds(1)
@@ -34,10 +34,10 @@ function access_table = AccessPassSimulation(satellite, ground_station, options)
                                  seconds(options.sample_time));
 
     % Add satellite
-    [scenario, scenario_satellite] = satellite.AddSimulatorSatellite(scenario);
+    [scenario, scenario_satellite] = satellite.addSimulatorSatellite(scenario);
 
     % Add ground station
-    [scenario, scenario_ogs] = ground_station.AddSimulatorOGS(scenario);
+    [scenario, scenario_ogs] = ground_station.addSimulatorOGS(scenario);
 
 
     %% Determine access intervals

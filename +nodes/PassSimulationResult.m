@@ -1,8 +1,8 @@
 classdef PassSimulationResult < nodes.QKDSimulationResult
-% PassSimulationResult
-%
-% Stores and visualizes results from a QKD pass simulation, including
-% link geometry, key rates, and loss/noise metrics.
+    % PassSimulationResult
+    %
+    % Stores and visualizes results from a QKD pass simulation, including
+    % link geometry, key rates, and loss/noise metrics.
 
     properties
         % direction - link direction (uplink/downlink)
@@ -30,7 +30,7 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
                 transmitter, receiver, protocol, link_direction, ...
                 heading, elevation, range, time, elevation_mask, ...
                 loss, noise, sifted_key_rate, secret_key_rate, qber)
-        % PassSimulationResult constructor
+            % PassSimulationResult constructor
 
             arguments
                 transmitter
@@ -62,9 +62,9 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
 
 
         function fig = plot(result, options)
-        % plot
-        %
-        % Visualizes key rate metrics, loss, noise, and link geometry.
+            % plot
+            %
+            % Visualizes key rate metrics, loss, noise, and link geometry.
 
             arguments
                 result nodes.PassSimulationResult
@@ -127,7 +127,9 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
             xlabel(x_label)
             ylabel("QBER (%)")
             legend("Secret Key Rate", "Sifted Key Rate", "")
-            xlim([min(x_axis(mask)), max(x_axis(mask))])
+            if any(mask)
+                xlim([min(x_axis(mask)), max(x_axis(mask))])
+            end
 
             % Plot map
             nexttile(3, [2, 1])
@@ -232,9 +234,9 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
 
     methods (Static)
         function plotLOS(ogs_location, sat_altitude, elevation_limit)
-        % PlotLOS
-        %
-        % Plots the line-of-sight window from a ground station to a satellite altitude.
+            % PlotLOS
+            %
+            % Plots the line-of-sight window from a ground station to a satellite altitude.
 
             arguments
                 ogs_location nodes.LocatedObject
@@ -264,9 +266,9 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
 
 
         function result = empty()
-        % empty
-        %
-        % Returns an empty PassSimulationResult object for initialization.
+            % empty
+            %
+            % Returns an empty PassSimulationResult object for initialization.
 
             result = nodes.PassSimulationResult( ...
                 fibre.FibreNode.empty(), ...

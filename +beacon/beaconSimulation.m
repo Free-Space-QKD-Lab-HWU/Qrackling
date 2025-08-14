@@ -76,8 +76,8 @@ function result = beaconSimulation(transmitter, receiver, options)
 
     %only use environment for background if camera is on the ground
     Camera_In_Environment = ...
-        (direction == direction == nodes.LinkDirection.Downlink) ...
-        || (direction == direction==nodes.LinkDirection.Terrestrial);
+        (direction == nodes.LinkDirection.Downlink) ...
+        || (direction ==nodes.LinkDirection.Terrestrial);
 
     if Camera_In_Environment&&has_env
         % NOTE: why does this need "abs" around headings and elevations?
@@ -87,10 +87,10 @@ function result = beaconSimulation(transmitter, receiver, options)
             "spectral_radiance", abs(headings), abs(elevations), ...
             transmitter.Beacon.Wavelength);
         background_power = background_radiance * (receiver.camera.fov)^2 * receiver.camera.collecting_area * receiver.camera.spectral_filter_width;
-        [snr, snr_db] = SNR(receiver.camera, received_power, background_power);
+        [signal_noise_ratio, ~] = snr(receiver.camera, received_power, background_power);
 
      else
-        [snr, snr_db] = receiver.camera.snr(received_power);
+        [signal_noise_ratio, ~] = receiver.camera.snr(received_power);
     end
 
 
@@ -112,7 +112,7 @@ function result = beaconSimulation(transmitter, receiver, options)
         link_loss.totalLoss.dB, ...
         background_power,...
         received_power,...
-        snr,...
+        signal_noise_ratio,...
         PAA);
 
 end
