@@ -74,9 +74,9 @@ function p = fullDegreeOfPolarisation(i, q, u, v)
         v {mustBeNumeric}
     end
 
-    utilities.equalDimensions(i, q);
-    utilities.equalDimensions(q, u);
-    utilities.equalDimensions(u, v);
+    utilities.haveEqualDimensions(i, q);
+    utilities.haveEqualDimensions(q, u);
+    utilities.haveEqualDimensions(u, v);
 
     p = sqrt((q .^ 2) + (u .^ 2) + (v .^ 2)) ./ i;
 end
@@ -89,8 +89,8 @@ function p_lin = linearDegreeOfPolarisation(i, q, u)
         u {mustBeNumeric}
     end
 
-    utilities.equalDimensions(i, q);
-    utilities.equalDimensions(q, u);
+    utilities.haveEqualDimensions(i, q);
+    utilities.haveEqualDimensions(q, u);
 
     p_lin = sqrt((q .^ 2) + (u .^ 2)) ./ i;
 end
@@ -102,7 +102,7 @@ function p_circ = circularDegreeOfPolarisation(i, v)
         v {mustBeNumeric}
     end
 
-    utilities.equalDimensions(i, v);
+    utilities.haveEqualDimensions(i, v);
 
     p_circ = v ./ i;
 end
