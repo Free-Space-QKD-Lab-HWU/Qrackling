@@ -61,7 +61,7 @@ classdef Environment
             % Env – (1x1) environment.Environment object
 
             arguments (Input)
-                filename {mustBeFile}
+                filename
             end
 
             load(filename, 'headings')
