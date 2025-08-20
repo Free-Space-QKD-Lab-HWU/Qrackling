@@ -35,7 +35,7 @@ classdef Surfaces < handle
                 options.resolution {mustBeNumeric} = NaN
             end
             if ~isnan(options.resolution)
-                s.altitudes = altitude(A, "resolution", options.resolution);
+                s.altitudes = libradtran.Parameters.altitude(A, "resolution", options.resolution);
                 return
             end
             s.altitudes = libradtran.Parameters.altitude(A);
@@ -159,7 +159,7 @@ classdef Surfaces < handle
                 options.Default = false
             end
             args = [fieldnames(options), options];
-            index = reshape(1:numel(options), [2, numel(d)/2])';
+            index = reshape(1:numel(options), [2, numel(s)/2])';
             args = args(index(1:end));
             s.rpv_library = libradtran.Parameters.bdrf_rpv_library(args{:});
         end

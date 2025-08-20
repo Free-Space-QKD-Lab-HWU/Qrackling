@@ -8,7 +8,7 @@ classdef dopData
             arguments
                 lrt_input_file {mustBeFile}
             end
-            [keys, data] = libRadtran.read_input_file(lrt_input_file);
+            [keys, data] = libradtran.readInputFile(lrt_input_file);
 
             is_key = contains(keys, 'mc_basename');
             assert(any(is_key) && (sum(is_key) == 1), 'No output specified');

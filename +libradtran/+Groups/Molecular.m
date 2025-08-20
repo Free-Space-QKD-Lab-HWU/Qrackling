@@ -173,7 +173,7 @@ classdef Molecular < handle
                 file {mustBeFile}
             end
             args = [species, file];
-            index = reshape(1:numel(d), [2, numel(d)/2])';
+            index = reshape(1:numel(mol), [2, numel(mol)/2])';
             args = args(index(1:end));
             mol.cross_section_file = libradtran.Parameters.crs_file(args{:});
         end

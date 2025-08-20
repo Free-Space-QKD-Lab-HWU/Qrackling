@@ -48,7 +48,7 @@ classdef Clouds < handle
                 value {mustBeNumeric}
             end
             args = [variable, type, value];
-            index = reshape(1:numel(d), [3, numel(d)/3])';
+            index = reshape(1:numel(c), [3, numel(c)/3])';
             args = args(index(1:end));
             c.water_cloud_modifications = libradtran.Parameters.wc_modify(args{:});
         end
@@ -95,7 +95,7 @@ classdef Clouds < handle
 
         function c = IceCrystalParameterisation(c, type)
             arguments
-                c Cloud
+                c libradtran.Groups.Clouds
                 type {mustBeMember(type, {...
                     'solid-column', 'hollow-column', 'rough-aggregate', ...
                     'rosette-4',    'rosette-6',     'plate', ...
@@ -129,14 +129,14 @@ classdef Clouds < handle
                 value {mustBeNumeric}
             end
             args = [variable, type, value];
-            index = reshape(1:numel(d), [3, numel(d)/3])';
+            index = reshape(1:numel(c), [3, numel(c)/3])';
             args = args(index(1:end));
             c.ice_cloud_modifications = libradtran.Parameters.ic_modify(args{:});
         end
 
         function c = Waterlibradtran.Parameters.cloudcover(c, value)
             arguments
-                c Cloud
+                c libradtran.Groups.Clouds
                 value {mustBeNumeric}
             end
             c.water_cloud_cover = libradtran.Parameters.cloudcover("wc", value);
@@ -144,7 +144,7 @@ classdef Clouds < handle
 
         function c = Icelibradtran.Parameters.cloudcover(c, value)
             arguments
-                c Cloud
+                c libradtran.Groups.Clouds
                 value {mustBeNumeric}
             end
             c.ice_cloud_cover = libradtran.Parameters.cloudcover("ic", value);
@@ -152,7 +152,7 @@ classdef Clouds < handle
 
         function c = CloudFractionProfile(c, file)
             arguments
-                c Cloud
+                c libradtran.Groups.Clouds
                 file {mustBeFile}
             end
             c.cloud_fraction_profile = libradtran.Parameters.cloud_fraction_file(file);
@@ -160,7 +160,7 @@ classdef Clouds < handle
 
         function c = Overlap(c, type)
             arguments
-                c Cloud
+                c libradtran.Groups.Clouds
                 type {mustBeMember(type, {'rand', 'maxrand', 'max', 'off'})}
             end
             c.overlap = libradtran.Parameters.cloud_overlap(type);

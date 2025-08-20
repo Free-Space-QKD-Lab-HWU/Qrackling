@@ -9,7 +9,7 @@ classdef ic_properties
                 label {mustBeMember(label,  {...
                     'fu',       'echam4', 'key',      'yang',      'baum', ...
                     'baum_v36', 'hey',    'yang2013', 'filename'})}
-                options.Interpolate bool = false
+                options.Interpolate logical = false
             end
             ic.Label = label;
 

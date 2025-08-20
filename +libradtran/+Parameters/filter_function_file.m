@@ -7,7 +7,7 @@ classdef filter_function_file
         function f = filter_function_file(file, options)
             arguments
                 file {mustBeFile}
-                options.Normalize bool = false
+                options.Normalize logical = false
             end
 
             f.File = file;

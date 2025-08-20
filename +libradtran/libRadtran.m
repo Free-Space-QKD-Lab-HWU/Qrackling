@@ -38,7 +38,7 @@ classdef libRadtran < handle
             lrt.lrt_root = libRadtran_Path;
 
             if numel(fieldnames(options)) > 0
-                lrt.Solver_Settings = libradtran.Groups.Solver(solver_type, "lrtConfiguration", lrt);
+                lrt.Solver_Settings = libradtran.Groups.SolverAlgorithm(solver_type, "lrtConfiguration", lrt);
             end
         end
 
