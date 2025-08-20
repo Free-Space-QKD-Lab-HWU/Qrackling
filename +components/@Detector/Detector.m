@@ -462,7 +462,7 @@ classdef Detector
             %% Plot spectral filter transmission
             nexttile(tiles, 2);
             ax = gca();
-            transmission = computeTransmission(obj.spectral_filter, obj.wavelength);
+            transmission = obj.spectral_filter.computeTransmission(obj.wavelength);
             plot(obj.spectral_filter, ax);
             xline(obj.wavelength, 'g--');
             yline(transmission, 'g--');

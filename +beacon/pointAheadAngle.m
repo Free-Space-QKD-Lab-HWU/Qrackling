@@ -43,10 +43,10 @@ function [heading_paa, elevation_paa] = pointAheadAngle(receiver, transmitter)
     %% Compute relative geometry
 
     % Heading and elevation of receiver relative to transmitter
-    [headings, elevations] = relativeHeadingAndElevation(receiver, transmitter);
+    [headings, elevations] = receiver.relativeHeadingAndElevation(transmitter);
 
     % Position of receiver relative to transmitter in ENU frame (meters)
-    enus = computeRelativeCoords(transmitter, receiver)';
+    enus = transmitter.computeRelativeCoords(receiver)';
 
 
     %% Compute relative velocities
