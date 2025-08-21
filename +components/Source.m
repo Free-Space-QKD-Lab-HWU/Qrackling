@@ -109,7 +109,7 @@ classdef Source
             end
 
             if isempty(obj.probability_decoy)
-                obj.probability_vacuum = 1 - obj.probability_signal;
+                p_vacuum = 1 - obj.probability_signal;
                 return
             end
 

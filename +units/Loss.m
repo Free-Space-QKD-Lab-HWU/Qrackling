@@ -81,5 +81,6 @@ classdef Loss < double
                 end
             end
         end
+
     end
 end

@@ -21,14 +21,14 @@ OGS=HOGS(Wavelength,'BeaconCamera','Fine');%current HOGS model
 %{
 StartTime = datetime(2000,5,20,18,0,0);
 StopTime = datetime(2000,5,21,6,0,0);
-Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 50km.mat");
+Env = environment.Environment.load("Examples\Data\atmospheric transmittance\Dark Environment 50km.mat");
 Env.turbulence_model = environment.Turbulence_Model('Preset','HV10-10');
 %}
 %ok pass: 0610 to 0655 christmas day 2022, 10km visibility
 %{
 StartTime = datetime(2000,5,17,18,0,0);
 StopTime = datetime(2000,5,18,6,0,0);
-Env = environment.Environment.Load("Examples\Data\atmospheric transmittance\Dark Environment 10km.mat");
+Env = environment.Environment.load("Examples\Data\atmospheric transmittance\Dark Environment 10km.mat");
 Env.turbulence_model = environment.Turbulence_Model('Preset','HV5-7');
 %}
 

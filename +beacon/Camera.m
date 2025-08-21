@@ -244,7 +244,7 @@ classdef Camera
                 external_noise_photon_rate = external_noise / Camera.photonEnergy;
                 external_noise_photons = external_noise_photon_rate ...
                     * Camera.exposure_time ...
-                    * Camera.totalEfficiency;
+                    * Camera.total_efficiency;
             else
                 external_noise_photons = 0;
             end
