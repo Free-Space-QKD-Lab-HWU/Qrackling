@@ -27,6 +27,11 @@ end
 %% Otherwise we move on to determine class of object
 obj_class = class(obj);
 
+%% and if object is a row vector of numerics, logicals or datetimes, transpose it
+if isrow(obj) && (isnumeric(obj)||islogical(obj)||isdatetime(obj))
+    obj = obj';
+end
+
 %% deal with object depending on class
 switch obj_class
     case 'double'
