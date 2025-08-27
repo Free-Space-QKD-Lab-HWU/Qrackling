@@ -17,9 +17,6 @@ classdef LocatedObject
         % altitude - altitude in meters
         altitude (:, 1) {mustBeNumeric} = []
 
-        % name - identifier for the location
-        name = 'Unnamed Location'
-
         % use_sat_comms_toolbox - flag for toolbox integration
         use_sat_comms_toolbox {mustBeNumericOrLogical} = false
 
@@ -28,6 +25,11 @@ classdef LocatedObject
 
         % time - timestamp array
         time (:, 1) datetime = datetime.empty()
+    end
+
+    properties (SetAccess=public)
+        % name - identifier for the location
+        name = 'Unnamed Location'
     end
 
     properties (Constant = true, Hidden = true)

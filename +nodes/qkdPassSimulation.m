@@ -184,6 +184,6 @@ function [loss_results, noise] = lossAndNoiseForChannel(transmitter, receiver, q
 
     % Compute losses
     [loss_results, ~] = nodes.linkLoss("qkd", ...
-        receiver, transmitter, ...
-        "apt", "optical", "geometric", "turbulence", "atmospheric");
+        receiver, transmitter);
+    %here, if we wanted, we could specify which losses to simulate
 end

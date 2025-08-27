@@ -202,11 +202,26 @@ classdef LossResult
                 loss units.Loss
             end
 
-            length = result.length;
-            assert(all(cellfun(@(x) numel(x) == length, loss)), ...
-                'Added losses must have same length as existing losses');
+            %% iterate through losses to be added
+            for i=1:numel(loss)
+                current_loss = loss{i};
+                if isscalar(current_loss)
+                    % if loss is scalar, upscale to desired length
+                    new_loss = repmat(current_loss,[1,result.length]);
+                    new_loss.name = current_loss.name;
+                    result.losses{result.numLosses+1} = new_loss;
 
-            result.losses = [result.losses; loss];
+                elseif all(size(current_loss)==[1,result.length])
+                    % if loss is a row vector, use directly
+                    result.losses{result.numLosses+1} = current_loss;
+                elseif all(size(current_loss)==[result.length,1])
+                    % if loss is a column vector, transpose and use
+                    result.losses{result.numLosses+1} = current_loss';
+                else
+                    error('loss with name %s of size %i cannot be added to lossResult with length %i',...
+                           size(current_loss),current_loss.name,result.length)
+                end
+            end
         end
     end
 end

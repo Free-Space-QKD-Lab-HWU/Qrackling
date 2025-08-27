@@ -73,16 +73,12 @@ classdef GroundStation < nodes.LocatedObject & nodes.QKDReceiver & ...
                 ground_station.source = options.Source;
                 ground_station.telescope = setWavelength(ground_station.telescope, ...
                     ground_station.source.wavelength);
+            end
 
-                assert(isempty(options.Detector), ...
-                    'GroundStation may only have a detector OR a source');
-
-            elseif ~isempty(options.Detector)
+            if ~isempty(options.Detector)
                 ground_station.detector = options.Detector;
                 ground_station.telescope = setWavelength(ground_station.telescope, ...
                     ground_station.detector.wavelength);
-            else
-                error('Must provide either a source or detector');
             end
 
             wvl_opts = [0, 0];

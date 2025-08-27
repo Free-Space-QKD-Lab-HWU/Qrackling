@@ -18,7 +18,7 @@ classdef Telescope
             mustBeGreaterThanOrEqual(far_field_divergence_coefficient, 1)} = 1
 
         % Optical efficiency (Cassegrain telescope obscuration)
-        optical_efficiency {mustBeScalarOrEmpty, mustBePositive} = 1 - 0.3^2
+        optical_efficiency {mustBeScalarOrEmpty, mustBePositive} = 1
 
         % RMS pointing jitter (rad)
         pointing_jitter {mustBeScalarOrEmpty, mustBeNonnegative} = 1e-6
@@ -78,10 +78,14 @@ classdef Telescope
 
             % require properties
             obj.diameter = diameter;
-            obj.f_number = options.F_Number;
-            obj.focal_length = obj.f_number * obj.diameter;
+            obj.optical_efficiency = options.Optical_Efficiency;
+            obj.far_field_divergence_coefficient = options.Far_Field_Divergence_Coefficient;
             obj.pointing_jitter = options.Pointing_Jitter;
+            obj.f_number = options.F_Number;
+            obj.eyepiece_focal_length = options.Eyepiece_Focal_Length;
+            obj.focal_length = obj.f_number * obj.diameter;
 
+            obj.eyepiece_focal_length = options.Eyepiece_Focal_Length;
             % optional properties
             if ismember('Wavelength',fields(options))
             obj = obj.setWavelength(options.Wavelength);

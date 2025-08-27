@@ -99,6 +99,12 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
                 case "None"
                     mask = true(size(result.elevation));
             end
+            %if mask is empty, return now
+            if ~any(mask)
+                mask = true(size(result.elevation));
+                options.mask = "No";
+                warning('requested mask contains no points. plotting all')
+            end
 
             % Compute total key
             [total_secure_key, ~] = result.totalKeyRates();

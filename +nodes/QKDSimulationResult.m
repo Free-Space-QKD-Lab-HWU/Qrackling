@@ -30,9 +30,16 @@ classdef QKDSimulationResult
         secret_key_rate (1, :) {mustBeNumeric} = []
 
         % qber - quantum bit error rate over time
-        qber (1, :) {mustBeNumeric} = []
+        qber (1, :) {mustBeBetween(qber,0,1)} = []
     end
 
+    properties (Dependent)
+        % fidelity - calculated using qber
+        fidelity (1,:) {mustBeBetween(fidelity,0,1)}
+
+        % photon arrival rate - calculated using sifted key rate
+        photon_arrival_rate (1, :) {mustBeNumeric}
+    end
 
     methods
         function result = QKDSimulationResult( ...
@@ -100,8 +107,21 @@ classdef QKDSimulationResult
                 total_secret = dot(time_seconds, result.secret_key_rate(communicating));
             end
         end
-    end
+    
+        function fid = get.fidelity(Result)
+        % get.fidelity
+        %
+        % compute fidelity using 1-QBER
+        fid = 1 - Result.qber;
+        end
 
+        function par = get.photon_arrival_rate(Result)
+        % get.photon_arrival_rate
+        %
+        % compute photon arrival rate by using sifted key rate
+        par = Result.sifted_key_rate/Result.protocol.efficiency;
+        end
+    end
 
     methods (Abstract)
         fig = plot(result)
