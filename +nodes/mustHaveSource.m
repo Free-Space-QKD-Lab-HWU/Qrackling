@@ -17,7 +17,7 @@ function mustHaveSource(transmitter)
     end
 
     for i = 1:numel(transmitter)
-        t = transmitter{i};
+        t = transmitter(i);
         if isempty(t.source)
             error('%s has no source object and cannot be used as a transmitter', t.name)
         end

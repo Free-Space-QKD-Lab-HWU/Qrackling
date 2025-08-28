@@ -17,7 +17,7 @@ function results = qkdPassSimulation(receivers, transmitters, qkd_protocol)
             nodes.mustHaveDetector(receivers) }
         transmitters { ...
             nodes.mustBeReceiverOrTransmitter(transmitters), ...
-            nodes.mustHaveSource(transmitters) }
+            nodes.mustHaveSource(transmitters)}
         qkd_protocol protocol.Proto
     end
 

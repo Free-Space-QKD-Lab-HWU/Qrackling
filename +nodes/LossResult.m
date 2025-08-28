@@ -19,6 +19,11 @@ classdef LossResult
         % length - number of points in each loss object
         length (1, 1) {mustBeNumeric}
     end
+    properties(Dependent)
+        % total_loss - the total loss of all sources in the array in
+        % absolute units (0,1)
+        total_loss (1,1) units.Loss
+    end
 
 
     methods
@@ -91,6 +96,20 @@ classdef LossResult
             loss = units.Loss(loss, 'Total');
         end
 
+         function loss = get.total_loss(result)
+        % get.total_loss
+        %
+        % a wrapper for the totalLoss method to a dependent property
+        %
+        % Output:
+        % loss - units.Loss object representing total loss
+
+            arguments
+                result nodes.LossResult
+            end
+
+            loss = result.totalLoss();
+        end
 
         function plotLosses(result, x_axis, x_label, options)
         % plotLosses

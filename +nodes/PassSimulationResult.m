@@ -72,8 +72,8 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
                 options.mask {mustBeMember(options.mask, {'Elevation', 'Communication', 'Line of sight', 'None'})} = "Elevation"
             end
 
-            figure_name = string(result.protocol.name) + " simulation from " ...
-                + result.transmitter.name + " to " + result.receiver.name;
+            figure_name = string(result(1).protocol.name) + " simulation from " ...
+                + result.transmitter.name + " to " + string(result.receiver.name);
 
             fig = figure("Name", figure_name);
             tiledlayout(3, 3, "TileSpacing", "tight");

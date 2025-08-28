@@ -45,3 +45,6 @@ unused_or_redundant/**/*
 +libradtran
 +libradtran/*
 +libradtran/**/*
+
+% exclude autosaves
+*.asv

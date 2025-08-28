@@ -369,6 +369,7 @@ classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
             distances = utilities.Row2Norms(enu);
         end
 
+        
         function orbit_details = getOrbitDetails(satellite)
             % getOrbitDetails
             %

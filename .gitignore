@@ -11,6 +11,9 @@ html
 # exclude toolbox
 *.mltbx
 
+# exclude any autosaves
+*.asv
+
 # matlab project files should be local
 #*.prj
 # as should any MATLAB autosave files

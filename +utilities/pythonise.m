@@ -11,6 +11,8 @@ function output = pythonise(obj)
 %
 % Outputs:
 %   output - a python equivalent object
+output = jsonencode(obj);
+%{
 arguments(Input)
     obj
 end
@@ -18,7 +20,10 @@ arguments(Output)
     output
 end
 
-%% first, check if object is empty. if so, return python none
+%% first, start an external python process
+pyenv("ExecutionMode","OutOfProcess");
+
+%% then, check if object is empty. if so, return python none
 if isempty(obj)
     output = py.None;
     return
@@ -36,13 +41,13 @@ end
 switch obj_class
     case 'double'
         if isscalar(obj)
-            output = py.float(obj);
+            output = py.builtins.float(obj);
         else
             output = py.numpy.asarray(obj, dtype='float');
         end
     case 'logical'
         if isscalar(obj)
-            output = py.bool(obj);
+            output = py.builtins.bool(obj);
         else
             output = py.numpy.asarray(obj,dtype='bool');
         end
@@ -59,11 +64,11 @@ switch obj_class
             output = py.numpy.asarray(obj,dtype='timedelta64[s]');
         end
     case 'char'
-        output = py.str(obj);
+        output = py.builtins.str(obj);
 
     case 'string'
         if isscalar(obj)
-            output = py.str(obj);
+            output = py.builtins.str(obj);
         else
             warning('Conversion to python of string arrays vectors is not supported')
             output = py.None;
@@ -88,7 +93,7 @@ switch obj_class
     case 'units.Loss'
         % losses are convertible to double
         if isscalar(obj)
-            output = py.float(double(obj));
+            output = py.builtins.float(double(obj));
         else
             output = py.numpy.asarray(double(obj),dtype='float');
         end
@@ -98,7 +103,7 @@ switch obj_class
         if isscalar(obj)
             output = dictionary('label',obj.label,...
                                 'values',obj.values);
-            output = py.dict(output);
+            output = py.builtins.dict(output);
         
         else
             num_times = numel(obj.values);
@@ -123,7 +128,7 @@ switch obj_class
             % if scalar
             if isscalar(obj)
                 % iterate through properties and convert
-                output = py.dict();
+                output = py.builtins.dict();
                 props = string(properties(obj))';
                 for property = props
                     sub_output = utilities.pythonise(obj.(property));
@@ -143,3 +148,4 @@ switch obj_class
             end
         end
 end
+%}
