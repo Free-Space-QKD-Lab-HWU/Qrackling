@@ -16,7 +16,7 @@ def pythonise(input)-> Any:
     
     # 1. Serialise
     PyQ = PyQrackling.initialize()
-    serial_string = PyQ.utilities.pythonise(input)
+    serial_string = PyQ.utilities.jsonEncodeObject(input)
     
     # 2. Deserialise
     python_object = json.loads(serial_string)
