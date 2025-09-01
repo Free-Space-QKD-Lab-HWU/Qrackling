@@ -27,7 +27,7 @@ classdef LocatedObject
         time (:, 1) datetime = datetime.empty()
     end
 
-    properties (SetAccess=public)
+    properties (SetAccess = public)
         % name - identifier for the location
         name = 'Unnamed Location'
     end

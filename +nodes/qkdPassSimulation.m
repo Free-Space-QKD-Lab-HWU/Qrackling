@@ -177,10 +177,10 @@ function [loss_results, noise] = lossAndNoiseForChannel(transmitter, receiver, q
     dark_counts = ones(size(hdg)) * receiver.detector.dark_count_rate * qkd_protocol.num_detectors;
 
     % Package noise
-    noise = [ ...
-        environment.Noise("Detector Dark Counts", dark_counts), ...
-        environment.Noise("Background Counts", background_counts) ...
-    ];
+    if any(dark_counts~=0)
+    noise = [environment.Noise("Detector Dark Counts", dark_counts)];
+    end
+
 
     % Compute losses
     [loss_results, ~] = nodes.linkLoss("qkd", ...
