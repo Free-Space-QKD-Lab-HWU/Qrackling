@@ -87,7 +87,7 @@ function [losses, extras] = linkLoss(kind, receiver, transmitter, options)
 
     %% Source efficiency
     if options.source_efficiency
-       res = receiver.source.efficiency;
+       res = transmitter.source.efficiency;
        losses = losses.addLoss(units.Loss(res,'source efficiency'));
     end
 
