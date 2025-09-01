@@ -57,8 +57,7 @@ if isempty(receiver.camera)
 end
 
     [link_loss, ~] = nodes.linkLoss( ...
-        "beacon", receiver, transmitter, ...
-        "apt", "optical", "geometric", "turbulence", "atmospheric");
+        "beacon", receiver, transmitter);
 
 received_power = transmitter.beacon.power .* link_loss.totalLoss;
 

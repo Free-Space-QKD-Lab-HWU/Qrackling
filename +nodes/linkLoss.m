@@ -37,6 +37,8 @@ function [losses, extras] = linkLoss(kind, receiver, transmitter, options)
         options.receiver_telescope_efficiency (1,1) logical = true
         options.jitter (1,1) logical = true
         options.filter_efficiency (1,1) logical = true
+        options.camera_efficiency (1,1) logical = true
+        options.beacon_efficiency (1,1) logical = true
 
         % do you want the output in dB?
         options.dB (1,1) logical = false
@@ -79,41 +81,59 @@ function [losses, extras] = linkLoss(kind, receiver, transmitter, options)
         losses = losses.addLoss(units.Loss(res, 'atmospheric'));
     end
 
-    %% Detection efficiency
-    if options.detection_efficiency
-       res = receiver.detector.detection_efficiency;
-       losses = losses.addLoss(units.Loss(res,'detection efficiency'));
-    end
-
-    %% Source efficiency
-    if options.source_efficiency
-       res = transmitter.source.efficiency;
-       losses = losses.addLoss(units.Loss(res,'source efficiency'));
-    end
-
     %% Transmitter telescope efficiency
     if options.transmitter_telescope_efficiency
-       res = transmitter.telescope.optical_efficiency;
-       losses = losses.addLoss(units.Loss(res,'transmitter telescope efficiency'));
+        res = transmitter.telescope.optical_efficiency;
+        losses = losses.addLoss(units.Loss(res,'transmitter telescope efficiency'));
     end
 
-   %% Receiver telescope efficiency
+    %% Receiver telescope efficiency
     if options.receiver_telescope_efficiency
-       res = receiver.telescope.optical_efficiency;
-       losses = losses.addLoss(units.Loss(res,'receiver telescope efficiency'));
+        res = receiver.telescope.optical_efficiency;
+        losses = losses.addLoss(units.Loss(res,'receiver telescope efficiency'));
     end
 
-   %% Timing Jitter
-    if options.jitter
-       res = receiver.detector.jitter_loss;
-       losses = losses.addLoss(units.Loss(res,'jitter'));
+    %% these losses are for QKD links only
+    if kind == "qkd"
+        %% Detection efficiency
+        if options.detection_efficiency
+            res = receiver.detector.detection_efficiency;
+            losses = losses.addLoss(units.Loss(res,'detection efficiency'));
+        end
+
+        %% Source efficiency
+        if options.source_efficiency
+            res = transmitter.source.efficiency;
+            losses = losses.addLoss(units.Loss(res,'source efficiency'));
+        end
+
+        %% Timing Jitter
+        if options.jitter
+            res = receiver.detector.jitter_loss;
+            losses = losses.addLoss(units.Loss(res,'jitter'));
+        end
+
+        %% Filter efficiency
+        if options.filter_efficiency
+            shifted_wavelength = nodes.dopplerShift(receiver, transmitter);
+            res = receiver.detector.spectral_filter.computeTransmission(shifted_wavelength)';
+            losses = losses.addLoss(units.Loss(res,'filter efficency'));
+        end
     end
 
-   %% Filter efficiency
-    if options.filter_efficiency
-        shifted_wavelength = nodes.dopplerShift(receiver, transmitter);
-        res = receiver.detector.spectral_filter.computeTransmission(shifted_wavelength)';
-       losses = losses.addLoss(units.Loss(res,'filter efficency'));
+    %% these losses are for beacon links only
+    if kind == "beacon"
+        %% camera efficiency
+        if options.camera_efficiency
+            res = receiver.camera.quantum_efficiency;
+            losses = losses.addLoss(units.Loss(res,'camera efficiency'));
+        end
+
+        %% beacon efficiency
+        if options.beacon_efficiency
+            res = transmitter.beacon.power_efficiency;
+            losses = losses.addLoss(units.Loss(res,'beacon efficiency'));
+        end
     end
 
 
