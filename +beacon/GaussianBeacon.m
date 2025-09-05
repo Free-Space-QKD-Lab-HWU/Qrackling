@@ -116,9 +116,9 @@ classdef GaussianBeacon < beacon.Beacon
 
             geo_spot_diameter = 2 * gaussian_beacon.divergence_half_angle * range;
 
-            geo_loss = (sqrt(pi) / 8) ...
+            geo_loss = 2 ...
                 * camera.collecting_area ...
-                ./ (pi * (geo_spot_diameter / 2) .^ 2);
+                ./ (geo_spot_diameter).^2;
 
         end
 

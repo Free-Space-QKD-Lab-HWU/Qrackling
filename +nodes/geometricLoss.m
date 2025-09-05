@@ -50,7 +50,7 @@ function [loss, spot_size, link_length] = geometricLoss(kind, receiver, transmit
             spot_size = (ones(size(link_length)) * transmitter.telescope.diameter ...
                 + link_length * transmitter.telescope.fov);
 
-            loss = (sqrt(pi) / 8) * (receiver.telescope.diameter ./ spot_size) .^ 2;
+            loss = (pi/2) * (receiver.telescope.diameter ./ spot_size) .^ 2;
             loss = min(loss, 1);  % Ensure loss does not exceed 1
     end
 
