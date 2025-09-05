@@ -65,14 +65,14 @@ classdef BBM92CW < protocol.Proto
             end
 
             %% Efficiency calculations
-            efficiency_alice = Alice.Source.Local_Loss ...
-                * Alice.Detector.Detection_Efficiency;
+            efficiency_alice = Alice.source.local_loss ...
+                * Alice.detector.detection_efficiency;
 
-            efficiency_bob = Bob.Detector.Detection_Efficiency ...
+            efficiency_bob = Bob.detector.detection_efficiency ...
                 .* channel_loss;
 
             %% Source brightness
-            brightness = Alice.Source.Repetition_Rate;
+            brightness = Alice.source.repetition_rate;
 
             %% Singles and coincidences
             singles_alice = brightness .* efficiency_alice;
@@ -81,7 +81,7 @@ classdef BBM92CW < protocol.Proto
 
             %% Measured singles
             singles_alice_measured = singles_alice ...
-                + protocol.num_detectors * Alice.Detector.Dark_Count_Rate;
+                + protocol.num_detectors * Alice.detector.dark_count_rate;
 
             singles_bob_measured = singles_bob + total_erroneous_counts;
 
@@ -102,13 +102,13 @@ classdef BBM92CW < protocol.Proto
                 accidental_probability ./ protocol.coincidence_window;
 
             %% Timing jitter convolution
-            assert(Alice.Detector.Histogram_Bin_Width ...
-                == Bob.Detector.Histogram_Bin_Width, ...
+            assert(Alice.detector.histogram_bin_width ...
+                == Bob.detector.histogram_bin_width, ...
                 ['Both detectors must use the same histogram bin width ' ...
                  'to convolve jitter distributions.']);
 
-            bin_width = Alice.Detector.Histogram_Bin_Width;
-            total_jitter = conv(Alice.Detector.PDF, Bob.Detector.PDF);
+            bin_width = Alice.detector.histogram_bin_width;
+            total_jitter = conv(Alice.detector.pdf, Bob.detector.pdf);
 
             [~, jitter_mode_index] = max(total_jitter);
             window_start_index = max(jitter_mode_index ...
@@ -119,14 +119,16 @@ classdef BBM92CW < protocol.Proto
                 numel(total_jitter));
 
             windowing_loss = trapz( ...
-                total_jitter(window_start_index:window_end_index));
+                total_jitter(window_start_index:window_end_index)*...
+                Alice.detector.histogram_bin_width.*...
+                Bob.detector.histogram_bin_width);
 
             %% Measured coincidences
             coincidences_measured = (windowing_loss .* coincidences) ...
                 + 0.5 * coincidence_rate_accidental;
 
             coincidences_erroneous = ...
-                (windowing_loss .* coincidences .* Alice.Source.State_Prep_Error) ...
+                (windowing_loss .* coincidences .* Alice.source.state_prep_error) ...
                 + (protocol.efficiency .* coincidence_rate_accidental);
 
             qber = coincidences_erroneous ./ coincidences_measured;
