@@ -79,7 +79,7 @@ classdef BBM92Double < protocol.Proto
             transmission_bob_2 = Protocol.receiverLoss(bobs(2)) .* loss_bob_2;
 
             %% Photon pair generation
-            pairs_per_pulse = alice.source.mpn_signal / 2;
+            pairs_per_pulse = alice.source.mpn_signal;
 
             %% Overall gain
             gain = Protocol.gainOverall(transmission_bob_1, transmission_bob_2, ...
@@ -96,8 +96,8 @@ classdef BBM92Double < protocol.Proto
             skr = Protocol.secureKeyRate(reconciliation_factor, gain, qber, qber);
             skr(skr < 0) = 0;
 
-            sifted_key_rate = alice.source.repetition_rate .* gain;
-            secret_key_rate = alice.source.repetition_rate .* skr;
+            sifted_key_rate = alice.source.repetition_rate/2 .* gain;
+            secret_key_rate = alice.source.repetition_rate/2 .* skr;
         end
     end
 
@@ -167,15 +167,15 @@ classdef BBM92Double < protocol.Proto
                     mustBeGreaterThanOrEqual(pairs_per_pump_pulse, 0)}
             end
             contrib_alice = (1 - background_counts_alice) ...
-                ./ ((1 + transmission_alice .* pairs_per_pump_pulse) .^ 2);
+                ./ ((1 + transmission_alice .* pairs_per_pump_pulse/2) .^ 2);
 
             contrib_bob = (1 - background_counts_bob) ...
-                ./ ((1 + transmission_bob .* pairs_per_pump_pulse) .^ 2);
+                ./ ((1 + transmission_bob .* pairs_per_pump_pulse/2) .^ 2);
 
             a = (1 - background_counts_alice) .* (1 - background_counts_bob);
-            b = 1 + transmission_alice .* pairs_per_pump_pulse ...
-                + transmission_bob .* pairs_per_pump_pulse ...
-                - transmission_alice .* transmission_bob .* pairs_per_pump_pulse;
+            b = 1 + transmission_alice .* pairs_per_pump_pulse/2 ...
+                + transmission_bob .* pairs_per_pump_pulse/2 ...
+                - transmission_alice .* transmission_bob .* pairs_per_pump_pulse/2;
 
             contrib_joint = a ./ (b .^ 2);
 

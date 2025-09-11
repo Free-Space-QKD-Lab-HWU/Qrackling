@@ -81,7 +81,7 @@ classdef Proto
             end
 
             % Reshape data for point-to-point links
-            if numel(transmitter) == 1 && numel(receiver) == 1
+            if isscalar(transmitter) && isscalar(receiver)
                 total_loss = squeeze(total_loss)';
                 background_count_rate = squeeze(background_count_rate)';
             end
@@ -130,7 +130,7 @@ classdef Proto
             dcrs = zeros(size(receivers));
             for i = 1:numel(receivers)
                 receiver = receivers(i);
-                if isscalar(receiver.Detector)
+                if isscalar(receiver.detector)
                     current_dcr = receiver.detector.dark_count_rate .* proto.num_detectors;
                 else
                     assert(numel(receiver.detector) == proto.num_detectors, ...
