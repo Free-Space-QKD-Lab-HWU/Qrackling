@@ -31,11 +31,14 @@ classdef FibreNode < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
             % Choose source or detector
             if ~isempty(options.Source)
                 FN.source = options.Source;
-            elseif ~isempty(options.Detector)
+            end
+            if ~isempty(options.Detector)
                 FN.detector = options.Detector;
             else
+                if isempty(options.Source)
                 error('Fibre_Node:MissingEndpoint', ...
                       'Must provide either a Source or a Detector.')
+                end
             end
 
             % Derive LLA if not provided
