@@ -24,13 +24,13 @@ classdef QKDSimulationResult
         noise environment.Noise = environment.Noise.empty(0, 0)
 
         % sifted_key_rate - sifted key rate over time
-        sifted_key_rate (1, :) {mustBeNumeric} = []
+        sifted_key_rate (1, :) {mustBeNonnegative} = 0
 
         % secret_key_rate - secret key rate over time
-        secret_key_rate (1, :) {mustBeNumeric} = []
+        secret_key_rate (1, :) {mustBeNonnegative} = 0
 
         % qber - quantum bit error rate over time
-        qber (1, :) {mustBeBetween(qber,0,1)} = []
+        qber (1, :) {mustBeBetween(qber,0,1)} = 0
     end
 
     properties (Dependent)
