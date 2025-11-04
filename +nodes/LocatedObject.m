@@ -37,8 +37,17 @@ classdef LocatedObject
         earth_radius = earthRadius()
     end
 
+    properties (Dependent)
+        LLA
+    end
+
 
     methods
+        function lla = get.LLA(obj)
+            %return the lat-lon-alt array. wrapper for getLla
+            lla = getLla(obj);
+        end
+
         function lla = getLla(obj)
         % getLla
         %
