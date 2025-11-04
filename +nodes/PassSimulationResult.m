@@ -187,23 +187,13 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
 
                 labels = ["Ground station", strcat(options.mask, " window")];
 
-                if isscalar(result.transmitter)
                     nodes.PassSimulationResult.plotLOS( ...
                         result.transmitter, ...
                         mean(result.receiver.altitude), ...
                         result.transmitter.elevation_limit)
                     labels{end + 1} = result.transmitter.name;
                     labels{end + 1} = 'Line-of-Sight';
-                else
-                    for tx_loc = result.transmitter
-                        nodes.PassSimulationResult.plotLOS( ...
-                            tx_loc, ...
-                            mean(result.receiver.altitude), ...
-                            result.transmitter.elevation_limit)
-                        labels{end + 1} = result.transmitter.name;
-                        labels{end + 1} = 'Line-of-Sight';
-                    end
-                end
+
 
                 legend(labels, "Location", "north")
                 geolimits( ...
@@ -345,7 +335,15 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
                     labels{end + 1} = results(1,ogs_num).receiver.name;
                     labels{end + 1} = 'Line-of-Sight';
                 end
-
+                
+                % set boundaries on map coords
+                OGS_lats = getManyProperties(results,'receiver.latitude');
+                OGS_lons = getManyProperties(results,'receiver.longitude');
+                min_lat = min(OGS_lats{:});
+                max_lat = max(OGS_lats{:});
+                min_lon = min(OGS_lons{:});
+                max_lon = max(OGS_lons{:});
+                geolimits([min_lat-15,max_lat+15],[min_lon-15,max_lon+15]);
 
                 legend(labels, "Location", "north")
                 axes = gca();
@@ -369,6 +367,16 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
                     labels{end + 1} = results(ogs_num,1).transmitter.name;
                     labels{end + 1} = 'Line-of-Sight';
                 end
+
+               % set boundaries on map coords
+                OGS_lats = getManyProperties(results,'transmitter.latitude');
+                OGS_lons = getManyProperties(results,'transmitter.longitude');
+                min_lat = min(OGS_lats{:});
+                max_lat = max(OGS_lats{:});
+                min_lon = min(OGS_lons{:});
+                max_lon = max(OGS_lons{:});
+                geolimits([min_lat-15,max_lat+15],[min_lon-15,max_lon+15]);
+
 
                 legend(labels, "Location", "north")
                 axes = gca();
