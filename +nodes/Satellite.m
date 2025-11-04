@@ -29,15 +29,13 @@ classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
 
         % tle_uncertainty - (1,1) double, uncertainty in orbital position (m)
         tle_uncertainty {mustBeScalarOrEmpty, mustBeNonnegative} = 5E3
+
+        % orbit_data_file_location - (1,1) string, path to orbit data file
+        orbit_file_data_location {mustBeText} = ''
     end
 
     %% Public satellite properties
     properties (SetAccess = protected, Hidden = false)
-        % orbit_data_file_location - (1,1) string, path to orbit data file
-        orbit_file_data_location {mustBeText} = ''
-
-        % times - (1,N) datetime, satellite timestamps
-        times {mustBeA(times, 'datetime')} = datetime.empty()
 
         % beacon - (1,1) object, beacon source on satellite
         beacon = []
@@ -100,7 +98,10 @@ classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
                 return
             end
 
-            %% Extract and store Kepler elements
+
+
+            %% Deal with possible orbit description inputs
+            % assemble a kepler elements array if provided
             sma = options.semiMajorAxis;
             ecc = options.eccentricity;
             inc = options.inclination;
@@ -113,22 +114,16 @@ classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
             else
                 kepler_elements = options.KeplerElements;
             end
-
             satellite.kepler_elements = kepler_elements;
 
-            %% Store name
-            satellite.name = options.Name;
-
-            %% Validate orbital input
+            % check that one correct orbit description has been provided
             assert(any([~isnan(options.OrbitDataFileLocation), ...
-                       ~isnan(options.scenario), ...
-                       ~isnan(options.ToolBoxSatellite), ...
+                       ~isempty(options.LLAT),...
                        ~isnan(options.TLE), ...
                        ~isnan(kepler_elements)]), ...
                               ['Must provide one of: OrbitDataFileLocation,' ...
-                              'TLE, or KeplerElements'])
-
-            %% Load orbit data
+                              'TLE, LLAT, or a complete set of kepler elements'])
+%% Load orbit data
             if ~isempty(options.OrbitDataFileLocation)
                 [satellite, lat, lon, alt, t] = readOrbitLLATFile(satellite, options.OrbitDataFileLocation);
 
@@ -139,7 +134,7 @@ classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
                 alt = llat(:, 3);
                 time_seconds = llat(:, 4);
 
-                if ~isempty(options.startTime)
+                if ~isnat(options.startTime)
                     t = options.startTime + seconds(time_seconds);
                 else
                     t = datetime(2000, 1, 1, 12, 0, 0) + seconds(time_seconds);
@@ -192,6 +187,10 @@ classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
                 error('Latitude, Longitude, Altitude, and Time must be same length')
             end
 
+
+            %% Store name
+            satellite.name = options.Name;
+
             %% Set position and timestamps
             satellite = setPosition(satellite, ...
                 Latitude = lat, Longitude = lon, Altitude = alt, Name = satellite.name);
@@ -200,7 +199,7 @@ classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
                 t.TimeZone = 'UTC';
             end
 
-            satellite.times = t;
+            satellite.time = t;
             satellite.tle_uncertainty = options.TLE_Uncertainty;
 
             %% Assign telescope and wavelength
@@ -378,7 +377,7 @@ classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
             % Syntax:
             % orbit_details = satellite.getOrbitDetails()
 
-            orbit_details = timetable(satellite.times', ...
+            orbit_details = timetable(satellite.time', ...
                 [satellite.latitude, satellite.longitude, satellite.altitude]);
 
             orbit_details = {orbit_details, ...

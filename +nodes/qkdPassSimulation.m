@@ -61,12 +61,12 @@ function results = qkdPassSimulation(receivers, transmitters, qkd_protocol)
             switch link_directions(tx_idx, rx_idx)
                 case nodes.LinkDirection.Downlink
                     [hdg, elev, rng] = relativeHeadingAndElevation(tx, rx);
-                    t = tx.times;
+                    t = tx.time;
                     elev_flag = elev > rx.elevation_limit;
                     elevation_limits(rx_idx) = receivers(rx_idx).elevation_limit;
                 case nodes.LinkDirection.Uplink
                     [hdg, elev, rng] = relativeHeadingAndElevation(rx, tx);
-                    t = rx.times;
+                    t = rx.time;
                     elev_flag = elev > tx.elevation_limit;
                     elevation_limits(rx_idx) = transmitters(tx_idx).elevation_limit;
             end
@@ -177,9 +177,8 @@ function [loss_results, noise] = lossAndNoiseForChannel(transmitter, receiver, q
     dark_counts = ones(size(hdg)) * receiver.detector.dark_count_rate * qkd_protocol.num_detectors;
 
     % Package noise
-    if any(dark_counts~=0)
-    noise = [environment.Noise("Detector Dark Counts", dark_counts)];
-    end
+    noise = [environment.Noise("Background Counts", background_counts)
+             environment.Noise("Detector Dark Counts", dark_counts)];
 
 
     % Compute losses

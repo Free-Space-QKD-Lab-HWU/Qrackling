@@ -25,13 +25,13 @@ function shifted_wavelength = dopplerShift(receiver, transmitter)
 
     switch link_direction
         case 'Uplink'
-            times = receiver.times;
+            times = receiver.time';
 
         case 'Downlink'
-            times = transmitter.times;
+            times = transmitter.time';
 
         case 'Intersatellite'
-            times = transmitter.times;
+            times = transmitter.time';
 
         otherwise
             error('At least one of receiver and transmitter must have time stamps');
