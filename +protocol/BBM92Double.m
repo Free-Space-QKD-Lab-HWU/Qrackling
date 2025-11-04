@@ -131,8 +131,11 @@ classdef BBM92Double < protocol.Proto
                 pairs_per_pump_pulse {mustBeNumeric, mustBeReal, ...
                     mustBeGreaterThanOrEqual(pairs_per_pump_pulse, 0)}
             end
-            p = ((n_pairs + 1) .* (pairs_per_pump_pulse .^ n_pairs)) ...
-                ./ ((1 + pairs_per_pump_pulse) .^ (n_pairs + 2));
+
+            lambda = pairs_per_pump_pulse/2;
+
+            p = ((n_pairs + 1) .* (lambda .^ n_pairs)) ...
+                ./ ((1 + lambda) .^ (n_pairs + 2));
         end
 
         function g = gain(transmission_alice, transmission_bob, ...
@@ -156,26 +159,28 @@ classdef BBM92Double < protocol.Proto
         end
 
         function g = gainOverall(transmission_alice, transmission_bob, ...
-                background_counts_alice, background_counts_bob, ...
+                background_count_probability_alice, background_count_probability_bob, ...
                 pairs_per_pump_pulse)
             arguments
                 transmission_alice (1, :) {mustBeNumeric, mustBeInRange(transmission_alice, 0, 1)}
                 transmission_bob (1, :) {mustBeNumeric, mustBeInRange(transmission_bob, 0, 1)}
-                background_counts_alice (1, :) {mustBeNumeric}
-                background_counts_bob (1, :) {mustBeNumeric}
+                background_count_probability_alice (1, :) {mustBeNumeric}
+                background_count_probability_bob (1, :) {mustBeNumeric}
                 pairs_per_pump_pulse {mustBeNumeric, mustBeReal, ...
                     mustBeGreaterThanOrEqual(pairs_per_pump_pulse, 0)}
             end
-            contrib_alice = (1 - background_counts_alice) ...
-                ./ ((1 + transmission_alice .* pairs_per_pump_pulse/2) .^ 2);
+            lambda = pairs_per_pump_pulse/2;
 
-            contrib_bob = (1 - background_counts_bob) ...
-                ./ ((1 + transmission_bob .* pairs_per_pump_pulse/2) .^ 2);
+            contrib_alice = (1 - background_count_probability_alice) ...
+                ./ ((1 + transmission_alice .* lambda) .^ 2);
 
-            a = (1 - background_counts_alice) .* (1 - background_counts_bob);
-            b = 1 + transmission_alice .* pairs_per_pump_pulse/2 ...
-                + transmission_bob .* pairs_per_pump_pulse/2 ...
-                - transmission_alice .* transmission_bob .* pairs_per_pump_pulse/2;
+            contrib_bob = (1 - background_count_probability_bob) ...
+                ./ ((1 + transmission_bob .* lambda) .^ 2);
+
+            a = (1 - background_count_probability_alice) .* (1 - background_count_probability_bob);
+            b = 1 + transmission_alice .* lambda ...
+                + transmission_bob .* lambda ...
+                - transmission_alice .* transmission_bob .* lambda;
 
             contrib_joint = a ./ (b .^ 2);
 
@@ -194,15 +199,17 @@ classdef BBM92Double < protocol.Proto
                 error_detector {mustBeNumeric, mustBePositive, mustBeReal}
             end
 
+            lambda = pairs_per_pump_pulse/2;
+
             numer = 2 .* (error_random - error_detector) ...
                 .* transmission_alice .* transmission_bob ...
-                .* pairs_per_pump_pulse .* (1 + pairs_per_pump_pulse);
+                .* lambda .* (1 + lambda);
 
-            alice = 1 + transmission_alice .* pairs_per_pump_pulse;
-            bob = 1 + transmission_bob .* pairs_per_pump_pulse;
-            joint = 1 + transmission_alice .* pairs_per_pump_pulse ...
-                + transmission_bob .* pairs_per_pump_pulse ...
-                - transmission_alice .* transmission_bob .* pairs_per_pump_pulse;
+            alice = 1 + transmission_alice .* lambda;
+            bob = 1 + transmission_bob .* lambda;
+            joint = 1 + transmission_alice .* lambda ...
+                + transmission_bob .* lambda ...
+                - transmission_alice .* transmission_bob .* lambda;
 
             denom = alice .* bob .* joint;
 
@@ -225,7 +232,7 @@ classdef BBM92Double < protocol.Proto
             h_phase = utilities.binaryEntropy(error_phase);
 
             r = basis_reconciliation_factor .* overall_gain ...
-                .* (1 - (error_correction_efficiency .* h_bit) - h_phase);
+                .* (1 - error_correction_efficiency .* h_bit - h_phase);
         end
     end
 end
