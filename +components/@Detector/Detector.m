@@ -340,22 +340,26 @@ classdef Detector
                     'which may cause significant rounding errors.'])
             end
 
-            % Compute mode point
-            [~, mode_time_idx] = max(obj.pdf);
-
+            % Compute where time gate should lie
             n_bins   = numel(obj.jitter_histogram);
             half_idx = time_gate_width_idx / 2;
+            loss_at_index_fn = @(tg_index) obj.cdf(tg_index-half_idx) - obj.cdf(tg_index-half_idx);
+            loss_at_index = arrayfun(loss_at_index_fn,half_idx+1:n_bins-half_idx-1);
+            [~, tg_centre_idx] = max(loss_at_index);
+            tg_centre_idx = tg_centre_idx + half_idx + 1;
+
+
 
             % Compute loss
-            loss = -obj.cdf(max(mode_time_idx - half_idx, 1)) ...
-                + obj.cdf(min(mode_time_idx + half_idx, n_bins));
+            loss = -obj.cdf(max(tg_centre_idx - half_idx, 1)) ...
+                + obj.cdf(min(tg_centre_idx + half_idx, n_bins));
 
             % Compute QBER via discrete autocorrelation of the jitter PDF at delays
             % equal to integer multiples of the photon arrival period
             qber = 0;
 
             % Iterate over previous pulses (negative autocorrelation)
-            current_mode = mode_time_idx + repetition_period_idx;
+            current_mode = tg_centre_idx + repetition_period_idx;
             while current_mode < n_bins
                 qber = qber + 0.5 * ( ...
                     obj.cdf(min(current_mode + half_idx, n_bins)) ...
@@ -364,7 +368,7 @@ classdef Detector
             end
 
             % Iterate over forward pulses (positive autocorrelation)
-            current_mode = mode_time_idx - repetition_period_idx;
+            current_mode = tg_centre_idx - repetition_period_idx;
             while current_mode > 0
                 qber = qber + 0.5 * ( ...
                     obj.cdf(min(current_mode + half_idx, n_bins)) ...
@@ -508,9 +512,18 @@ classdef Detector
                 );
 
             %% Plot jitter PDF and timing markers
+
+            % first determine where time gate lies
+            n_bins   = numel(obj.jitter_histogram);
+            time_gate_width_idx = round(obj.time_gate_width/obj.histogram_bin_width);
+            half_idx = time_gate_width_idx / 2;
+            loss_at_index_fn = @(tg_index) obj.cdf(tg_index+half_idx) - obj.cdf(tg_index-half_idx);
+            loss_at_index = arrayfun(loss_at_index_fn,half_idx+1:n_bins-half_idx-1);
+            [max_value, max_index] = max(loss_at_index);
+            max_index = max_index + half_idx + 1;
+
             nexttile(tiles, 3);
             num_jitter_points = numel(obj.pdf);          % number of PDF samples
-            [max_value, max_index] = max(obj.pdf);       % PDF peak
             jitter_times = ((1:num_jitter_points) - max_index) ...
                 .* obj.histogram_bin_width;   % time axis (s)
             period = 1 ./ obj.repetition_rate;           % signal period (s)
