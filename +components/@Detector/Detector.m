@@ -49,6 +49,9 @@ classdef Detector
         % Probability density function (PDF) of jitter.
         pdf
 
+        % full-width half-maximum duration of jitter (in s)
+        fwhm
+
         % Polarization compensation error (rms, degrees). Poor compensation
         % increases QBER. Default value modeled after Micius.
         polarisation_error {mustBeScalarOrEmpty, mustBeNonnegative} = asind(1/280)
@@ -318,6 +321,9 @@ classdef Detector
             % Outputs:
             %   obj             - updated Detector object
 
+
+            %% compute jitter loss and qber
+
             % Turn time measures into index increments
             time_gate_width_idx = 2 * round( ...
                 obj.time_gate_width / (2 * obj.histogram_bin_width));
@@ -374,6 +380,30 @@ classdef Detector
             % Store results
             obj.qber_jitter = qber;
             obj.jitter_loss = loss;
+
+
+            %% compute FWHM
+
+            % find half max
+            max_pdf = max(obj.pdf);
+            half_max = max_pdf/2;
+
+            % find points where pdf crosses half max
+            for idx = 2:n_bins
+                if obj.pdf(idx-1)<half_max && obj.pdf(idx)>half_max
+                    upwards_crossing_idx = idx;
+                    break
+                end
+            end
+            for idx = n_bins:-1:2
+                if obj.pdf(idx-1)>half_max && obj.pdf(idx)<half_max
+                    downwards_crossing_idx = idx;
+                    break
+                end
+            end
+
+            obj.fwhm = (downwards_crossing_idx - upwards_crossing_idx)*obj.histogram_bin_width;
+
         end
 
         function p = plotDetHistogram(obj)
@@ -514,6 +544,38 @@ classdef Detector
                 'HorizontalAlignment', 'left', ...
                 'FontName', get(groot, 'defaultAxesFontName'), ...
                 'Color', 'r' ...
+                );
+
+            %% compute FWHM
+
+            % find half max
+            max_pdf = max(obj.pdf);
+            half_max = max_pdf/2;
+
+            % mark points where pdf crosses half max
+            for idx = 2:num_jitter_points
+                if obj.pdf(idx-1)<half_max && obj.pdf(idx)>half_max
+                    upwards_crossing_time = jitter_times(idx);
+                    xline(upwards_crossing_time,'g--')
+                    break
+                end
+            end
+            for idx = num_jitter_points:-1:2
+                if obj.pdf(idx-1)>half_max && obj.pdf(idx)<half_max
+                    downwards_crossing_time = jitter_times(idx);
+                    xline(downwards_crossing_time,'g--')
+                    break
+                end
+            end
+
+            %write fwhm
+            text( ...
+                downwards_crossing_time, max_value * 0.75, 0, ...
+                sprintf('FWHM = %.2es',obj.fwhm),...
+                'VerticalAlignment', 'top', ...
+                'HorizontalAlignment', 'left', ...
+                'FontName', get(groot, 'defaultAxesFontName'), ...
+                'Color', 'g' ...
                 );
         end
 
