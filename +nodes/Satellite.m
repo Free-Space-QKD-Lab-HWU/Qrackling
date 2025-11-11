@@ -377,7 +377,7 @@ classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
             % Syntax:
             % orbit_details = satellite.getOrbitDetails()
 
-            orbit_details = timetable(satellite.time', ...
+            orbit_details = timetable(satellite.time, ...
                 [satellite.latitude, satellite.longitude, satellite.altitude]);
 
             orbit_details = {orbit_details, ...
@@ -395,7 +395,7 @@ classdef Satellite < nodes.LocatedObject & nodes.QKDReceiver & nodes.QKDTransmit
             % [scenario, sim_sat] = satellite.addSimulatorSatellite(scenario)
 
             sat_details = satellite.getOrbitDetails();
-            sim_sat = satellite(scenario, sat_details{:});
+            sim_sat = scenario.satellite(sat_details{:});
             sim_sat.LabelFontSize = 25;
             sim_sat.MarkerSize = 12;
         end

@@ -1,8 +1,9 @@
 %% a script which illustrates the frequency of access between SPOQC and HOGS
 
 % link ends
-hogs = HOGS();
-spoqc = SPOQC();
+wavelength = 785; %irrelevant, but needed to model HOGS and SPOQC
+hogs = HOGS(wavelength);
+spoqc = SPOQC(wavelength);
 
 %how long do we want to simulate?
 start_time = datetime(2022,11,1,6,0,0);
