@@ -49,6 +49,9 @@ classdef Detector
         % Probability density function (PDF) of jitter.
         pdf
 
+        % full-width half-maximum duration of jitter (in s)
+        fwhm
+
         % Polarization compensation error (rms, degrees). Poor compensation
         % increases QBER. Default value modeled after Micius.
         polarisation_error {mustBeScalarOrEmpty, mustBeNonnegative} = asind(1/280)
@@ -318,6 +321,9 @@ classdef Detector
             % Outputs:
             %   obj             - updated Detector object
 
+
+            %% compute jitter loss and qber
+
             % Turn time measures into index increments
             time_gate_width_idx = 2 * round( ...
                 obj.time_gate_width / (2 * obj.histogram_bin_width));
@@ -334,36 +340,40 @@ classdef Detector
                     'which may cause significant rounding errors.'])
             end
 
-            % Compute mode point
-            [~, mode_time_idx] = max(obj.pdf);
-
+            % Compute where time gate should lie
             n_bins   = numel(obj.jitter_histogram);
             half_idx = time_gate_width_idx / 2;
+            loss_at_index_fn = @(tg_index) obj.cdf(tg_index+half_idx) - obj.cdf(tg_index-half_idx);
+            loss_at_index = arrayfun(loss_at_index_fn,half_idx+1:n_bins-half_idx-1);
+            [~, tg_centre_idx] = max(loss_at_index);
+            tg_centre_idx = tg_centre_idx + half_idx + 1;
+
+
 
             % Compute loss
-            loss = -obj.cdf(max(mode_time_idx - half_idx, 1)) ...
-                + obj.cdf(min(mode_time_idx + half_idx, n_bins));
+            loss = -obj.cdf(max(tg_centre_idx - half_idx, 1)) ...
+                + obj.cdf(min(tg_centre_idx + half_idx, n_bins));
 
             % Compute QBER via discrete autocorrelation of the jitter PDF at delays
             % equal to integer multiples of the photon arrival period
             qber = 0;
 
             % Iterate over previous pulses (negative autocorrelation)
-            current_mode = mode_time_idx + repetition_period_idx;
-            while current_mode < n_bins
+            current_tg_centre = tg_centre_idx + repetition_period_idx;
+            while current_tg_centre < n_bins
                 qber = qber + 0.5 * ( ...
-                    obj.cdf(min(current_mode + half_idx, n_bins)) ...
-                    - obj.cdf(max(current_mode - half_idx, 1)) );
-                current_mode = current_mode + repetition_period_idx;
+                    obj.cdf(min(current_tg_centre + half_idx, n_bins)) ...
+                    - obj.cdf(max(current_tg_centre - half_idx, 1)) );
+                current_tg_centre = current_tg_centre + repetition_period_idx;
             end
 
             % Iterate over forward pulses (positive autocorrelation)
-            current_mode = mode_time_idx - repetition_period_idx;
-            while current_mode > 0
+            current_tg_centre = tg_centre_idx - repetition_period_idx;
+            while current_tg_centre > 0
                 qber = qber + 0.5 * ( ...
-                    obj.cdf(min(current_mode + half_idx, n_bins)) ...
-                    - obj.cdf(max(current_mode - half_idx, 1)) );
-                current_mode = current_mode - repetition_period_idx;
+                    obj.cdf(min(current_tg_centre + half_idx, n_bins)) ...
+                    - obj.cdf(max(current_tg_centre - half_idx, 1)) );
+                current_tg_centre = current_tg_centre - repetition_period_idx;
             end
 
             % QBER cannot exceed 0.5 due to this model
@@ -374,6 +384,30 @@ classdef Detector
             % Store results
             obj.qber_jitter = qber;
             obj.jitter_loss = loss;
+
+
+            %% compute FWHM
+
+            % find half max
+            max_pdf = max(obj.pdf);
+            half_max = max_pdf/2;
+
+            % find points where pdf crosses half max
+            for idx = 2:n_bins
+                if obj.pdf(idx-1)<half_max && obj.pdf(idx)>half_max
+                    upwards_crossing_idx = idx;
+                    break
+                end
+            end
+            for idx = n_bins:-1:2
+                if obj.pdf(idx-1)>half_max && obj.pdf(idx)<half_max
+                    downwards_crossing_idx = idx;
+                    break
+                end
+            end
+
+            obj.fwhm = (downwards_crossing_idx - upwards_crossing_idx)*obj.histogram_bin_width;
+
         end
 
         function p = plotDetHistogram(obj)
@@ -478,23 +512,34 @@ classdef Detector
                 );
 
             %% Plot jitter PDF and timing markers
+            %find top of pdf (for plotting)
+            max_value = max(obj.pdf);
+
+            % first determine where time gate lies
+            n_bins   = numel(obj.jitter_histogram);
+            time_gate_width_idx = round(obj.time_gate_width/obj.histogram_bin_width);
+            half_idx = time_gate_width_idx / 2;
+            loss_at_index_fn = @(tg_index) obj.cdf(tg_index+half_idx) - obj.cdf(tg_index-half_idx);
+            loss_at_index = arrayfun(loss_at_index_fn,half_idx+1:n_bins-half_idx-1);
+            [~, tg_centre_index] = max(loss_at_index);
+            tg_centre_index = tg_centre_index + half_idx + 1;
+
             nexttile(tiles, 3);
             num_jitter_points = numel(obj.pdf);          % number of PDF samples
-            [max_value, max_index] = max(obj.pdf);       % PDF peak
-            jitter_times = ((1:num_jitter_points) - max_index) ...
+            jitter_times = ((1:num_jitter_points) - tg_centre_index) ...
                 .* obj.histogram_bin_width;   % time axis (s)
             period = 1 ./ obj.repetition_rate;           % signal period (s)
 
             plot(jitter_times, obj.pdf);
             xlabel('Time (s)');
-            ylabel('PDF');
+            ylabel('PDF (s^{-1})');
 
             % Time gate markers
             xline(-obj.time_gate_width / 2, 'b--');
             xline( obj.time_gate_width / 2, 'b--');
             text( ...
                 obj.time_gate_width / 2, max_value / 2, 0, ...
-                sprintf('Time Gate Width = %.2gs', obj.time_gate_width), ...
+                sprintf('Time Gate Width = %.2gs\nJitter Loss = %.2f', obj.time_gate_width,obj.jitter_loss), ...
                 'VerticalAlignment', 'top', ...
                 'HorizontalAlignment', 'left', ...
                 'FontName', get(groot, 'defaultAxesFontName'), ...
@@ -514,6 +559,38 @@ classdef Detector
                 'HorizontalAlignment', 'left', ...
                 'FontName', get(groot, 'defaultAxesFontName'), ...
                 'Color', 'r' ...
+                );
+
+            %% compute FWHM
+
+            % find half max
+            max_pdf = max(obj.pdf);
+            half_max = max_pdf/2;
+
+            % mark points where pdf crosses half max
+            for idx = 2:num_jitter_points
+                if obj.pdf(idx-1)<half_max && obj.pdf(idx)>half_max
+                    upwards_crossing_time = jitter_times(idx);
+                    xline(upwards_crossing_time,'g--')
+                    break
+                end
+            end
+            for idx = num_jitter_points:-1:2
+                if obj.pdf(idx-1)>half_max && obj.pdf(idx)<half_max
+                    downwards_crossing_time = jitter_times(idx);
+                    xline(downwards_crossing_time,'g--')
+                    break
+                end
+            end
+
+            %write fwhm
+            text( ...
+                downwards_crossing_time, max_value * 0.75, 0, ...
+                sprintf('FWHM = %.2es',obj.fwhm),...
+                'VerticalAlignment', 'top', ...
+                'HorizontalAlignment', 'left', ...
+                'FontName', get(groot, 'defaultAxesFontName'), ...
+                'Color', 'g' ...
                 );
         end
 

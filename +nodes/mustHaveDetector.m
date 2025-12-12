@@ -11,7 +11,7 @@ function mustHaveDetector(receiver)
 
     if isscalar(receiver) && ~isa(receiver, "cell")
         if isempty(receiver.detector)
-            error('%s has no detector object and cannot be used as a receiver', receiver.Name)
+            error('%s has no detector object and cannot be used as a receiver', receiver.name)
         end
         return
     end
@@ -19,7 +19,7 @@ function mustHaveDetector(receiver)
     for i = 1:numel(receiver)
         r = receiver(i);
         if isempty(r.detector)
-            error('%s has no detector object and cannot be used as a receiver', r.Name)
+            error('%s has no detector object and cannot be used as a receiver', r.name)
         end
     end
 end

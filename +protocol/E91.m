@@ -16,6 +16,7 @@ classdef E91 < protocol.Proto
             "Dark_Count_Rate", "Time_Gate_Width");
         efficiency = 1;
         name = 'E91';
+        num_detectors = 2;
 
         num_transmitters = 1;
         num_receivers = 1;

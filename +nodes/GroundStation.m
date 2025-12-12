@@ -233,7 +233,7 @@ classdef GroundStation < nodes.LocatedObject & nodes.QKDReceiver & ...
         end
 
 
-        function [satellite_scenario, sim_ogs] = addSimulatorOgs(ground_station, satellite_scenario)
+        function [satellite_scenario, sim_ogs] = addSimulatorOGS(ground_station, satellite_scenario)
             % addSimulatorOgs
             %
             % Add a MATLAB Satellite Communications Toolbox representation of the

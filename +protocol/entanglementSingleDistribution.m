@@ -85,6 +85,9 @@ classdef entanglementSingleDistribution < protocol.Proto
             qber = total_erroneous_count_probability./...
                     (correct_detection_probability + total_erroneous_count_probability);
 
+            % deal with case where no counts are present from correct or
+            % incorrect detections
+            qber(total_erroneous_count_probability==0&correct_detection_probability==0)=0.5;
 
             secret_key_rate = zeros(size(qber));
         end

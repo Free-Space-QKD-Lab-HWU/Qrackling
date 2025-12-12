@@ -30,11 +30,11 @@ function [heading_paa, elevation_paa] = pointAheadAngle(receiver, transmitter)
 
     switch direction
         case nodes.LinkDirection.Downlink
-            times = transmitter.times;
+            times = transmitter.time';
         case nodes.LinkDirection.Uplink
-            times = receiver.times;
+            times = receiver.time';
         case nodes.LinkDirection.Intersatellite
-            times = transmitter.times;
+            times = transmitter.time';
         case nodes.LinkDirection.Terrestrial
             error("UNIMPLEMENTED")
     end

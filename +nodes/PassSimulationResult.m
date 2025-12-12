@@ -72,7 +72,15 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
                 options.mask {mustBeMember(options.mask, {'Elevation', 'Communication', 'Line of sight', 'None'})} = "Elevation"
             end
 
-            figure_name = string(result(1).protocol.name) + " simulation from " ...
+            % first, if multiple results are provided, call multiplot
+            % instead
+            if ~isscalar(result)
+                fig = multiplot(result,'x_axis',options.x_axis,'mask',options.mask);
+                return
+            end
+
+            % label and prepare figure
+            figure_name = string(result.protocol.name) + " simulation from " ...
                 + result.transmitter.name + " to " + string(result.receiver.name);
 
             fig = figure("Name", figure_name);
@@ -179,23 +187,13 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
 
                 labels = ["Ground station", strcat(options.mask, " window")];
 
-                if isscalar(result.transmitter)
                     nodes.PassSimulationResult.plotLOS( ...
                         result.transmitter, ...
                         mean(result.receiver.altitude), ...
                         result.transmitter.elevation_limit)
                     labels{end + 1} = result.transmitter.name;
                     labels{end + 1} = 'Line-of-Sight';
-                else
-                    for tx_loc = result.transmitter
-                        nodes.PassSimulationResult.plotLOS( ...
-                            tx_loc, ...
-                            mean(result.receiver.altitude), ...
-                            result.transmitter.elevation_limit)
-                        labels{end + 1} = result.transmitter.name;
-                        labels{end + 1} = 'Line-of-Sight';
-                    end
-                end
+
 
                 legend(labels, "Location", "north")
                 geolimits( ...
@@ -235,6 +233,207 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
             ax = gca();
             ax.YAxisLocation = "right";
         end
+
+        function fig = multiplot(results, options)
+            % multiplot
+            %
+            % Visualizes key rate metrics, loss, noise, and link geometry
+            % for multiple result objects in an array (from multiple
+            % passes)
+
+            arguments
+                results (1,:) nodes.PassSimulationResult
+                options.x_axis {mustBeMember(options.x_axis, {'Time', 'Elevation'})} = "Time"
+                options.mask {mustBeMember(options.mask, {'Elevation', 'Communication', 'Line of sight', 'None'})} = "Elevation"
+            end
+            
+            %% if, for some reason, a scalar result has been sent here, send to scalar plot
+            if isscalar(results)
+                fig = results.plot("mask",options.mask,"x_axis",options.x_axis);
+                return
+            end
+
+            % label and prepare figure
+            figure_name = string(results(1).protocol.name) + " simulation from " ...
+                + strjoin(getManyProperties(results,'transmitter.name'),', ') + " to " + strjoin(getManyProperties(results,'receiver.name'),', ');
+
+            fig = figure("Name", figure_name);
+            tiledlayout(3, 3, "TileSpacing", "tight");
+
+            % x axis must always be time to avoid confusion
+            x_label = "Time";
+            x_axis = results.time;
+
+            % Apply mask
+            switch options.mask
+                case "Elevation"
+                    masks = getManyProperties(results,'elevation_mask');
+                    mask = and(masks{:});
+                case "Communication"
+                    mask = ~(isnan(results(1).secret_key_rate) | results(1).secret_key_rate <= 0);
+                case "Line of sight"
+                    elevations = getManyProperties(results,'elevation');
+                    masks = cellfun(@(x) x>0, elevations, 'UniformOutput',false);
+                    mask = and(masks{:});
+                case "None"
+                    mask = true(size(results(1).elevation));
+            end
+            %if mask is empty, return now
+            if ~any(mask)
+                mask = true(size(results.elevation));
+                options.mask = "None";
+                warning('requested mask contains no points. plotting all')
+            end
+
+            % Compute total key
+            [total_secure_key, ~] = results(1).totalKeyRates();
+
+            % Plot key rates
+            nexttile([1, 2])
+            colororder(colororder())
+            yyaxis left
+            hold on
+            plot(x_axis(mask), results(1).secret_key_rate(mask), '-')
+            plot(x_axis(mask), results(1).sifted_key_rate(mask), ':')
+
+            xlabel(x_label)
+            ylabel("Rate (bits/s)")
+            text(0.5, 0.5, ...
+                sprintf("Total secret key\ntransferred = %3.2g", total_secure_key), ...
+                "Units", "Normalized", ...
+                "VerticalAlignment", "middle", ...
+                "HorizontalAlignment", "center", ...
+                "FontName", get(groot, "defaultAxesFontName"), ...
+                "FontSize", get(groot, "defaultAxesFontSize"))
+
+            % Plot QBER
+            yyaxis right
+            plot(x_axis(mask), results(1).qber(mask) * 100)
+            xlabel(x_label)
+            ylabel("QBER (%)")
+            legend("Secret Key Rate", "Sifted Key Rate", "")
+            if any(mask)
+                xlim([min(x_axis(mask)), max(x_axis(mask))])
+            end
+
+            % Plot map
+            nexttile(3, [2, 1])
+            if results(1).direction == nodes.LinkDirection.Downlink
+                for sat_index = 1:size(results,1)
+                    geoplot(results(sat_index,1).transmitter.latitude, results(1).transmitter.longitude, '.')
+                    hold on
+                    geoplot(results(sat_index,1).transmitter.latitude(mask), results(1).transmitter.longitude(mask), '.')
+                end
+                labels = ["Satellite path", strcat(options.mask, " window")];
+                
+
+                for ogs_num = 1:size(results,2)
+                    nodes.PassSimulationResult.plotLOS( ...
+                        results(1,ogs_num).receiver, ...
+                        mean(results(1).transmitter.altitude), ...
+                        results(1,ogs_num).receiver.elevation_limit)
+                    labels{end + 1} = results(1,ogs_num).receiver.name;
+                    labels{end + 1} = 'Line-of-Sight';
+                end
+                
+                % set boundaries on map coords
+                OGS_lats = getManyProperties(results,'receiver.latitude');
+                OGS_lons = getManyProperties(results,'receiver.longitude');
+                min_lat = min(OGS_lats{:});
+                max_lat = max(OGS_lats{:});
+                min_lon = min(OGS_lons{:});
+                max_lon = max(OGS_lons{:});
+                geolimits([min_lat-15,max_lat+15],[min_lon-15,max_lon+15]);
+
+                legend(labels, "Location", "north")
+                axes = gca();
+                axes.FontName = get(groot(), "defaultAxesFontName");
+                axes.FontSize = get(groot(), "defaultAxesFontSize");
+
+            elseif results.direction == nodes.LinkDirection.Uplink
+                for sat_index = 1:size(results,2)
+                    geoplot(results(1,sat_index).receiver.latitude, results(1).receiver.longitude, '.')
+                    hold on
+                    geoplot(results(1,sat_index).receiver.latitude(mask), results(1).receiver.longitude(mask), '.')
+                end
+                labels = ["Satellite path", strcat(options.mask, " window")];
+                
+
+                for ogs_num = 1:size(results,2)
+                    nodes.PassSimulationResult.plotLOS( ...
+                        results(ogs_num,1).transmitter, ...
+                        mean(results(1).transmitter.altitude), ...
+                        results(ogs_num,1).transmitter.elevation_limit)
+                    labels{end + 1} = results(ogs_num,1).transmitter.name;
+                    labels{end + 1} = 'Line-of-Sight';
+                end
+
+               % set boundaries on map coords
+                OGS_lats = getManyProperties(results,'transmitter.latitude');
+                OGS_lons = getManyProperties(results,'transmitter.longitude');
+                min_lat = min(OGS_lats{:});
+                max_lat = max(OGS_lats{:});
+                min_lon = min(OGS_lons{:});
+                max_lon = max(OGS_lons{:});
+                geolimits([min_lat-15,max_lat+15],[min_lon-15,max_lon+15]);
+
+
+                legend(labels, "Location", "north")
+                axes = gca();
+                axes.FontName = get(groot(), "defaultAxesFontName");
+                axes.FontSize = get(groot(), "defaultAxesFontSize");
+            end
+
+            % Plot link loss tolerance
+            nexttile(9,[1,1])
+            title("Link performance")
+            total_loss_db = zeros(1,numel(results(1).elevation));
+            for result = results
+                total_loss_db = total_loss_db + result.loss.total_loss.dB;
+            end
+            semilogy(total_loss_db(mask), results(1).secret_key_rate(mask), 'k-')
+            xlabel("Link Loss (dB)")
+            ylabel("Secret Key Rate (bps)")
+            xlim([min(total_loss_db(mask)), max(total_loss_db(mask))])
+            grid on
+            ax = gca();
+            ax.YAxisLocation = "right";
+
+            % Plot loss
+            for j=1:numel(results)
+                nexttile(1+3*j, [1, 2])
+                results(j).loss.plotLosses(x_axis, x_label, "mask", mask)
+                xlim([min(x_axis(mask)), max(x_axis(mask))])
+            end
+
+
+
+
+            %% define a function which allows the reading of properties from the multiple results objects simultaneously
+            function properties = getManyProperties(results, name)
+
+                % prepare memory
+                properties = cell(size(results));
+
+                % separate name into calls to different objects
+                name = string(name);
+                level_names = strsplit(name,'.');
+
+                    for i = 1:numel(results)
+                        current_level_property = results(i);
+                        % iterating through the parts of the called property (e.g.
+                        % .telescope.name => {'telescope','name'}
+                        for current_level_name = level_names
+                            current_level_property = getfield(current_level_property,current_level_name{1});
+                        end
+                        properties{i} = current_level_property;
+                    end
+
+
+            end
+
+        end
+
     end
 
 

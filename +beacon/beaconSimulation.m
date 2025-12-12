@@ -26,13 +26,13 @@ switch direction
     case nodes.LinkDirection.Downlink
         [headings, elevations, ranges] = transmitter.relativeHeadingAndElevation(receiver);
         elevation_limit_mask = elevations > receiver.elevation_limit;
-        times = transmitter.times;
+        times = transmitter.time;
         Environment = receiver.environment;
 
     case nodes.LinkDirection.Uplink
         [headings, elevations, ranges] = receiver.relativeHeadingAndElevation(transmitter);
         elevation_limit_mask = elevations > transmitter.elevation_limit;
-        times = receiver.times;
+        times = receiver.time;
         Environment = transmitter.environment;
 
     case nodes.LinkDirection.Intersatellite
