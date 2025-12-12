@@ -80,6 +80,13 @@ classdef QKDSimulationResult
                 result nodes.QKDSimulationResult
             end
 
+            %% return zero if only 1 time stamp
+            if isscalar(result.time)
+                total_secret = 0;
+                total_sifted = 0;
+                return
+            end
+
             communicating = ~(isnan(result.secret_key_rate) | result.secret_key_rate <= 0);
             time = result.time(communicating);
 

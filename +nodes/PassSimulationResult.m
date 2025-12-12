@@ -96,6 +96,12 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
                     x_axis = result.elevation;
             end
 
+            % also, check if link has a single time step
+            if isscalar(x_axis)
+                singleplot(result,'x_axis',options.x_axis);
+                return
+            end
+
             % Apply mask
             switch options.mask
                 case "Elevation"
@@ -141,9 +147,7 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
             xlabel(x_label)
             ylabel("QBER (%)")
             legend("Secret Key Rate", "Sifted Key Rate", "")
-            if any(mask)
-                xlim([min(x_axis(mask)), max(x_axis(mask))])
-            end
+            xlim([min(x_axis(mask)), max(x_axis(mask))])
 
             % Plot map
             nexttile(3, [2, 1])
@@ -434,6 +438,142 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
 
         end
 
+        function singleplot(result,options)
+        % plot
+        %
+        % Visualizes key rate metrics, loss, noise, and link geometry for a
+        % link with a single timestep
+
+        arguments
+            result nodes.PassSimulationResult
+            options.x_axis {mustBeMember(options.x_axis, {'Time', 'Elevation'})} = "Time"
+        end
+
+        % Determine x-axis
+        switch options.x_axis
+            case "Time"
+                x_label = "Time";
+                x_axis = result.time;
+            case "Elevation"
+                x_label = "Elevation (deg)";
+                x_axis = result.elevation;
+        end
+        assert(isscalar(x_axis),"singleplot must deal with only single x values")
+
+
+        % Plot key rates
+        nexttile([1, 1])
+        colororder(colororder())
+        hold on
+        bar(["secret key rate","sifted key rate"],[result.secret_key_rate,result.sifted_key_rate])
+        ylabel("Rate (bits/s)")
+
+
+        % Plot QBER
+        nexttile(2,[1,1])
+        colororder(colororder())
+        bar("QBER", result.qber * 100)
+        ylabel("QBER (%)")
+
+        % Plot map
+        nexttile(3, [2, 1])
+        if result.direction == nodes.LinkDirection.Downlink
+            geoplot(result.transmitter.latitude, result.transmitter.longitude, '.')
+            hold on
+            geoplot(result.transmitter.latitude, result.transmitter.longitude, '.')
+
+            labels = "Satellite path";
+
+            if isscalar(result.receiver)
+                nodes.PassSimulationResult.plotLOS( ...
+                    result.receiver, ...
+                    mean(result.transmitter.altitude), ...
+                    result.receiver.elevation_limit)
+                labels{end + 1} = result.receiver.name;
+                labels{end + 1} = 'Line-of-Sight';
+            else
+                for rx_loc = result.receiver
+                    nodes.PassSimulationResult.plotLOS( ...
+                        rx_loc, ...
+                        mean(result.transmitter.altitude), ...
+                        result.receiver.elevation_limit)
+                    labels{end + 1} = rx_loc.name;
+                    labels{end + 1} = 'Line-of-Sight';
+                end
+            end
+
+            legend(labels, "Location", "north")
+            geolimits( ...
+                mean([result.receiver.latitude]) + [-15, 15], ...
+                mean([result.receiver.longitude]) + [-15, 15])
+            axes = gca();
+            axes.FontName = get(groot(), "defaultAxesFontName");
+            axes.FontSize = get(groot(), "defaultAxesFontSize");
+
+        elseif result.direction == nodes.LinkDirection.Uplink
+            geoplot(result.receiver.latitude, result.receiver.longitude, '.')
+            hold on
+            geoplot(result.receiver.latitude(mask), result.receiver.longitude(mask), '.')
+
+            labels = ["Ground station", strcat(options.mask, " window")];
+
+                nodes.PassSimulationResult.plotLOS( ...
+                    result.transmitter, ...
+                    mean(result.receiver.altitude), ...
+                    result.transmitter.elevation_limit)
+                labels{end + 1} = result.transmitter.name;
+                labels{end + 1} = 'Line-of-Sight';
+
+
+            legend(labels, "Location", "north")
+            geolimits( ...
+                mean([result.transmitter.latitude]) + [-15, 15], ...
+                mean([result.transmitter.longitude]) + [-15, 15])
+            axes = gca();
+            axes.FontName = get(groot(), "defaultAxesFontName");
+            axes.FontSize = get(groot(), "defaultAxesFontSize");
+        end
+
+        % Plot loss
+        loss_dB = [];
+        labels = {};
+        nexttile(4, [1, 2])
+        for i = 1:result.loss.numLosses
+            whole_loss_dB = result.loss.losses{i}.dB;
+            if any(whole_loss_dB ~= 0)
+                labels = [labels, result.loss.losses{i}.name];
+                mask_loss_dB = whole_loss_dB;
+                loss_dB = [loss_dB; mask_loss_dB]; %#ok<AGROW>
+            end
+        end
+        bar("loss",loss_dB,'stacked')
+        legend(labels, 'Location', 'south', 'Orientation', 'horizontal')
+        ylabel("Loss (dB)")
+
+
+
+        % Plot background counts
+        nexttile(7, [1, 2])
+        title("BCR (counts/s)")
+        n_sources = numel(result.noise);
+        n_points = numel(result.noise(1).values);
+        bcr_data = reshape([result.noise.values], [n_points, n_sources]);
+        bar("background counts", bcr_data,'stacked')
+        lgd = legend(result.noise.label);
+        lgd.NumColumns = 1;
+        ylabel("Background Count Rate (cps)")
+
+        % Plot link loss tolerance
+        nexttile()
+        title("Link performance")
+        total_loss_db = result.loss.totalLoss.dB;
+        semilogy(total_loss_db, result.secret_key_rate, 'k*')
+        xlabel("Link Loss (dB)")
+        ylabel("Secret Key Rate (bps)")
+        grid on
+        ax = gca();
+        ax.YAxisLocation = "right";
+        end
     end
 
 

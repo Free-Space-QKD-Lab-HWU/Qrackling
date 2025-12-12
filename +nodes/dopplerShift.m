@@ -36,7 +36,12 @@ function shifted_wavelength = dopplerShift(receiver, transmitter)
         otherwise
             error('At least one of receiver and transmitter must have time stamps');
     end
-
+    
+    %% if we don't have enough times to compute velocity (2), then don't
+    if isscalar(times)
+        shifted_wavelength = receiver.telescope.wavelength;
+        return
+    end
 
     %% Compute relative distances and wavelength
     distances = receiver.computeDistanceBetween(transmitter);
