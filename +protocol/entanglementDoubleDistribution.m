@@ -6,7 +6,7 @@ classdef entanglementDoubleDistribution < protocol.Proto
     % photon pair. this requires two receivers and two channel losses
     %
     % Syntax:
-    % Output = protocol.entanglementSingleDistribution(Input1, Input2, …)
+    % Output = protocol.entanglementSingleDistribution(Input1, Input2, ...)
 
     properties (SetAccess = protected)
         method = 'entanglement';

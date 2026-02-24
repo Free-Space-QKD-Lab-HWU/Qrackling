@@ -6,7 +6,7 @@
 % Syntax:
 % b = beacon.Beacon(Telescope, Power, Wavelength, options)
 
-classdef(Abstract) Beacon
+classdef (Abstract) Beacon
 
 
     properties

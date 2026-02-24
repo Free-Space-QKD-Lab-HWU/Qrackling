@@ -33,7 +33,7 @@ classdef Noise
             % values - numeric array
             %
             % Outputs:
-            % noise – (1x1) Noise
+            % noise - (1x1) Noise
 
             arguments
                 label {mustBeText} = ''
@@ -56,7 +56,7 @@ classdef Noise
             % noise_array - array of Noise objects (non-empty)
             %
             % Outputs:
-            % total – numeric array, sum across noise_array(:).values
+            % total - numeric array, sum across noise_array(:).values
 
             arguments
                 noise_array environment.Noise

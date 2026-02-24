@@ -7,7 +7,7 @@ classdef BBM92 < protocol.Proto
     % and one receiver.
     %
     % Syntax:
-    % Output = protocol.BBM92(Input1, Input2, …)
+    % Output = protocol.BBM92(Input1, Input2, ...)
 
     properties (SetAccess = protected)
         method = 'entanglement';

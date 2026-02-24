@@ -19,7 +19,7 @@ classdef Loss < double
             % l = Loss(x, Name)
             %
             % Inputs:
-            % x    - numeric loss value (0 ≤ x ≤ 1)
+            % x    - numeric loss value (0 <= x <= 1)
             % Name - optional label for the loss source
             %
             % Output:
@@ -75,7 +75,7 @@ classdef Loss < double
                 label = l(i).name;
 
                 if label ~= ""
-                    fprintf('Loss: %.4f (%.2f dB) — [%s]\n', val, db_val, label);
+                    fprintf('Loss: %.4f (%.2f dB) - [%s]\n', val, db_val, label);
                 else
                     fprintf('Loss: %.4f (%.2f dB)\n', val, db_val);
                 end

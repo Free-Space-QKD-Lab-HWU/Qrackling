@@ -1,7 +1,7 @@
 classdef Detector
     % Detector
     %
-    % Single‑photon detector model for an optical ground station (OGS).
+    % Single-photon detector model for an optical ground station (OGS).
     % Describes wavelength, timing, efficiency, noise, and polarization
     % characteristics used in QKD link simulations.
     %
@@ -22,7 +22,7 @@ classdef Detector
             mustBeLessThanOrEqual(qber_jitter, 1) ...
             }
 
-        % Loss due to timing jitter (absolute) — computed on construction.
+        % Loss due to timing jitter (absolute) - computed on construction.
         jitter_loss {mustBeNonnegative}
 
         % Spectral filter model.
@@ -34,7 +34,7 @@ classdef Detector
         % Repetition rate (Hz).
         repetition_rate {mustBeNonnegative, mustBeScalarOrEmpty}
 
-        % Timing‑jitter histogram (counts per bin).
+        % Timing-jitter histogram (counts per bin).
         jitter_histogram
 
         % Histogram bin width (s).
@@ -72,10 +72,10 @@ classdef Detector
             mustBeLessThanOrEqual(detection_efficiency, 1) ...
             }
 
-        % Dark‑count rate (counts per second).
+        % Dark-count rate (counts per second).
         dark_count_rate {mustBeNonnegative, mustBeScalarOrEmpty}
 
-        % Interferometric visibility for phase‑based protocols (in [0, 1]).
+        % Interferometric visibility for phase-based protocols (in [0, 1]).
         visibility {mustBeInRange(visibility, 0, 1)} = 1
 
     end
@@ -174,7 +174,7 @@ classdef Detector
                 if isstring(options.Preset)
                     options.Preset = char(options.Preset);
                 end
-                load(['+components\@Detector\presets\', ...
+                load(['+components\presets\', ...
                     options.Preset, '.mat'], ...
                     'Dark_Count_Rate', ...
                     'Dead_Time', ...

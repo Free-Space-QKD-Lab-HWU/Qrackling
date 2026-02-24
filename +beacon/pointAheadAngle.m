@@ -1,6 +1,6 @@
 % pointAheadAngle
 %
-% Returns a 2×n vector of angles in radians representing the point-ahead
+% Returns a 2xn vector of angles in radians representing the point-ahead
 % angle of a beacon from transmitter to receiver. The first row is heading,
 % the second row is elevation. These axes are defined in the ENU (East-North-Up)
 % frame of reference at the transmitter.
@@ -13,8 +13,8 @@
 % transmitter - (1x1) object, must be a Free_Space_Optical_Node subclass.
 %
 % Outputs:
-% heading_paa – (1xn) double, heading component of point-ahead angle.
-% elevation_paa – (1xn) double, elevation component of point-ahead angle.
+% heading_paa - (1xn) double, heading component of point-ahead angle.
+% elevation_paa - (1xn) double, elevation component of point-ahead angle.
 
 function [heading_paa, elevation_paa] = pointAheadAngle(receiver, transmitter)
 

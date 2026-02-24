@@ -2,7 +2,7 @@ function sf = idealBPFilter( ...
     centre_wavelength, spectral_width, steepness, max_wavelength, options)
 % idealBPFilter
 %
-% Return a SpectralFilter object with ideal band‑pass performance for the
+% Return a SpectralFilter object with ideal band-pass performance for the
 % specified parameters.
 %
 % Syntax:
@@ -17,7 +17,7 @@ function sf = idealBPFilter( ...
 %   steepness         - (1,1) double, edge steepness (transmission/nm)
 %                        Default: 1e3
 %   max_wavelength    - (1,1) double, maximum wavelength supported by filter
-%                        Default: 1e4 (10 µm)
+%                        Default: 1e4 (10 um)
 %   options           - struct with field:
 %       Wavelength_Scale - units.Magnitude, default 'nano'
 %

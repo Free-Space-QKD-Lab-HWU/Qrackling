@@ -6,7 +6,7 @@ classdef DecoyBB84 < protocol.Proto
     % Based on realistic device modeling and multiphoton detection analysis.
     %
     % Syntax:
-    % Output = protocol.DecoyBB84(Input1, Input2, …)
+    % Output = protocol.DecoyBB84(Input1, Input2, ...)
 
     properties (SetAccess = protected)
         method = 'prepare_and_measure';

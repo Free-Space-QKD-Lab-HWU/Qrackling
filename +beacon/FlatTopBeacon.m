@@ -100,9 +100,9 @@ classdef FlatTopBeacon < beacon.Beacon
             % collecting area.
             %
             % Outputs:
-            % geoLoss – 1xN double (matching size of Range), geometric loss at
+            % geoLoss - 1xN double (matching size of Range), geometric loss at
             % each range due to beam spreading in absolute units (0,1)
-            % geoSpotDiameter – 1xN double (matching size of Range),
+            % geoSpotDiameter - 1xN double (matching size of Range),
             % diameter of the beam spot in m.
         
         %output should always be row vector. convert range to row if column

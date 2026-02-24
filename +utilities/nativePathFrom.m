@@ -8,10 +8,10 @@ function result = nativePathFrom(input_path)
 % result = namespace.utility.nativePathFrom(input_path)
 %
 % Inputs:
-% input_path – (1×1) string or char, path to be converted to native format.
+% input_path - (1x1) string or char, path to be converted to native format.
 %
 % Outputs:
-% result – (1×1) string, path with separators matching the current OS.
+% result - (1x1) string, path with separators matching the current OS.
 
     arguments
         input_path {mustBeText}

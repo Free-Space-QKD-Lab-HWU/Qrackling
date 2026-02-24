@@ -26,28 +26,28 @@ function [latOut, longOut] = moveAlongSurface(latIn, longIn, arc, heading)
         longOut = longIn + tand(heading) * (180 / pi) * ...
             (atanh(sind(latIn + arcDeg * cosd(heading))) - atanh(sind(latIn)));
 
-        % then redo those with heading = ±90 to remove inf results
+        % then redo those with heading = +-90 to remove inf results
         if any(abs(heading) == 90)
             longOut(abs(heading) == 90) = longIn + ...
                 sign(heading(abs(heading) == 90)) .* arcDeg ./ cosd(latIn);
         end
 
-        % if latitude is ±90, longitude is poorly defined
+        % if latitude is +-90, longitude is poorly defined
         longOut(abs(latOut) == 90) = 0;
     end
 
     %% check for out of range values
     % latitude range
-    % bound into ±360
+    % bound into +-360
     latOut(latOut >= 360) = latOut(latOut >= 360) - 360;
     latOut(latOut <= -360) = latOut(latOut <= -360) + 360;
 
-    % bound into ±90
+    % bound into +-90
     longOut(abs(latOut) > 90) = longOut(abs(latOut) > 90) - 180;
     latOut(abs(latOut) > 90) = 180 - latOut(abs(latOut) > 90);
 
     % longitude range
-    % bound to ±180
+    % bound to +-180
     longOut(longOut > 180) = longOut(longOut > 180) - 360;
     longOut(longOut < -180) = longOut(longOut < -180) + 360;
 end

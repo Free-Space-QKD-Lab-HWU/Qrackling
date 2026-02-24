@@ -5,7 +5,7 @@ classdef BBM92CW < protocol.Proto
 % This version models coincidence detection and timing jitter effects.
 %
 % Syntax:
-% Output = protocol.Bbm92Cw(Input1, Input2, …)
+% Output = protocol.Bbm92Cw(Input1, Input2, ...)
 %
 % Based on:
 % https://journals.aps.org/pra/pdf/10.1103/PhysRevA.104.022406

@@ -5,7 +5,7 @@ classdef BBM92Double < protocol.Proto
 % This version models asymmetric loss and background noise at both receiver ends.
 %
 % Syntax:
-% Output = protocol.Bbm92Double(Input1, Input2, …)
+% Output = protocol.Bbm92Double(Input1, Input2, ...)
 %
 % Based on:
 % Ma, X., Fung, C-H. F., et al. (2007), Quantum Key Distribution with Entangled Photon Sources.

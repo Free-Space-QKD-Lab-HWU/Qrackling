@@ -8,10 +8,10 @@ function rowNorms = row2Norms(array)
 % rowNorms = namespace.utility.row2Norms(array)
 %
 % Inputs:
-% array – (M×N) double, 2D numeric array.
+% array - (MxN) double, 2D numeric array.
 %
 % Outputs:
-% rowNorms – (M×1) double, 2-norm of each row.
+% rowNorms - (Mx1) double, 2-norm of each row.
 
     % This is just a wrapper for vecnorm
     rowNorms = vecnorm(array, 2, 2);

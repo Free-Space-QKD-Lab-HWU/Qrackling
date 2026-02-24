@@ -6,7 +6,7 @@ function entropy = binaryEntropy(x)
     %
     % Description:
     % Computes the Shannon entropy for binary distributions:
-    % H(x) = -x·log2(x) - (1−x)·log2(1−x)
+    % H(x) = -xlog2(x) - (1-x)log2(1-x)
     % Handles vectorized input.
 
     arguments

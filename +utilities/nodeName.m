@@ -8,11 +8,11 @@ function name = nodeName(node)
 % name = namespace.utility.nodeName(node)
 %
 % Inputs:
-% node – (1×N) nodes.Receiver or nodes.Transmitter, object(s) representing
+% node - (1xN) nodes.Receiver or nodes.Transmitter, object(s) representing
 %        network nodes such as satellites or ground stations.
 %
 % Outputs:
-% name – (1×N) cell array of char vectors, formatted node names.
+% name - (1xN) cell array of char vectors, formatted node names.
 
     arguments
         node {nodes.mustBeReceiverOrTransmitter(node)}

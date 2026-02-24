@@ -10,7 +10,7 @@
 % receiver - scalar FreeSpaceOpticalNode, the receiver of the beacon
 %
 % Outputs:
-% result – scalar BeaconResult, object containing simulation results
+% result - scalar BeaconResult, object containing simulation results
 
 
 function result = beaconSimulation(transmitter, receiver)

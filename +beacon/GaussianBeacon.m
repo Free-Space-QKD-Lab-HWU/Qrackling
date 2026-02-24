@@ -5,12 +5,12 @@
 % according to a Gaussian profile.
 %
 % Syntax:
-% Output = beacon.GaussianBeacon(Input1, Input2, …)
+% Output = beacon.GaussianBeacon(Input1, Input2, ...)
 %
 % The GaussianBeacon inherits from the abstract Beacon class and adds
 % divergence modeling based on a 1-sigma Gaussian spread.
 
-classdef GaussianBeacon < beacon.Beacon
+classdef GaussianBeacon < Beacon
 
 
     %% Properties
@@ -44,7 +44,7 @@ classdef GaussianBeacon < beacon.Beacon
             %   divergence_half_angle - (1x1) double, 1-sigma divergence angle.
             %
             % Outputs:
-            % GaussianBeacon – (1x1) object, constructed beacon instance.
+            % GaussianBeacon - (1x1) object, constructed beacon instance.
             arguments
                 telescope
                 power
@@ -55,7 +55,7 @@ classdef GaussianBeacon < beacon.Beacon
             end
 
             % Construct abstract beacon class
-            gaussian_beacon@beacon.Beacon(telescope, power, wavelength, ...
+            gaussian_beacon@Beacon(telescope, power, wavelength, ...
                 "Power_Efficiency", options.power_efficiency, ...
                 "Pointing_Jitter", options.pointing_jitter);
 
@@ -76,7 +76,7 @@ classdef GaussianBeacon < beacon.Beacon
             % camera - (1x1) object, receiver camera with FOV and telescope.
             %
             % Outputs:
-            % loss – (1x1) double, fraction of power received.
+            % loss - (1x1) double, fraction of power received.
             %% Compute intensity distribution function at this angle
 
             downlink_apt_loss = (2 * gaussian_beacon.divergence_half_angle) ^ 2 ...
@@ -106,8 +106,8 @@ classdef GaussianBeacon < beacon.Beacon
             % camera - (1x1) object, receiver camera with collecting area.
             %
             % Outputs:
-            % geo_loss – (1xN) double, fraction of power received.
-            % geo_spot_diameter – (1xN) double, beam diameter at range.
+            % geo_loss - (1xN) double, fraction of power received.
+            % geo_spot_diameter - (1xN) double, beam diameter at range.
 
             %% Ensure range is row vector
             if iscolumn(range)

@@ -6,7 +6,7 @@ classdef entanglementSingleDistribution < protocol.Proto
     % photon pair. this requires a detector at the transmitter
     %
     % Syntax:
-    % Output = protocol.entanglementSingleDistribution(Input1, Input2, …)
+    % Output = protocol.entanglementSingleDistribution(Input1, Input2, ...)
 
     properties (SetAccess = protected)
         method = 'entanglement';

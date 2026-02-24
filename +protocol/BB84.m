@@ -6,7 +6,7 @@ classdef BB84 < protocol.Proto
 % calculations.
 %
 % Syntax:
-% Output = protocol.Bb84(Input1, Input2, …)
+% Output = protocol.Bb84(Input1, Input2, ...)
 %
 % This implementation is based on the paper:
 % "Security aspects of quantum key distribution with sub-Poisson light",

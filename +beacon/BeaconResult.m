@@ -34,7 +34,7 @@ classdef BeaconResult
         point_ahead_angle (2,:) {mustBeNumeric} = zeros(2,0)
     end
 
-    properties(Dependent)
+    properties (Dependent)
         snr_db (1,:) {mustBeNumeric} %snr in dB
     end
 
@@ -177,9 +177,9 @@ classdef BeaconResult
             case "Elevation"
                 mask = result.above_elevation_limit;
             case "Line of sight"
-                mask = result.line_of_sight;
+                mask = result.has_line_of_sight;
             case "None"
-                mask = true(size(result.communications));
+                mask = true(size(result.elevation));
             end
 
             fig = figure("Name", "Beacon simulation from " + ...

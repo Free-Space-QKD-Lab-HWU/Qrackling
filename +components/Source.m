@@ -102,7 +102,7 @@ classdef Source
             % Calculate and set the vacuum state probability based on the
             % configured signal and (optionally) decoy state probabilities.
             % If the decoy probability is not set, vacuum is simply
-            % 1 − probability_signal.
+            % 1 - probability_signal.
 
             arguments
                 obj

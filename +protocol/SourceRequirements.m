@@ -44,7 +44,7 @@ classdef SourceRequirements
             % compatible
             %
             % Placeholder for compatibility check between source and requirements.
-            % Currently returns nothing — to be implemented.
+            % Currently returns nothing - to be implemented.
             %
             % Syntax:
             % result = SourceRequirements.compatible(source, requirement1, ...)

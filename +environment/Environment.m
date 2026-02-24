@@ -33,7 +33,7 @@ classdef Environment
         % Unit of attenuation
         attenuation_unit {mustBeMember(attenuation_unit, ["probability", "dB"])} = "probability"
 
-        % Background light: spectral radiance (W/m^2·sr·nm)
+        % Background light: spectral radiance (W/m^2-sr-nm)
         spectral_radiance {mustBeNumeric, mustBeNonnegative}
 
         % Behaviour when interpolating outside the provided data range
@@ -58,7 +58,7 @@ classdef Environment
             % filename - (1x1) string or char, path to .mat file containing environment data
             %
             % Outputs:
-            % Env – (1x1) environment.Environment object
+            % Env - (1x1) environment.Environment object
 
             arguments (Input)
                 filename
@@ -88,7 +88,7 @@ classdef Environment
             % vector - (1xN) numeric
             %
             % Outputs:
-            % bool – (1x1) logical
+            % bool - (1x1) logical
 
             if isscalar(vector)
                 bool = true;
@@ -115,7 +115,7 @@ classdef Environment
             % Env = environment.Environment.empty()
             %
             % Outputs:
-            % Env – (1x1) empty environment.Environment
+            % Env - (1x1) empty environment.Environment
 
             Env = environment.Environment(0, 0, 0, 0, 0);
         end
@@ -144,7 +144,7 @@ classdef Environment
             % options.turbulence_model - char, one of {'HV5-7','2HV5-7','HV10-10','HV15-12'} (default 'HV5-7')
             %
             % Outputs:
-            % Env – (1x1) environment.Environment
+            % Env - (1x1) environment.Environment
 
             arguments
                 headings {mustBeNumeric, mustBeVector, mustBeInRange(headings, 0, 360)}
@@ -231,7 +231,7 @@ classdef Environment
             % Env - (1x1) environment.Environment
             %
             % Outputs:
-            % Env – (1x1) environment.Environment (unchanged)
+            % Env - (1x1) environment.Environment (unchanged)
 
             % Get dimensions of axes
             n_headings = numel(Env.headings);
@@ -258,12 +258,12 @@ classdef Environment
             % Inputs:
             % Env        - (1x1) environment.Environment
             % data       - string, one of {'attenuation', 'spectral_radiance', 'attenuation dB'}
-            % headings   - numeric array, degrees [0–360]
-            % elevations - numeric array, degrees [-90–90]
+            % headings   - numeric array, degrees [0-360]
+            % elevations - numeric array, degrees [-90-90]
             % wavelengths - numeric array
             %
             % Outputs:
-            % interp_data – numeric array of interpolated values
+            % interp_data - numeric array of interpolated values
 
             arguments
                 Env environment.Environment
@@ -284,7 +284,7 @@ classdef Environment
                 wavelengths = wavelengths * ones(size(headings));
             end
 
-            %% Bound heading to 0–360
+            %% Bound heading to 0-360
             headings = wrapTo360(headings);
 
             % Get relevant data array
@@ -536,7 +536,7 @@ classdef Environment
             % integration_time   - (1x1) numeric, seconds (default 1)
             %
             % Outputs:
-            % counts – numeric, expected photon counts
+            % counts - numeric, expected photon counts
             %
             % Ref: Gruneisen, M. T., Eickhoff, M. L., et al. (2021),
             % Adaptive-Optics-Enabled Quantum Communication: A Technique for Daytime

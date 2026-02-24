@@ -99,7 +99,7 @@ classdef LinkDirection
         % Inputs:
         % slant_range  - numeric, slant path length (km)
         % zenith_angle - numeric, zenith angle (degrees)
-        % xi           - numeric, fractional distance along slant path (0 < xi ≤ 1)
+        % xi           - numeric, fractional distance along slant path (0 < xi <= 1)
         %
         % Output:
         % h - numeric, height above Earth's surface (km)
