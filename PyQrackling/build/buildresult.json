@@ -5,8 +5,11 @@
 		{"ID":35003, "DisplayName":"MATLAB Standard Runtime Addon", "Optional":"no"},
 		{"ID":35010, "DisplayName":"MATLAB Base Runtime", "Optional":"no"},
 		{"ID":35055, "DisplayName":"Python Target Runtime Addon", "Optional":"no"},
+		{"ID":35106, "DisplayName":"Optimization Toolbox Runtime Addon", "Optional":"no"},
 		{"ID":35108, "DisplayName":"Signal Processing Toolbox Runtime Addon", "Optional":"no"},
+		{"ID":35124, "DisplayName":"DSP System Toolbox Runtime Addon", "Optional":"no"},
 		{"ID":35136, "DisplayName":"Communications Toolbox Runtime Addon", "Optional":"no"},
+		{"ID":35208, "DisplayName":"Aerospace Toolbox Runtime Addon", "Optional":"no"},
 		{"ID":35276, "DisplayName":"Navigation Toolbox Runtime Addon", "Optional":"no"},
 		{"ID":35289, "DisplayName":"Satellite Communications Toolbox Runtime Addon", "Optional":"no"}
 	]

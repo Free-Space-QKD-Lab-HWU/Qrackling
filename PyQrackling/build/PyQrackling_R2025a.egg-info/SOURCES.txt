@@ -1,8 +1,0 @@
-pyproject.toml
-setup.py
-PyQrackling/PyQrackling.ctf
-PyQrackling/__init__.py
-PyQrackling_R2025a.egg-info/PKG-INFO
-PyQrackling_R2025a.egg-info/SOURCES.txt
-PyQrackling_R2025a.egg-info/dependency_links.txt
-PyQrackling_R2025a.egg-info/top_level.txt
