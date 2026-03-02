@@ -142,6 +142,8 @@ classdef Environment
             % attenuation - (W x H x E) numeric, nonnegative
             % options.attenuation_unit - string, "probability" or "dB" (default "probability")
             % options.turbulence_model - char, one of {'HV5-7','2HV5-7','HV10-10','HV15-12'} (default 'HV5-7')
+            % options.r0 - (1,1) numeric >=0, optionally specify the fried
+            % parameter for turbulence calculations
             %
             % Outputs:
             % Env – (1x1) environment.Environment
@@ -153,7 +155,8 @@ classdef Environment
                 spectral_radiance {mustBeNumeric, mustBeNonnegative}
                 attenuation {mustBeNumeric, mustBeNonnegative} % mustBeLessThanOrEqual(attenuation,1)}
                 options.attenuation_unit {mustBeMember(options.attenuation_unit, ["probability", "dB"])} = "probability"
-                options.turbulence_model {mustBeMember(options.turbulence_model, {'HV5-7','2HV5-7','HV10-10','HV15-12'})} = 'HV5-7'
+                options.turbulence_model (1,1) environment.TurbulenceModel = environment.TurbulenceModel('Preset','HV5-7')
+                options.r0 {mustBeScalarOrEmpty,mustBeNonnegative} = []
             end
 
             % Sort, tidy and bound inputs
@@ -183,6 +186,11 @@ classdef Environment
 
             % Check that sizes are compatible
             mustHaveCompatibleData(Env);
+
+            % specify turbulence model
+            Env.turbulence_model = options.turbulence_model;
+            %and specify r0 therein
+            Env.turbulence_model.r0 = options.r0;
         end
 
 
@@ -246,6 +254,8 @@ classdef Environment
             assert(isequal(size(Env.spectral_radiance, [1, 2, 3]), correct_size), ...
                 'spectral_radiance array is wrong size');
         end
+        
+
         function interp_data = interp(Env, data, headings, elevations, wavelengths)
             % Interp
             %
@@ -513,6 +523,8 @@ classdef Environment
                 C.Label.FontSize = get(groot, "defaultAxesFontSize");
             end
         end
+
+
     end
 
     methods (Static)
@@ -577,5 +589,6 @@ classdef Environment
                 .* integration_time ) ...
                 / (h * c);
         end
+    
     end
 end

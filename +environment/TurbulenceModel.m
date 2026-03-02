@@ -33,6 +33,12 @@ classdef TurbulenceModel
         % Vector of exponential height decay lengths (m).
         heights (1, :) {mustBeNonnegative} = ...
             [100, 1500, 1000]
+
+        % r0
+        %
+        % the fried parameter (length scale of turbulence at the receiver)
+        % in m. By default, this is calculated, but can be set instead
+        r0 (1,:) {mustBeNonnegative} = []
     end
 
 
@@ -50,23 +56,32 @@ classdef TurbulenceModel
             % Preset     - one of:
             %              {'HV5-7','2HV5-7','HV10-10','HV15-12','none'}
             %              default 'none'
+            % r0         - (1,1) numeric, nonnegative
 
             arguments
                 options.magnitudes (1, :) {mustBeNonnegative} = []
                 options.heights (1, :) {mustBeNonnegative} = []
                 options.Preset {mustBeMember(options.Preset, ...
                     {'HV5-7','2HV5-7','HV10-10','HV15-12','none'})} = 'none'
+                options.r0 {mustBeNonnegative,mustBeScalarOrEmpty} = []
             end
 
-            % No preset: must provide magnitudes and heights
+            % No preset: must provide magnitudes and heights, or r0
             if isequal(options.Preset, 'none')
-                assert(~(isempty(options.magnitudes) || isempty(options.heights)), ...
-                    'If no preset is used, must provide magnitudes and heights')
-                assert(length(options.magnitudes) == length(options.heights), ...
-                    'Magnitudes and heights must be the same length')
+                if isempty(options.r0)
+                    assert(~(isempty(options.magnitudes) || isempty(options.heights)), ...
+                        'If no preset and no r0 are provided, must provide magnitudes and heights')
+                    assert(length(options.magnitudes) == length(options.heights), ...
+                        'Magnitudes and heights must be the same length')
+    
+                    hv.magnitudes = options.magnitudes;
+                    hv.heights = options.heights;
+                else
+                    assert(isscalar(options.r0)&&options.r0>=0, ...
+                        'If r0 is provided, must be scalar and non-negative')
+                    hv.r0 = options.r0;
+                end
 
-                hv.magnitudes = options.magnitudes;
-                hv.heights = options.heights;
             end
 
             % Otherwise, apply preset
@@ -120,7 +135,7 @@ classdef TurbulenceModel
         end
 
 
-        function r0_val = r0(TurbulenceModel, ...
+        function r0_val = compute_r0(TurbulenceModel, ...
                 link_direction, ...
                 wavelength, ...
                 elevation, ...
@@ -130,7 +145,7 @@ classdef TurbulenceModel
             % Compute the Fried parameter (r0) for given link conditions.
             %
             % Syntax:
-            % r0_val = r0(TurbulenceModel, link_direction, wavelength, ...
+            % r0_val = compute_r0(TurbulenceModel, link_direction, wavelength, ...
             %     elevation, 'BottomHeight', b, 'TopHeight', t)
             %
             % Inputs:
@@ -232,18 +247,28 @@ classdef TurbulenceModel
                 options.TopHeight {mustBeNumeric} = 500E3
             end
 
- % Verify dimension consistency
+            % Verify dimension consistency
             assert(isequal(size(elevation), size(length)) && ...
                    isequal(size(length), size(geometric_beam_width)), ...
                    'elevation, length and geometric_beam_width must have the same dimensions');
 
-            %% First, compute r0
-            r0_val = r0(TurbulenceModel, ...
-                link_direction, ...
-                wavelength, ...
-                elevation, ...
-                'BottomHeight', options.BottomHeight, ...
-                'TopHeight', options.TopHeight);
+            %% First, check if r0 is already set and compute if not
+            if isempty(TurbulenceModel.r0)
+                r0_val = compute_r0(TurbulenceModel, ...
+                    link_direction, ...
+                    wavelength, ...
+                    elevation, ...
+                    'BottomHeight', options.BottomHeight, ...
+                    'TopHeight', options.TopHeight);
+            elseif isscalar(TurbulenceModel.r0)
+                r0_val = TurbulenceModel.r0 * ones(size(length));
+            else
+                r0_val = TurbulenceModel.r0;
+                assert(isequal(size(r0_val),size(length)), ...
+                    "if r0 is specified as a vector, it should be consistent with the time dimension of simulation" + ...
+                    "here, time is (%s), and r0 is (%s)",num2str(size(length)),num2str(size(r0_val)))
+            end
+
 
             %% Then, compute turbulent expansion distance
             k = 2 * pi / (wavelength * 1E-9);   % Wave number [1/m]
@@ -255,6 +280,32 @@ classdef TurbulenceModel
                 geometric_beam_width.^2 + ...
                 turbulent_beam_expansion.^2);
         end
+    
+        
+        function model = set.r0(model,r0)
+            % set.r0
+            %
+            % set r0 value of turbulence model (prevents calculation in
+            % future)
+            %
+            % Syntax:
+            % model.r0 = r0
+            % 
+            % Inputs:
+            % model - scalar TurbulenceModel
+            % r0 - fried parameter >=0, either scalar or vector with
+            % dimensions equal to number of time steps
+            %
+            % Outputs:
+            % model - scalar TurbulenceModel
+            arguments
+                model (1,1) environment.TurbulenceModel
+                r0 (1,:) {mustBeNonnegative}
+            end
+            model.r0 = r0;
+        end
+
+
     end
 end
 

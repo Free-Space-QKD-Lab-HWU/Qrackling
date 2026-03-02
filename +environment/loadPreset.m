@@ -1,4 +1,4 @@
-function env = loadPreset(visibility)
+function env = loadPreset(visibility, r0)
             % loadPreset
             %
             % Create an Environment object from a .mat file with a specified
@@ -15,7 +15,8 @@ function env = loadPreset(visibility)
             % Outputs:
             % env – (1x1) environment.Environment object
        arguments
-           visibility (1,1) 
+           visibility (1,1)
+           r0 {mustBeScalarOrEmpty,mustBeNonnegative} = []
        end
 
     % input validation
@@ -50,3 +51,6 @@ function env = loadPreset(visibility)
      
      % Load the environment from the specified file
      env = environment.Environment.load(file_path);
+
+     % if r0 is specified, apply this to the environment
+     env.turbulence_model.r0 = r0;
