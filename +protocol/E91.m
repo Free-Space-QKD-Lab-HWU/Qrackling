@@ -113,7 +113,7 @@ classdef E91 < protocol.Proto
             % QBER including jitter
             qber_jitter = bob.Detector.QBER_Jitter;
             qber = 0.5 .* (1 - t_d .* t_e);
-            qber = protocol.combineQBER(qber,qber_jitter);
+            qber = proto.combineQBER(qber,qber_jitter);
 
             % QBER threshold where binary entropy equals 0.5
             q_thr = 0.1104;

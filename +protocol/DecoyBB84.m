@@ -92,7 +92,7 @@ classdef DecoyBB84 < protocol.Proto
             qber_noise = 0.5 * prob_dark_counts ./ detection_probabilities;
 
             % Total QBER, capped at 0.5
-            qber = protocol.combineQBER(qber_cod,qber_noise,qber_jitter,qber_polarisation_error);
+            qber = proto.combineQBER(qber_cod,qber_noise,qber_jitter,qber_polarisation_error);
             
             % Estimate multiphoton contribution for decoy state
             pM_weak = photonDetc(emission(2), 2, loss, prob_dark_counts)';

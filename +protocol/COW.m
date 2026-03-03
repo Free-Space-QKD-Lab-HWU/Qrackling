@@ -79,7 +79,7 @@ classdef COW < protocol.Proto
             qber_jitter = bob.detector.qber_jitter;
             qber_dark = 0.5 * prob_dark_counts ./ p_click;
 
-            qber = protocol.combineQBER(qber_dark,qber_jitter,state_prep_error);
+            qber = proto.combineQBER(qber_dark,qber_jitter,state_prep_error);
 
             visibility = bob.detector.visibility;
             Xcow = qber + (1 - qber) .* H((1 + eps(mpn, visibility)) ./ 2);
