@@ -76,16 +76,22 @@ classdef entanglementDoubleDistribution < protocol.Proto
 
             %qber is the proportion of detector pairs which do not
             %correspond
-            double_dark_count_probability = background_probability_bob_1 .* background_probability_bob_2;
+            double_dark_count_probability = ...
+                background_probability_bob_1 .* background_probability_bob_2;
 
-            bob_1_dark_count_probability = background_probability_bob_1 .* loss_bob_2;
-            bob_2_dark_count_probability = background_probability_bob_2 .* loss_bob_1;
+            bob_1_background_count_probability = protocol.backgroundCountProbability(total_erroneous_count_rate(1,1,:),bobs(1).detector.time_gate_width);
+            bob_2_background_count_probability = protocol.backgroundCountProbability(total_erroneous_count_rate(1,2,:),bobs(2).detector.time_gate_width);
 
-            total_erroneous_count_probability = 0.5 * (bob_1_dark_count_probability + bob_2_dark_count_probability + double_dark_count_probability) +...
-                                                correct_double_detection_probability * alice.source.state_prep_error;
-            
-            qber = total_erroneous_count_probability./...
-                    (correct_double_detection_probability + total_erroneous_count_probability);
+            qber_bob_1_dark_counts = 0.5 * bob_1_background_count_probability .* loss_bob_2 ./ (correct_detection_probability +  bob_1_background_count_probability .* loss_bob_2);
+            qber_bob_2_dark_counts = 0.5 * bob_2_background_count_probability .* loss_bob_1 ./ (correct_detection_probability +  bob_2_background_count_probability .* loss_bob_1);
+            qber_both_dark_counts = 0.5 * double_dark_count_probability./ (correct_detection_probability + double_dark_count_probability);
+            qber_state_prep_error = alice.source.state_prep_error;
+
+            qber = protocol.combineQBER(qber_bob_1_dark_counts,qber_bob_2_dark_counts,qber_both_dark_counts,qber_state_prep_error);
+
+            % deal with case where no counts are present from correct or
+            % incorrect detections
+            qber(total_erroneous_count_probability==0&correct_detection_probability==0)=0.5;
 
 
             secret_key_rate = zeros(size(qber));
