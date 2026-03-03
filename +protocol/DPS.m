@@ -83,8 +83,7 @@ classdef DPS < protocol.Proto
             qber_encoding = alice.source.state_prep_error;
 
             % QBERs add in inverse: compute probability of no errors
-            qnber = (1 - qber_dark) .* (1 - qber_encoding) .* (1 - qber_visibility);
-            qber = 1 - qnber;
+            qber = protocol.combineQBER(qber_dark,qber_encoding,qber_visibility);
 
             % Privacy amplification compression factor
             % tau = (1 - 2*mu)*log2(1 - qber.^2 - (1 - 6*qber).^2/2); % 2007 formula
