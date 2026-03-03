@@ -89,9 +89,8 @@ classdef entanglementDoubleDistribution < protocol.Proto
 
             qber = protocol.combineQBER(qber_bob_1_dark_counts,qber_bob_2_dark_counts,qber_both_dark_counts,qber_state_prep_error);
 
-            % deal with case where no counts are present from correct or
-            % incorrect detections
-            qber(total_erroneous_count_probability==0&correct_detection_probability==0)=0.5;
+            % deal with case where no counts are present from correct detections
+            qber(correct_detection_probability==0)=0.5;
 
 
             secret_key_rate = zeros(size(qber));
