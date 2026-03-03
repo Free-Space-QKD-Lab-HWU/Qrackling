@@ -79,11 +79,12 @@ classdef entanglementSingleDistribution < protocol.Proto
             bob_dark_count_probability = total_erroneous_count_rate * bob.detector.time_gate_width *loss_alice;
 
 
-            total_erroneous_count_probability = 0.5 * (alice_dark_count_probability + bob_dark_count_probability + double_dark_count_probability) +...
-                                                correct_detection_probability * alice.source.state_prep_error;
-            
-            qber = total_erroneous_count_probability./...
-                    (correct_detection_probability + total_erroneous_count_probability);
+            qber_alice_dark_counts = 0.5 * alice_dark_count_probability .* loss_bob ./ (correct_detection_probability +  alice_dark_count_probability .* loss_bob);
+            qber_bob_dark_counts = 0.5 * bob_dark_count_probability .* loss_alice ./ (correct_detection_probability + bob_dark_count_probability .* loss_alice);
+            qber_both_dark_counts = 0.5 * double_dark_count_probability./ (correct_detection_probability + double_dark_count_probability);
+            qber_state_prep_error = alice.source.state_prep_error;
+
+            qber = protocol.combineQBER(qber_alice_dark_counts,qber_bob_dark_counts,qber_both_dark_counts,qber_state_prep_error);
 
             % deal with case where no counts are present from correct or
             % incorrect detections
