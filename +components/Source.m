@@ -47,6 +47,9 @@ classdef Source
         %probability of no photon sent
         probability_vacuum {mustBeNumeric, mustBeNonnegative, ...
             mustBeLessThanOrEqual(probability_vacuum, 1)}
+
+        %overall mean photon number over decoy, signal and vacuum states
+        overallMPN {mustBeNonnegative}
     end
 
     methods
@@ -122,6 +125,22 @@ classdef Source
             p_vacuum = 1 - total_probability;
         end
 
+        function mpn = get.overallMPN(source)
+            % calculates the mean photon number over all decoy and signal
+            % states, if these are present. if not, returns the signal mpn.
+            % this represents the overall mean number of photons out of the
+            % source per pulse
+            arguments
+                source (1,1) components.Source
+            end
+            
+            if ~isempty(source.mpn_decoy)&&~isempty(source.probability_decoy)
+                mpn = source.probability_signal * source.mpn_signal + ...
+                    source.probability_decoy * source.mpn_decoy;
+            else
+                mpn = source.mpn_signal;
+            end
+        end
 
         function obj = setWavelength(obj, wavelength, options)
             % setWavelength
@@ -236,5 +255,6 @@ classdef Source
 
             obj.state_prep_error = state_prep_error;
         end
+    
     end
 end

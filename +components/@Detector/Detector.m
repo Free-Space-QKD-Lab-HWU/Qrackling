@@ -53,8 +53,8 @@ classdef Detector
         fwhm
 
         % Polarization compensation error (rms, degrees). Poor compensation
-        % increases QBER. Default value modeled after Micius.
-        polarisation_error {mustBeScalarOrEmpty, mustBeNonnegative} = asind(1/280)
+        % increases QBER.
+        polarisation_error {mustBeScalarOrEmpty, mustBeNonnegative} = 0
 
         % Supported wavelength range (nm) or model object.
         wavelength_range
@@ -77,6 +77,10 @@ classdef Detector
 
         % Interferometric visibility for phase‑based protocols (in [0, 1]).
         visibility {mustBeInRange(visibility, 0, 1)} = 1
+
+        % probability that one click causes another "afterpulsed" click
+        % randomly
+        afterpulse_probability (1,1) {mustBeInRange(afterpulse_probability,0,1)} = 0
 
     end
 
@@ -136,6 +140,7 @@ classdef Detector
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Efficiencies, 0), ...
                     mustBeLessThanOrEqual(options.Efficiencies, 1)}
+                options.afterpulse_probability (1,1) {mustBeInRange(options.afterpulse_probability,0,1)} = 0
             end
 
             % Implement detector properties
@@ -157,7 +162,7 @@ classdef Detector
             end
 
             obj.repetition_rate = repetition_rate;
-
+            obj.afterpulse_probability = options.afterpulse_probability;
             % Implement preset or custom detector data
             if isequal(options.Preset, 'none')
                 obj.dark_count_rate     = options.Dark_Count_Rate;
@@ -169,6 +174,7 @@ classdef Detector
                     options.Wavelength_Scale, ...
                     "nano", ...
                     options.Wavelength_Range);
+
             else
                 % If preset provided, load .mat file
                 if isstring(options.Preset)

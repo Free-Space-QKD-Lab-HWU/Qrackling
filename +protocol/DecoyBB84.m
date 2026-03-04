@@ -90,7 +90,7 @@ classdef DecoyBB84 < protocol.Proto
             % QBER contributions
             qber_cod = state_prep_error;
             qber_noise = 0.5 * prob_dark_counts ./ detection_probabilities;
-
+            
             % Total QBER, capped at 0.5
             qber = proto.combineQBER(qber_cod,qber_noise,qber_jitter,qber_polarisation_error);
             

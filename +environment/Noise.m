@@ -69,7 +69,7 @@ classdef Noise
             end
 
             % Iterate over remaining entries
-            for current_noise = noise_array(2:end)
+            for current_noise = noise_array(2:end)'
                 total = total + current_noise.values;
             end
         end

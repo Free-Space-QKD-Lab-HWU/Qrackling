@@ -176,13 +176,21 @@ function [loss_results, noise] = lossAndNoiseForChannel(transmitter, receiver, q
     % Dark counts
     dark_counts = ones(size(hdg)) * receiver.detector.dark_count_rate * qkd_protocol.num_detectors;
 
-    % Package noise
-    noise = [environment.Noise("Background Counts", background_counts)
-             environment.Noise("Detector Dark Counts", dark_counts)];
-
-
     % Compute losses
     [loss_results, ~] = nodes.linkLoss("qkd", ...
         receiver, transmitter);
     %here, if we wanted, we could specify which losses to simulate
+
+
+    % compute afterpulse noise using loss
+    click_rate = ...
+        loss_results.total_loss .* transmitter.source.overallMPN .* transmitter.source.repetition_rate + ...
+        dark_counts + background_counts;
+    afterpulse_counts = click_rate * receiver.detector.afterpulse_probability;
+    
+    % Package noise
+    noise = [environment.Noise("Background Counts", background_counts)
+             environment.Noise("Dark Counts", dark_counts)
+             environment.Noise("Afterpulse Counts",afterpulse_counts)];
+
 end

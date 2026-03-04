@@ -260,19 +260,33 @@ classdef Proto
             % qber = combineQBER(QBER1, QBER2, QBER3,...)
         
             arguments(Repeating)
-                QBER (1,:) {mustBeNonnegative, mustBeLessThanOrEqual(QBER,0.5)}
+                QBER
             end
         
-            %% validate that all QBERs are of equal length or scalar
+            %% validate that all QBERs are of equal length or scalar and remove nans
             length = [];
-            for current_qber=QBER
+            for current_index = 1:numel(QBER)
+                %get qber array
+                current_qber = QBER{current_index};
+                
+                %if nonscalar, check length matches other nonscalars
                 if ~isscalar(current_qber)
                     if ~isempty(length)
-                        assert(length(current_qber)==length, "QBERs provided to combineQBER must be scalar or match in length")
+                        assert(numel(current_qber)==length, "QBERs provided to combineQBER must be scalar or match in length")
                     else
-                        length = length(current_qber);
+                        length = numel(current_qber);
                     end
                 end
+
+                %replace nans with 0.5
+                nans = isnan(current_qber);
+                current_qber(nans)=0.5;
+                QBER{current_index} = current_qber;
+
+                % check that all elements are now 0<=x<=0.5
+                assert(all(current_qber>=0,"all"), 'all qber values must be >=0')
+                assert(all(current_qber<=0.5,'all'), 'all qber values must be <=0.5')
+                
             end
         
             %% compute QBER recursively

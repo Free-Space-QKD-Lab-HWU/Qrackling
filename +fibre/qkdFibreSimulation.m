@@ -125,11 +125,6 @@ function [loss_results, noise] = lossAndNoiseForChannel(transmitter, receiver, f
     %% Detector dark counts
     dark_counts = receiver.detector.dark_count_rate * qkd_protocol.num_detectors;
 
-    noise = [ ...
-        environment.Noise("Detector Dark Counts", dark_counts) ...
-    ];
-
-
     %% Compute losses
     loss_results = fibre.linkLoss(fibre_model, receiver, transmitter, ...
         'source efficiency', ...
@@ -137,4 +132,14 @@ function [loss_results, noise] = lossAndNoiseForChannel(transmitter, receiver, f
         'jitter', ...
         'fibre', ...
         'coupling');
+
+    % compute afterpulse noise using loss
+    click_rate = ...
+        loss_results.total_loss .* transmitter.source.overallMPN .* transmitter.source.repetition_rate + ...
+        dark_counts;
+    afterpulse_counts = click_rate * receiver.detector.afterpulse_probability;
+    
+    % Package noise
+    noise = [environment.Noise("Dark Counts", dark_counts)
+             environment.Noise("Afterpulse Counts",afterpulse_counts)];
 end

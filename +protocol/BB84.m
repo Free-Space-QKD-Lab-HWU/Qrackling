@@ -81,10 +81,11 @@ classdef BB84 < protocol.Proto
             %% QBER components
             qber_jitter = Bob.detector.qber_jitter;
             qber_polarisation_error = sind(Bob.detector.polarisation_error);
-
+            
             %% Total QBER
-            qber = (mu * prob_signal + prob_dark .* 0.5) ...
-                ./ prob_click + qber_jitter + qber_polarisation_error;
+            qber_dark_counts_and_state_prep = (mu * prob_signal + prob_dark .* 0.5) ...
+                ./ prob_click;
+            qber =  protoc.combineQBER(qber_dark_counts_and_state_prep,qber_jitter,qber_polarisation_error);
             qber(qber > 0.5) = 0.5;
 
             %% Privacy amplification factor
