@@ -217,6 +217,21 @@ classdef PassSimulationResult < nodes.QKDSimulationResult
             nexttile(7, [1, 2])
             title("BCR (counts/s)")
             n_sources = numel(result.noise);
+            % Only include noise sources that have any non-zero values
+            if isempty(result.noise)
+                n_sources = 0;
+            else
+                has_nonzero = false(1, numel(result.noise));
+                for k = 1:numel(result.noise)
+                    vals = result.noise(k).values;
+                    if any(vals ~= 0)
+                        has_nonzero(k) = true;
+                    end
+                end
+                % Keep only sources with non-zero entries
+                result.noise = result.noise(has_nonzero);
+                n_sources = numel(result.noise);
+            end
             n_points = numel(result.noise(1).values);
             bcr_data = reshape([result.noise.values], [n_points, n_sources]);
             area(x_axis(mask), bcr_data(mask, :))
