@@ -85,7 +85,7 @@ classdef BB84 < protocol.Proto
             %% Total QBER
             qber_dark_counts_and_state_prep = (mu * prob_signal + prob_dark .* 0.5) ...
                 ./ prob_click;
-            qber =  protoc.combineQBER(qber_dark_counts_and_state_prep,qber_jitter,qber_polarisation_error);
+            qber =  proto.combineQBER(qber_dark_counts_and_state_prep,qber_jitter,qber_polarisation_error);
             qber(qber > 0.5) = 0.5;
 
             %% Privacy amplification factor
