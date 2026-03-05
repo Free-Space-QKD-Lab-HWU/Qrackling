@@ -116,7 +116,6 @@ classdef Detector
                 repetition_rate double
                 time_gate_width double
                 spectral_filter
-                options.Wavelength_Scale units.Magnitude = 'nano'
                 options.Polarisation_Error double = asind(1 / 280)
                 options.Preset {mustBeMember(options.Preset, { ...
                     'Excelitas', 'Hamamatsu', 'ID_Qube_NIR', ...
@@ -135,17 +134,13 @@ classdef Detector
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Jitter_Histogram, 0)}
                 options.Histogram_Bin_Width {mustBeNumeric, mustBePositive}
-                options.Wavelength_Range {mustBeNumeric}
+                options.Wavelength_Range {mustBeNumeric,mustBeNonnegative}
                 options.Efficiencies { ...
                     mustBeNumeric, ...
                     mustBeGreaterThanOrEqual(options.Efficiencies, 0), ...
                     mustBeLessThanOrEqual(options.Efficiencies, 1)}
                 options.afterpulse_probability (1,1) {mustBeInRange(options.afterpulse_probability,0,1)} = 0
             end
-
-            % Implement detector properties
-            obj = obj.setWavelength(wavelength, ...
-                "Wavelength_Scale", options.Wavelength_Scale);
 
             obj.time_gate_width = time_gate_width;
 
@@ -154,8 +149,7 @@ classdef Detector
                 obj.spectral_filter = spectral_filter;
             elseif isnumeric(spectral_filter)
                 obj.spectral_filter = components.idealBPFilter( ...
-                    obj.wavelength, spectral_filter, ...
-                    "Wavelength_Scale", options.Wavelength_Scale);
+                    wavelength, spectral_filter);
             else
                 error(['spectral_filter must be a SpectralFilter object ' ...
                     'or a numeric filter width in nm']);
@@ -198,6 +192,9 @@ classdef Detector
             if isfield(options,"Efficiencies")
                 obj.efficiencies        = options.Efficiencies;
             end
+            if isfield(options,"Wavelength_Range")
+                obj.wavelength_range = options.Wavelength_Range;
+            end
             if isfield(options,"Histogram_Bin_Width")
                 obj.histogram_bin_width = options.Histogram_Bin_Width;
             end
@@ -209,6 +206,7 @@ classdef Detector
             obj = obj.densityFunctions();
             obj = obj.setJitterPerformance(repetition_rate);
             obj = obj.setDetectionEfficiency(Wavelength = wavelength);
+
         end
 
 
@@ -409,13 +407,13 @@ classdef Detector
 
             % find points where pdf crosses half max
             for idx = 2:n_bins
-                if obj.pdf(idx-1)<half_max && obj.pdf(idx)>half_max
+                if obj.pdf(idx-1)<=half_max && obj.pdf(idx)>half_max
                     upwards_crossing_idx = idx;
                     break
                 end
             end
             for idx = n_bins:-1:2
-                if obj.pdf(idx-1)>half_max && obj.pdf(idx)<half_max
+                if obj.pdf(idx-1)>=half_max && obj.pdf(idx)<half_max
                     downwards_crossing_idx = idx;
                     break
                 end
@@ -585,14 +583,14 @@ classdef Detector
 
             % mark points where pdf crosses half max
             for idx = 2:num_jitter_points
-                if obj.pdf(idx-1)<half_max && obj.pdf(idx)>half_max
+                if obj.pdf(idx-1)<=half_max && obj.pdf(idx)>half_max
                     upwards_crossing_time = jitter_times(idx);
                     xline(upwards_crossing_time,'g--')
                     break
                 end
             end
             for idx = num_jitter_points:-1:2
-                if obj.pdf(idx-1)>half_max && obj.pdf(idx)<half_max
+                if obj.pdf(idx-1)>=half_max && obj.pdf(idx)<half_max
                     downwards_crossing_time = jitter_times(idx);
                     xline(downwards_crossing_time,'g--')
                     break
@@ -709,9 +707,7 @@ classdef Detector
                 % obj.setWavelength(options.Wavelength);
                 obj.wavelength = options.Wavelength;
 
-                pw_poly = interp1(obj.wavelength_range, obj.efficiencies, ...
-                    'cubic', 'pp');
-                obj.detection_efficiency = ppval(pw_poly, options.Wavelength);
+                obj.detection_efficiency = interp1(obj.wavelength_range, obj.efficiencies,obj.wavelength, "linear");
             end
         end
 
