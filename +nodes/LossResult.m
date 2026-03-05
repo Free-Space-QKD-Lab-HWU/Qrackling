@@ -238,7 +238,7 @@ classdef LossResult
                     result.losses{result.numLosses+1} = current_loss';
                 else
                     error('loss with name %s of size %i cannot be added to lossResult with length %i',...
-                           size(current_loss),current_loss.name,result.length)
+                           current_loss.name,numel(current_loss),result.length)
                 end
             end
         end
