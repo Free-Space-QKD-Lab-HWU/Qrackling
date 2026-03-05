@@ -163,19 +163,10 @@ classdef Detector
 
             obj.repetition_rate = repetition_rate;
             obj.afterpulse_probability = options.afterpulse_probability;
-            % Implement preset or custom detector data
-            if isequal(options.Preset, 'none')
-                obj.dark_count_rate     = options.Dark_Count_Rate;
-                obj.dead_time           = options.Dead_Time;
-                obj.efficiencies        = options.Efficiencies;
-                obj.histogram_bin_width = options.Histogram_Bin_Width;
-                obj.jitter_histogram    = options.Jitter_Histogram;
-                obj.wavelength_range    = units.Magnitude.convert( ...
-                    options.Wavelength_Scale, ...
-                    "nano", ...
-                    options.Wavelength_Range);
 
-            else
+
+            if ~isequal(options.Preset, 'none')
+                % Implement preset or custom detector data
                 % If preset provided, load .mat file
                 if isstring(options.Preset)
                     options.Preset = char(options.Preset);
@@ -195,6 +186,23 @@ classdef Detector
                 obj.histogram_bin_width = Histogram_Bin_Width;
                 obj.jitter_histogram    = Jitter_Histogram;
                 obj.wavelength_range    = Wavelength_Range;
+            end
+
+            % implement overwriting as needed
+            if isfield(options,"Dark_Count_Rate")
+                obj.dark_count_rate     = options.Dark_Count_Rate;
+            end
+            if isfield(options,"Dead_Time")
+                obj.dead_time           = options.Dead_Time;
+            end
+            if isfield(options,"Efficiencies")
+                obj.efficiencies        = options.Efficiencies;
+            end
+            if isfield(options,"Histogram_Bin_Width")
+                obj.histogram_bin_width = options.Histogram_Bin_Width;
+            end
+            if isfield(options,"Jitter_Histogram")
+                obj.jitter_histogram    = options.Jitter_Histogram;
             end
 
             % Compute jitter QBER and loss
@@ -310,6 +318,7 @@ classdef Detector
             end
         end
 
+
         function obj = setJitterPerformance(obj, repetition_rate)
             % setJitterPerformance
             %
@@ -415,6 +424,7 @@ classdef Detector
             obj.fwhm = (downwards_crossing_idx - upwards_crossing_idx)*obj.histogram_bin_width;
 
         end
+
 
         function p = plotDetHistogram(obj)
             % plotDetHistogram
@@ -599,6 +609,7 @@ classdef Detector
                 'Color', 'g' ...
                 );
         end
+
 
         function obj = setDarkCountRate(obj, dcr)
             % setDarkCountRate
